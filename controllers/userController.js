@@ -11,7 +11,7 @@ exports.post = async (req, res) => {
 	let user = new User (postData);
 	let result = await user.save();
 	console.log(`User Added: ${result._id}`);
-    res.send({message: config.codes.code_record_added, data: result});
+    res.send({code: config.codes.code_record_added, data: result});
 }
 
 // READ
