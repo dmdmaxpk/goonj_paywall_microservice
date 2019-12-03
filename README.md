@@ -1,2 +1,0 @@
-Goonj User Service
-==================
