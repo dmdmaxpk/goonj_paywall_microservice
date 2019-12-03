@@ -19,13 +19,7 @@ mongoose.connect(config.mongoDB);
 mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
 
 // Import database models
-/*require('./models/Video');
-require('./models/Category');
-require('./models/Program');
-require('./models/Anchor');
-require('./models/Guest');
-require('./models/Topic');
-require('./models/Channel');*/
+require('./models/User');
 
 // Import routes
 app.use('/', require('./routes/index'));

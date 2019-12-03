@@ -1,33 +1,21 @@
 const mongoose = require('mongoose');
-const Video = mongoose.model('Video');
+const User = mongoose.model('User');
 const axios = require('axios');
 const config = require('../config');
 
 
 // CREATE
 exports.post = async (req, res) => {
-
     let postData = req.body;
-
 	// Saving document
-	let video = new Video (postData);
-	let result = await video.save();
-	
-	console.log(`Video Added: ${result._id}`);
-	
-	// Adding operator name for transcoding service:
-	result._doc.operator = 'telenor';	// _doc (field in object, IDK!!)
-
-	// After saving it to DB, sending tuple to transcoding service:
-	axios.post(config.transcodeServiceUrl, result)
-		.then( response => console.log(response.data) )
-		.catch( error => console.log(error) )
-
-    res.send(`Video Added: ${result._id}`);
+	let user = new User (postData);
+	let result = await user.save();
+	console.log(`User Added: ${result._id}`);
+    res.send({message: config.codes.code_record_added, data: result});
 }
 
 // READ
-exports.get = async (req, res) => {
+/*exports.get = async (req, res) => {
 
 	let { _id, title, category, sub_category, added_dtm, active, feed, anchor, topics, pinned, skip, limit } = req.query;
 	const query = {};
@@ -93,4 +81,4 @@ exports.delete = async (req, res) => {
 		console.log('No video with this ID found!');
 		res.send('No video with this ID found!');
 	}
-}
+}*/
