@@ -6,79 +6,83 @@ const config = require('../config');
 
 // CREATE
 exports.post = async (req, res) => {
-    let postData = req.body;
-	// Saving document
-	let user = new User (postData);
-	let result = await user.save();
-	console.log(`User Added: ${result._id}`);
-    res.send({code: config.codes.code_record_added, data: result});
+	let postData = req.body;
+	
+	// checking if there's already any user available with this email/username
+	let record = await findUser(postData.username);
+	if(record){
+		console.log('User already exists: '+ record._id);
+		res.send({code: config.codes.code_record_already_added, 'message': 'User already exists'});
+	}else{
+		// Saving document
+		let user = new User (postData);
+		let result = await user.save();
+		console.log(`User Added: ${result._id}`);
+		res.send({code: config.codes.code_record_added, data: result});
+	}
 }
 
-// READ
-/*exports.get = async (req, res) => {
+findUser = async(username) => {
+	result = await User.findOne({username: username});
+	return result;
+}
 
-	let { _id, title, category, sub_category, added_dtm, active, feed, anchor, topics, pinned, skip, limit } = req.query;
+// GET
+exports.get = async (req, res) => {
+
+	let { _id, username, email} = req.query;
 	const query = {};
 
 	if (_id) query._id = _id;
-	if (title) query.title = title;	
-	if (category) query.category = category;
-	if (sub_category) query.sub_category = sub_category;
-	if (anchor) query.anchor = { $in: anchor.split(',') } 
-	if (topics) query.topics = { $in: topics.split(',') } 
-	if (added_dtm) query.added_dtm = added_dtm;
-	if (feed) query.feed = feed;
-	if (active) query.active = active;
-	if (pinned) query.pinned = JSON.parse(pinned);		// Conversion of string to Boolean
+	if (username) query.username = username;	
+	if (email) query.email = email;
 
 	let result;
-	
 	// Single document
 	if (_id) {
-		result = await Video.findOne(query); 
-		console.log(`GET Video by ID=${_id}`);
-	}
-	// All documents
-	else {
-		result = await Video.find(query).sort({ added_dtm: -1 }).limit(Number(limit) || 16);  		// Sorting by added_dtm && Applying limit if provided otherwise default 16
+		result = await User.findOne(query); 
+		console.log(`GET Video by ID = ${_id}`);
 	}
 
+	// All documents
+	else {
+		// Sorting by added_dtm && Applying limit if provided otherwise default 16
+		result = await User.find(query).sort({ added_dtm: -1 }).limit(1);
+	}
 	res.send(result);
 }
 
 // UPDATE
 exports.put = async (req, res) => {
-
-	const query = { _id: req.query._id };
-	
+	const query = { _id: req.params.id };
 	let postBody = req.body;
 	postBody.last_modified = new Date();	// Adding last_modified on video update
-	
-	const result = await Video.updateOne(query, postBody);		// Updating values
+	const result = await User.updateOne(query, postBody);		// Updating values
 	
 	if (result.nModified == 0) {
-		console.log('No Video with this ID found!');
-		res.send('No Video with this ID found!');
-	}
-	else {
-		console.log(`Video Updated!`);
-		res.send(`Video Updated!`);
+		console.log('No user with this ID found!');
+		res.send({'code': config.codes.code_invalid_data_provided, 'message': 'No user with this ID found!'});
+	}else {
+		console.log(`User Updated ${query._id}`);
+		res.send({'code': config.codes.code_record_updated, 'message' : 'Data updated successfully'});
 	}
 }
 
 // DELETE
 exports.delete = async (req, res) => {
-
-	const query = { _id: req.query._id };
-
-	const result = await Video.findOneAndRemove( query );	// Removing document based on the _id provided
 	
-	if (result) {
-		console.log(`Video _id: ${query._id} Deleted!`);
-		res.send(`Video _id: ${query._id} Deleted!`);
+	//Soft delete
+	
+	const query = { _id: req.params.id, active: true };
+	let postBody = {active: false};
+	postBody.last_modified = new Date();	// Adding last_modified on video update
+	const result = await User.updateOne(query, postBody);		// Updating values
+	
+	if (result.nModified == 0) {
+		console.log('No user with this ID found!');
+		res.send({'code': config.codes.code_invalid_data_provided, 'message': 'No user with this ID found!'});
+	}else {
+		console.log(`User deleted ${query._id}`);
+		res.send({'code': config.codes.code_record_deleted, 'message' : 'User deleted successfully'});
 	}
-	else {
-		console.log('No video with this ID found!');
-		res.send('No video with this ID found!');
-	}
-}*/
+}

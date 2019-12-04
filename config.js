@@ -6,10 +6,11 @@ const codes = {
     code_error: -1,
     code_success: 0,
     code_record_added: 1,
-    code_record_update: 2,
+    code_record_updated: 2,
     code_record_deleted: 3,
 
-    code_invalid_data_provided: 4
+    code_invalid_data_provided: 4,
+    code_record_already_added: 5,
 }
 
 let config = {
