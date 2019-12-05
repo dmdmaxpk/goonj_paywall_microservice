@@ -8,8 +8,7 @@ router.route('/')
     .get(userController.get);
 
 // Update on the basis of user id
-router.route('/:id')
-    .put(userController.put)
-    .delete(userController.delete);
+router.route('/:mobile')
+    .put(userController.put);
 
 module.exports = router;

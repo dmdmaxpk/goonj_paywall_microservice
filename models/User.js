@@ -10,6 +10,7 @@ const userSchema = new Schema({
     fullname: String,
     email: String,
     description: String,
+    mobile: String,
 
     //source of the user or the origin of the user
     source: String,
@@ -19,7 +20,6 @@ const userSchema = new Schema({
     last_modified: Date,
     avatar: String,
     active: { type: Boolean, default: true, index: true }
-    
 }, { strict: true })
 
 module.exports = mongoose.model('User', userSchema);

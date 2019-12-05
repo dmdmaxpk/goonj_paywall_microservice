@@ -20,6 +20,7 @@ mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
 
 // Import database models
 require('./models/User');
+require('./models/Package');
 
 // Import routes
 app.use('/', require('./routes/index'));

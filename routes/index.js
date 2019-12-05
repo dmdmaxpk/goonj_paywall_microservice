@@ -5,5 +5,6 @@ const router = express.Router();
 router.get('/', (req, res) => res.send("User Microservice"));
 
 router.use('/user',    require('./userRoutes'));
+router.use('/package',    require('./packageRoutes'));
 
 module.exports = router;

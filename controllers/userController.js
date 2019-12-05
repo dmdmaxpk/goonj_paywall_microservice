@@ -30,31 +30,32 @@ findUser = async(username) => {
 // GET
 exports.get = async (req, res) => {
 
-	let { _id, username, email} = req.query;
+	let { _id, username, email, mobile} = req.query;
 	const query = {};
 
 	if (_id) query._id = _id;
 	if (username) query.username = username;	
 	if (email) query.email = email;
+	if (mobile) query.mobile = mobile;
 
 	let result;
 	// Single document
 	if (_id) {
 		result = await User.findOne(query); 
-		console.log(`GET Video by ID = ${_id}`);
+		console.log(`GET User by ID = ${_id}`);
 	}
 
 	// All documents
 	else {
 		// Sorting by added_dtm && Applying limit if provided otherwise default 16
-		result = await User.find(query).sort({ added_dtm: -1 }).limit(1);
+		result = await User.findOne(query);
 	}
 	res.send(result);
 }
 
 // UPDATE
 exports.put = async (req, res) => {
-	const query = { _id: req.params.id };
+	const query = { mobile: req.params.mobile };
 	let postBody = req.body;
 	postBody.last_modified = new Date();	// Adding last_modified on video update
 	const result = await User.updateOne(query, postBody);		// Updating values
