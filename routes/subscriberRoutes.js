@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/packageController')
+const controller = require('../controllers/subscriberController')
 
 
 router.route('/')
     .post(controller.post)
-    .get(controller.get);
 
-// Update on the basis of user id
-router.route('/:id')
+// Update on the basis of subscriber msisdn
+router.route('/:msisdn')
     .put(controller.put)
+    .get(controller.get);
 
 module.exports = router;

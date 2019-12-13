@@ -1,26 +1,26 @@
 const config = require('../config');
-const repo = require('../repos/UserRepo');
+const repo = require('../repos/SubscriberRepo');
 
 // CREATE
 exports.post = async (req, res) => {
 	let postData = req.body;
 	
-	// checking if there's already any user available with this email/username/msisdn
-	let record = await repo.getUser(postData.msisdn);
+	// checking if there's already any subscriber available with this email/subscribername/msisdn
+	let record = await repo.getSubscriber(postData.msisdn);
 	if(record){
-		res.send({code: config.codes.code_record_already_added, 'message': 'User already exists'});
+		res.send({code: config.codes.code_record_already_added, 'message': 'Subscriber already exists'});
 	}else{
 		// Saving document
-		let result = await repo.createUser(postData);
+		let result = await repo.createSubscriber(postData);
 		res.send({code: config.codes.code_record_added, data: result});
 	}
 }
 
 // GET
 exports.get = async (req, res) => {
-	let { msisdn } = req.query;
+	let { msisdn } = req.params;
 	if (msisdn) {
-		result = await repo.getUser(msisdn);
+		result = await repo.getSubscriber(msisdn);
 		if(result){
 			res.send({code: config.codes.code_success, data: result});
 		}else{
@@ -34,10 +34,10 @@ exports.get = async (req, res) => {
 
 // UPDATE
 exports.put = async (req, res) => {
-	const result = await repo.updateUser(req.params.msisdn, req.body);
+	const result = await repo.updateSubscriber(req.params.msisdn, req.body);
 	if (result) {
 		res.send({'code': config.codes.code_record_updated, data : result});
 	}else {
-		res.send({'code': config.codes.code_data_not_found, data: 'No user with this msisdn found!'});
+		res.send({'code': config.codes.code_data_not_found, data: 'No subscriber with this msisdn found!'});
 	}
 }

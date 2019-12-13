@@ -11,23 +11,61 @@ const codes = {
 
     code_invalid_data_provided: 4,
     code_record_already_added: 5,
+    code_data_not_found: 6,
+
+    code_otp_validated: 7,
+    code_otp_not_validated: 8,
+    code_already_subscribed: 9,
+    code_in_billing_queue = 10
 }
+
+
+const subscription_status = {
+    status_subscribed: "subscribed",
+    status_not_subscribed: "not_subscribed",
+    status_expired: "expired",
+    status_graced: "grace"
+}
+
+const queueNames = {
+    messageDispathcer: 'messageDispathcer',
+    subscriptionDispatcher: 'subscriptionDispatcher'
+}
+
+// Telenor DCB API's configs
+const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
+const telenor_dcb_api_token = '';
 
 let config = {
     development: {
-        port: '4000',
+        port: '5000',
         mongoDB: 'mongodb://localhost:27017/goonj_users',
-        codes: codes
+        rabbitMq: 'amqp://localhost',
+        queueNames: queueNames,
+        telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
+        telenor_dcb_api_token: telenor_dcb_api_token,
+        codes: codes,
+        subscription_status: subscription_status
     },
     staging: {
-        port: '4000',
+        port: '5000',
         mongoDB: 'mongodb://localhost:27017/goonj_users',
-        codes: codes
+        rabbitMq: 'amqp://localhost',
+        queueNames: queueNames,
+        telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
+        telenor_dcb_api_token: telenor_dcb_api_token,
+        codes: codes,
+        subscription_status: subscription_status
     },
     production: {
-        port: '4000',
+        port: '5000',
         mongoDB: 'mongodb://localhost:27017/goonj_users',
-        codes: codes
+        rabbitMq: 'amqp://localhost',
+        queueNames: queueNames,
+        telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
+        telenor_dcb_api_token: telenor_dcb_api_token,
+        codes: codes,
+        subscription_status: subscription_status
     }
 };
 
