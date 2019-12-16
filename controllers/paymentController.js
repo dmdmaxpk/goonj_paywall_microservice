@@ -16,7 +16,7 @@ function sendMessage(otp, msisdn){
 
 subscribePackage = async(subscriber, packageObj) => {
 	let user = await userRepo.getUserById(subscriber.user_id);
-	
+
 	// Fetch user is not already available
 	if(!packageObj){
 		packageObj = await packageRepo.getPackage(user.subscribed_package_id);
@@ -214,9 +214,9 @@ exports.subscribe = async (req, res) => {
 			postObj.user_id = user._id;
 			postObj.subscription_status = 'none';
 
-			let created = await subscriberRepo.createSubscriber(postObj);
-			if(created){
-				console.log('Payment - SubscriberCreated - ', created.user_id, ' - ', (new Date()));
+			let subscriber = await subscriberRepo.createSubscriber(postObj);
+			if(subscriber){
+				console.log('Payment - SubscriberCreated - ', subscriber.user_id, ' - ', (new Date()));
 				/* 
 				* Subscriber created successfully
 				* Let's send this item in queue and update package, auto_renewal and 
