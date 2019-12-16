@@ -21,6 +21,14 @@ app.use(mongoSanitize());
 mongoose.connect(config.mongoDB);
 mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
 
+// Import database models
+require('./models/User');
+require('./models/Package');
+require('./models/OTP');
+require('./models/Subscriber');
+require('./models/BillingHistory');
+require('./models/ApiToken');
+
 // Prefetch a token for the first time
 billingRepo.generateToken().then(token => {
     console.log('Token fetched!');
@@ -89,15 +97,6 @@ rabbitMq.initializeMesssageServer((err, channel) => {
         });
     }
 });
-
-
-// Import database models
-require('./models/User');
-require('./models/Package');
-require('./models/OTP');
-require('./models/Subscriber');
-require('./models/BillingHistory');
-require('./models/ApiToken');
 
 
 // Import routes
