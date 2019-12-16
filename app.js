@@ -7,7 +7,6 @@ const mongoose = require('mongoose');
 const config = require('./config');
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
-let subscriberRepo = require('./repos/SubscriberRepo');
 
 const app = express();
 
@@ -28,6 +27,9 @@ require('./models/OTP');
 require('./models/Subscriber');
 require('./models/BillingHistory');
 require('./models/ApiToken');
+
+
+let subscriberRepo = require('./repos/SubscriberRepo');
 
 // Prefetch a token for the first time
 billingRepo.generateToken().then(token => {
