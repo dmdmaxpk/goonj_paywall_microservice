@@ -57,7 +57,7 @@ subscribePackage = async(subscriptionObj) => {
             headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
             data: form
         }).then(function(response){
-            subscriptionObj.api_response = response.data;
+            subscriptionObj.api_response = response;
             resolve(subscriptionObj);
         }).catch(function(err){
             reject(err);
