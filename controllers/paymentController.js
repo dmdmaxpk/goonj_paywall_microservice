@@ -14,16 +14,17 @@ function sendMessage(otp, msisdn){
 	rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
 }
 
-subscribePackage = async(subscriber, packageObj) => {
-	let user = await userRepo.getUserById(subscriber.user_id);
+subscribePackage = async(user, packageObj) => {
 
 	// Fetch user is not already available
 	if(!packageObj){
 		packageObj = await packageRepo.getPackage(user.subscribed_package_id);
 	}
+
 	let msisdn = user.msisdn;
 	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+getCurrentDate();
 	let subscriptionObj = {};
+	subscriptionObj.user_id = user._id;
 	subscriptionObj.msisdn = msisdn;
 	subscriptionObj.packageObj = packageObj;
 	subscriptionObj.transactionId = transactionId;
@@ -187,7 +188,7 @@ exports.subscribe = async (req, res) => {
 					let newPackageId = req.body.package_id;
 					let packageObj = await packageRepo.getPackage({_id: newPackageId});
 					if(packageObj){
-						subscribePackage(subscriber, packageObj)
+						subscribePackage(user, packageObj)
 						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
 					}else{
 						res.send({code: config.codes.code_error, message: 'Wrong package id'});
@@ -202,7 +203,7 @@ exports.subscribe = async (req, res) => {
 				let newPackageId = req.body.package_id;
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
 				if(packageObj){
-					subscribePackage(subscriber, packageObj)
+					subscribePackage(user, packageObj)
 					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
 				}else{
 					res.send({code: config.codes.code_error, message: 'Wrong package id'});
@@ -225,7 +226,7 @@ exports.subscribe = async (req, res) => {
 				let newPackageId = req.body.package_id;
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
 				if(packageObj){
-					subscribePackage(subscriber, packageObj)
+					subscribePackage(user, packageObj)
 					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
 				}else{
 					res.send({code: config.codes.code_error, message: 'Wrong package id'});

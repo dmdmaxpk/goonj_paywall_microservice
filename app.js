@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const config = require('./config');
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
+let subscriberRepo = require('./repos/SubscriberRepo');
 
 const app = express();
 
@@ -53,13 +54,32 @@ rabbitMq.initializeMesssageServer((err, channel) => {
         rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
             let subscriptionObj = JSON.parse(response.content);
             billingRepo.subscribePackage(subscriptionObj)
-            .then(data => {
+            .then(response => {
                 if(data){
-                    let message = data.api_response.Message;
+                    let message = response.api_response.data.Message;
                     if(message === 'Success'){
                         // Billed successfully
+                        let subscriber = subscriberRepo.getSubscriber(response.user_id);
+                        console.log('BillingSuccess - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
+                        let nextBilling = new Date();
+                        nextBilling.setHours(nextBilling.getHours() + response.packageObj.package_duration);
+
+                        let subObj = {};
+                        subObj.subscription_status = 'billed';
+                        subObj.auto_renewal = true;
+                        subObj.last_billing_timestamp = new Date();
+                        subObj.next_billing_timestamp = nextBilling;
+                        subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts) + 1);
+                        subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts) + 1);
+                        subscriberRepo.updateSubscriber(subscriber._id, subObj);
                     }else{
                         // Billing failed
+                        console.log('BillingFailed - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
+                        let subObj = {};
+                        subObj.subscription_status = 'not_billed';
+                        subObj.last_billing_timestamp = new Date();
+                        subObj.consecutive_successive_bill_counts = 0;
+                        subscriberRepo.updateSubscriber(subscriber._id, subObj);
                     }
                 }
                 console.log(data);
