@@ -38,7 +38,6 @@ exports.sendOtp = async (req, res) => {
 	let otpUser = await otpRepo.getOtp(msisdn);
 
 	if(otpUser){
-		
 		// Record already present in collection, lets check it further.
 		if(otpUser.verified === true){
 			/* Means, this user is already verified by otp, probably he/she just wanted to 

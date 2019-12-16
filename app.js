@@ -39,17 +39,16 @@ rabbitMq.initializeMesssageServer((err, channel) => {
 
         //Let's start queue consumption
         // Messaging Queue
-        rabbitMq.consumeQueue(config.queueNames.messageDispathcer, (response, err) => {
-            if(err){
-                console.log('Queue consumption error', err)
-            }else{
-                let messageObj = JSON.parse(response.content);
-                billingRepo.sendMessage(messageObj.message, messageObj.msisdn).then(data => {
-                    console.log(data.message);
-                }).catch(error => {
-                    console.log('Error: ', error.message)
-                });
-            }
+        rabbitMq.consumeQueue(config.queueNames.messageDispathcer, (response) => {
+            console.log(response);
+            let messageObj = JSON.parse(response);
+            console.log(messageObj);
+            
+            billingRepo.sendMessage(messageObj.message, messageObj.msisdn).then(data => {
+                console.log(data.message);
+            }).catch(error => {
+                console.log('Error: ', error.message)
+            });
         });
 
         // Subscriptin Queue
