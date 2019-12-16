@@ -7,8 +7,8 @@ createSubscriber = async(postData) => {
     return result;
 }
 
-getSubscriber =async(msisdn) => {
-    result = await Subscriber.findOne({msisdn: msisdn});
+getSubscriber =async(user_id) => {
+    result = await Subscriber.findOne({user_id: user_id});
     return result;
 }
 
@@ -19,8 +19,8 @@ getRenewableSubscribers =async() => {
     return results;
 }
 
-updateSubscriber = async(msisdn, postData) => {
-    const query = { msisdn: msisdn };
+updateSubscriber = async(user_id, postData) => {
+    const query = { user_id: user_id };
     postData.last_modified = new Date();
     const result = await Subscriber.updateOne(query, postData);
     if (result.nModified === 0) {
@@ -31,8 +31,8 @@ updateSubscriber = async(msisdn, postData) => {
     }
 }
 
-deleteSubscriber = async(msisdn) => {
-    const result = await Subscriber.deleteOne({msisdn: msisdn});
+deleteSubscriber = async(user_id) => {
+    const result = await Subscriber.deleteOne({user_id: user_id});
     return result;
 }
 

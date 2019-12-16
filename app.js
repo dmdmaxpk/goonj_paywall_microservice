@@ -49,18 +49,14 @@ rabbitMq.initializeMesssageServer((err, channel) => {
         });
 
         // Subscriptin Queue
-        rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response, err) => {
-            if(err){
-                console.log('Queue consumption error', err)
-            }else{
-                let subscriptionObj = JSON.parse(response.content);
-                billingRepo.subscribePackage(subscriptionObj)
-                .then(data => {
-                    console.log(data);
-                }).catch(error => {
-                    console.log('Error: ', error.message)
-                });
-            }
+        rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
+            let subscriptionObj = JSON.parse(response.content);
+            billingRepo.subscribePackage(subscriptionObj)
+            .then(data => {
+                console.log(data);
+            }).catch(error => {
+                console.log('Error: ', error.message)
+            });
         });
     }
 });

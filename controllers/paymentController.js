@@ -14,7 +14,14 @@ function sendMessage(otp, msisdn){
 	rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
 }
 
-function subscribePackage(msisdn, packageObj){
+subscribePackage = async(subscriber, packageObj) => {
+	let user = await userRepo.getUserById(subscriber.user_id);
+	
+	// Fetch user is not already available
+	if(!packageObj){
+		packageObj = await packageRepo.getPackage(user.subscribed_package_id);
+	}
+	let msisdn = user.msisdn;
 	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+getCurrentDate();
 	let subscriptionObj = {};
 	subscriptionObj.msisdn = msisdn;
@@ -26,9 +33,25 @@ function subscribePackage(msisdn, packageObj){
 	console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
 }
 
+
 // Generate OTP and save to collection
 exports.sendOtp = async (req, res) => {
 	let msisdn = req.body.msisdn;
+	let user = await userRepo.getUserByMsisdn(msisdn);
+	
+	if(!user){
+		// Means no user in DB, let's create one
+		let userObj = {};
+		userObj.msisdn = msisdn;
+		userObj.subscribed_package_id = 'none';
+		userObj.source = req.body.source;
+		userObj.operator = 'telenor';
+		
+		user = await userRepo.createUser(userObj);
+		if(user){
+			console.log('Payment - OTP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
+		}
+	}
 
 	// Generate OTP
 	let otp = Math.floor(Math.random() * 90000) + 10000;
@@ -116,13 +139,13 @@ exports.verifyOtp = async (req, res) => {
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
 	let msisdn = req.body.msisdn;
-	let user = await userRepo.getUser(msisdn);
+	let user = await userRepo.getUserByMsisdn(msisdn);
 	
 	if(!user){
 		// Means no user in DB, let's create one
 		let userObj = {};
 		userObj.msisdn = msisdn;
-		userObj.package = 'none';
+		userObj.subscribed_package_id = 'none';
 		userObj.source = req.body.source
 		
 		user = await userRepo.createUser(userObj);
@@ -133,14 +156,14 @@ exports.subscribe = async (req, res) => {
 
 	if(user){
 		// User available in DB
-		let subscriber = await subscriberRepo.getSubscriber(msisdn);
+		let subscriber = await subscriberRepo.getSubscriber(user._id);
 		if(subscriber){
 			// Subscriber already present in DB, let's check his/her subscription status
 			if(subscriber.subscription_status === 'billed'){
 				// User is already billed
 				
-				let currentPackageId = subscriber.package;
-				let newPackageId = req.body.package;
+				let currentPackageId = user.subscribed_package_id;
+				let newPackageId = req.body.package_id;
 				let autoRenewal = subscriber.auto_renewal;
 
 				if(currentPackageId === newPackageId){
@@ -149,9 +172,9 @@ exports.subscribe = async (req, res) => {
 						res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed'});
 					}else{
 						// Same, package - just switch on auto renewal so that the user can get charge automatically.
-						let updated = subscriberRepo.updateSubscriber(msisdn, {auto_renewal: true});
+						let updated = subscriberRepo.updateSubscriber(user._id, {auto_renewal: true});
 						if(updated){
-							res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed'});
+							res.send({code: config.codes.code_already_subscribed, message: 'Subscribed'});
 						}else{
 							res.send({code: config.codes.code_error, message: 'Error updating record!'});
 						}
@@ -161,10 +184,10 @@ exports.subscribe = async (req, res) => {
 					 * Let's send this item in queue and update package, auto_renewal and 
 					 * billing date times once user successfully billed
 					 */
-					let newPackageId = req.body.package;
+					let newPackageId = req.body.package_id;
 					let packageObj = await packageRepo.getPackage({_id: newPackageId});
-					if(packageObj && packageObj.length === 1){
-						subscribePackage(msisdn, packageObj[0])
+					if(packageObj){
+						subscribePackage(subscriber, packageObj)
 						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
 					}else{
 						res.send({code: config.codes.code_error, message: 'Wrong package id'});
@@ -176,10 +199,10 @@ exports.subscribe = async (req, res) => {
 				* Let's send this item in queue and update package, auto_renewal and 
 				* billing date times once user successfully billed
 				*/
-				let newPackageId = req.body.package;
+				let newPackageId = req.body.package_id;
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
-				if(packageObj && packageObj.length === 1){
-					subscribePackage(msisdn, packageObj[0])
+				if(packageObj){
+					subscribePackage(subscriber, packageObj)
 					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
 				}else{
 					res.send({code: config.codes.code_error, message: 'Wrong package id'});
@@ -188,24 +211,21 @@ exports.subscribe = async (req, res) => {
 		}else{
 			// No subscriber found in DB, lets create new one
 			var postObj = {};
-			postObj.msisdn = msisdn;
-			postObj.plarform = req.body.source;
-			postObj.operator = 'telenor';
-			postObj.userid = user._id;
-			postObj.package = 'none';
+			postObj.user_id = user._id;
+			postObj.subscription_status = 'none';
 
 			let created = await subscriberRepo.createSubscriber(postObj);
 			if(created){
-				console.log('Payment - SubscriberCreated - ', created.msisdn, ' - ', (new Date()));
+				console.log('Payment - SubscriberCreated - ', created.user_id, ' - ', (new Date()));
 				/* 
 				* Subscriber created successfully
 				* Let's send this item in queue and update package, auto_renewal and 
 				* billing date times once user successfully billed
 				*/
-				let newPackageId = req.body.package;
+				let newPackageId = req.body.package_id;
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
-				if(packageObj && packageObj.length === 1){
-					subscribePackage(msisdn, packageObj[0])
+				if(packageObj){
+					subscribePackage(subscriber, packageObj)
 					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
 				}else{
 					res.send({code: config.codes.code_error, message: 'Wrong package id'});

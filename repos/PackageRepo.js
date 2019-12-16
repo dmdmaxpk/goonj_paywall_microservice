@@ -9,7 +9,10 @@ createPackage = async(postData) => {
 
 getPackage = async(query) => {
     query.active = true;
-	result = await Package.find(query);
+    let result = await Package.find(query);
+    if(result && result.length == 1){
+        return result[0];
+    }
 	return result;
 }
 

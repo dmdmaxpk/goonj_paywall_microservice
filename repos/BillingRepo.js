@@ -40,7 +40,7 @@ sendMessage = async(message, msisdn) => {
 // To subscribe package
 subscribePackage = async(subscriptionObj) => {
     let {msisdn, packageObj, transactionId} = subscriptionObj;
-    console.log('TelenorBilling - ', msisdn, ' - Package - ', packageObj.package, ' - Price - ', packageObj.price_point, ' - TransectionId - ', transactionId, ' - ', (new Date()));
+    console.log('TelenorBilling - ', msisdn, ' - Package - ', packageObj.package_name, ' - Price - ', packageObj.price_point_pkr, ' - TransectionId - ', transactionId, ' - ', (new Date()));
     
     let form = {
         "correlationID": transactionId,

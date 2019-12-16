@@ -7,8 +7,13 @@ createUser = async(postData) => {
     return result;
 }
 
-getUser =async(msisdn) => {
+getUserByMsisdn =async(msisdn) => {
     result = await User.findOne({msisdn: msisdn});
+    return result;
+}
+
+getUserById =async(id) => {
+    let result = await User.findOne({_id: id});
     return result;
 }
 
@@ -32,7 +37,8 @@ deleteUser = async(msisdn) => {
 
 module.exports = {
     createUser: createUser,
-    getUser: getUser,
+    getUserByMsisdn: getUserByMsisdn,
+    getUserById: getUserById,
     updateUser: updateUser,
     deleteUser: deleteUser
 }

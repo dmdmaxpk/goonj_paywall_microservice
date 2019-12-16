@@ -39,7 +39,7 @@ const telenor_dcb_api_token = '';
 let config = {
     development: {
         port: '5000',
-        mongoDB: 'mongodb://localhost:27017/goonj_users',
+        mongoDB: 'mongodb://localhost:27017/goonjpaywall',
         rabbitMq: 'amqp://localhost',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
@@ -49,7 +49,7 @@ let config = {
     },
     staging: {
         port: '5000',
-        mongoDB: 'mongodb://localhost:27017/goonj_users',
+        mongoDB: 'mongodb://localhost:27017/goonjpaywall',
         rabbitMq: 'amqp://localhost',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
@@ -59,7 +59,7 @@ let config = {
     },
     production: {
         port: '5000',
-        mongoDB: 'mongodb://localhost:27017/goonj_users',
+        mongoDB: 'mongodb://localhost:27017/goonjpaywall',
         rabbitMq: 'amqp://localhost',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
