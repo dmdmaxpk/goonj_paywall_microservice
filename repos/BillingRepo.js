@@ -45,7 +45,7 @@ subscribePackage = async(subscriptionObj) => {
     let form = {
         "correlationID": transactionId,
         "msisdn": msisdn,
-        "chargableAmount": packageObj.price_point,
+        "chargableAmount": packageObj.price_point_pkr,
         "PartnerID": "TP-GoonjDCB",
         "ProductID": "GoonjDCB-Charge"
     }
