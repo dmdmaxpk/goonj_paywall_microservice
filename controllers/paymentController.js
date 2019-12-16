@@ -230,7 +230,6 @@ exports.subscribe = async (req, res) => {
 				}else{
 					res.send({code: config.codes.code_error, message: 'Wrong package id'});
 				}
-				res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
 			}else{
 				res.send({code: config.codes.code_error, message: 'Failed to create subscriber'});
 			}
