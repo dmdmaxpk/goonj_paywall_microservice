@@ -64,7 +64,7 @@ rabbitMq.initializeMesssageServer((err, channel) => {
         rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
             let subscriptionObj = JSON.parse(response.content);
             billingRepo.subscribePackage(subscriptionObj)
-            .then(response => {
+            .then((response) => {
                 if(response){
                     console.log(response);
                     let message = response.api_response.data.Message;
@@ -99,7 +99,7 @@ rabbitMq.initializeMesssageServer((err, channel) => {
                         }
                     }
                 }
-            }).catch(error => {
+            }).catch((error) => {
                 console.log('Error: ', error.message)
             });
         });
