@@ -65,7 +65,7 @@ rabbitMq.initializeMesssageServer((err, channel) => {
             let subscriptionObj = JSON.parse(response.content);
             billingRepo.subscribePackage(subscriptionObj)
             .then(response => {
-                if(data){
+                if(response){
                     let message = response.api_response.data.Message;
                     if(message === 'Success'){
                         // Billed successfully
