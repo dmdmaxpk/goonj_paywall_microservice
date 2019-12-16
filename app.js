@@ -40,12 +40,9 @@ rabbitMq.initializeMesssageServer((err, channel) => {
         //Let's start queue consumption
         // Messaging Queue
         rabbitMq.consumeQueue(config.queueNames.messageDispathcer, (response) => {
-            console.log(response.content);
             let messageObj = JSON.parse(response.content);
-            console.log(messageObj);
-
             billingRepo.sendMessage(messageObj.message, messageObj.msisdn).then(data => {
-                console.log(data.message);
+                console.log(data);
             }).catch(error => {
                 console.log('Error: ', error.message)
             });
