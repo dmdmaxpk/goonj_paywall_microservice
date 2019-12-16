@@ -79,8 +79,8 @@ rabbitMq.initializeMesssageServer((err, channel) => {
                         subObj.auto_renewal = true;
                         subObj.last_billing_timestamp = new Date();
                         subObj.next_billing_timestamp = nextBilling;
-                        subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts) + 1);
-                        subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts) + 1);
+                        subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
+                        subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
                         subscriberRepo.updateSubscriber(subscriber._id, subObj);
                     }else{
                         // Billing failed
@@ -92,7 +92,6 @@ rabbitMq.initializeMesssageServer((err, channel) => {
                         subscriberRepo.updateSubscriber(subscriber._id, subObj);
                     }
                 }
-                console.log(data);
             }).catch(error => {
                 console.log('Error: ', error.message)
             });
