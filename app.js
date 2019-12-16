@@ -66,10 +66,11 @@ rabbitMq.initializeMesssageServer((err, channel) => {
             billingRepo.subscribePackage(subscriptionObj)
             .then(response => {
                 if(response){
+                    console.log(response);
                     let message = response.api_response.data.Message;
                     if(message === 'Success'){
                         // Billed successfully
-                        let subscriber = subscriberRepo.getSubscriber(response.user_id);
+                        let subscriber = await subscriberRepo.getSubscriber(response.user_id);
                         console.log('BillingSuccess - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
                         let nextBilling = new Date();
                         nextBilling.setHours(nextBilling.getHours() + response.packageObj.package_duration);
@@ -81,7 +82,7 @@ rabbitMq.initializeMesssageServer((err, channel) => {
                         subObj.next_billing_timestamp = nextBilling;
                         subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
                         subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
-                        let updatedSubscriber = await subscriberRepo.updateSubscriber(subscriber._id, subObj);
+                        let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
                         if(updatedSubscriber){
                             console.log('Subscriber updated');
                         }

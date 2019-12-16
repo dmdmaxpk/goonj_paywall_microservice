@@ -26,7 +26,7 @@ updateSubscriber = async(user_id, postData) => {
     if (result.nModified === 0) {
         return undefined;
     }else{
-        let subscriber = await getSubscriber(msisdn);
+        let subscriber = await getSubscriber(user_id);
         return subscriber;
     }
 }
