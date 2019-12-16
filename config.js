@@ -16,7 +16,7 @@ const codes = {
     code_otp_validated: 7,
     code_otp_not_validated: 8,
     code_already_subscribed: 9,
-    code_in_billing_queue = 10
+    code_in_billing_queue: 10
 }
 
 

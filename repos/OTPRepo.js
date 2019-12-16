@@ -14,7 +14,7 @@ getOtp = async(msisdn) => {
 
 updateOtp = async(msisdn, postData) => {
     const query = { msisdn: msisdn };
-    postBody.last_modified = new Date();
+    postData.last_modified = new Date();
     
     const result = await OTP.updateOne(query, postData);
     if (result.nModified === 0) {

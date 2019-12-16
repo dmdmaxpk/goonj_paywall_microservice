@@ -2,14 +2,28 @@ const config = require('../config');
 const otpRepo = require('../repos/OTPRepo');
 const userRepo = require('../repos/UserRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
+const packageRepo = require('../repos/PackageRepo');
 
 function sendMessage(otp, msisdn){
 	let message = `Use code ${otp} for Goonj+`;
-	var obj = {};
-	obj.message =  message;
-	obj.msisdn = msisdn;
+	let messageObj = {};
+	messageObj.message =  message;
+	messageObj.msisdn = msisdn;
 	
-	rabbitMq.sendMessage(config.queueNames.messageDispathcer, obj);
+	// Add object in queueing server
+	rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+}
+
+function subscribePackage(msisdn, packageObj){
+	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+getCurrentDate();
+	let subscriptionObj = {};
+	subscriptionObj.msisdn = msisdn;
+	subscriptionObj.packageObj = packageObj;
+	subscriptionObj.transactionId = transactionId;
+
+	// Add object in queueing server
+	rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
+	console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
 }
 
 // Generate OTP and save to collection
@@ -73,17 +87,22 @@ exports.verifyOtp = async (req, res) => {
 		// Record already present in collection, lets check it further.
 		if(otpUser.verified === true){
 			// Means, this user is already verified by otp, so let's now push an error
-			res.send({code: config.codes.code_error, message: 'No OTP found to validate'});
+			res.send({code: config.codes.code_error, message: 'Already verified with this OTP'});
 		}else{
 			// Let's validate this otp
 			if(otpUser.otp === otp){
 				// Otp verified, lets check the user's subscription
-				let subscriber = subscriberRepo.getSubscriber(msisdn);
+				let subscriber = await subscriberRepo.getSubscriber(msisdn);
 				if(subscriber){
 					// Subscriber is available and having active subscription
 					res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', subscriber: subscriber.subscription_status});
 				}else{
-					res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!'});
+					let verified = await otpRepo.updateOtp(msisdn, {verified: true});
+					if(verified){
+						res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!'});
+					}else{
+						res.send({code: config.codes.code_error, data: 'Failed to validate!'});
+					}
 				}
 			}else{
 				res.send({code: config.codes.code_otp_not_validated, message: 'OTP mismatch error'});
@@ -104,9 +123,13 @@ exports.subscribe = async (req, res) => {
 		// Means no user in DB, let's create one
 		let userObj = {};
 		userObj.msisdn = msisdn;
+		userObj.package = 'none';
 		userObj.source = req.body.source
 		
 		user = await userRepo.createUser(userObj);
+		if(user){
+			console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
+		}
 	}
 
 	if(user){
@@ -115,61 +138,99 @@ exports.subscribe = async (req, res) => {
 		if(subscriber){
 			// Subscriber already present in DB, let's check his/her subscription status
 			if(subscriber.subscription_status === 'billed'){
-				// User is billed
-				let updated;
-				var updateObj = {};
-				updateObj.auto_renewal = true;
+				// User is already billed
 				
-				let currentPackage = subscriber.package;
-				let newPackage = req.body.package;
+				let currentPackageId = subscriber.package;
+				let newPackageId = req.body.package;
 				let autoRenewal = subscriber.auto_renewal;
 
-				if(currentPackage === newPackage){
+				if(currentPackageId === newPackageId){
 					if(autoRenewal === true){
 						// Already subscribed, no need to subsribed package again
 						res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed'});
-						return;
+					}else{
+						// Same, package - just switch on auto renewal so that the user can get charge automatically.
+						let updated = subscriberRepo.updateSubscriber(msisdn, {auto_renewal: true});
+						if(updated){
+							res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed'});
+						}else{
+							res.send({code: config.codes.code_error, message: 'Error updating record!'});
+						}
+					}
+				}else{
+					/* 
+					 * Let's send this item in queue and update package, auto_renewal and 
+					 * billing date times once user successfully billed
+					 */
+					let newPackageId = req.body.package;
+					let packageObj = await packageRepo.getPackage({_id: newPackageId});
+					if(packageObj && packageObj.length === 1){
+						subscribePackage(msisdn, packageObj[0])
+						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
+					}else{
+						res.send({code: config.codes.code_error, message: 'Wrong package id'});
 					}
 				}
-			
-				updated = await subscriberRepo.updateSubscriber(msisdn, updateObj);
-				if(updated){
-					// Subscription updated, let's send this item in queue and update package and billing date times once user successfully billed
-					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
-				}else{
-					res.send({code: config.codes.code_error, message: 'Failed to update subscriber'});
-				}
 			}else{
-				// Not billed
-				let updated;
-				var updateObj = {};
-				updateObj.auto_renewal = true;
-				
-				updated = await subscriberRepo.updateSubscriber(msisdn, updateObj);
-				if(updated){
-					// Subscriber updated, let's send this item in queue and update package and billing date times once user successfully billed
+				/* 
+				* Not already billed
+				* Let's send this item in queue and update package, auto_renewal and 
+				* billing date times once user successfully billed
+				*/
+				let newPackageId = req.body.package;
+				let packageObj = await packageRepo.getPackage({_id: newPackageId});
+				if(packageObj && packageObj.length === 1){
+					subscribePackage(msisdn, packageObj[0])
 					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
 				}else{
-					res.send({code: config.codes.code_error, message: 'Failed to update subscriber'});
+					res.send({code: config.codes.code_error, message: 'Wrong package id'});
 				}
 			}
 		}else{
 			// No subscriber found in DB, lets create new one
 			var postObj = {};
 			postObj.msisdn = msisdn;
-			postObj.package = req.body.package;
-			postObj.plarform = req.body.platform;
+			postObj.plarform = req.body.source;
 			postObj.operator = 'telenor';
 			postObj.userid = user._id;
 			postObj.package = 'none';
 
 			let created = await subscriberRepo.createSubscriber(postObj);
 			if(created){
-				// Subscriber created in db, let's put record in queue as well for package subscription and update package and billing date times once user successfully billed
+				console.log('Payment - SubscriberCreated - ', created.msisdn, ' - ', (new Date()));
+				/* 
+				* Subscriber created successfully
+				* Let's send this item in queue and update package, auto_renewal and 
+				* billing date times once user successfully billed
+				*/
+				let newPackageId = req.body.package;
+				let packageObj = await packageRepo.getPackage({_id: newPackageId});
+				if(packageObj && packageObj.length === 1){
+					subscribePackage(msisdn, packageObj[0])
+					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
+				}else{
+					res.send({code: config.codes.code_error, message: 'Wrong package id'});
+				}
 				res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
 			}else{
 				res.send({code: config.codes.code_error, message: 'Failed to create subscriber'});
 			}
 		}
 	}
+}
+
+// Helper functions
+function getCurrentDate() {
+    var now = new Date();
+    var strDateTime = [
+        [now.getFullYear(),
+            AddZero(now.getMonth() + 1),
+            AddZero(now.getDate())].join("-"),
+        [AddZero(now.getHours()),
+            AddZero(now.getMinutes())].join(":")];
+    return strDateTime;
+}
+
+function AddZero(num) {
+    return (num >= 0 && num < 10) ? "0" + num : num + "";
 }

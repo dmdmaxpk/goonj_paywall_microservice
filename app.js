@@ -57,9 +57,10 @@ rabbitMq.initializeMesssageServer((err, channel) => {
             if(err){
                 console.log('Queue consumption error', err)
             }else{
-                let messageObj = JSON.parse(response.content);
-                billingRepo.sendMessage(messageObj.message, messageObj.msisdn).then(data => {
-                    console.log(data.message);
+                let subscriptionObj = JSON.parse(response.content);
+                billingRepo.subscribePackage(subscriptionObj)
+                .then(data => {
+                    console.log(data);
                 }).catch(error => {
                     console.log('Error: ', error.message)
                 });
@@ -96,9 +97,10 @@ tokenRefreshCron.runJob();
 Todos:
 0. Set TPS for both apis sms and subscriptions
 1. Remove first token fetch call from app.js and fetch from DB instead.
-2. Update user pacakge in user and subscriber collection once success response from telenor apis
+2. Update user pacakge in user and subscriber collections both once success response from telenor apis
 3. Update billing dates and consecutive counts on db once successful billing is done from telenor
 4. Service to check subscription after every 30 minnute for those having active auto billing;
 5. grace periods - expiry - sms notifications etc
+6. Maintain history as well
 */
  
