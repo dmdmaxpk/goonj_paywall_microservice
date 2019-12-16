@@ -22,6 +22,7 @@ mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
 
 // Prefetch a token for the first time
 billingRepo.generateToken().then(token => {
+    console.log('Token fetched!');
     config.telenor_dcb_api_token = token.access_token;
 });
 
@@ -78,9 +79,12 @@ app.use('/', require('./routes/index'));
 let { port } = config;
 app.listen(port, () => console.log(`APP running on port ${port}`));
 
-// Cron Job
+// Cron Jobs
 const tokenRefreshCron = require('./services/TokenRefreshService');
+const subscriptionRenewalCron = require('./services/SubscriptionRenewalService');
+
 tokenRefreshCron.runJob();
+subscriptionRenewalCron.runJob();
 
 
 
