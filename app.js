@@ -70,6 +70,9 @@ billingRepo.generateToken().then(async(token) => {
                     let subscriptionObj = JSON.parse(response.content);
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
+                        console.log(response);
+                        let message = response.api_response.data.Message;
+
                         let billingHistoryObject = {};
                         billingHistoryObject.user_id = response.user_id;
                         billingHistoryObject.package_id = response.packageObj._id;
@@ -80,8 +83,6 @@ billingRepo.generateToken().then(async(token) => {
                         let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
 
                         if(history && response){
-                            console.log(response);
-                            let message = response.api_response.data.Message;
                             let subscriber = await subscriberRepo.getSubscriber(response.user_id);
 
                             if(message === 'Success'){
