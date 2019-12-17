@@ -81,7 +81,7 @@ billingRepo.generateToken().then(async(token) => {
                         billingHistoryObject.user_id = user_id;
                         billingHistoryObject.package_id = package_id;
                         billingHistoryObject.transaction_id = transaction_id;
-                        billingHistoryObject.operator_response = "+operator_response+";
+                        billingHistoryObject.operator_response = `${operator_response}`;
                         billingHistoryObject.billing_status = message;
                         billingHistoryObject.operator = 'telenor';
                         console.log('Billing history', billingHistoryObject);
