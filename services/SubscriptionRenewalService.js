@@ -24,10 +24,14 @@ runJob  = async() => {
 }
 
 getPromise =  async(user_id) => {
-    new Promise((resolve, reject) => {
-        let user = await userRepo.getUserById(user_id);
-        renewSubscription(user);
-        resolve('Done');
+    return new Promise((resolve, reject) => {
+        userRepo.getUserById(user_id)
+        .then((user) => {
+            renewSubscription(user);
+            resolve('-Done-');
+        }).catch((err) => {
+            reject('-Error!-');
+        });
     });
 } 
 
@@ -47,7 +51,7 @@ function AddZero(num) {
     return (num >= 0 && num < 10) ? "0" + num : num + "";
 }
 
-function renewSubscription(user){
+renewSubscription = async(user) => {
     // Fetch user is not already available
     
     if(!packageObj){
