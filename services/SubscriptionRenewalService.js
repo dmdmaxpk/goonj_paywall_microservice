@@ -1,6 +1,7 @@
 const CronJob = require('cron').CronJob;
 const subsriberRepo = require('../repos/SubscriberRepo');
 const packageRepo = require('../repos/PackageRepo');
+const userRepo = require('../repos/UserRepo');
 
 // To generate token to consume telenor dcb apis
 runJob  = async() => {
@@ -9,15 +10,26 @@ runJob  = async() => {
         console.log('Cron - SubscriptionRenewal - Executing - ' + (new Date()));
         try{
             let subscribers = await subsriberRepo.getRenewableSubscribers();
+            let promisesArr= [];
             for(let i = 0; i < subscribers.length; i++){
-                let packageObj = packageRepo.getPackage({_id: subscribers[i].package});
-                renewSubscription(subscribers[i].msisdn, packageObj);
+                let promise = getPromise(subscribers[i].user_id);
+                promisesArr.push(promise);
             }
+            let promises = await Promise.all(promisesArr);
+            console.log('Promises response: ', promises);
         }catch(err){
             console.log(err);
         }
       }, null, true, 'America/Los_Angeles');
 }
+
+getPromise =  async(user_id) => {
+    new Promise((resolve, reject) => {
+        let user = await userRepo.getUserById(user_id);
+        renewSubscription(user);
+        resolve('Done');
+    });
+} 
 
 // Helper functions
 function getCurrentDate() {
@@ -35,16 +47,24 @@ function AddZero(num) {
     return (num >= 0 && num < 10) ? "0" + num : num + "";
 }
 
-function renewSubscription(msisdn, packageObj){
+function renewSubscription(user){
+    // Fetch user is not already available
+    
+    if(!packageObj){
+		packageObj = await packageRepo.getPackage(user.subscribed_package_id);
+    }
+
+    let msisdn = user.msisdn;
 	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+getCurrentDate();
 	let subscriptionObj = {};
+	subscriptionObj.user_id = user._id;
 	subscriptionObj.msisdn = msisdn;
 	subscriptionObj.packageObj = packageObj;
-	subscriptionObj.transactionId = transactionId;
+    subscriptionObj.transactionId = transactionId;
 
 	// Add object in queueing server
-	rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-    console.log('RenewSubscription - AddInQueue - ', subscribers[i].msisdn, ' - ', (new Date()));
+    rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
+    console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', (new Date()));
 }
 
 module.exports = {
