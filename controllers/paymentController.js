@@ -115,7 +115,8 @@ exports.verifyOtp = async (req, res) => {
 			// Let's validate this otp
 			if(otpUser.otp === otp){
 				// Otp verified, lets check the user's subscription
-				let subscriber = await subscriberRepo.getSubscriber(msisdn);
+				let user = await userRepo.getUserByMsisdn(msisdn);
+				let subscriber = await subscriberRepo.getSubscriber(user._id);
 				if(subscriber){
 					// Subscriber is available and having active subscription
 					res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', subscriber: subscriber.subscription_status});
@@ -245,7 +246,7 @@ exports.unsubscribe = async (req, res) => {
 	if(user){
 		let subscriber = await subscriberRepo.getSubscriber(user._id);
 		if(subscriber){
-			
+
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
