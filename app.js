@@ -30,78 +30,92 @@ require('./models/ApiToken');
 
 
 let subscriberRepo = require('./repos/SubscriberRepo');
+let billingHistoryRepo = require('./repos/BillingHistoryRepo');
+let tokenRepo = require('./repos/ApiTokenRepo');
 
 // Prefetch a token for the first time
-billingRepo.generateToken().then(token => {
-    console.log('Token fetched!');
-    config.telenor_dcb_api_token = token.access_token;
-});
+billingRepo.generateToken().then(async(token) => {
+    let updatedToken = await tokenRepo.updateToken(token.access_token);
+    if(updatedToken){
+        config.telenor_dcb_api_token = token.access_token;
+        console.log('Token updated in db!');
 
-// RabbitMQ connection
-rabbitMq = RabbitMq.rabbitMq;
-rabbitMq.initializeMesssageServer((err, channel) => {
-    if(err){
-        console.log('Error connecting RabbitMq: ', err);
-    }else{
-        console.log('RabbiMq connected successfully!');
-        
-        // Let's create queues
-        rabbitMq.createQueue(config.queueNames.messageDispathcer); // to dispatch messages like otp/subscription message/un-sub message etc
-        rabbitMq.createQueue(config.queueNames.subscriptionDispatcher); // to process subscription requests
+        // RabbitMQ connection
+        rabbitMq = RabbitMq.rabbitMq;
+        rabbitMq.initializeMesssageServer((err, channel) => {
+            if(err){
+                console.log('Error connecting RabbitMq: ', err);
+            }else{
+                console.log('RabbitMQ connected successfully!');
+                
+                // Let's create queues
+                rabbitMq.createQueue(config.queueNames.messageDispathcer); // to dispatch messages like otp/subscription message/un-sub message etc
+                rabbitMq.createQueue(config.queueNames.subscriptionDispatcher); // to process subscription requests
 
-        //Let's start queue consumption
-        // Messaging Queue
-        rabbitMq.consumeQueue(config.queueNames.messageDispathcer, (response) => {
-            let messageObj = JSON.parse(response.content);
-            billingRepo.sendMessage(messageObj.message, messageObj.msisdn).then(data => {
-                console.log(data);
-            }).catch(error => {
-                console.log('Error: ', error.message)
-            });
-        });
+                //Let's start queue consumption
+                // Messaging Queue
+                rabbitMq.consumeQueue(config.queueNames.messageDispathcer, (response) => {
+                    let messageObj = JSON.parse(response.content);
+                    billingRepo.sendMessage(messageObj.message, messageObj.msisdn).then(data => {
+                        console.log(data);
+                    }).catch(error => {
+                        console.log('Error: ', error.message)
+                    });
+                });
 
-        // Subscriptin Queue
-        rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
-            let subscriptionObj = JSON.parse(response.content);
-            billingRepo.subscribePackage(subscriptionObj)
-            .then(async (response) => {
-                if(response){
-                    console.log(response);
-                    let message = response.api_response.data.Message;
-                    if(message === 'Success'){
-                        // Billed successfully
-                        let subscriber = await subscriberRepo.getSubscriber(response.user_id);
-                        console.log('BillingSuccess - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
-                        let nextBilling = new Date();
-                        nextBilling.setHours(nextBilling.getHours() + response.packageObj.package_duration);
+                // Subscriptin Queue
+                rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
+                    let subscriptionObj = JSON.parse(response.content);
+                    billingRepo.subscribePackage(subscriptionObj)
+                    .then(async (response) => {
+                        let billingHistoryObject = {};
+                        billingHistoryObject.user_id = response.user_id;
+                        billingHistoryObject.package_id = response.packageObj._id;
+                        billingHistoryObject.transection_id = response.transactionId;
+                        billingHistoryObject.operator_response = response.api_response;
+                        billingHistoryObject.billing_status = message;
+                        billingHistoryObject.operator = 'telenor';
+                        let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
 
-                        let subObj = {};
-                        subObj.subscription_status = 'billed';
-                        subObj.auto_renewal = true;
-                        subObj.last_billing_timestamp = new Date();
-                        subObj.next_billing_timestamp = nextBilling;
-                        subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
-                        subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
-                        let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
-                        if(updatedSubscriber){
-                            console.log('Subscriber updated');
+                        if(history && response){
+                            console.log(response);
+                            let message = response.api_response.data.Message;
+                            if(message === 'Success'){
+                                // Billed successfully
+                                let subscriber = await subscriberRepo.getSubscriber(response.user_id);
+                                console.log('BillingSuccess - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
+                                let nextBilling = new Date();
+                                nextBilling.setHours(nextBilling.getHours() + response.packageObj.package_duration);
+
+                                let subObj = {};
+                                subObj.subscription_status = 'billed';
+                                subObj.auto_renewal = true;
+                                subObj.last_billing_timestamp = new Date();
+                                subObj.next_billing_timestamp = nextBilling;
+                                subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
+                                subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
+                                let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
+                                if(updatedSubscriber){
+                                    console.log('Subscriber updated');
+                                }
+                            }else{
+                                // Billing failed
+                                console.log('BillingFailed - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
+                                let subObj = {};
+                                subObj.subscription_status = 'not_billed';
+                                subObj.last_billing_timestamp = new Date();
+                                subObj.consecutive_successive_bill_counts = 0;
+                                let updatedSubscriber = await subscriberRepo.updateSubscriber(subscriber._id, subObj);
+                                if(updatedSubscriber){
+                                    console.log('Subscriber updated');
+                                }
+                            }
                         }
-                    }else{
-                        // Billing failed
-                        console.log('BillingFailed - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
-                        let subObj = {};
-                        subObj.subscription_status = 'not_billed';
-                        subObj.last_billing_timestamp = new Date();
-                        subObj.consecutive_successive_bill_counts = 0;
-                        let updatedSubscriber = await subscriberRepo.updateSubscriber(subscriber._id, subObj);
-                        if(updatedSubscriber){
-                            console.log('Subscriber updated');
-                        }
-                    }
-                }
-            }).catch((error) => {
-                console.log('Error: ', error.message)
-            });
+                    }).catch((error) => {
+                        console.log('Error: ', error.message)
+                    });
+                });
+            }
         });
     }
 });
