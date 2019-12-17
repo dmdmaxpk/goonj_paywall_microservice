@@ -133,5 +133,7 @@ Todos:
 4. Service to check subscription after every 30 minnute for those having active auto billing;
 5. grace periods - expiry - sms notifications etc
 6. Maintain history as well
+7. Check on over billing
+8. Trial
 */
  
