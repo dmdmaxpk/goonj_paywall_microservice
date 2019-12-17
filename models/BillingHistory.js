@@ -1,12 +1,11 @@
 const mongoose = require('mongoose');
 const ShortId = require('mongoose-shortid-nodeps');
 const {Schema} = mongoose;
-const ObjectId = Schema.ObjectId;
 
 const billingHistorySchema = new Schema({
     //Generating shortid instead of uuid
     _id: { type: ShortId, len: 8, retries: 4 },
-    user_id: ObjectId,
+    user_id: ShortId,
     package_id: String,
     transection_id: String,
     operator_response: {},
