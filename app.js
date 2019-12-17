@@ -32,6 +32,8 @@ require('./models/ApiToken');
 let subscriberRepo = require('./repos/SubscriberRepo');
 let billingHistoryRepo = require('./repos/BillingHistoryRepo');
 let tokenRepo = require('./repos/ApiTokenRepo');
+var packageRepo = require('./repos/PackageRepo');
+var userRepo = require('./repos/UserRepo');
 
 // Prefetch a token for the first time
 billingRepo.generateToken().then(async(token) => {
@@ -80,9 +82,10 @@ billingRepo.generateToken().then(async(token) => {
                         if(history && response){
                             console.log(response);
                             let message = response.api_response.data.Message;
+                            let subscriber = await subscriberRepo.getSubscriber(response.user_id);
+
                             if(message === 'Success'){
                                 // Billed successfully
-                                let subscriber = await subscriberRepo.getSubscriber(response.user_id);
                                 console.log('BillingSuccess - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
                                 let nextBilling = new Date();
                                 nextBilling.setHours(nextBilling.getHours() + response.packageObj.package_duration);
@@ -96,18 +99,35 @@ billingRepo.generateToken().then(async(token) => {
                                 subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
                                 let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
                                 if(updatedSubscriber){
-                                    console.log('Subscriber updated');
+                                    console.log('onSuccess - Subscriber updated');
                                 }
                             }else{
                                 // Billing failed
                                 console.log('BillingFailed - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
                                 let subObj = {};
-                                subObj.subscription_status = 'not_billed';
-                                subObj.last_billing_timestamp = new Date();
+
+                                // Check if this subscriber is eligible for grace period
+                                if(subscriber.subscription_status === 'billed' && subscriber.auto_renewal === true){
+                                    // The subscriber is elligible for grace hours, depends on the current subscribed package
+                                    let user = await userRepo.getUserById(response.user_id);
+                                    let currentPackage = await packageRepo.getPackage(user.subscribed_package_id);
+                                    let nextBillingDate = new Date();
+                                    nextBillingDate.setHours(nextBilling.getHours() + currentPackage.package_duration);
+
+                                    subObj.subscription_status = 'graced';
+                                    subObj.next_billing_timestamp = nextBillingDate;
+                                }else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
+                                    // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
+                                    subObj.subscription_status = 'expired';
+                                    subObj.auto_renewal = false;
+                                }else{
+                                    subObj.subscription_status = 'not_billed';
+                                }
+
                                 subObj.consecutive_successive_bill_counts = 0;
                                 let updatedSubscriber = await subscriberRepo.updateSubscriber(subscriber._id, subObj);
                                 if(updatedSubscriber){
-                                    console.log('Subscriber updated');
+                                    console.log('onFailed - Subscriber updated');
                                 }
                             }
                         }
@@ -141,10 +161,6 @@ subscriptionRenewalCron.runJob();
 /*
 Todos:
 0. Set TPS for both apis sms and subscriptions
-1. Remove first token fetch call from app.js and fetch from DB instead.
-2. Update user pacakge in user and subscriber collections both once success response from telenor apis
-3. Update billing dates and consecutive counts on db once successful billing is done from telenor
-4. Service to check subscription after every 30 minnute for those having active auto billing;
 5. grace periods - expiry - sms notifications etc
 6. Maintain history as well
 7. Check on over billing

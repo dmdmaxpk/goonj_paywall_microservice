@@ -238,6 +238,20 @@ exports.subscribe = async (req, res) => {
 	}
 }
 
+// Subscribe against a package
+exports.unsubscribe = async (req, res) => {
+	let msisdn = req.body.msisdn;
+	let user = await userRepo.getUserByMsisdn(msisdn);
+	if(user){
+		let subscriber = await subscriberRepo.getSubscriber(user._id);
+		if(subscriber){
+			
+		}
+	}else{
+		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
+	}
+}
+
 // Helper functions
 function getCurrentDate() {
     var now = new Date();

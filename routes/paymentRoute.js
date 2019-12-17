@@ -12,4 +12,7 @@ router.route('/otp/verify')
 router.route('/subscribe')
     .post(controller.subscribe);
 
+router.route('/unsubscribe')
+    .post(controller.unsubscribe);
+
 module.exports = router;
