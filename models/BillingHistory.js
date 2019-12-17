@@ -7,13 +7,13 @@ const billingHistorySchema = new Schema({
     _id: { type: ShortId, len: 8, retries: 4 },
     user_id: ShortId,
     package_id: String,
-    transection_id: String,
+    transaction_id: String,
     operator_response: {},
     billing_status: String,
     billing_dtm: { type: Date, default: Date.now, index: true },
 
     //source of the user(android/ios/web/other)
-    platform: String,
+    source: String,
     
     // operator of the user (telenor/zong/ufone etc)
     operator: String

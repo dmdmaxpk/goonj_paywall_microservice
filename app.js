@@ -70,16 +70,21 @@ billingRepo.generateToken().then(async(token) => {
                     let subscriptionObj = JSON.parse(response.content);
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
-                        console.log(response);
-                        let message = response.api_response.data.Message;
+                        
+                        let operator_response = response.api_response;
+                        let message = operator_response.data.Message;
+                        let user_id = response.user_id;
+                        let package_id = response.packageObj._id;
+                        let transaction_id = response.transactionId;
 
                         let billingHistoryObject = {};
-                        billingHistoryObject.user_id = response.user_id;
-                        billingHistoryObject.package_id = response.packageObj._id;
-                        billingHistoryObject.transection_id = response.transactionId;
-                        billingHistoryObject.operator_response = (response.api_response);
+                        billingHistoryObject.user_id = user_id;
+                        billingHistoryObject.package_id = package_id;
+                        billingHistoryObject.transaction_id = transaction_id;
+                        billingHistoryObject.operator_response = operator_response;
                         billingHistoryObject.billing_status = message;
                         billingHistoryObject.operator = 'telenor';
+                        console.log('Billing history', billingHistoryObject);
                         let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
 
                         if(history && response){
@@ -133,7 +138,7 @@ billingRepo.generateToken().then(async(token) => {
                             }
                         }
                     }).catch((error) => {
-                        console.log('Error: ', error.message)
+                        console.log('Error: ', error)
                     });
                 });
             }
