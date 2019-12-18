@@ -2,6 +2,7 @@ const CronJob = require('cron').CronJob;
 const subsriberRepo = require('../repos/SubscriberRepo');
 const packageRepo = require('../repos/PackageRepo');
 const userRepo = require('../repos/UserRepo');
+const config = require('../config');
 
 // To generate token to consume telenor dcb apis
 runJob  = async() => {
