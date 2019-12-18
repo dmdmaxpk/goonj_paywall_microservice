@@ -6,7 +6,7 @@ const userRepo = require('../repos/UserRepo');
 // To generate token to consume telenor dcb apis
 runJob  = async() => {
     // At every 3rd minute
-    new CronJob('*/3 * * * *',  async() => {
+    new CronJob('*/1 * * * *',  async() => {
         console.log('Cron - SubscriptionRenewal - Executing - ' + (new Date()));
         try{
             let subscribers = await subsriberRepo.getRenewableSubscribers();
