@@ -106,7 +106,7 @@ billingRepo.generateToken().then(async(token) => {
                                 subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
                                 let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
                                 if(updatedSubscriber){
-                                    let userUpdated = await userRepo.updateUser(response.user_id, {subscribed_package_id: response.packageObj._id});
+                                    let userUpdated = await userRepo.updateUserById(response.user_id, {subscribed_package_id: response.packageObj._id});
                                     console.log('onSuccess - Subscriber updated');
 
                                     if(subObj.consecutive_successive_bill_counts === 1){
