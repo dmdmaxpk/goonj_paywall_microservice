@@ -167,7 +167,8 @@ exports.subscribe = async (req, res) => {
 				let currentPackageId = user.subscribed_package_id;
 				let newPackageId = req.body.package_id;
 				let autoRenewal = subscriber.auto_renewal;
-
+				console.log('Current PackageId: '+currentPackageId);
+				console.log('NEwPackageId: '+newPackageId);
 				if(currentPackageId === newPackageId){
 					if(autoRenewal === true){
 						// Already subscribed, no need to subsribed package again
