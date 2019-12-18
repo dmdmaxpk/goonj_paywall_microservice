@@ -52,11 +52,7 @@ function AddZero(num) {
 }
 
 renewSubscription = async(user) => {
-    // Fetch user is not already available
-    
-    if(!packageObj){
-		packageObj = await packageRepo.getPackage(user.subscribed_package_id);
-    }
+    let packageObj = await packageRepo.getPackage(user.subscribed_package_id);
 
     let msisdn = user.msisdn;
 	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+getCurrentDate();
