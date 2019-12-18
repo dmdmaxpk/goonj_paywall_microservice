@@ -106,6 +106,7 @@ billingRepo.generateToken().then(async(token) => {
                                 subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
                                 let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
                                 if(updatedSubscriber){
+                                    let userUpdated = await userRepo.updateUser(response.user_id, {subscribed_package_id: response.packageObj._id});
                                     console.log('onSuccess - Subscriber updated');
 
                                     if(subObj.consecutive_successive_bill_counts === 1){
@@ -113,13 +114,13 @@ billingRepo.generateToken().then(async(token) => {
 
                                         //Send acknowldement to user
                                         let link = 'https://goonj.pk/goonjplus/unsubscribe';
-                                        let message = "Your Goonj+ subscription for "+response.packageObj.package_name+" has been activated at Rs. "+response.packageObj.price_pint_pkr+", to unsub click the link below.\n"+link
+                                        let message = "Your Goonj+ subscription for "+response.packageObj.package_name+" has been activated at Rs. "+response.packageObj.price_point_pkr+", to unsub click the link below.\n"+link
                                         await billingRepo.sendMessage(message, msisdn);
                                     }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
                                         // Every week
                                         //Send acknowldement to user
                                         let link = 'https://goonj.pk/goonjplus/unsubscribe';
-                                        let message = "Thank you for using Goonj+ with "+response.packageObj.package_name+" at Rs. "+response.packageObj.price_pint_pkr+", to unsub click the link below.\n"+link
+                                        let message = "Thank you for using Goonj+ with "+response.packageObj.package_name+" at Rs. "+response.packageObj.price_point_pkr+", to unsub click the link below.\n"+link
                                         await billingRepo.sendMessage(message, msisdn);
                                     }
                                 }
