@@ -68,5 +68,6 @@ subscribePackage = async(subscriptionObj) => {
 module.exports = {
     generateToken: generateToken,
     sendMessage: sendMessage,
-    subscribePackage: subscribePackage
+    subscribePackage: subscribePackage,
+    sendMessage: sendMessage
 }

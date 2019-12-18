@@ -24,13 +24,25 @@ updateUser = async(msisdn, postData) => {
     if (result.nModified === 0) {
         return undefined;
     }else{
-        let user = await getUser(msisdn);
+        let user = await this.getUserByMsisdn(msisdn);
         return user;
     }
 }
 
-deleteUser = async(msisdn) => {
-    const result = await User.deleteOne({msisdn: msisdn});
+updateUserById = async(user_id, postData) => {
+    const query = { _id: user_id };
+    postData.last_modified = new Date();
+    const result = await User.updateOne(query, postData);
+    if (result.nModified === 0) {
+        return undefined;
+    }else{
+        let user = await this.getUserById(user_id);
+        return user;
+    }
+}
+
+deleteUser = async(user_id) => {
+    const result = await User.deleteOne({_id: user_id});
     return result;
 }
 
@@ -40,5 +52,6 @@ module.exports = {
     getUserByMsisdn: getUserByMsisdn,
     getUserById: getUserById,
     updateUser: updateUser,
+    updateUserById: updateUserById,
     deleteUser: deleteUser
 }
