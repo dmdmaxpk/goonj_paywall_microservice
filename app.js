@@ -113,13 +113,13 @@ billingRepo.generateToken().then(async(token) => {
                                         // For the first time or every week of consecutive billing
 
                                         //Send acknowldement to user
-                                        let link = 'https://goonj.pk/goonjplus/unsubscribe';
+                                        let link = 'https://www.goonj.pk/goonjplus/unsubscribe';
                                         let message = "Your Goonj+ subscription for "+response.packageObj.package_name+" has been activated at Rs. "+response.packageObj.price_point_pkr+", to unsub click the link below.\n"+link
                                         await billingRepo.sendMessage(message, msisdn);
                                     }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
                                         // Every week
                                         //Send acknowldement to user
-                                        let link = 'https://goonj.pk/goonjplus/unsubscribe';
+                                        let link = 'https://www.goonj.pk/goonjplus/unsubscribe';
                                         let message = "Thank you for using Goonj+ with "+response.packageObj.package_name+" at Rs. "+response.packageObj.price_point_pkr+", to unsub click the link below.\n"+link
                                         await billingRepo.sendMessage(message, msisdn);
                                     }
@@ -141,7 +141,7 @@ billingRepo.generateToken().then(async(token) => {
                                     subObj.next_billing_timestamp = nextBillingDate;
 
                                     //Send acknowldement to user
-                                    let link = 'https://goonj.pk/goonjplus/open';
+                                    let link = 'https://www.goonj.pk/goonjplus/open';
                                     let message = "You've been awarded a grace period of "+currentPackage.package_duration+" days. Click below link to open Goonj.\n"+link
                                     await billingRepo.sendMessage(message, msisdn);
                                 }else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
@@ -150,7 +150,7 @@ billingRepo.generateToken().then(async(token) => {
                                     subObj.auto_renewal = false;
 
                                     //Send acknowldement to user
-                                    let link = 'https://goonj.pk/goonjplus/subscribe';
+                                    let link = 'https://www.goonj.pk/goonjplus/subscribe';
                                     let message = 'You package to Goonj+ has expired, click below link to subscribe again.\n'+link
                                     await billingRepo.sendMessage(message, msisdn);
                                 }else{
@@ -158,7 +158,7 @@ billingRepo.generateToken().then(async(token) => {
                                     subObj.auto_renewal = false;
 
                                     //Send acknowldement to user
-                                    let link = 'https://goonj.pk/goonjplus/subscribe';
+                                    let link = 'https://www.goonj.pk/goonjplus/subscribe';
                                     let message = "Failed to bill, please check your balance and try again on Goonj+\n"+link
                                     await billingRepo.sendMessage(message, msisdn);
                                 }
