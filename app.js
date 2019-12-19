@@ -2,20 +2,8 @@ const express = require('express');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 const mongoSanitize = require('express-mongo-sanitize');
-
 const mongoose = require('mongoose');
 const config = require('./config');
-var RabbitMq = require('./repos/queue/RabbitMq');
-var billingRepo = require('./repos/BillingRepo');
-
-const app = express();
-
-// Middlewares
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(mongoSanitize());
-
 // Connection to Database
 mongoose.connect(config.mongoDB);
 mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
@@ -27,6 +15,18 @@ require('./models/OTP');
 require('./models/Subscriber');
 require('./models/BillingHistory');
 require('./models/ApiToken');
+require('./models/TpsCount');
+var RabbitMq = require('./repos/queue/RabbitMq');
+var billingRepo = require('./repos/BillingRepo');
+var tpsCountRepo = require('./repos/tpsCountRepo');
+
+const app = express();
+
+// Middlewares
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(mongoSanitize());
 
 
 let subscriberRepo = require('./repos/SubscriberRepo');
@@ -34,6 +34,31 @@ let billingHistoryRepo = require('./repos/BillingHistoryRepo');
 let tokenRepo = require('./repos/ApiTokenRepo');
 var packageRepo = require('./repos/PackageRepo');
 var userRepo = require('./repos/UserRepo');
+
+async function consumeMessageQueue(msgData,response){
+    try {
+        let messageCountThisSecond = await tpsCountRepo.getTPSCount("message");
+        console.log(messageCountThisSecond, "---++---", config.messageDispatcherCount );
+        console.log(msgData.message, "xxxxxx", msgData.msisdn );
+        if (messageCountThisSecond < config.messageDispatcherCount) {
+            billingRepo.sendMessage(msgData.message, msgData.msisdn).then(async (data) => {
+                console.log("Request Sent to Telenor");
+                let increased =  await tpsCountRepo.incrementTPSCount("message");
+                rabbitMq.acknowldegeMessage(response);
+            }).catch(error => {
+                console.log('Error: ', error.message);
+                rabbitMq.acknowldegeMessage(response);
+            });
+        } else {
+            // console.log("TPS Quota Filled for this second Waiting for second to elapse",new Date());
+            setTimeout(() => {
+                consumeMessageQueue(msgData,response);
+            }, 100);
+        }
+    } catch (err ) {
+        console.error(err);
+    };
+}
 
 // Prefetch a token for the first time
 billingRepo.generateToken().then(async(token) => {
@@ -43,7 +68,7 @@ billingRepo.generateToken().then(async(token) => {
         console.log('Token updated in db!');
 
         // RabbitMQ connection
-        rabbitMq = RabbitMq.rabbitMq;
+        rabbitMq  = RabbitMq.rabbitMq;
         rabbitMq.initializeMesssageServer((err, channel) => {
             if(err){
                 console.log('Error connecting RabbitMq: ', err);
@@ -61,26 +86,28 @@ billingRepo.generateToken().then(async(token) => {
                 rabbitMq.consumeQueue(config.queueNames.messageDispathcer, (response) => {
                     messageCount++;
                     let messageObj = JSON.parse(response.content);
-                    billingRepo.sendMessage(messageObj.message, messageObj.msisdn).then(data => {
-                        console.log(data);
-                    }).catch(error => {
-                        console.log('Error: ', error.message)
-                    });
+                    
+                    // billingRepo.sendMessage(messageObj.message, messageObj.msisdn).then(data => {
+                    //     console.log(data);
+                    // }).catch(error => {
+                    //     console.log('Error: ', error.message)
+                    // });
+                    // console.log("message received",messageObj);
+                    consumeMessageQueue(messageObj,response);
 
-                    if(messageCount === config.telenor_message_api_tps){
+                    /*if(messageCount === config.telenor_message_api_tps){
                         setTimeout(() => {
                             messageCount = 0;
                             rabbitMq.acknowledge(response);
                         }, 1500);
                     }else{
                         rabbitMq.acknowledge(response);
-                    }
+                    }*/
                 });
 
                 
                 // Subscriptin Queue
                 let subscriptionCount = 0;
-                5
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
                     subscriptionCount++;
                     chargeUser(response);
@@ -215,15 +242,17 @@ app.listen(port, () => console.log(`APP running on port ${port}`));
 // Cron Jobs
 const tokenRefreshCron = require('./services/TokenRefreshService');
 const subscriptionRenewalCron = require('./services/SubscriptionRenewalService');
+const tpsCountService = require('./services/tpsCountService');
 
 tokenRefreshCron.runJob();
 subscriptionRenewalCron.runJob();
+tpsCountService.runJob();
 
 
 
 
 /*
-Todos:
+TODO:
 0. Set TPS for both apis sms and subscriptions
 5. grace periods - expiry - sms notifications etc
 6. Maintain history as well

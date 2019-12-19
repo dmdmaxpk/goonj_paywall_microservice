@@ -34,7 +34,6 @@ const queueNames = {
     messageDispathcer: 'messageDispathcer',
     subscriptionDispatcher: 'subscriptionDispatcher'
 }
-
 // Telenor DCB API's configs
 const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
 const telenor_dcb_api_token = '';
@@ -50,7 +49,9 @@ let config = {
         codes: codes,
         subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps
+        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        messageDispatcherCount:5,
+        subscriptionDispatcherCount: 5
     },
     staging: {
         port: '5000',
@@ -62,7 +63,9 @@ let config = {
         codes: codes,
         subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps
+        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        messageDispatcherCount:5,
+        subscriptionDispatcherCount: 5
     },
     production: {
         port: '5000',
@@ -74,7 +77,9 @@ let config = {
         codes: codes,
         subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps
+        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        messageDispatcherCount:5,
+        subscriptionDispatcherCount: 5
     }
 };
 
