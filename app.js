@@ -38,21 +38,17 @@ var userRepo = require('./repos/UserRepo');
 async function consumeMessageQueue(msgData,response){
     try {
         let messageCountThisSecond = await tpsCountRepo.getTPSCount("message");
-        // console.log("messageCountThisSecond",messageCountThisSecond);
-        // console.log("config.messageDispatcherCount",config.messageDispatcherCount);
+        console.log(messageCountThisSecond, "---++---", config.messageDispatcherCount );
+        console.log(msgData.message, "xxxxxx", msgData.msisdn );
         if (messageCountThisSecond < config.messageDispatcherCount) {
-            console.log("Request Sent to Telenor");
-            let increased =  await tpsCountRepo.incrementTPSCount("message");
-            // console.log("increased",ack);
-            
-            setTimeout(() => {
+            billingRepo.sendMessage(msgData.message, msgData.msisdn).then(async (data) => {
+                console.log("Request Sent to Telenor");
+                let increased =  await tpsCountRepo.incrementTPSCount("message");
                 rabbitMq.acknowldegeMessage(response);
-            }, 1000);
-            // billingRepo.sendMessage(msgData.message, msgData.msisdn).then(data => {
-            //     console.log("");
-            // }).catch(error => {
-            //     console.log('Error: ', error.message)
-            // });
+            }).catch(error => {
+                console.log('Error: ', error.message);
+                rabbitMq.acknowldegeMessage(response);
+            });
         } else {
             // console.log("TPS Quota Filled for this second Waiting for second to elapse",new Date());
             setTimeout(() => {
@@ -87,6 +83,7 @@ billingRepo.generateToken().then(async(token) => {
                 // Messaging Queue
                 rabbitMq.consumeQueue(config.queueNames.messageDispathcer, (response) => {
                     let messageObj = JSON.parse(response.content);
+                    console.log("message received",messageObj);
                     consumeMessageQueue(messageObj,response);
                 });
 
