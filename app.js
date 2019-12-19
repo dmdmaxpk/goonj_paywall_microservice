@@ -178,7 +178,7 @@ billingRepo.generateToken().then(async(token) => {
                         });
                     });
                     promises.push(promise);
-                    setTimeout(function(){
+                    setTimeout(async() => {
                         let responses = await Promise.all(promises);
                         console.log(responses);
                         rabbitMq.acknowledge(responses);
