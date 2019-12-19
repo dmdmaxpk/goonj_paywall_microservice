@@ -69,7 +69,7 @@ class RabbitMq {
 
     acknowledge(message){
         this.channel.ack(message);
-        console.log('Acknowledge')
+        console.log('Acknowledge');
     }
 
     addInQueue(queue, message){

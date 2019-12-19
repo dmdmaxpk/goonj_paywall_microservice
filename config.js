@@ -48,7 +48,9 @@ let config = {
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
         codes: codes,
-        subscription_status: subscription_status
+        subscription_status: subscription_status,
+        telenor_message_api_tps: telenor_message_api_tps,
+        telenor_subscription_api_tps: telenor_subscription_api_tps
     },
     staging: {
         port: '5000',
@@ -58,7 +60,9 @@ let config = {
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
         codes: codes,
-        subscription_status: subscription_status
+        subscription_status: subscription_status,
+        telenor_message_api_tps: telenor_message_api_tps,
+        telenor_subscription_api_tps: telenor_subscription_api_tps
     },
     production: {
         port: '5000',
@@ -68,7 +72,9 @@ let config = {
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
         codes: codes,
-        subscription_status: subscription_status
+        subscription_status: subscription_status,
+        telenor_message_api_tps: telenor_message_api_tps,
+        telenor_subscription_api_tps: telenor_subscription_api_tps
     }
 };
 
@@ -79,7 +85,5 @@ if (env === 'staging') config = config.staging;
 if (env === 'production') config = config.production;
 
 module.exports = {
-    config: config,
-    telenor_message_api_tps: telenor_message_api_tps,
-    telenor_subscription_api_tps: telenor_subscription_api_tps
+    config: config
 };
