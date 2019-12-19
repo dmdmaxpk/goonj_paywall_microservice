@@ -29,6 +29,8 @@ class RabbitMq {
 
             // Number of items queue will throw at a time.
             channel.prefetch(5);
+            channel.prefetch(1);
+            // channel.qos(1);
             callback(null, channel);
         });
     }
@@ -70,6 +72,11 @@ class RabbitMq {
     acknowledge(message){
         this.channel.ack(message, true);
         console.log('Acknowledge');
+    }
+    
+    acknowldegeMessage(message) {
+        console.log('acknowldegeMessage',message);
+        this.channel.ack(message);
     }
 
     addInQueue(queue, message){
