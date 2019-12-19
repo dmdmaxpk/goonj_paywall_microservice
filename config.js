@@ -2,6 +2,9 @@ const env = process.env.NODE_ENV || 'development';
 
 // application gets environment from either system envs or from this file in above line.
 
+const telenor_message_api_tps = 5;
+const telenor_subscription_api_tps = 5;
+
 const codes = {
     code_error: -1,
     code_success: 0,
@@ -75,4 +78,8 @@ if (env === 'development') config = config.development;
 if (env === 'staging') config = config.staging;
 if (env === 'production') config = config.production;
 
-module.exports = config;
+module.exports = {
+    config: config,
+    telenor_message_api_tps: telenor_message_api_tps,
+    telenor_subscription_api_tps: telenor_subscription_api_tps
+};

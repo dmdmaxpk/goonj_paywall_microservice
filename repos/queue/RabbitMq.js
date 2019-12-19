@@ -26,7 +26,9 @@ class RabbitMq {
             if (error) {
               callback(error);
             }
-            channel.prefetch(1);
+
+            // Number of items queue will throw at a time.
+            channel.prefetch(5);
             callback(null, channel);
         });
     }
@@ -58,14 +60,16 @@ class RabbitMq {
     consumeQueue(queue, callback){
         this.channel.consume(queue, async (msg) =>  {
             callback(msg);
-            setTimeout(() => {
-                this.channel.ack(msg);
-              }, 1000);
           }, {
             //It's time to turn manual acnkowledgments on using the {noAck: false} option and send a 
             // proper acknowledgment from the worker, once we're done with a task.
             noAck: false
         });
+    }
+
+    acknowledge(message){
+        this.channel.ack(message);
+        console.log('Acknowledge')
     }
 
     addInQueue(queue, message){

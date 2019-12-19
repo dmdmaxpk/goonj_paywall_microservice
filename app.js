@@ -173,6 +173,10 @@ billingRepo.generateToken().then(async(token) => {
                     }).catch((error) => {
                         console.log('Error: ', error)
                     });
+
+                    setTimeout(function(){
+                        rabbitMq.acknowledge(response);
+                    }, 1000);
                 });
             }
         });
