@@ -81,7 +81,7 @@ billingRepo.generateToken().then(async(token) => {
                         responsesArr = [];
                         setTimeout(() => {
                             rabbitMq.acknowledge(lastElement);
-                        }, 5000);
+                        }, 1000);
                     }
                 });
             }
