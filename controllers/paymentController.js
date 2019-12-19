@@ -3,6 +3,7 @@ const otpRepo = require('../repos/OTPRepo');
 const userRepo = require('../repos/UserRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
 const packageRepo = require('../repos/PackageRepo');
+const shortId = require('shortid');
 
 function sendMessage(otp, msisdn){
 	let message = `Use code ${otp} for Goonj+`;
@@ -22,7 +23,7 @@ subscribePackage = async(user, packageObj) => {
 	}
 
 	let msisdn = user.msisdn;
-	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+getCurrentDate();
+	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+shortId.generate()+"_"+getCurrentDate();
 	let subscriptionObj = {};
 	subscriptionObj.user_id = user._id;
 	subscriptionObj.msisdn = msisdn;

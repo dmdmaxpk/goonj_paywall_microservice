@@ -59,3 +59,4 @@ jspm_packages
 
 # content stills
 public/static/images/stills*
+.vscode/sftp.json

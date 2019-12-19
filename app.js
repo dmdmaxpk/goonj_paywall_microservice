@@ -72,16 +72,13 @@ billingRepo.generateToken().then(async(token) => {
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
                     responsesArr.push(response);
                     count++;
-
+                    
+                    //rabbitMq.acknowledge(response);
                     if(count === config.telenor_subscription_api_tps){
+                        let arr = responsesArr;
                         count = 0;
-                        chargeUser(responsesArr);
-                        
-                        let lastElement = responsesArr[(config.telenor_subscription_api_tps-1)];
                         responsesArr = [];
-                        setTimeout(() => {
-                            rabbitMq.acknowledge(lastElement);
-                        }, 1000);
+                        chargeUser(arr);
                     }
                 });
             }
@@ -91,6 +88,7 @@ billingRepo.generateToken().then(async(token) => {
 
 // Helper
 chargeUser = async(responses) => {
+    let lastElement = responses[(config.telenor_subscription_api_tps-1)];
     let promises = []; 
     for(let i = 0; i < responses.length; i++){
         let promise = new Promise((resolve, reject) => {
@@ -148,7 +146,7 @@ chargeUser = async(responses) => {
                                 let message = "Thank you for using Goonj+ with "+response.packageObj.package_name+" at Rs. "+response.packageObj.price_point_pkr+", to unsub click the link below.\n"+link
                                 await billingRepo.sendMessage(message, msisdn);
                             }
-                            resolve('Billing Success - Subscriber updated');
+                            resolve({'request': 'successfull', index: i});
                         }
                     }else{
                         // Billing failed
@@ -192,19 +190,29 @@ chargeUser = async(responses) => {
                         subObj.consecutive_successive_bill_counts = 0;
                         let updatedSubscriber = await subscriberRepo.updateSubscriber(subscriber._id, subObj);
                         if(updatedSubscriber){
-                            resolve('Billing Failed - Subscriber updated');
+                            resolve({'request': 'successfull', index: i});
                         }
                     }
                 }
             }).catch((error) => {
                 console.log('Error: ', error.message)
-                reject(error.data);
+                reject({'request': 'failed', index: i});
             });
         });
         promises.push(promise);
     }
-    let responsesAll = await Promise.all(promises);
-    console.log(responsesAll);
+
+    try{
+        let responsesAll = await Promise.all(promises);
+        console.log('Responses - ', responsesAll);
+    }catch(err){
+        console.log('Error occured while executing promises');
+        console.log(err.index);
+    }
+
+    setTimeout(() => {
+        rabbitMq.acknowledge(lastElement);
+    }, 1000);
 }
 
 
