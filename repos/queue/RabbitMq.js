@@ -72,6 +72,11 @@ class RabbitMq {
         console.log('Acknowledge');
     }
 
+    acknowldegeMessage(message) {
+        console.log('acknowldegeMessage',message);
+        this.channel.ack(message);
+    }
+
     addInQueue(queue, message){
         let buffer = Buffer.from(JSON.stringify(message));
         this.channel.sendToQueue(queue, buffer, {persistent:true});

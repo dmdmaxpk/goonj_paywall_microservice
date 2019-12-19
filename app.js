@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const mongoose = require('mongoose');
 const config = require('./config');
-
 // Connection to Database
 mongoose.connect(config.mongoDB);
 mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
@@ -17,7 +16,6 @@ require('./models/Subscriber');
 require('./models/BillingHistory');
 require('./models/ApiToken');
 require('./models/TpsCount');
-
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
