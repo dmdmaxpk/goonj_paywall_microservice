@@ -12,6 +12,7 @@ function sendMessage(otp, msisdn){
 	messageObj.msisdn = msisdn;
 	
 	// Add object in queueing server
+	console.log('OTP - AddedInQueue - MSISDN - ', msisdn, ' - OTP - ', otp, ' - ', (new Date()));
 	rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
 }
 
