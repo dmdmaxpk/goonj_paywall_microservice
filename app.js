@@ -70,7 +70,6 @@ billingRepo.generateToken().then(async(token) => {
 
                 // Subscriptin Queue
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
-                    console.log(response.content);
                     responsesArr.push(response);
                     count++;
 
@@ -198,7 +197,7 @@ chargeUser = async(responses) => {
                     }
                 }
             }).catch((error) => {
-                console.log('Error: ', error.data)
+                console.log('Error: ', error.message)
                 reject(error.data);
             });
         });
