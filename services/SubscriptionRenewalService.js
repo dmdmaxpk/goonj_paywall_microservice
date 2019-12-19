@@ -3,11 +3,12 @@ const subsriberRepo = require('../repos/SubscriberRepo');
 const packageRepo = require('../repos/PackageRepo');
 const userRepo = require('../repos/UserRepo');
 const config = require('../config');
+const shortId = require('shortid');
 
 // To generate token to consume telenor dcb apis
 runJob  = async() => {
-    // At every 3rd minute
-    new CronJob('*/1 * * * *',  async() => {
+    // At every 5th minute
+    new CronJob('*/5 * * * *',  async() => {
         console.log('Cron - SubscriptionRenewal - Executing - ' + (new Date()));
         try{
             let subscribers = await subsriberRepo.getRenewableSubscribers();
@@ -54,10 +55,10 @@ function AddZero(num) {
 
 renewSubscription = async(user) => {
     let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
-
+    
     let msisdn = user.msisdn;
-	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+getCurrentDate();
-	let subscriptionObj = {};
+	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+shortId.generate()+"_"+getCurrentDate();
+    let subscriptionObj = {};
 	subscriptionObj.user_id = user._id;
 	subscriptionObj.msisdn = msisdn;
 	subscriptionObj.packageObj = packageObj;
@@ -65,7 +66,7 @@ renewSubscription = async(user) => {
 
 	// Add object in queueing server
     rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-    console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', (new Date()));
+    console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
 }
 
 module.exports = {
