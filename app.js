@@ -71,14 +71,13 @@ consumeSusbcriptionQueue = async(res) => {
             console.log("Sending subscription request telenor");
             billingRepo.subscribePackage(subscriptionObj)
             .then(async (response) => {
-                console.log("sent request telenor");
+                console.log("Sending subscription request to telenor");
                 let operator_response = response.api_response;
                 let message = operator_response.data.Message;
                 let user_id = response.user_id;
                 let package_id = response.packageObj._id;
                 let transaction_id = response.transactionId;
                 let msisdn = response.msisdn;
-                console.log("1");
                 let billingHistoryObject = {};
                 billingHistoryObject.user_id = user_id;
                 billingHistoryObject.package_id = package_id;
@@ -88,12 +87,8 @@ consumeSusbcriptionQueue = async(res) => {
                 billingHistoryObject.operator = 'telenor';
                 console.log('Billing history', billingHistoryObject);
                 let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
-                console.log("2");
                 if(history && response){
-                    console.log("3");
                     let subscriber = await subscriberRepo.getSubscriber(response.user_id);
-                    console.log("4",subscriber);
-                    console.log("5",message);
                     if(message === 'Success'){
                         // Billed successfully
                         console.log('BillingSuccess - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
@@ -126,7 +121,6 @@ consumeSusbcriptionQueue = async(res) => {
                             }
                         }
                     }else{
-                        console.log("6");
                         // Billing failed
                         console.log('BillingFailed - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
                         let subObj = {};
@@ -164,18 +158,14 @@ consumeSusbcriptionQueue = async(res) => {
                             let message = "Failed to bill, please check your balance and try again on Goonj+\n"+link
                             await billingRepo.sendMessage(message, msisdn);
                         }
-
-                        console.log("7");
                         subObj.consecutive_successive_bill_counts = 0;
                         await subscriberRepo.updateSubscriber(subscriber._id, subObj);
                     }
-                    console.log("7",message);
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     rabbitMq.acknowledge(res);
                 }
             }).catch((error) => {
                 console.log('Error: ', error.message);
-                // consumeSusbcriptionQueue(res);
                 rabbitMq.noAcknowledge(res);
             });
         } else {
