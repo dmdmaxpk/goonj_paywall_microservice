@@ -2,8 +2,8 @@ const env = process.env.NODE_ENV || 'development';
 
 // application gets environment from either system envs or from this file in above line.
 
-const telenor_message_api_tps = 1;
-const telenor_subscription_api_tps = 1;
+const telenor_message_api_tps = 5;
+const telenor_subscription_api_tps = 5;
 
 const codes = {
     code_error: -1,
@@ -49,9 +49,7 @@ let config = {
         codes: codes,
         subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps,
-        messageDispatcherCount:5,
-        subscriptionDispatcherCount: 5
+        telenor_subscription_api_tps: telenor_subscription_api_tps
     },
     staging: {
         port: '5000',
@@ -63,9 +61,7 @@ let config = {
         codes: codes,
         subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps,
-        messageDispatcherCount:5,
-        subscriptionDispatcherCount: 5
+        telenor_subscription_api_tps: telenor_subscription_api_tps
     },
     production: {
         port: '5000',
@@ -77,9 +73,7 @@ let config = {
         codes: codes,
         subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps,
-        messageDispatcherCount:5,
-        subscriptionDispatcherCount: 5
+        telenor_subscription_api_tps: telenor_subscription_api_tps
     }
 };
 

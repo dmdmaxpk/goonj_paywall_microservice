@@ -28,7 +28,7 @@ class RabbitMq {
             }
 
             // Number of items queue will throw at a time.
-            channel.prefetch(config.telenor_subscription_api_tps);
+            channel.prefetch(config.telenor_message_api_tps);
             callback(null, channel);
         });
     }
@@ -68,12 +68,6 @@ class RabbitMq {
     }
 
     acknowledge(message){
-        this.channel.ack(message);
-        console.log('Acknowledge');
-    }
-
-    acknowldegeMessage(message) {
-        console.log('acknowldegeMessage',message);
         this.channel.ack(message);
     }
 

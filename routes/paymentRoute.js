@@ -15,4 +15,14 @@ router.route('/subscribe')
 router.route('/unsubscribe')
     .post(controller.unsubscribe);
 
+router.route('/status')
+    .post(controller.status);
+
+// TESTING
+router.route('/bulksms')
+    .get(controller.sendBulkMessage);
+
+router.route('/bulksub')
+    .get(controller.sendBulkSub);
+
 module.exports = router;

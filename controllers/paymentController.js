@@ -47,13 +47,15 @@ exports.sendOtp = async (req, res) => {
 		let userObj = {};
 		userObj.msisdn = msisdn;
 		userObj.subscribed_package_id = 'none';
-		userObj.source = req.body.source;
+		userObj.source = req.body.source ? req.body.source : 'unknown';
 		userObj.operator = 'telenor';
 		
 		user = await userRepo.createUser(userObj);
 		if(user){
 			console.log('Payment - OTP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 		}
+	}else{
+		console.log('User Found');
 	}
 
 	// Generate OTP
@@ -117,18 +119,22 @@ exports.verifyOtp = async (req, res) => {
 			// Let's validate this otp
 			if(otpUser.otp === otp){
 				// Otp verified, lets check the user's subscription
-				let user = await userRepo.getUserByMsisdn(msisdn);
-				let subscriber = await subscriberRepo.getSubscriber(user._id);
-				if(subscriber){
-					// Subscriber is available and having active subscription
-					res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', subscriber: subscriber.subscription_status});
-				}else{
-					let verified = await otpRepo.updateOtp(msisdn, {verified: true});
-					if(verified){
-						res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!'});
+				let verified = await otpRepo.updateOtp(msisdn, {verified: true});
+				if(verified){
+					let user = await userRepo.getUserByMsisdn(msisdn);
+					if(user){
+						let subscriber = await subscriberRepo.getSubscriber(user._id);
+						if(subscriber){
+							// Subscriber is available and having active subscription
+							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', subscriber: subscriber.subscription_status});
+						}else{
+							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!'});
+						}
 					}else{
-						res.send({code: config.codes.code_error, data: 'Failed to validate!'});
+						res.send({code: config.codes.code_error, data: 'User not found!'});
 					}
+				}else{
+					res.send({code: config.codes.code_error, data: 'Failed to validate!'});
 				}
 			}else{
 				res.send({code: config.codes.code_otp_not_validated, message: 'OTP mismatch error'});
@@ -150,12 +156,14 @@ exports.subscribe = async (req, res) => {
 		let userObj = {};
 		userObj.msisdn = msisdn;
 		userObj.subscribed_package_id = 'none';
-		userObj.source = req.body.source
+		userObj.source = req.body.source ?  req.body.source : 'unknown';
 		
 		user = await userRepo.createUser(userObj);
 		if(user){
 			console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 		}
+	}else{
+		console.log('User Found');
 	}
 
 	if(user){
@@ -239,6 +247,23 @@ exports.subscribe = async (req, res) => {
 			}
 		}
 	}
+}
+
+exports.sendBulkMessage = async(req, res) => {
+	for(i = 0; i < req.query.limit; i++){
+		sendMessage(`${Math.random()}-${i}`, '03476733767');
+	}
+	res.send('Done');
+}
+
+exports.sendBulkSub = async(req, res) => {
+	let user = {};
+	for(i = 0; i < req.query.limit; i++){
+		user.msisdn = '03476733767';
+		user._id = 'o2TYH_xC';
+		subscribePackage(user);
+	}
+	res.send('Done');
 }
 
 // Check status
