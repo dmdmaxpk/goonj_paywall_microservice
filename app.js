@@ -210,8 +210,8 @@ billingRepo.generateToken().then(async(token) => {
                 
                 // Subscriptin Queue
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
-                    rabbitMq.acknowledge(response);
-                    //consumeSusbcriptionQueue(response);
+                    //rabbitMq.acknowledge(response);
+                    consumeSusbcriptionQueue(response);
                 });
             }
         });
