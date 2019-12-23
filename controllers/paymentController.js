@@ -224,7 +224,10 @@ exports.subscribe = async (req, res) => {
 			// No subscriber found in DB, lets create new one
 			var postObj = {};
 			postObj.user_id = user._id;
-			postObj.subscription_status = 'none';
+			postObj.subscription_status = 'trial';
+			// TODO set next_billing_timestamp of this subscriber according to trial period from config file
+			postObj.next_billing_timestamp = new Date ( (new Date()).getHours() + (config.hours_of_trial_period * 60 * 60 * 1000) );
+			console.log("postObj.next_billing_timestamp",postObj.next_billing_timestamp);
 
 			let subscriber = await subscriberRepo.createSubscriber(postObj);
 			if(subscriber){

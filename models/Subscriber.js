@@ -8,7 +8,7 @@ const subscriberSchema = new Schema({
     _id: { type: ShortId, len: 8, retries: 4 },
 
     user_id: ShortId,
-    subscription_status: String,  // => billed/un-billed/expired/graced
+    subscription_status: String,  // => billed/un-billed/expired/graced/trial
     last_billing_timestamp: Date,
     next_billing_timestamp: Date,
     auto_renewal: { type: Boolean, default: true, index: true },
