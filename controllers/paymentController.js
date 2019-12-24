@@ -275,7 +275,7 @@ exports.status = async (req, res) => {
 		if(result){
 			res.send({code: config.codes.code_success, data: result});	
 		}else{
-			res.send({code: config.codes.code_error, message: 'No subscriber found');
+			res.send({code: config.codes.code_error, message: 'No subscriber found'});
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
