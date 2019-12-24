@@ -165,7 +165,7 @@ consumeSusbcriptionQueue = async(res) => {
                     rabbitMq.acknowledge(res);
                 }
             }).catch((error) => {
-                console.log('Error: ', error.message);
+                console.log('Error:', error.message);
                 rabbitMq.acknowledge(res);
             });
         } else {
