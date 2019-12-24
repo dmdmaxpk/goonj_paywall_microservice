@@ -7,8 +7,13 @@ exports.post = async (req, res) => {
 	let postData = req.body;
 	
 	// Saving document
-	let result = await repo.createPackage(postData);
-	res.send({code: config.codes.code_record_added, data: result});
+	try {
+		let result = await repo.createPackage(postData);
+		res.send({code: config.codes.code_record_added, data: result});
+	} catch(error) {
+		console.log(error);
+		res.status(501).send({code: config.codes.code_invalid_data_provided, data: error.message});
+	}
 }
 
 // GET

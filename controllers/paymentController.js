@@ -13,7 +13,11 @@ function sendMessage(otp, msisdn){
 	
 	// Add object in queueing server
 	console.log('OTP - AddedInQueue - MSISDN - ', msisdn, ' - OTP - ', otp, ' - ', (new Date()));
-	rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+	if (messageObj.msisdn && messageObj.message) {
+		rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+	} else {
+		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
+	}
 }
 
 subscribePackage = async(user, packageObj) => {
@@ -32,8 +36,13 @@ subscribePackage = async(user, packageObj) => {
 	subscriptionObj.transactionId = transactionId;
 
 	// Add object in queueing server
-	rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-	console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
+	if (subscriptionObj.msisdn && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
+		rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
+		console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
+	} else {
+		console.log( 'Could not add in Subscription Queue because critical parameters are missing ', subscriptionObj.msisdn ,
+		subscriptionObj.packageObj.price_point_pkr,subscriptionObj.transactionId, msisdn, ' - ', (new Date()) );
+	}
 }
 
 
@@ -224,10 +233,12 @@ exports.subscribe = async (req, res) => {
 			// No subscriber found in DB, lets create new one
 			var postObj = {};
 			postObj.user_id = user._id;
-			postObj.subscription_status = 'trial';
-			// TODO set next_billing_timestamp of this subscriber according to trial period from config file
-			if (config.is_trial_functionality_activated) {
-				postObj.next_billing_timestamp = new Date ( (new Date()).getHours() + (config.hours_of_trial_period * 60 * 60 * 1000) );
+			postObj.subscription_status = 'none';
+			console.log("postObj.next_billing_timestamp ",config.is_trial_active);
+			if (config.is_trial_active) {
+				let nexBilling = new Date();
+				postObj.next_billing_timestamp = nexBilling.setHours ( nexBilling.getHours() + config.trial_hours);
+				postObj.subscription_status = 'trial';
 				console.log("postObj.next_billing_timestamp",postObj.next_billing_timestamp);
 			}
 
@@ -242,8 +253,12 @@ exports.subscribe = async (req, res) => {
 				let newPackageId = req.body.package_id;
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
 				if(packageObj){
-					subscribePackage(user, packageObj)
-					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
+					if (config.is_trial_active) {
+						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
+					} else {
+						subscribePackage(user, packageObj);
+						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
+					}
 				}else{
 					res.send({code: config.codes.code_error, message: 'Wrong package id'});
 				}
@@ -278,9 +293,7 @@ exports.status = async (req, res) => {
 	if(user){
 		let result = await subscriberRepo.getSubscriber(user._id);
 		if(result){
-			res.send({code: config.codes.code_success, data: result});	
-		}else{
-			res.send({code: config.codes.code_error, message: 'No subscriber found'});
+			res.send({code: config.code_success, data: result});	
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
