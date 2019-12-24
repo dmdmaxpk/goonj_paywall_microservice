@@ -31,7 +31,8 @@ const subscription_status = {
     status_trial: "trial"
 }
 
-const hours_of_trial_period = 24; 
+const hours_of_trial_period = 24;
+const is_trial_functionality_activated = true;
 
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
