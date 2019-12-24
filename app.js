@@ -166,7 +166,7 @@ consumeSusbcriptionQueue = async(res) => {
                 }
             }).catch((error) => {
                 console.log('Error: ', error.message);
-                rabbitMq.noAcknowledge(res);
+                rabbitMq.acknowledge(res);
             });
         } else {
             console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
