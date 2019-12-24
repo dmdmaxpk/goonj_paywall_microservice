@@ -64,9 +64,9 @@ let config = {
         telenor_subscription_api_tps: telenor_subscription_api_tps
     },
     production: {
-        port: '5000',
-        mongoDB: 'mongodb://localhost:27017/goonjpaywall',
-        rabbitMq: 'amqp://localhost',
+        port: process.env.PW_PORT,
+        mongoDB: process.env.PW_MONGO_DB_URL,
+        rabbitMq: process.env.PW_RABBIT_MQ,
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
