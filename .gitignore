@@ -12,6 +12,9 @@ Desktop.ini
 # Linux
 .idea
 
+# IDEs
+.vscode
+
 # npm
 node_modules
 
