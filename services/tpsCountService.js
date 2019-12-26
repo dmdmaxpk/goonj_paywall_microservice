@@ -15,7 +15,7 @@ runJob  = async() => {
 // TODO make this run after one day instead of one minute before committing
 runDailyAmountJob  = async() => {
     console.log("Run daily Amount reset function");
-    new CronJob('*/1 * * * *',  async() => {
+    new CronJob('* * */1 * *',  async() => {
         try {
             console.log("Run daily Amount reset function");
             await SubscriberRepo.resetAmountBilledToday();
