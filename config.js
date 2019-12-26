@@ -23,15 +23,6 @@ const codes = {
     code_trial_activated: 11
 }
 
-
-const subscription_status = {
-    status_subscribed: "subscribed",
-    status_not_subscribed: "not_subscribed",
-    status_expired: "expired",
-    status_graced: "grace",
-    status_trial: "trial"
-}
-
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 
