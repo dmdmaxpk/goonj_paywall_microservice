@@ -44,7 +44,7 @@ resetAmountBilledToday = async() => {
 setSubcriberInactive = async(user_id) => {
     if (user_id) { 
         const query = { user_id: user_id };
-        const result = await Subscriber.updateOne(query,{ $set: { user_id: user_id } });
+        const result = await Subscriber.updateOne(query,{ $set: { active: false } });
         if (result.nModified === 0) {
             return undefined;
         }else{
