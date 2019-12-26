@@ -14,7 +14,7 @@ getSubscriber =async(user_id) => {
 
 getRenewableSubscribers =async() => {
     let results = await Subscriber.find(
-        {$or:[{subscription_status:'billed'},{subscription_status:'graced'}], 
+        {$or:[{subscription_status:'billed'},{subscription_status:'graced'},{subscription_status:'trial'}], 
         next_billing_timestamp: {$lte: new Date()}, active: true});
     return results;
 }

@@ -19,16 +19,12 @@ const codes = {
     code_otp_validated: 7,
     code_otp_not_validated: 8,
     code_already_subscribed: 9,
-    code_in_billing_queue: 10
+    code_in_billing_queue: 10,
+    code_trial_activated: 11
 }
 
-
-const subscription_status = {
-    status_subscribed: "subscribed",
-    status_not_subscribed: "not_subscribed",
-    status_expired: "expired",
-    status_graced: "grace"
-}
+const hours_of_trial_period = 24;
+const is_trial_functionality_activated = true;
 
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
@@ -49,7 +45,10 @@ let config = {
         codes: codes,
         subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps
+        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        trial_hours: hours_of_trial_period,
+        is_trial_active: is_trial_functionality_activated
+
     },
     staging: {
         port: '5000',
@@ -61,7 +60,9 @@ let config = {
         codes: codes,
         subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps
+        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        trial_hours: hours_of_trial_period,
+        is_trial_active: is_trial_functionality_activated
     },
     production: {
         port: process.env.PW_PORT,
@@ -73,7 +74,9 @@ let config = {
         codes: codes,
         subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps
+        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        trial_hours: hours_of_trial_period,
+        is_trial_active: is_trial_functionality_activated
     }
 };
 
