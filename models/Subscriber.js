@@ -17,7 +17,7 @@ const subscriberSchema = new Schema({
 
     added_dtm: { type: Date, default: Date.now, index: true },
     last_modified: Date,
-
+    amount_billed_today: {type: Number, default: 0}, // amount charged from user today.
     active: { type: Boolean, default: true, index: true }
 }, { strict: true })
 
