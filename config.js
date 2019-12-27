@@ -22,7 +22,7 @@ const codes = {
     code_in_billing_queue: 10,
     code_trial_activated: 11
 }
-
+const maximum_daily_payment_limit_pkr = 1000;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 
@@ -43,11 +43,11 @@ let config = {
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
         codes: codes,
-        subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
         trial_hours: hours_of_trial_period,
-        is_trial_active: is_trial_functionality_activated
+        is_trial_active: is_trial_functionality_activated,
+        maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr
 
     },
     staging: {
@@ -58,11 +58,11 @@ let config = {
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
         codes: codes,
-        subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
         trial_hours: hours_of_trial_period,
-        is_trial_active: is_trial_functionality_activated
+        is_trial_active: is_trial_functionality_activated,
+        maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr
     },
     production: {
         port: process.env.PW_PORT,
@@ -72,11 +72,11 @@ let config = {
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
         codes: codes,
-        subscription_status: subscription_status,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
         trial_hours: hours_of_trial_period,
-        is_trial_active: is_trial_functionality_activated
+        is_trial_active: is_trial_functionality_activated,
+        maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr
     }
 };
 

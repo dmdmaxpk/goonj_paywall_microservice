@@ -34,6 +34,19 @@ let billingHistoryRepo = require('./repos/BillingHistoryRepo');
 let tokenRepo = require('./repos/ApiTokenRepo');
 var packageRepo = require('./repos/PackageRepo');
 var userRepo = require('./repos/UserRepo');
+var nodemailer = require('nodemailer');
+
+
+var transporter = nodemailer.createTransport({
+    host: "ses-smtp-user.20191227-150048",
+    port: 465,
+    secure: true, // true for 465, false for other ports
+    auth: {
+      user: 'AKIAZQA2XAWP7CYJEJXS', // generated ethereal user
+      pass: 'BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs' // generated ethereal password
+    }
+  });
+
 
 consumeMessageQueue = async(response) => {
     try {
@@ -66,7 +79,7 @@ consumeSusbcriptionQueue = async(res) => {
     try {
         let subscriptionObj = JSON.parse(res.content);
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
-
+        let amount_billed = subscriptionObj.packageObj.price_point_pkr;
         if (countThisSec < config.telenor_subscription_api_tps) {
             console.log("Sending subscription request telenor");
             billingRepo.subscribePackage(subscriptionObj)
@@ -100,6 +113,7 @@ consumeSusbcriptionQueue = async(res) => {
                         subObj.auto_renewal = true;
                         subObj.last_billing_timestamp = new Date();
                         subObj.next_billing_timestamp = nextBilling;
+                        subObj.amount_billed_today = subscriber.amount_billed_today + amount_billed;
                         subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
                         subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
                         let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
@@ -162,6 +176,24 @@ consumeSusbcriptionQueue = async(res) => {
                         await subscriberRepo.updateSubscriber(subscriber._id, subObj);
                     }
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
+                    console.log("after payment processed: subscriber.amount_billed_today", subscriber.amount_billed_today);
+                    console.log("after payment processed: config.maximum_daily_payment_limit_pkr", config.maximum_daily_payment_limit_pkr);
+                    if (subscriber.amount_billed_today > config.maximum_daily_payment_limit_pkr) {
+                        console.log("Caution Billing Amount exceeded");
+                        // TODO set active of this subcriber to false
+                        let subscriber =  await subscriberRepo.setSubcriberInactive(user_id);
+                        console.log("subscriber",subscriber);
+                        // TODO send email to our emails with user_id of this user and today's UTC time along with amount billed
+                        console.log("send email to user with user ID ", user_id);
+                        var info = await transporter.sendMail({
+                            from: 'hamza@dmdmax.com.pk', // sender address
+                            to: ["hamzashujaat218@gmail.com","farhan@dmdmax.com","suleiman@dmdmax.com"], // list of receivers
+                            subject: "User Billing Exceeded", // Subject line
+                            text: `User ${user_id} has exceeded their billing limit. Please check. `, // plain text body
+                          });
+                
+
+                    }
                     rabbitMq.acknowledge(res);
                 }
             }).catch((error) => {
@@ -231,6 +263,7 @@ const tpsCountService = require('./services/tpsCountService');
 tokenRefreshCron.runJob();
 subscriptionRenewalCron.runJob();
 tpsCountService.runJob();
+tpsCountService.runDailyAmountJob();
 
 
 

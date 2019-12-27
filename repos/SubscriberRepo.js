@@ -36,11 +36,33 @@ deleteSubscriber = async(user_id) => {
     return result;
 }
 
+resetAmountBilledToday = async() => {
+    const result = await Subscriber.updateMany({},{$set: { amount_billed_today : 0}});
+    return result;
+}
+
+setSubcriberInactive = async(user_id) => {
+    if (user_id) { 
+        const query = { user_id: user_id };
+        const result = await Subscriber.updateOne(query,{ $set: { active: false } });
+        if (result.nModified === 0) {
+            return undefined;
+        }else{
+            let subscriber = await getSubscriber(user_id);
+            return subscriber;
+        }
+    } else {
+         return undefined;
+    }
+}
+
+
 
 module.exports = {
     createSubscriber: createSubscriber,
     getSubscriber: getSubscriber,
     getRenewableSubscribers: getRenewableSubscribers,
     updateSubscriber: updateSubscriber,
-    deleteSubscriber: deleteSubscriber
+    deleteSubscriber: deleteSubscriber,
+    resetAmountBilledToday: resetAmountBilledToday
 }
