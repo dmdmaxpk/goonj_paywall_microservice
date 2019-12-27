@@ -38,12 +38,12 @@ var nodemailer = require('nodemailer');
 
 
 var transporter = nodemailer.createTransport({
-    host: "mail.dmdmax.com.pk",
+    host: "ses-smtp-user.20191227-150048",
     port: 465,
     secure: true, // true for 465, false for other ports
     auth: {
-      user: 'keemut@dmdmax.com.pk', // generated ethereal user
-      pass: 'Keemut@123' // generated ethereal password
+      user: 'AKIAZQA2XAWP7CYJEJXS', // generated ethereal user
+      pass: 'BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs' // generated ethereal password
     }
   });
 
