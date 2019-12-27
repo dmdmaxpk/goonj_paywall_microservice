@@ -164,7 +164,7 @@ exports.subscribe = async (req, res) => {
 		// Means no user in DB, let's create one
 		let userObj = {};
 		userObj.msisdn = msisdn;
-		userObj.subscribed_package_id = 'none';
+		userObj.subscribed_package_id = req.body.package_id;
 		userObj.source = req.body.source ?  req.body.source : 'unknown';
 		
 		user = await userRepo.createUser(userObj);
@@ -253,6 +253,9 @@ exports.subscribe = async (req, res) => {
 				let newPackageId = req.body.package_id;
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
 				if(packageObj){
+					let userCopy = JSON.parse(JSON.stringify(user) );
+					userCopy.subscribed_package_id = newPackageId;
+					let userUpdated = await userRepo.updateUser(userCopy.msisdn,userCopy);
 					if (config.is_trial_active) {
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
 					} else {
