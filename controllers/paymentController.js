@@ -296,7 +296,9 @@ exports.status = async (req, res) => {
 	if(user){
 		let result = await subscriberRepo.getSubscriber(user._id);
 		if(result){
-			res.send({code: config.code_success, data: result});	
+			res.send({code: config.codes.code_success, data: result});	
+		}else{
+			res.send({code: config.codes.code_error, data: 'No subscriber found.'});	
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
