@@ -62,7 +62,7 @@ consumeMessageQueue = async(response) => {
                 rabbitMq.acknowledge(response);
             }).catch(error => {
                 console.log('Error: ', error.message);
-                consumeMessageQueue(response);
+                rabbitMq.acknowledge(response);
             });
         } else {
             console.log("TPS quota full for messages, waiting for second to elapse - ", new Date());
@@ -84,7 +84,7 @@ consumeSusbcriptionQueue = async(res) => {
             console.log("Sending subscription request telenor");
             billingRepo.subscribePackage(subscriptionObj)
             .then(async (response) => {
-                console.log("Sending subscription request to telenor");
+                console.log("Sending subscription request to telenor response",response.api_response.data);
                 let operator_response = response.api_response;
                 let message = operator_response.data.Message;
                 let user_id = response.user_id;
@@ -95,7 +95,7 @@ consumeSusbcriptionQueue = async(res) => {
                 billingHistoryObject.user_id = user_id;
                 billingHistoryObject.package_id = package_id;
                 billingHistoryObject.transaction_id = transaction_id;
-                billingHistoryObject.operator_response = operator_response.toString();
+                billingHistoryObject.operator_response = response.api_response.data;
                 billingHistoryObject.billing_status = message;
                 billingHistoryObject.operator = 'telenor';
                 console.log('Billing history', billingHistoryObject);

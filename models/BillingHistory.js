@@ -8,7 +8,9 @@ const billingHistorySchema = new Schema({
     user_id: ShortId,
     package_id: String,
     transaction_id: String,
-    operator_response: String,
+    operator_response: {
+        type: {}
+    },
     billing_status: String,
     billing_dtm: { type: Date, default: Date.now, index: true },
 
