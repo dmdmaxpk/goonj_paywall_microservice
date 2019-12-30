@@ -196,8 +196,18 @@ consumeSusbcriptionQueue = async(res) => {
                     }
                     rabbitMq.acknowledge(res);
                 }
-            }).catch((error) => {
+            }).catch(async (error) => {
+                console.log('Error:-', error.data);
                 console.log('Error:', error.message);
+                let billingHistoryObject = {};
+                billingHistoryObject.user_id = subscriptionObj.user_id;
+                billingHistoryObject.package_id = subscriptionObj.packageObj._id;
+                billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
+                billingHistoryObject.operator_response = error.data;
+                billingHistoryObject.billing_status = error.message;
+                billingHistoryObject.operator = 'telenor';
+                console.log('Billing history', billingHistoryObject);
+                let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                 rabbitMq.acknowledge(res);
             });
         } else {
