@@ -84,7 +84,7 @@ consumeSusbcriptionQueue = async(res) => {
             console.log("Sending subscription request telenor");
             billingRepo.subscribePackage(subscriptionObj)
             .then(async (response) => {
-                console.log("Sending subscription request to telenor response",response.api_response.data,'wfawaf',response);
+                console.log("Sending subscription request to telenor response",response.api_response.data);
                 let operator_response = response.api_response;
                 let message = operator_response.data.Message;
                 let user_id = response.user_id;

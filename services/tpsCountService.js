@@ -12,12 +12,12 @@ runJob  = async() => {
       }, null, true, 'America/Los_Angeles');
 }
 
-// TODO make this run after one day instead of one minute before committing
+// This should run everyday at midnight
 runDailyAmountJob  = async() => {
-    console.log("Run daily Amount reset function");
-    new CronJob('* * *',  async() => {
+    new CronJob('0 0 0 * * *',  async() => {
         try {
-            console.log("Run daily Amount reset function");
+            // Logging this to see if it realy is running every day at midnight
+            console.log("Daily Amount Cron job", new Date());
             await SubscriberRepo.resetAmountBilledToday();
         } catch(err) {
             throw err;
