@@ -6,23 +6,19 @@ const config = require('../config');
 const shortId = require('shortid');
 
 // To generate token to consume telenor dcb apis
-runJob  = async() => {
-    // At every 5th minute
-    new CronJob('*/5 * * * *',  async() => {
-        console.log('Cron - SubscriptionRenewal - Executing - ' + (new Date()));
-        try{
-            let subscribers = await subsriberRepo.getRenewableSubscribers();
-            let promisesArr= [];
-            for(let i = 0; i < subscribers.length; i++){
-                let promise = getPromise(subscribers[i].user_id);
-                promisesArr.push(promise);
-            }
-            let promises = await Promise.all(promisesArr);
-            console.log('Promises response: ', promises);
-        }catch(err){
-            console.log(err);
+
+subscriptionRenewal = async() => {
+    try {
+        let subscribers = await subsriberRepo.getRenewableSubscribers();
+        let promisesArr= [];
+        for(let i = 0; i < subscribers.length; i++){
+            let promise = getPromise(subscribers[i].user_id);
+            promisesArr.push(promise);
         }
-      }, null, true, 'America/Los_Angeles');
+        let promises = await Promise.all(promisesArr);
+    } catch(err){
+        console.log(err);
+    }
 }
 
 getPromise =  async(user_id) => {
@@ -70,5 +66,6 @@ renewSubscription = async(user) => {
 }
 
 module.exports = {
-    runJob: runJob
+    // runJob: runJob,
+    subscriptionRenewal: subscriptionRenewal
 }
