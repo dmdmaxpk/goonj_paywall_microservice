@@ -270,13 +270,6 @@ const tokenRefreshCron = require('./services/TokenRefreshService');
 const subscriptionRenewalCron = require('./services/SubscriptionRenewalService');
 const tpsCountService = require('./services/tpsCountService');
 
-tokenRefreshCron.runJob();
-subscriptionRenewalCron.runJob();
-tpsCountService.runJob();
-tpsCountService.runDailyAmountJob();
-
-
-
 
 /*
 TODO:
