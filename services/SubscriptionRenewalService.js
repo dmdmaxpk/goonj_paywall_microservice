@@ -10,9 +10,23 @@ const shortId = require('shortid');
 subscriptionRenewal = async() => {
     try {
         let subscribers = await subsriberRepo.getRenewableSubscribers();
-        let promisesArr= [];
+        let subscribersToRenew = [];
+        let subscribersNotToRenew = [];
         for(let i = 0; i < subscribers.length; i++){
-            let promise = getPromise(subscribers[i].user_id);
+            if (subscribers[i].auto_renewal === false && (subscribers[i].subscription_status === 'billed' 
+            || subscribers[i].subscription_status === 'graced' || subscribers[i].subscription_status === 'trial'  ) ) {
+                subscribersNotToRenew = [...subscribersNotToRenew, subscribers[i] ];
+            } else {
+                subscribersToRenew = [...subscribersToRenew,subscribers[i] ];
+            }
+        }
+        for(let i = 0; i < subscribersNotToRenew.length; i++) {
+            await subsriberRepo.updateSubscriber(subscribersNotToRenew[i]._id,{subscription_status: 'unsubscribed'});
+        }
+
+        let promisesArr = [];
+        for(let i = 0; i < subscribersToRenew.length; i++){
+            let promise = getPromise(subscribersToRenew[i].user_id);
             promisesArr.push(promise);
         }
         let promises = await Promise.all(promisesArr);

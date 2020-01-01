@@ -3,6 +3,7 @@ const otpRepo = require('../repos/OTPRepo');
 const userRepo = require('../repos/UserRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
 const packageRepo = require('../repos/PackageRepo');
+const billingHistoryRepo = require('../repos/BillingHistoryRepo');
 const shortId = require('shortid');
 
 function sendMessage(otp, msisdn){
@@ -234,17 +235,14 @@ exports.subscribe = async (req, res) => {
 			var postObj = {};
 			postObj.user_id = user._id;
 			postObj.subscription_status = 'none';
-			console.log("postObj.next_billing_timestamp ",config.is_trial_active);
 			if (config.is_trial_active) {
 				let nexBilling = new Date();
 				postObj.next_billing_timestamp = nexBilling.setHours ( nexBilling.getHours() + config.trial_hours);
 				postObj.subscription_status = 'trial';
-				console.log("postObj.next_billing_timestamp",postObj.next_billing_timestamp);
 			}
 
 			let subscriber = await subscriberRepo.createSubscriber(postObj);
 			if(subscriber){
-				console.log('Payment - SubscriberCreated - ', subscriber.user_id, ' - ', (new Date()));
 				/* 
 				* Subscriber created successfully
 				* Let's send this item in queue and update package, auto_renewal and 
@@ -257,6 +255,15 @@ exports.subscribe = async (req, res) => {
 					userCopy.subscribed_package_id = newPackageId;
 					let userUpdated = await userRepo.updateUser(userCopy.msisdn,userCopy);
 					if (config.is_trial_active) {
+						let billingHistory = {};
+						billingHistory.user_id = userUpdated._id;
+						billingHistory.package_id = packageObj._id;
+						billingHistory.transaction_id = undefined;
+						billingHistory.operator_response = undefined;
+						billingHistory.billing_status = 'trial';
+						billingHistory.source = req.body.source;
+						billingHistory.operator = 'telenor';
+						await billingHistoryRepo.createBillingHistory(billingHistory);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
 					} else {
 						subscribePackage(user, packageObj);
@@ -311,6 +318,15 @@ exports.unsubscribe = async (req, res) => {
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	if(user){
 		let result = await subscriberRepo.updateSubscriber(user._id, {auto_renewal: false, consecutive_successive_bill_counts: 0});
+		let billingHistory = {};
+		billingHistory.user_id = user._id;
+		billingHistory.package_id = user.subscribed_package_id;
+		billingHistory.transaction_id = undefined;
+		billingHistory.operator_response = undefined;
+		billingHistory.billing_status = 'unsubscribe-request-recieved';
+		billingHistory.source = user.source;
+		billingHistory.operator = 'telenor';
+		await billingHistoryRepo.createBillingHistory(billingHistory);
 		if(result){
 			res.send({code: config.code_success, message: 'Successfully unsubscribed'});	
 		}
