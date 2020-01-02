@@ -22,12 +22,21 @@ getRenewableSubscribers =async() => {
 updateSubscriber = async(user_id, postData) => {
     const query = { user_id: user_id };
     postData.last_modified = new Date();
-    const result = await Subscriber.updateOne(query, postData);
-    if (result.nModified === 0) {
-        return undefined;
-    }else{
-        let subscriber = await getSubscriber(user_id);
-        return subscriber;
+    try {
+        console.log('12',postData,query);
+        const result = await Subscriber.updateOne(query, postData);
+        if (result.nModified === 0) {
+            console.log('13');
+            return undefined;
+        } else {
+            console.log('14');
+            let subscriber = await getSubscriber(user_id);
+            return subscriber;
+        }
+    } catch(error) {
+        console.log('15');
+        console.log(error);
+        return error;
     }
 }
 
@@ -64,5 +73,6 @@ module.exports = {
     getRenewableSubscribers: getRenewableSubscribers,
     updateSubscriber: updateSubscriber,
     deleteSubscriber: deleteSubscriber,
-    resetAmountBilledToday: resetAmountBilledToday
+    resetAmountBilledToday: resetAmountBilledToday,
+    setSubcriberInactive: setSubcriberInactive
 }

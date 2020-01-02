@@ -22,7 +22,7 @@ const codes = {
     code_in_billing_queue: 10,
     code_trial_activated: 11
 }
-const maximum_daily_payment_limit_pkr = 1000;
+const maximum_daily_payment_limit_pkr = 100;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 

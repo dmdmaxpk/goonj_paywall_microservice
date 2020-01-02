@@ -38,7 +38,7 @@ var nodemailer = require('nodemailer');
 
 
 var transporter = nodemailer.createTransport({
-    host: "ses-smtp-user.20191227-150048",
+    host: "email-smtp.eu-central-1.amazonaws.com",
     port: 465,
     secure: true, // true for 465, false for other ports
     auth: {
@@ -107,7 +107,7 @@ consumeSusbcriptionQueue = async(res) => {
                         console.log('BillingSuccess - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
                         let nextBilling = new Date();
                         nextBilling.setHours(nextBilling.getHours() + response.packageObj.package_duration);
-
+			console.log("amount billed",amount_billed);
                         let subObj = {};
                         subObj.subscription_status = 'billed';
                         subObj.auto_renewal = true;
@@ -116,6 +116,7 @@ consumeSusbcriptionQueue = async(res) => {
                         subObj.amount_billed_today = subscriber.amount_billed_today + amount_billed;
                         subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
                         subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
+                        console.log("subObj",subObj);
                         let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
                         if(updatedSubscriber){
                             await userRepo.updateUserById(response.user_id, {subscribed_package_id: response.packageObj._id});
@@ -186,8 +187,8 @@ consumeSusbcriptionQueue = async(res) => {
                         // TODO send email to our emails with user_id of this user and today's UTC time along with amount billed
                         console.log("send email to user with user ID ", user_id);
                         var info = await transporter.sendMail({
-                            from: 'hamza@dmdmax.com.pk', // sender address
-                            to: ["hamzashujaat218@gmail.com","farhan@dmdmax.com","suleiman@dmdmax.com"], // list of receivers
+                            from: 'paywall@dmdmax.com.pk', // sender address
+                            to: "paywall@dmdmax.com.pk", // list of receivers
                             subject: "User Billing Exceeded", // Subject line
                             text: `User ${user_id} has exceeded their billing limit. Please check. `, // plain text body
                           });

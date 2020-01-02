@@ -1,6 +1,7 @@
 const CronJob = require('cron').CronJob;
 const subsriberRepo = require('../repos/SubscriberRepo');
 const packageRepo = require('../repos/PackageRepo');
+const billingHistoryRepo = require('../repos/BillingHistoryRepo');
 const userRepo = require('../repos/UserRepo');
 const config = require('../config');
 const shortId = require('shortid');
@@ -20,11 +21,26 @@ subscriptionRenewal = async() => {
                 subscribersToRenew = [...subscribersToRenew,subscribers[i] ];
             }
         }
+        console.log("Subscribers Not to renew",subscribersNotToRenew);
         for(let i = 0; i < subscribersNotToRenew.length; i++) {
-            await subsriberRepo.updateSubscriber(subscribersNotToRenew[i]._id,{subscription_status: 'unsubscribed'});
+            console.log("Subscribers Not to renew",subscribersNotToRenew[i]._id);
+            let subscriber = subscribersNotToRenew[i];
+            let sub = await subsriberRepo.updateSubscriber(subscriber.user_id,{subscription_status: 'unsubscribed'});
+            let user = await userRepo.getUserById(subscriber.user_id);
+            console.log("User",user);
+            let billingHistory = {};
+		    billingHistory.user_id = subscriber.user_id;
+            billingHistory.package_id = user.subscribed_package_id;
+            billingHistory.transaction_id = undefined;
+            billingHistory.operator_response = undefined;
+            billingHistory.billing_status = 'unsubscribed';
+            billingHistory.source = user.source;
+            billingHistory.operator = 'telenor';
+            await billingHistoryRepo.createBillingHistory(billingHistory);
         }
 
         let promisesArr = [];
+        console.log("Subscribers to renew",subscribersToRenew);
         for(let i = 0; i < subscribersToRenew.length; i++){
             let promise = getPromise(subscribersToRenew[i].user_id);
             promisesArr.push(promise);
