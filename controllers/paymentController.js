@@ -328,7 +328,7 @@ exports.unsubscribe = async (req, res) => {
 		billingHistory.operator = 'telenor';
 		await billingHistoryRepo.createBillingHistory(billingHistory);
 		if(result){
-			res.send({code: config.code_success, message: 'Successfully unsubscribed'});	
+			res.send({code: config.codes.code_success, message: 'Successfully unsubscribed'});	
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
