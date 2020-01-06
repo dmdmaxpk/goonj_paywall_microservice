@@ -14,7 +14,6 @@ variables:
 before_script:
   - apk add --no-cache curl jq python py-pip
   - pip install awscli
-  - docker login 
 
 build:
   stage: build
