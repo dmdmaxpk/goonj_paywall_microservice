@@ -15,4 +15,7 @@ router.route('/tpsCountReset')
 router.route('/dailyAmoutReset')
     .get(controller.dailyAmoutReset);
 
+router.route('/checkLastSeenOfUsers')
+    .get(controller.dailyAmoutReset);
+
 module.exports = router;

@@ -18,7 +18,7 @@ createViewLog = async(userId) => {
 }
 
 getLatestViewLog =async(userId) => {
-    result = await ViewLog.find({user_id: userId}).sort({added_dtm: -1}).limit(1);
+    result = await ViewLog.findOne({user_id: userId}).sort({added_dtm: -1});
     return result;
 }
 

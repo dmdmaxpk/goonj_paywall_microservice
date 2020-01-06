@@ -21,3 +21,8 @@ exports.tpsCountReset = async (req,res) =>  {
     await tpsCountService.tpsCountReset();
     res.send("tpsCountReset done");
 }
+
+exports.checkLastSeenOfUsers = async (req,res) =>  {
+    await tpsCountService.tpsCountReset();
+    res.send("checkLastSeenOfUsers done");
+}

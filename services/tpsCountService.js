@@ -2,19 +2,6 @@ const CronJob = require('cron').CronJob;
 const TpsCountRepo = require('../repos/tpsCountRepo');
 const SubscriberRepo = require('../repos/SubscriberRepo');
 
-// runJob  = async() => {
-//     new CronJob('* * * * * *',  async() => {
-        
-//       }, null, true, 'America/Los_Angeles');
-// }
-
-// // This should run everyday at midnight
-// runDailyAmountJob  = async() => {
-//     new CronJob('0 0 0 * * *',  async() => {
-        
-//       }, null, true, 'America/Los_Angeles');
-// }
-
 tpsCountReset = async() => {
     try {
         await TpsCountRepo.resetTPSCount();

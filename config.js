@@ -25,6 +25,7 @@ const codes = {
 const maximum_daily_payment_limit_pkr = 100;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
+const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 336; // 2 weeks
 
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
@@ -47,7 +48,8 @@ let config = {
         telenor_subscription_api_tps: telenor_subscription_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
-        maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr
+        maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
+        unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe
 
     },
     staging: {
@@ -62,7 +64,8 @@ let config = {
         telenor_subscription_api_tps: telenor_subscription_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
-        maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr
+        maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
+        unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe
     },
     production: {
         port: process.env.PW_PORT,
@@ -76,7 +79,8 @@ let config = {
         telenor_subscription_api_tps: telenor_subscription_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
-        maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr
+        maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
+        unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe
     }
 };
 
