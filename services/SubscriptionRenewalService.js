@@ -21,13 +21,10 @@ subscriptionRenewal = async() => {
                 subscribersToRenew = [...subscribersToRenew,subscribers[i] ];
             }
         }
-        console.log("Subscribers Not to renew",subscribersNotToRenew);
         for(let i = 0; i < subscribersNotToRenew.length; i++) {
-            console.log("Subscribers Not to renew",subscribersNotToRenew[i]._id);
             let subscriber = subscribersNotToRenew[i];
             let sub = await subsriberRepo.updateSubscriber(subscriber.user_id,{subscription_status: 'unsubscribed'});
             let user = await userRepo.getUserById(subscriber.user_id);
-            console.log("User",user);
             let billingHistory = {};
 		    billingHistory.user_id = subscriber.user_id;
             billingHistory.package_id = user.subscribed_package_id;

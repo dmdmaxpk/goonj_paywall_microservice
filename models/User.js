@@ -7,8 +7,8 @@ const ObjectId = Schema.ObjectId;
 const userSchema = new Schema({
     //Generating shortid instead of uuid
     _id: { type: ShortId, len: 8, retries: 4 },
-    msisdn: { type: String, index: true },
-    subscribed_package_id: ShortId,
+    msisdn: { type: String,required:true, index: true, validate: /^034[0-9]{8}$/ },
+    subscribed_package_id: {type: ShortId, required: true},
 
     // These fields can be used later in future.
     username: String,
@@ -26,6 +26,6 @@ const userSchema = new Schema({
     added_dtm: { type: Date, default: Date.now, index: true },
     last_modified: Date,
     active: { type: Boolean, default: true, index: true }
-}, { strict: true })
+}, { strict: true });
 
 module.exports = mongoose.model('User', userSchema);
