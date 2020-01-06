@@ -59,8 +59,11 @@ exports.sendOtp = async (req, res) => {
 		userObj.subscribed_package_id = 'none';
 		userObj.source = req.body.source ? req.body.source : 'unknown';
 		userObj.operator = 'telenor';
-		
-		user = await userRepo.createUser(userObj);
+		try {
+			user = await userRepo.createUser(userObj);
+		} catch (err) {
+			res.send({code: config.codes.code_error, message: err.message })
+		}
 		if(user){
 			console.log('Payment - OTP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 		}
@@ -167,8 +170,11 @@ exports.subscribe = async (req, res) => {
 		userObj.msisdn = msisdn;
 		userObj.subscribed_package_id = req.body.package_id;
 		userObj.source = req.body.source ?  req.body.source : 'unknown';
-		
-		user = await userRepo.createUser(userObj);
+		try {
+			user = await userRepo.createUser(userObj);
+		} catch(er) {
+			res.send({code: config.codes.code_error, message: err.message})
+		}
 		if(user){
 			console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 		}
