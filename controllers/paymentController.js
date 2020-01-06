@@ -4,6 +4,7 @@ const userRepo = require('../repos/UserRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
 const packageRepo = require('../repos/PackageRepo');
 const billingHistoryRepo = require('../repos/BillingHistoryRepo');
+const viewLogRepo = require('../repos/ViewLogRepo');
 const shortId = require('shortid');
 
 function sendMessage(otp, msisdn){
@@ -309,6 +310,7 @@ exports.status = async (req, res) => {
 	if(user){
 		let result = await subscriberRepo.getSubscriber(user._id);
 		if(result){
+			await viewLogRepo.createViewLog(user._id);
 			res.send({code: config.codes.code_success, data: result});	
 		}else{
 			res.send({code: config.codes.code_error, data: 'No subscriber found.'});	

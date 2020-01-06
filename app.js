@@ -16,6 +16,7 @@ require('./models/Subscriber');
 require('./models/BillingHistory');
 require('./models/ApiToken');
 require('./models/TpsCount');
+require('./models/ViewLog');
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
@@ -177,15 +178,10 @@ consumeSusbcriptionQueue = async(res) => {
                         await subscriberRepo.updateSubscriber(subscriber._id, subObj);
                     }
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
-                    console.log("after payment processed: subscriber.amount_billed_today", subscriber.amount_billed_today);
-                    console.log("after payment processed: config.maximum_daily_payment_limit_pkr", config.maximum_daily_payment_limit_pkr);
                     if (subscriber.amount_billed_today > config.maximum_daily_payment_limit_pkr) {
-                        console.log("Caution Billing Amount exceeded");
                         // TODO set active of this subcriber to false
                         let subscriber =  await subscriberRepo.setSubcriberInactive(user_id);
-                        console.log("subscriber",subscriber);
                         // TODO send email to our emails with user_id of this user and today's UTC time along with amount billed
-                        console.log("send email to user with user ID ", user_id);
                         var info = await transporter.sendMail({
                             from: 'paywall@dmdmax.com.pk', // sender address
                             to: "paywall@dmdmax.com.pk", // list of receivers
@@ -207,7 +203,6 @@ consumeSusbcriptionQueue = async(res) => {
                 billingHistoryObject.operator_response = error.data;
                 billingHistoryObject.billing_status = error.message;
                 billingHistoryObject.operator = 'telenor';
-                console.log('Billing history', billingHistoryObject);
                 let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                 rabbitMq.acknowledge(res);
             });
