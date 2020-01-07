@@ -1,6 +1,7 @@
 const subscriptionService = require('../services/SubscriptionRenewalService');
 const tokenRefreshService = require('../services/TokenRefreshService');
 const tpsCountService = require('../services/tpsCountService');
+const checkLastSeenOfUsersService = require('../services/checkLastSeenOfUsers');
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
@@ -23,6 +24,7 @@ exports.tpsCountReset = async (req,res) =>  {
 }
 
 exports.checkLastSeenOfUsers = async (req,res) =>  {
-    await tpsCountService.tpsCountReset();
+    console.log("checkLastSeenOfUsers");
+    await checkLastSeenOfUsersService.checkLastSeenOfUsers();
     res.send("checkLastSeenOfUsers done");
 }

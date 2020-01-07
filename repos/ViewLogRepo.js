@@ -18,8 +18,14 @@ createViewLog = async(userId) => {
 }
 
 getLatestViewLog =async(userId) => {
-    result = await ViewLog.findOne({user_id: userId}).sort({added_dtm: -1});
-    return result;
+    try {
+        console.log("userId",userId);
+        result = await ViewLog.findOne({user_id: userId}).sort({added_dtm: -1});
+        console.log("result",result);
+        return result;
+    } catch(erro) {
+        throw new Error(error.message); 
+    }
 }
 
 

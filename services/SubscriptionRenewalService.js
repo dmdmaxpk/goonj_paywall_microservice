@@ -23,14 +23,14 @@ subscriptionRenewal = async() => {
         }
         for(let i = 0; i < subscribersNotToRenew.length; i++) {
             let subscriber = subscribersNotToRenew[i];
-            let sub = await subsriberRepo.updateSubscriber(subscriber.user_id,{subscription_status: 'unsubscribed'});
+            let sub = await subsriberRepo.updateSubscriber(subscriber.user_id,{subscription_status: 'expired'});
             let user = await userRepo.getUserById(subscriber.user_id);
             let billingHistory = {};
 		    billingHistory.user_id = subscriber.user_id;
             billingHistory.package_id = user.subscribed_package_id;
             billingHistory.transaction_id = undefined;
             billingHistory.operator_response = undefined;
-            billingHistory.billing_status = 'unsubscribed';
+            billingHistory.billing_status = 'expired';
             billingHistory.source = user.source;
             billingHistory.operator = 'telenor';
             await billingHistoryRepo.createBillingHistory(billingHistory);
