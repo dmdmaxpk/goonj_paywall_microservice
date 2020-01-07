@@ -5,9 +5,6 @@ const controller = require('../controllers/packageController')
 
 router.route('/')
     .post(controller.post)
-    .get(controller.get);
-
-router.route('/all')
     .get(controller.getAll);
 
 // Update on the basis of user id
