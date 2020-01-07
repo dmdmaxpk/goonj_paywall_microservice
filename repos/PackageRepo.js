@@ -16,6 +16,12 @@ getPackage = async(query) => {
 	return result;
 }
 
+getAllPackages = async(query) => {
+    query.active = true;
+    let result = await Package.find(query);
+	return result;
+}
+
 updatePackage = async(id, postData) => {
     const query = { _id: id };
     postBody.last_modified = new Date();
@@ -37,6 +43,7 @@ deletePackage = async(id) => {
 module.exports = {
     createPackage: createPackage,
     getPackage: getPackage,
+    getAllPackages: getAllPackages,
     updatePackage: updatePackage,
     deletePackage: deletePackage
 }

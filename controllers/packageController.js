@@ -27,6 +27,12 @@ exports.get = async (req, res) => {
 	res.send(result);
 }
 
+// GET
+exports.getAll = async (req, res) => {
+	result = await repo.getAllPackages({});
+	res.send(result);
+}
+
 // UPDATE
 exports.put = async (req, res) => {
 	const result = await repo.updatePackage(req.params.id, req.body);

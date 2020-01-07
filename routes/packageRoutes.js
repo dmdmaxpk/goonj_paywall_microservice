@@ -7,6 +7,9 @@ router.route('/')
     .post(controller.post)
     .get(controller.get);
 
+router.route('/all')
+    .get(controller.getAll);
+
 // Update on the basis of user id
 router.route('/:id')
     .put(controller.put)
