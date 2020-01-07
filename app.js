@@ -23,8 +23,15 @@ var tpsCountRepo = require('./repos/tpsCountRepo');
 
 const app = express();
 
+app.use((req, res, next) => {
+    if(req.originalUrl.includes('/cron/')){
+        next();
+    }else{
+        logger('dev');        
+    }
+});
+
 // Middlewares
-app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(mongoSanitize());
