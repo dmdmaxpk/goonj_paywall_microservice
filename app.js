@@ -202,7 +202,6 @@ consumeSusbcriptionQueue = async(res) => {
                     rabbitMq.acknowledge(res);
                 }
             }).catch(async (error) => {
-                console.log('Error:-', error.data);
                 console.log('Error:', error.message);
                 let billingHistoryObject = {};
                 billingHistoryObject.user_id = subscriptionObj.user_id;
@@ -254,7 +253,6 @@ billingRepo.generateToken().then(async(token) => {
                 // Subscriptin Queue
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
                     //rabbitMq.acknowledge(response);
-                    console.log("0", response);
                     consumeSusbcriptionQueue(response);
                 });
             }
