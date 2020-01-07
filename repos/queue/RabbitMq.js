@@ -76,10 +76,8 @@ class RabbitMq {
     }
 
     addInQueue(queue, message){
-        console.log("coming in add in queue");
         let buffer = Buffer.from(JSON.stringify(message));
         this.channel.sendToQueue(queue, buffer, {persistent:true});
-        console.log(this.channel);
     }
 }    
   

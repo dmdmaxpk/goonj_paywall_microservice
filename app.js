@@ -86,13 +86,10 @@ consumeMessageQueue = async(response) => {
 
 consumeSusbcriptionQueue = async(res) => {
     try {
-        console.log("1");
         let subscriptionObj = JSON.parse(res.content);
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
         let amount_billed = subscriptionObj.packageObj.price_point_pkr;
-        console.log("2");
         if (countThisSec < config.telenor_subscription_api_tps) {
-            console.log("3");
             console.log("Sending subscription request telenor");
             billingRepo.subscribePackage(subscriptionObj)
             .then(async (response) => {
