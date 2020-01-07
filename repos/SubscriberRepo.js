@@ -19,6 +19,14 @@ getRenewableSubscribers =async() => {
     return results;
 }
 
+getBilledSubscribers =async() => {
+    let results = await Subscriber.find(
+        {$or:[{subscription_status:'billed'}], 
+        next_billing_timestamp: {$lte: new Date()}, active: true});
+    return results;
+}
+
+
 updateSubscriber = async(user_id, postData) => {
     const query = { user_id: user_id };
     postData.last_modified = new Date();
@@ -61,6 +69,21 @@ setSubcriberInactive = async(user_id) => {
     }
 }
 
+unsubscribe = async(user_id) => {
+    if (user_id) { 
+        const query = { user_id: user_id };
+        const result = await Subscriber.updateOne(query,{ $set: { auto_renewal: false,subscription_status: 'expired' } });
+        if (result.nModified === 0) {
+            return undefined;
+        }else{
+            let subscriber = await getSubscriber(user_id);
+            return subscriber;
+        }
+    } else {
+         return undefined;
+    }
+}
+
 
 
 module.exports = {
@@ -70,5 +93,7 @@ module.exports = {
     updateSubscriber: updateSubscriber,
     deleteSubscriber: deleteSubscriber,
     resetAmountBilledToday: resetAmountBilledToday,
-    setSubcriberInactive: setSubcriberInactive
+    setSubcriberInactive: setSubcriberInactive,
+    getBilledSubscribers: getBilledSubscribers,
+    unsubscribe: unsubscribe
 }

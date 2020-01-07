@@ -187,7 +187,14 @@ exports.subscribe = async (req, res) => {
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriber(user._id);
 		if(subscriber){
+			// User is already present in the system 
+			// user could be returning after unsubscribing
+			// or after clearing cache
+
 			// Subscriber already present in DB, let's check his/her subscription status
+
+			// creating viewLog meaning that user has seen the app
+			await viewLogRepo.createViewLog(user._id);
 			if(subscriber.subscription_status === 'billed'){
 				// User is already billed
 				
@@ -222,7 +229,7 @@ exports.subscribe = async (req, res) => {
 						res.send({code: config.codes.code_error, message: 'Wrong package id'});
 					}
 				}
-			}else{
+			} else if (subscriber.subscription_status === 'expired'){
 				/* 
 				* Not already billed
 				* Let's send this item in queue and update package, auto_renewal and 
@@ -236,8 +243,11 @@ exports.subscribe = async (req, res) => {
 				}else{
 					res.send({code: config.codes.code_error, message: 'Wrong package id'});
 				}
+			} else {
+				res.send({code: config.codes.code_trial_activated, subcription_status: subscriber.subscription_status});
 			}
-		}else{
+		} else{
+			// User is entering into the system for the first time
 			// No subscriber found in DB, lets create new one
 			var postObj = {};
 			postObj.user_id = user._id;
