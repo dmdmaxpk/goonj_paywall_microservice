@@ -273,6 +273,8 @@ const tokenRefreshCron = require('./services/TokenRefreshService');
 const subscriptionRenewalCron = require('./services/SubscriptionRenewalService');
 const tpsCountService = require('./services/tpsCountService');
 
+const numValidation = require('./numValidation');
+numValidation.validateNumber();
 
 /*
 TODO:
