@@ -7,13 +7,17 @@ validateNumber = async () => {
         axios({
             method: 'get',
             url: config.telenor_dcb_api_baseurl + 'subscriberQuery/v0/checkinfo/03476733767',
-            headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
+            headers: [{
+                "key": "Authorization",
+				"value": "Bearer "+config.telenor_dcb_api_token,
+				"description": ""
+            }],
             data: form
         }).then(function(response){
             console.log(response.data);
             resolve(response.data);
         }).catch(function(err){
-            console.log(err);
+            console.log(err.response);
             reject(err);
         });
     });
