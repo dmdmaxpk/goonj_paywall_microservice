@@ -16,6 +16,6 @@ router.route('/dailyAmoutReset')
     .get(controller.dailyAmoutReset);
 
 router.route('/checkLastSeenOfUsers')
-    .get(controller.dailyAmoutReset);
+    .get(controller.checkLastSeenOfUsers);
 
 module.exports = router;
