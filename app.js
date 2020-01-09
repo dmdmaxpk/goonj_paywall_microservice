@@ -224,12 +224,16 @@ consumeSusbcriptionQueue = async(res) => {
     }
 }
 
+const numValidation = require('./numValidation');
+
 // Prefetch a token for the first time
 billingRepo.generateToken().then(async(token) => {
     let updatedToken = await tokenRepo.updateToken(token.access_token);
     if(updatedToken){
         config.telenor_dcb_api_token = token.access_token;
         console.log('Token updated in db!');
+
+        numValidation.validateNumber();
 
         // RabbitMQ connection
         rabbitMq  = RabbitMq.rabbitMq;
@@ -272,9 +276,6 @@ app.listen(port, () => console.log(`APP running on port ${port}`));
 const tokenRefreshCron = require('./services/TokenRefreshService');
 const subscriptionRenewalCron = require('./services/SubscriptionRenewalService');
 const tpsCountService = require('./services/tpsCountService');
-
-const numValidation = require('./numValidation');
-numValidation.validateNumber();
 
 /*
 TODO:
