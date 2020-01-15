@@ -18,4 +18,7 @@ router.route('/dailyAmoutReset')
 router.route('/checkLastSeenOfUsers')
     .get(controller.checkLastSeenOfUsers);
 
+router.route('/grayListService')
+    .get(controller.grayListService);
+
 module.exports = router;
