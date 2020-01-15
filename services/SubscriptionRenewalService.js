@@ -21,8 +21,10 @@ subscriptionRenewal = async() => {
                 subscribersToRenew = [...subscribersToRenew,subscribers[i] ];
             }
         }
+        
         for(let i = 0; i < subscribersNotToRenew.length; i++) {
             let subscriber = subscribersNotToRenew[i];
+            await userRepo.updateUserById(subscriber.user_id, {subscription_status: 'expired'});
             let sub = await subsriberRepo.updateSubscriber(subscriber.user_id,{subscription_status: 'expired'});
             let user = await userRepo.getUserById(subscriber.user_id);
             let billingHistory = {};

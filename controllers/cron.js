@@ -1,30 +1,37 @@
 const subscriptionService = require('../services/SubscriptionRenewalService');
 const tokenRefreshService = require('../services/TokenRefreshService');
-const tpsCountService = require('../services/tpsCountService');
-const checkLastSeenOfUsersService = require('../services/checkLastSeenOfUsers');
+const tpsCountService = require('../services/TpsCountService');
+const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
+const grayListService = require('../services/GrayListService');
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
-    res.send("Subscription renewal done");
+    res.send("Subscription renewal - Executed");
 }
 
 exports.refreshToken = async (req,res) =>  {
     await tokenRefreshService.refreshToken();
-    res.send("Token Refresh done");
+    res.send("Token Refresh - Executed");
 }
 
 exports.dailyAmoutReset = async (req,res) =>  {
     await tpsCountService.dailyAmountReset();
-    res.send("dailyAmoutReset done");
+    res.send("DailyAmoutReset - Executed");
 }
 
 exports.tpsCountReset = async (req,res) =>  {
     await tpsCountService.tpsCountReset();
-    res.send("tpsCountReset done");
+    res.send("TpsCountReset - Executed");
 }
 
 exports.checkLastSeenOfUsers = async (req,res) =>  {
-    console.log("checkLastSeenOfUsers");
+    console.log("CheckLastSeenOfUsers");
     await checkLastSeenOfUsersService.checkLastSeenOfUsers();
-    res.send("checkLastSeenOfUsers done");
+    res.send("CheckLastSeenOfUsers - Executed");
+}
+
+exports.grayListService = async (req,res) =>  {
+    console.log("GrayListService");
+    await grayListService.checkForUngrayListUsers();
+    res.send("GrayListService - Executed");
 }

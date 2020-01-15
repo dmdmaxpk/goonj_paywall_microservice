@@ -20,8 +20,13 @@ const codes = {
     code_otp_not_validated: 8,
     code_already_subscribed: 9,
     code_in_billing_queue: 10,
-    code_trial_activated: 11
+    code_trial_activated: 11,
+    code_user_gralisted: 12,
+    code_user_blacklisted: 13
 }
+
+const max_graylist_time_in_hrs = 336; // 2 weeks
+
 const maximum_daily_payment_limit_pkr = 100;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
@@ -49,8 +54,8 @@ let config = {
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
-        unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe
-
+        unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
+        max_graylist_time_in_hrs: max_graylist_time_in_hrs
     },
     staging: {
         port: '5000',
@@ -65,7 +70,8 @@ let config = {
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
-        unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe
+        unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
+        max_graylist_time_in_hrs: max_graylist_time_in_hrs
     },
     production: {
         port: process.env.PW_PORT,
@@ -80,7 +86,8 @@ let config = {
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
-        unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe
+        unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
+        max_graylist_time_in_hrs: max_graylist_time_in_hrs
     }
 };
 
