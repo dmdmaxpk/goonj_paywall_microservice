@@ -60,6 +60,12 @@ exports.sendOtp = async (req, res) => {
 		userObj.subscribed_package_id = 'none';
 		userObj.source = req.body.source ? req.body.source : 'unknown';
 		userObj.operator = 'telenor';
+		userObj.subscription_status = 'none';
+
+		if(req.body.marketing_source){
+			userObj.marketing_source = req.body.marketing_source;
+		}
+
 		try {
 			user = await userRepo.createUser(userObj);
 		} catch (err) {
@@ -68,8 +74,6 @@ exports.sendOtp = async (req, res) => {
 		if(user){
 			console.log('Payment - OTP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 		}
-	}else{
-		console.log('User Found');
 	}
 
 	// Generate OTP
@@ -171,6 +175,13 @@ exports.subscribe = async (req, res) => {
 		userObj.msisdn = msisdn;
 		userObj.subscribed_package_id = req.body.package_id;
 		userObj.source = req.body.source ?  req.body.source : 'unknown';
+		userObj.operator = 'telenor';
+		userObj.subscription_status = 'none';
+
+		if(req.body.marketing_source){
+			userObj.marketing_source = req.body.marketing_source;
+		}
+
 		try {
 			user = await userRepo.createUser(userObj);
 		} catch(er) {
@@ -179,8 +190,6 @@ exports.subscribe = async (req, res) => {
 		if(user){
 			console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 		}
-	}else{
-		console.log('User Found');
 	}
 
 	if(user){
@@ -258,6 +267,7 @@ exports.subscribe = async (req, res) => {
 				postObj.subscription_status = 'trial';
 			}
 
+			await userRepo.updateUserById(user._id, {subscription_status: postObj.subscription_status});
 			let subscriber = await subscriberRepo.createSubscriber(postObj);
 			if(subscriber){
 				/* 
@@ -268,9 +278,7 @@ exports.subscribe = async (req, res) => {
 				let newPackageId = req.body.package_id;
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
 				if(packageObj){
-					let userCopy = JSON.parse(JSON.stringify(user) );
-					userCopy.subscribed_package_id = newPackageId;
-					let userUpdated = await userRepo.updateUser(userCopy.msisdn,userCopy);
+					let userUpdated = await userRepo.updateUserById(user._id, {subscribed_package_id: newPackageId});
 					if (config.is_trial_active) {
 						let billingHistory = {};
 						billingHistory.user_id = userUpdated._id;
@@ -334,8 +342,10 @@ exports.status = async (req, res) => {
 exports.unsubscribe = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
+	
 	if(user){
-		let result = await subscriberRepo.updateSubscriber(user._id, {auto_renewal: false, consecutive_successive_bill_counts: 0});
+		let result = await subscriberRepo.updateSubscriber(user._id, {auto_renewal: false});
+		
 		let billingHistory = {};
 		billingHistory.user_id = user._id;
 		billingHistory.package_id = user.subscribed_package_id;
@@ -344,9 +354,19 @@ exports.unsubscribe = async (req, res) => {
 		billingHistory.billing_status = 'unsubscribe-request-recieved';
 		billingHistory.source = user.source;
 		billingHistory.operator = 'telenor';
-		await billingHistoryRepo.createBillingHistory(billingHistory);
+		result = await billingHistoryRepo.createBillingHistory(billingHistory);
 		if(result){
-			res.send({code: config.codes.code_success, message: 'Successfully unsubscribed'});	
+			if(user.marketing_source && user.marketing_source !== 'none'){
+				// This user registered from a marketer, let's put this user in gray list
+				result = await userRepo.updateUser(msisdn, {is_gray_listed: true});
+				if(result){
+					res.send({code: config.codes.code_success, message: 'Successfully unsubscribed'});	
+				}
+			}else{
+				res.send({code: config.codes.code_success, message: 'Successfully unsubscribed'});	
+			}
+		}else{
+			res.send({code: config.codes.code_error, message: 'Failed to unsubscribe'});	
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
@@ -358,6 +378,7 @@ exports.expire = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	if(user){
+		await userRepo.updateUser(msisdn, {subscription_status: 'expired'});
 		let result = await subscriberRepo.updateSubscriber(user._id, {auto_renewal: false, subscription_status: 'expired', consecutive_successive_bill_counts: 0});
 		if(result){
 			res.send({code: config.code_success, message: 'Subscription successfully expired'});	

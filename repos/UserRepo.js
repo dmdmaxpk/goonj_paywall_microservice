@@ -7,6 +7,11 @@ createUser = async(postData) => {
     return result;
 }
 
+getGraylistUsers =async() => {
+    let results = await User.find({merketing_source: {$ne: 'none'}, subscription_status: 'expired', is_gray_listed: true});
+    return results;
+}
+
 getUserByMsisdn =async(msisdn) => {
     result = await User.findOne({msisdn: msisdn});
     return result;
@@ -49,6 +54,7 @@ deleteUser = async(user_id) => {
 
 module.exports = {
     createUser: createUser,
+    getGraylistUsers: getGraylistUsers,
     getUserByMsisdn: getUserByMsisdn,
     getUserById: getUserById,
     updateUser: updateUser,

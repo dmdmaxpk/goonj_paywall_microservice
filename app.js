@@ -23,14 +23,7 @@ var tpsCountRepo = require('./repos/tpsCountRepo');
 
 const app = express();
 
-app.use((req, res, next) => {
-    if(req.originalUrl.includes('/cron/')){
-        next();
-    }else{
-        logger('dev');
-        next();   
-    }
-});
+app.use(logger('dev'));
 
 // Middlewares
 app.use(bodyParser.json());
@@ -90,16 +83,16 @@ consumeSusbcriptionQueue = async(res) => {
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
         let amount_billed = subscriptionObj.packageObj.price_point_pkr;
         if (countThisSec < config.telenor_subscription_api_tps) {
-            console.log("Sending subscription request telenor");
+            console.log("Sending subscription request to telenor");
             billingRepo.subscribePackage(subscriptionObj)
             .then(async (response) => {
-                console.log("Sending subscription request to telenor response",response.api_response.data);
                 let operator_response = response.api_response;
                 let message = operator_response.data.Message;
                 let user_id = response.user_id;
                 let package_id = response.packageObj._id;
                 let transaction_id = response.transactionId;
                 let msisdn = response.msisdn;
+
                 let billingHistoryObject = {};
                 billingHistoryObject.user_id = user_id;
                 billingHistoryObject.package_id = package_id;
@@ -107,7 +100,7 @@ consumeSusbcriptionQueue = async(res) => {
                 billingHistoryObject.operator_response = response.api_response.data;
                 billingHistoryObject.billing_status = message;
                 billingHistoryObject.operator = 'telenor';
-                console.log('Billing history', billingHistoryObject);
+                console.log('Billing history - ', billingHistoryObject);
                 let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                 if(history && response){
                     let subscriber = await subscriberRepo.getSubscriber(response.user_id);
@@ -116,7 +109,7 @@ consumeSusbcriptionQueue = async(res) => {
                         console.log('BillingSuccess - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
                         let nextBilling = new Date();
                         nextBilling.setHours(nextBilling.getHours() + response.packageObj.package_duration);
-			console.log("amount billed",amount_billed);
+
                         let subObj = {};
                         subObj.subscription_status = 'billed';
                         subObj.auto_renewal = true;
@@ -125,7 +118,8 @@ consumeSusbcriptionQueue = async(res) => {
                         subObj.amount_billed_today = subscriber.amount_billed_today + amount_billed;
                         subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
                         subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
-                        console.log("subObj",subObj);
+                        await userRepo.updateUser(msisdn, {subscription_status: subObj.subscription_status});
+
                         let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
                         if(updatedSubscriber){
                             await userRepo.updateUserById(response.user_id, {subscribed_package_id: response.packageObj._id});
@@ -183,6 +177,8 @@ consumeSusbcriptionQueue = async(res) => {
                             await billingRepo.sendMessage(message, msisdn);
                         }
                         subObj.consecutive_successive_bill_counts = 0;
+                        
+                        await userRepo.updateUser(msisdn, {subscription_status: subObj.subscription_status});
                         await subscriberRepo.updateSubscriber(subscriber._id, subObj);
                     }
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
@@ -275,7 +271,7 @@ app.listen(port, () => console.log(`APP running on port ${port}`));
 // Cron Jobs
 const tokenRefreshCron = require('./services/TokenRefreshService');
 const subscriptionRenewalCron = require('./services/SubscriptionRenewalService');
-const tpsCountService = require('./services/tpsCountService');
+const tpsCountService = require('./services/TpsCountService');
 
 /*
 TODO:
