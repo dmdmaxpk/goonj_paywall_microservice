@@ -38,7 +38,7 @@ exports.isgraylisted = async (req, res) => {
 	if (msisdn) {
 		result = await repo.getUserByMsisdn(msisdn);
 		if(result){
-			res.send({code: config.codes.code_success, is_gray_listed: result.is_gray_listed});
+			res.send({code: config.codes.code_success, subscription_status: result.subscription_status, is_gray_listed: result.is_gray_listed});
 		}else{
 			res.send({code: config.codes.code_data_not_found, message: 'Data not found'});
 		}
