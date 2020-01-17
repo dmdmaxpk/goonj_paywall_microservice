@@ -8,7 +8,7 @@ const viewLogRepo = require('../repos/ViewLogRepo');
 const shortId = require('shortid');
 
 function sendMessage(otp, msisdn){
-	let message = `Use code ${otp} for Goonj+`;
+	let message = `Use code ${otp} for Goonj TV`;
 	let messageObj = {};
 	messageObj.message =  message;
 	messageObj.msisdn = msisdn;
