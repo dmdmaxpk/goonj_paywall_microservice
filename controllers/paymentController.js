@@ -252,7 +252,19 @@ exports.subscribe = async (req, res) => {
 				}else{
 					res.send({code: config.codes.code_error, message: 'Wrong package id'});
 				}
-			} else {
+			} else if (subscriber.subscription_status === 'trial'){
+				let autoRenewal = subscriber.auto_renewal;
+				if(autoRenewal === true){
+					res.send({code: config.codes.code_trial_activated, message: 'Trial is already activated!'});
+				}else{
+					let updated = subscriberRepo.updateSubscriber(user._id, {auto_renewal: true});
+					if(updated){
+						res.send({code: config.codes.code_trial_activated, message: 'Trial updated!'});
+					}else{
+						res.send({code: config.codes.code_error, message: 'Error updating record!'});
+					}
+				}
+			} else  {
 				res.send({code: config.codes.code_trial_activated, subcription_status: subscriber.subscription_status});
 			}
 		} else{
