@@ -86,7 +86,7 @@ consumeSusbcriptionQueue = async(res) => {
         if (subscriber.active === true) {
             if ( subscriber.amount_billed_today > config.maximum_daily_payment_limit_pkr ) {
                 // TODO set active of this subcriber to false
-                let subscriber =  await subscriberRepo.setSubcriberInactive(subscriptionObj.user_id);
+                await subscriberRepo.setSubcriberInactive(subscriptionObj.user_id);
                 let billingHistoryObject = {};
                 billingHistoryObject.user_id = subscriptionObj.user_id;
                 billingHistoryObject.package_id = subscriptionObj.packageObj._id;
