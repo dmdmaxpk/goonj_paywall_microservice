@@ -103,8 +103,11 @@ consumeSusbcriptionQueue = async(res) => {
                     text: `User ${user_id} has exceeded their billing limit. Please check. `, // plain text body
                 });
             } else {
+                console.log("countThisSec",countThisSec);
+                console.log("config.telenor_subscription_api_tps",config.telenor_subscription_api_tps);
                 if (countThisSec < config.telenor_subscription_api_tps) {
                     console.log("Sending subscription request to telenor");
+                    await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
                         let operator_response = response.api_response;
@@ -201,7 +204,6 @@ consumeSusbcriptionQueue = async(res) => {
                                 await userRepo.updateUser(msisdn, {subscription_status: subObj.subscription_status});
                                 await subscriberRepo.updateSubscriber(subscriber._id, subObj);
                             }
-                            await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                             rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
@@ -223,6 +225,7 @@ consumeSusbcriptionQueue = async(res) => {
                 } else {
                     console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                     setTimeout(() => {
+                        console.log("calling consumeSusbcriptionQueue after 200 seconds");
                         consumeSusbcriptionQueue(res);
                     }, 200);
                 }
