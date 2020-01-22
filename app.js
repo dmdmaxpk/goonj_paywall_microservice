@@ -208,18 +208,23 @@ consumeSusbcriptionQueue = async(res) => {
                         }
                     }).catch(async (error) => {
                         console.log('Error:', error.message);
-                        try {
-                            let billingHistoryObject = {};
-                            billingHistoryObject.user_id = subscriptionObj.user_id;
-                            billingHistoryObject.package_id = subscriptionObj.packageObj._id;
-                            billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
-                            billingHistoryObject.operator_response = error.data;
-                            billingHistoryObject.billing_status = error.message;
-                            billingHistoryObject.operator = 'telenor';
-                            let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
-                            rabbitMq.acknowledge(res);
-                        } catch (erB) {
-                            rabbitMq.acknowledge(res);
+                        if (error.message === "Request failed with status code 500") {
+                            console.log('noAcknowledged');
+                            rabbitMq.noAcknowledge(res);
+                        } else {
+                            try {
+                                let billingHistoryObject = {};
+                                billingHistoryObject.user_id = subscriptionObj.user_id;
+                                billingHistoryObject.package_id = subscriptionObj.packageObj._id;
+                                billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
+                                billingHistoryObject.operator_response = error.data;
+                                billingHistoryObject.billing_status = error.message;
+                                billingHistoryObject.operator = 'telenor';
+                                let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
+                                rabbitMq.acknowledge(res);
+                            } catch (erB) {
+                                rabbitMq.acknowledge(res);
+                            }
                         }
                     });
                 } else {
