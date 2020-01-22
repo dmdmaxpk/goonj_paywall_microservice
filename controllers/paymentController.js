@@ -340,8 +340,8 @@ exports.sendBulkSub = async(req, res) => {
 	for(i = 0; i < req.query.limit; i++){
 		user.msisdn = '03476733767';
 		user._id = 'zkV999gT';
-		user.subscribed_package_id = packageObj._id;
-		subscribePackage(user, packageObj);
+		user.subscribed_package_id = packgeObj._id;
+		subscribePackage(user, packgeObj);
 	}
 	res.send('Done');
 }
