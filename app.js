@@ -236,7 +236,9 @@ consumeSusbcriptionQueue = async(res) => {
                 }
             }
         } else {
+            //TODO add to billling history
             console.log("Subscriber is not active hence payment can not be processed");
+            rabbitMq.acknowledge(res);
         }
     } catch (err ) {
         console.error(err);
