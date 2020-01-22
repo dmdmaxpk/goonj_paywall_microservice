@@ -89,9 +89,14 @@ renewSubscription = async(user) => {
 	subscriptionObj.packageObj = packageObj;
     subscriptionObj.transactionId = transactionId;
 
-	// Add object in queueing server
-    rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-    console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
+    // Add object in queueing server
+    if (subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
+		rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
+		console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
+	} else {
+		console.log( 'Could not add in Renewal Subscription Queue because critical parameters are missing ', subscriptionObj.msisdn ,
+		subscriptionObj.packageObj.price_point_pkr,subscriptionObj.transactionId, msisdn, ' - ', (new Date()) );
+	}
 }
 
 module.exports = {
