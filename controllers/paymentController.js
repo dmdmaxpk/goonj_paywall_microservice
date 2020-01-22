@@ -325,6 +325,7 @@ exports.sendBulkMessage = async(req, res) => {
 
 exports.sendBulkSub = async(req, res) => {
 	let user = {};
+	console.log("Reached",'sendBulkSub',req.query.limit);
 	for(i = 0; i < req.query.limit; i++){
 		user.msisdn = '03476733767';
 		user._id = 'o2TYH_xC';
