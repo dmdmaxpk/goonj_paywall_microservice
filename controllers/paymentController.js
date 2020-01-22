@@ -185,7 +185,7 @@ exports.subscribe = async (req, res) => {
 		try {
 			user = await userRepo.createUser(userObj);
 		} catch(er) {
-			res.send({code: config.codes.code_error, message: err.message})
+			res.send({code: config.codes.code_error, message: er.message})
 		}
 		if(user){
 			console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
