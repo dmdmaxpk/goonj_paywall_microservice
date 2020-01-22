@@ -333,7 +333,7 @@ exports.sendBulkSub = async(req, res) => {
 		package_name: "Daily Package",
 		package_desc: "Subscribe daily pakage at price Rs. 8/day",
 		package_duration: 24,
-		price_point_pkr: 0.01,
+		price_point_pkr: 1,
 		added_dtm: "2020-01-14T10:12:43.003Z"
 		}
 
