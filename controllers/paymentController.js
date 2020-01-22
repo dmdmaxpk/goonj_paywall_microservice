@@ -326,11 +326,22 @@ exports.sendBulkMessage = async(req, res) => {
 exports.sendBulkSub = async(req, res) => {
 	let user = {};
 	console.log("Reached",'sendBulkSub',req.query.limit);
+	let packgeObj = {
+		grace_hours: 24,
+		active: true,
+		_id: "QDfC",
+		package_name: "Daily Package",
+		package_desc: "Subscribe daily pakage at price Rs. 8/day",
+		package_duration: 24,
+		price_point_pkr: 0.01,
+		added_dtm: "2020-01-14T10:12:43.003Z"
+		}
+
 	for(i = 0; i < req.query.limit; i++){
 		user.msisdn = '03476733767';
 		user._id = 'zkV999gT';
-		user.subscribed_package_id= "QDfc";
-		subscribePackage(user);
+		user.subscribed_package_id = packageObj._id;
+		subscribePackage(user, packageObj);
 	}
 	res.send('Done');
 }
