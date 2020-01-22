@@ -86,12 +86,12 @@ consumeSusbcriptionQueue = async(res) => {
         if (subscriber.active === true) {
             if ( subscriber.amount_billed_today > config.maximum_daily_payment_limit_pkr ) {
                 // TODO set active of this subcriber to false
-                let subscriber =  await subscriberRepo.setSubcriberInactive(user_id);
+                let subscriber =  await subscriberRepo.setSubcriberInactive(subscriptionObj.user_id);
                 let billingHistoryObject = {};
                 billingHistoryObject.user_id = subscriptionObj.user_id;
                 billingHistoryObject.package_id = subscriptionObj.packageObj._id;
                 billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
-                billingHistoryObject.operator_response = {"message": `User ${user_id} has exceeded their billing limit. Email sent.`};
+                billingHistoryObject.operator_response = {"message": `User ${subscriptionObj.user_id} has exceeded their billing limit. Email sent.`};
                 billingHistoryObject.billing_status = subscriber.subscription_status;
                 billingHistoryObject.operator = 'telenor';
                 let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
@@ -100,7 +100,7 @@ consumeSusbcriptionQueue = async(res) => {
                     from: 'paywall@dmdmax.com.pk', // sender address
                     to: "paywall@dmdmax.com.pk", // list of receivers
                     subject: "User Billing Exceeded", // Subject line
-                    text: `User ${user_id} has exceeded their billing limit. Please check. `, // plain text body
+                    text: `User ${subscriptionObj.user_id} has exceeded their billing limit. Please check. `, // plain text body
                 });
             } else {
                 console.log("countThisSec",countThisSec);
