@@ -22,9 +22,17 @@ var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
 
 const app = express();
-
-logger(':method :url :status :res[content-length] - :response-time ms')
 app.use(logger('dev'));
+
+app.use((req, res, next) => {
+    if (req.path.includes("/cron/")){
+        next();
+    } else {
+        logger("dev");
+        next();
+    }
+});
+
 
 // Middlewares
 app.use(bodyParser.json());
