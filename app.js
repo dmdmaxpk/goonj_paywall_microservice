@@ -23,7 +23,9 @@ var tpsCountRepo = require('./repos/tpsCountRepo');
 
 const app = express();
 
-app.use(logger('dev'));
+logger('combined');
+logger(':method :url :status :res[content-length] - :response-time ms')
+app.use(logger);
 
 // Middlewares
 app.use(bodyParser.json());
@@ -245,7 +247,7 @@ consumeSusbcriptionQueue = async(res) => {
                 billingHistoryObject.operator_response = "Subscriber is not active hence payment can not be processed!"
                 billingHistoryObject.billing_status = subscriber.subscription_status;
                 billingHistoryObject.operator = 'telenor';
-                await billingHistoryRepo.createBillingHistory(billingHistoryObject);
+                await billingHistoryRepo.createBillingHistory([billingHistoryObject]);
             }catch(err){
                 console.log(err);
             }
