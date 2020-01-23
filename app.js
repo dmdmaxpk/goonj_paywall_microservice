@@ -22,8 +22,6 @@ var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
 
 const app = express();
-app.use(logger('dev'));
-
 app.use((req, res, next) => {
     if (req.path.includes("/cron/")){
         next();
