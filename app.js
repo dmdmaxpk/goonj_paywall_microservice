@@ -236,8 +236,20 @@ consumeSusbcriptionQueue = async(res) => {
                 }
             }
         } else {
-            //TODO add to billling history
-            console.log("Subscriber is not active hence payment can not be processed");
+            try{
+                //TODO add to billling history
+                let billingHistoryObject = {};
+                billingHistoryObject.user_id = subscriptionObj.user_id;
+                billingHistoryObject.package_id = subscriptionObj.packageObj._id;
+                billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
+                billingHistoryObject.operator_response = "Subscriber is not active hence payment can not be processed!"
+                billingHistoryObject.billing_status = subscriber.subscription_status;
+                billingHistoryObject.operator = 'telenor';
+                await billingHistoryRepo.createBillingHistory(billingHistoryObject);
+            }catch(err){
+                console.log(err);
+            }
+            console.log("Subscriber is not active hence payment can not be processed!");
             rabbitMq.acknowledge(res);
         }
     } catch (err ) {
