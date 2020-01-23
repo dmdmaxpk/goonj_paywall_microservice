@@ -23,9 +23,12 @@ var tpsCountRepo = require('./repos/tpsCountRepo');
 
 const app = express();
 app.use((req, res, next) => {
+    console.log(req.path);
     if (req.path.includes("/cron/")){
+        console.log(1);
         next();
     } else {
+        console.log(2);
         logger("dev");
         next();
     }
