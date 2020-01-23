@@ -23,7 +23,7 @@ var tpsCountRepo = require('./repos/tpsCountRepo');
 
 const app = express();
 
-logger('combined');
+logger('dev');
 logger(':method :url :status :res[content-length] - :response-time ms')
 app.use(logger);
 
