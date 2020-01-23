@@ -29,7 +29,7 @@ app.use((req, res, next) => {
         next();
     } else {
         console.log(2);
-        logger("dev");
+        app.use(logger('dev'));
         next();
     }
 });
