@@ -26,7 +26,7 @@ app.use((req, res, next) => {
     if (req.path.includes("/cron/")){
         next();
     } else {
-        app.use(logger('dev'));
+        logger('dev');
         next();
     }
 });
