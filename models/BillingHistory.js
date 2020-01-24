@@ -12,6 +12,10 @@ const billingHistorySchema = new Schema({
     package_id: {
         type: String
     },
+    price: {
+        type: Number,
+        default: 0
+    },
     transaction_id: String,
     operator_response: {
         type: {}

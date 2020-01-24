@@ -22,14 +22,7 @@ var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
 
 const app = express();
-app.use((req, res, next) => {
-    if (req.path.includes("/cron/")){
-        next();
-    } else {
-        logger('dev');
-        next();
-    }
-});
+app.use(logger('dev'));
 
 
 // Middlewares
@@ -110,8 +103,6 @@ consumeSusbcriptionQueue = async(res) => {
                     text: `User ${subscriptionObj.user_id} has exceeded their billing limit. Please check. `, // plain text body
                 });
             } else {
-                console.log("countThisSec",countThisSec);
-                console.log("config.telenor_subscription_api_tps",config.telenor_subscription_api_tps);
                 if (countThisSec < config.telenor_subscription_api_tps) {
                     console.log("Sending subscription request to telenor");
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
@@ -131,7 +122,8 @@ consumeSusbcriptionQueue = async(res) => {
                         billingHistoryObject.operator_response = response.api_response.data;
                         billingHistoryObject.billing_status = message;
                         billingHistoryObject.operator = 'telenor';
-                        console.log('Billing history - ', billingHistoryObject);
+                        billingHistoryObject.price = response.packageObj.price_point_pkr;
+
                         let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                         if(history && response){
                             if(message === 'Success'){
@@ -216,7 +208,8 @@ consumeSusbcriptionQueue = async(res) => {
                     }).catch(async (error) => {
                         console.log('Error:', error.message);
                         if (error.message === "Request failed with status code 500") {
-                            console.log('noAcknowledged');
+                            console.log('TPS exceeded, requeing this record', res);
+                            // TPS exceeded, noAcknowledge will requeue this record.
                             rabbitMq.noAcknowledge(res);
                         } else {
                             try {
