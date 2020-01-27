@@ -22,7 +22,17 @@ var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
 
 const app = express();
-app.use(logger('dev'));
+
+function skipLog (req, res) {
+    var url = req.url;
+    if(url.includes('cron')){
+      return true;
+    }
+    return false;
+}
+
+app.use(logger('combined', {skip: skipLog}));
+//app.use(logger('dev'));
 
 
 // Middlewares
