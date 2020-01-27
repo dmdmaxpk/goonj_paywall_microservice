@@ -31,7 +31,7 @@ function skipLog (req, res) {
     return false;
 }
 
-app.use(logger('tiny', {skip: skipLog}));
+app.use(logger('combined', {skip: skipLog}));
 //app.use(logger('dev'));
 
 
