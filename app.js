@@ -26,13 +26,13 @@ const app = express();
 function skipLog (req, res) {
     var url = req.url;
     console.log('URL: ', url);
-    if(url.includes('cron/')){
+    if(url.includes('tpsCountReset')){
       return true;
     }
     return false;
 }
 
-app.use(logger('combined', {skip: skipLog}));
+app.use(logger('tiny', {skip: skipLog}));
 //app.use(logger('dev'));
 
 
