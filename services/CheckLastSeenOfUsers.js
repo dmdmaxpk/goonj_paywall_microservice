@@ -12,10 +12,8 @@ checkLastSeenOfUsers = async() => {
             let latestViewLog = await ViewLogRepo.getLatestViewLog(renewableSubscribers[i].user_id);
             // if last viewed of user is
             // console.log("renewableSubscribers",renewableSubscribers);
-            console.log("lastViewedPlusTimePeriod",latestViewLog);
             if (latestViewLog) {
                 let lastViewedPlusTimePeriod = latestViewLog.added_dtm.setHours( latestViewLog.added_dtm.getHours() + config.unsub_time_limit);
-                console.log("lastViewedPlusTimePeriod",lastViewedPlusTimePeriod);
                 if (lastViewedPlusTimePeriod < new Date() ) {
                     console.log("Unsub user and send him message",renewableSubscribers[i].user_id);
                     let unsubscribed = await subsriberRepo.unsubscribe(renewableSubscribers[i].user_id);

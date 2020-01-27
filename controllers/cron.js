@@ -25,13 +25,11 @@ exports.tpsCountReset = async (req,res) =>  {
 }
 
 exports.checkLastSeenOfUsers = async (req,res) =>  {
-    console.log("CheckLastSeenOfUsers");
     await checkLastSeenOfUsersService.checkLastSeenOfUsers();
     res.send("CheckLastSeenOfUsers - Executed");
 }
 
 exports.grayListService = async (req,res) =>  {
-    console.log("GrayListService");
     await grayListService.checkForUngrayListUsers();
     res.send("GrayListService - Executed");
 }
