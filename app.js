@@ -24,9 +24,8 @@ var tpsCountRepo = require('./repos/tpsCountRepo');
 const app = express();
 
 function skipLog (req, res) {
-    var url = req.url;
-    console.log('URL: ', url);
-    if(url.includes('tpsCountReset')){
+    var url = req.originalUrl;
+    if(url.includes('cron')){
       return true;
     }
     return false;
