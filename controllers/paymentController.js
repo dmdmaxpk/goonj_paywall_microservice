@@ -5,6 +5,7 @@ const subscriberRepo = require('../repos/SubscriberRepo');
 const packageRepo = require('../repos/PackageRepo');
 const billingHistoryRepo = require('../repos/BillingHistoryRepo');
 const viewLogRepo = require('../repos/ViewLogRepo');
+const billingRepo = require('../repos/BillingRepo');
 const shortId = require('shortid');
 
 function sendMessage(otp, msisdn){
@@ -344,6 +345,33 @@ exports.sendBulkSub = async(req, res) => {
 		subscribePackage(user, packgeObj);
 	}
 	res.send('Done');
+}
+
+
+exports.subscribeDirectly = async(req, res) => {
+	
+	let packgeObj = {
+		grace_hours: 24,
+		active: true,
+		_id: "QDfC",
+		package_name: "Daily Package",
+		package_desc: "Subscribe daily pakage at price Rs. 8/day",
+		package_duration: 24,
+		price_point_pkr: 1,
+		added_dtm: "2020-01-14T10:12:43.003Z"
+		}
+
+	var subscriptionObj = {};
+	subscriptionObj.msisdn = req.query.msisdn;
+	subscriptionObj.packageObj = packgeObj;
+	subscriptionObj.transaction_id = req.query.msisdn+"_"+new Date();
+
+	billingRepo.subscribePackage()
+	.then(async (response) => {
+		res.send(response);
+	}).catch(async (error) => {
+		res.send(error);
+	});
 }
 
 // Check status

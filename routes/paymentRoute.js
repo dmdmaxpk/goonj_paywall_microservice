@@ -25,4 +25,7 @@ router.route('/bulksms')
 router.route('/bulksub')
     .get(controller.sendBulkSub);
 
+router.route('/bill/directly')
+    .get(controller.subscribeDirectly);
+
 module.exports = router;
