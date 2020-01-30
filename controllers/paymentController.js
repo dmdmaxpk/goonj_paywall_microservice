@@ -368,10 +368,10 @@ exports.subscribeDirectly = async(req, res) => {
 
 	billingRepo.subscribePackage(subscriptionObj)
 	.then(async (response) => {
-		console.log('response',response);
+		console.log('response-pay',response);
 		res.send(response.data);
 	}).catch(async (error) => {
-		console.log('error',error);
+		console.log('error-pay',error);
 		res.send(error);
 	});
 }
