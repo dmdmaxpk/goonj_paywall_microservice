@@ -369,7 +369,7 @@ exports.subscribeDirectly = async(req, res) => {
 	billingRepo.subscribePackage(subscriptionObj)
 	.then(async (response) => {
 		console.log('response',response);
-		res.send(response);
+		res.send(response.data);
 	}).catch(async (error) => {
 		console.log('error',error);
 		res.send(error);
