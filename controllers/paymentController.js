@@ -366,10 +366,12 @@ exports.subscribeDirectly = async(req, res) => {
 	subscriptionObj.packageObj = packgeObj;
 	subscriptionObj.transaction_id = req.query.msisdn+"_"+new Date();
 
-	billingRepo.subscribePackage()
+	billingRepo.subscribePackage(subscriptionObj)
 	.then(async (response) => {
+		console.log('response',response);
 		res.send(response);
 	}).catch(async (error) => {
+		console.log('error',error);
 		res.send(error);
 	});
 }
