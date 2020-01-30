@@ -364,7 +364,7 @@ exports.subscribeDirectly = async(req, res) => {
 	var subscriptionObj = {};
 	subscriptionObj.msisdn = req.query.msisdn;
 	subscriptionObj.packageObj = packgeObj;
-	subscriptionObj.transaction_id = req.query.msisdn+"_"+new Date();
+	subscriptionObj.transactionId = req.query.msisdn+"_"+new Date();
 
 	billingRepo.subscribePackage(subscriptionObj)
 	.then(async (response) => {
