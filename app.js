@@ -17,6 +17,7 @@ require('./models/BillingHistory');
 require('./models/ApiToken');
 require('./models/TpsCount');
 require('./models/ViewLog');
+
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
@@ -118,7 +119,7 @@ consumeSusbcriptionQueue = async(res) => {
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
-                        console.log("response recieved from billingRepo.subscribePackage",response);
+                        console.log("Response recieved from billingRepo.subscribePackage", response);
                         let operator_response = response.api_response;
                         let message = operator_response.data.Message;
                         let user_id = response.user_id;
@@ -214,7 +215,10 @@ consumeSusbcriptionQueue = async(res) => {
                                 await userRepo.updateUser(msisdn, {subscription_status: subObj.subscription_status});
                                 await subscriberRepo.updateSubscriber(subscriber._id, subObj);
                             }
-                            rabbitMq.acknowledge(res);
+                            let subcriberUpdated = await subscriberRepo.updateSubscriber(user_id, {queued: false})
+                            if(subcriberUpdated){
+                                rabbitMq.acknowledge(res);
+                            }
                         }
                     }).catch(async (error) => {
                         console.log('Error:', error.message);
@@ -232,9 +236,15 @@ consumeSusbcriptionQueue = async(res) => {
                                 billingHistoryObject.billing_status = error.message;
                                 billingHistoryObject.operator = 'telenor';
                                 let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
-                                rabbitMq.acknowledge(res);
+                                let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
+                                if(subcriberUpdated){
+                                    rabbitMq.acknowledge(res);
+                                }
                             } catch (erB) {
-                                rabbitMq.acknowledge(res);
+                                let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
+                                if(subcriberUpdated){
+                                    rabbitMq.acknowledge(res);
+                                }
                             }
                         }
                     });
@@ -243,7 +253,7 @@ consumeSusbcriptionQueue = async(res) => {
                     setTimeout(() => {
                         console.log("calling consumeSusbcriptionQueue after 200 seconds");
                         consumeSusbcriptionQueue(res);
-                    }, 200);
+                    }, 500);
                 }
             }
         } else {
@@ -261,7 +271,11 @@ consumeSusbcriptionQueue = async(res) => {
                 console.log(err);
             }
             console.log("Subscriber is not active hence payment can not be processed!");
-            rabbitMq.acknowledge(res);
+            
+            let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
+            if(subcriberUpdated){
+                rabbitMq.acknowledge(res);
+            }
         }
     } catch (err ) {
         console.error(err);

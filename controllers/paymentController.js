@@ -30,6 +30,9 @@ subscribePackage = async(user, packageObj) => {
 		packageObj = await packageRepo.getPackage(user.subscribed_package_id);
 	}
 
+	// Fetch subscriber
+	let subscriber = await subscriberRepo.getSubscriber(user_id);
+
 	let msisdn = user.msisdn;
 	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+shortId.generate()+"_"+getCurrentDate();
 	let subscriptionObj = {};
@@ -41,7 +44,12 @@ subscribePackage = async(user, packageObj) => {
 	// Add object in queueing server
 	if (subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
 		rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-		console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
+		let updated = await subscriberRepo.updateSubscriber(user._id, {queued: true});
+		if(updated){
+			console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
+		}else{
+			console.log('Failed to updated subscriber after adding in queue.');
+		}
 	} else {
 		console.log( 'Could not add in Subscription Queue because critical parameters are missing ', subscriptionObj.msisdn ,
 		subscriptionObj.packageObj.price_point_pkr,subscriptionObj.transactionId, msisdn, ' - ', (new Date()) );
