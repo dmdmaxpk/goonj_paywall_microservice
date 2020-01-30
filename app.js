@@ -118,6 +118,7 @@ consumeSusbcriptionQueue = async(res) => {
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
+                        console.log("response recieved from billingRepo.subscribePackage",response);
                         let operator_response = response.api_response;
                         let message = operator_response.data.Message;
                         let user_id = response.user_id;
