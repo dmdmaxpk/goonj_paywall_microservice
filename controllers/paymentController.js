@@ -42,7 +42,7 @@ subscribePackage = async(user, packageObj) => {
 	subscriptionObj.transactionId = transactionId;
 
 	// Add object in queueing server
-	if (subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
+	if (subscriber.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
 		rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
 		let updated = await subscriberRepo.updateSubscriber(user._id, {queued: true});
 		if(updated){

@@ -80,7 +80,8 @@ function AddZero(num) {
 
 renewSubscription = async(user) => {
     let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
-    
+    let subscriber = await subscriberRepo.getSubscriber(user._id);
+
     let msisdn = user.msisdn;
 	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+shortId.generate()+"_"+getCurrentDate();
     let subscriptionObj = {};
@@ -90,9 +91,9 @@ renewSubscription = async(user) => {
     subscriptionObj.transactionId = transactionId;
 
     // Add object in queueing server
-    if (subscriptionObj.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
+    if (subscriber.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
         rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-        let updated = await subscriberRepo.updateSubscriber(user._id, {queued: true});
+        let updated = await subscriber.updateSubscriber(user._id, {queued: true});
 		if(updated){
 			console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
 		}else{
