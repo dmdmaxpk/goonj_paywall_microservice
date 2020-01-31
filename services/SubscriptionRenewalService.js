@@ -92,9 +92,9 @@ renewSubscription = async(user) => {
 
     // Add object in queueing server
     if (subscriber.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
-        rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
         let updated = await subscriber.updateSubscriber(user._id, {queued: true});
 		if(updated){
+            rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
 			console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
 		}else{
 			console.log('Failed to updated subscriber after adding in queue.');

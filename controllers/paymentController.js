@@ -43,9 +43,9 @@ subscribePackage = async(user, packageObj) => {
 
 	// Add object in queueing server
 	if (subscriber.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
-		rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
 		let updated = await subscriberRepo.updateSubscriber(user._id, {queued: true});
 		if(updated){
+			rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
 			console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
 		}else{
 			console.log('Failed to updated subscriber after adding in queue.');

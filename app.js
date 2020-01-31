@@ -223,8 +223,8 @@ consumeSusbcriptionQueue = async(res) => {
                     }).catch(async (error) => {
                         console.log('Error:', error.message);
                         if (error.message === "Request failed with status code 500") {
-                            console.log('TPS exceeded, requeing this record', res);
                             // TPS exceeded, noAcknowledge will requeue this record.
+                            console.log('Sending back to queue');
                             rabbitMq.noAcknowledge(res);
                         } else {
                             try {
@@ -314,7 +314,6 @@ billingRepo.generateToken().then(async(token) => {
                 
                 // Subscriptin Queue
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
-                    //rabbitMq.acknowledge(response);
                     consumeSusbcriptionQueue(response);
                 });
             }
