@@ -39,7 +39,7 @@ subscriptionRenewal = async() => {
         }
 
         let promisesArr = [];
-        console.log("Subscribers to renew",subscribersToRenew);
+        console.log("Subscribers to renew -> ",subscribersToRenew.length);
         for(let i = 0; i < subscribersToRenew.length; i++){
             let promise = getPromise(subscribersToRenew[i].user_id);
             promisesArr.push(promise);
