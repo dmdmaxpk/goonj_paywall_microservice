@@ -222,29 +222,33 @@ consumeSusbcriptionQueue = async(res) => {
                         }
                     }).catch(async (error) => {
                         console.log('Error: - ', error.response.data);
-                        if (error.message === "Request failed with status code 500") {
-                            // TPS exceeded, noAcknowledge will requeue this record.
+                        if(error.response.data.errorMessage === "The account balance is insufficient."){
+                            // No credit
+                            console.log('Enter user into grace period')
+                        }else{
+                            // Consider, tps exceeded, noAcknowledge will requeue this record.
                             console.log('Sending back to queue');
                             rabbitMq.noAcknowledge(res);
-                        } else {
-                            try {
-                                let billingHistoryObject = {};
-                                billingHistoryObject.user_id = subscriptionObj.user_id;
-                                billingHistoryObject.package_id = subscriptionObj.packageObj._id;
-                                billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
-                                billingHistoryObject.operator_response = error.data;
-                                billingHistoryObject.billing_status = error.message;
-                                billingHistoryObject.operator = 'telenor';
-                                let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
-                                let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
-                                if(subcriberUpdated){
-                                    rabbitMq.acknowledge(res);
-                                }
-                            } catch (erB) {
-                                let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
-                                if(subcriberUpdated){
-                                    rabbitMq.acknowledge(res);
-                                }
+                        }
+
+
+                        try {
+                            let billingHistoryObject = {};
+                            billingHistoryObject.user_id = subscriptionObj.user_id;
+                            billingHistoryObject.package_id = subscriptionObj.packageObj._id;
+                            billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
+                            billingHistoryObject.operator_response = error.response.data;
+                            billingHistoryObject.billing_status = error.message;
+                            billingHistoryObject.operator = 'telenor';
+                            let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
+                            let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
+                            if(subcriberUpdated){
+                                rabbitMq.acknowledge(res);
+                            }
+                        } catch (erB) {
+                            let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
+                            if(subcriberUpdated){
+                                rabbitMq.acknowledge(res);
                             }
                         }
                     });
