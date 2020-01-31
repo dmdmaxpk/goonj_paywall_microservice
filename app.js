@@ -221,8 +221,7 @@ consumeSusbcriptionQueue = async(res) => {
                             }
                         }
                     }).catch(async (error) => {
-                        console.log('Error:', error.message);
-                        console.log('Error Data - ', error.response);
+                        console.log('Error: - ', error.response.data);
                         if (error.message === "Request failed with status code 500") {
                             // TPS exceeded, noAcknowledge will requeue this record.
                             console.log('Sending back to queue');

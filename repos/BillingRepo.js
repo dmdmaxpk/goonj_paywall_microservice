@@ -61,7 +61,6 @@ subscribePackage = async(subscriptionObj) => {
             console.log("response-subscribePackage",response);
             resolve(subscriptionObj);
         }).catch(function(err){
-            console.log("response-error",err);
             reject(err);
         });
     })
