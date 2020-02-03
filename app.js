@@ -274,7 +274,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 //Send acknowldement to user
                 let link = 'https://www.goonj.pk/goonjplus/subscribe';
                 let message = "Failed to bill, please check your balance and try again on Goonj TV\n"+link
-                await billingRepo.sendMessage(message, msisdn);
+                await billingRepo.sendMessage(message, user.msisdn);
             }
             subObj.consecutive_successive_bill_counts = 0;
             
