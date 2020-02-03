@@ -96,7 +96,6 @@ consumeSusbcriptionQueue = async(res) => {
         let subscriber = await subscriberRepo.getSubscriber(subscriptionObj.user_id);
         if (subscriber.active === true) {
             if ( subscriber.amount_billed_today > config.maximum_daily_payment_limit_pkr ) {
-                // TODO set active of this subcriber to false
                 await subscriberRepo.setSubcriberInactive(subscriptionObj.user_id);
                 let billingHistoryObject = {};
                 billingHistoryObject.user_id = subscriptionObj.user_id;
@@ -106,7 +105,6 @@ consumeSusbcriptionQueue = async(res) => {
                 billingHistoryObject.billing_status = subscriber.subscription_status;
                 billingHistoryObject.operator = 'telenor';
                 let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
-                // TODO send email to our emails with user_id of this user and today's UTC time along with amount billed
                 var info = await transporter.sendMail({
                     from: 'paywall@dmdmax.com.pk', // sender address
                     to: "paywall@dmdmax.com.pk", // list of receivers
@@ -155,6 +153,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 await userRepo.updateUser(msisdn, {subscription_status: subObj.subscription_status});
         
                                 let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
+                                // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
                                     await userRepo.updateUserById(response.user_id, {subscribed_package_id: response.packageObj._id});
                                     if(subObj.consecutive_successive_bill_counts === 1){
@@ -174,46 +173,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 }
                             }else{
                                 // Billing failed
-                                console.log('BillingFailed - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
-                                let subObj = {};
-        
-                                // Check if this subscriber is eligible for grace period
-                                if(subscriber.subscription_status === 'billed' && subscriber.auto_renewal === true){
-                                    // The subscriber is elligible for grace hours, depends on the current subscribed package
-                                    let user = await userRepo.getUserById(response.user_id);
-                                    let currentPackage = await packageRepo.getPackage(user.subscribed_package_id);
-                                    let nextBillingDate = new Date();
-                                    nextBillingDate.setHours(nextBilling.getHours() + currentPackage.package_duration);
-        
-                                    subObj.subscription_status = 'graced';
-                                    subObj.next_billing_timestamp = nextBillingDate;
-        
-                                    //Send acknowldement to user
-                                    let link = 'https://www.goonj.pk/goonjplus/open';
-                                    let message = "You've been awarded a grace period of "+currentPackage.package_duration+" days. Click below link to open Goonj.\n"+link
-                                    await billingRepo.sendMessage(message, msisdn);
-                                }else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
-                                    // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
-                                    subObj.subscription_status = 'expired';
-                                    subObj.auto_renewal = false;
-        
-                                    //Send acknowldement to user
-                                    let link = 'https://www.goonj.pk/goonjplus/subscribe';
-                                    let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
-                                    await billingRepo.sendMessage(message, msisdn);
-                                }else{
-                                    subObj.subscription_status = 'not_billed';
-                                    subObj.auto_renewal = false;
-        
-                                    //Send acknowldement to user
-                                    let link = 'https://www.goonj.pk/goonjplus/subscribe';
-                                    let message = "Failed to bill, please check your balance and try again on Goonj TV\n"+link
-                                    await billingRepo.sendMessage(message, msisdn);
-                                }
-                                subObj.consecutive_successive_bill_counts = 0;
-                                
-                                await userRepo.updateUser(msisdn, {subscription_status: subObj.subscription_status});
-                                await subscriberRepo.updateSubscriber(subscriber._id, subObj);
+                                await assignGracePeriodToSubscriber(subscriber,user_id,res);
                             }
                             let subcriberUpdated = await subscriberRepo.updateSubscriber(user_id, {queued: false})
                             if(subcriberUpdated){
@@ -222,33 +182,28 @@ consumeSusbcriptionQueue = async(res) => {
                         }
                     }).catch(async (error) => {
                         console.log('Error: - ', error.response.data);
-                        if(error.response.data.errorCode === "500.007.05"){
-                            // Consider, payment failed for any reason. e.g no credit, number suspended etc
-                            console.log('Enter user into grace period');
-                            try {
-                                let billingHistoryObject = {};
-                                billingHistoryObject.user_id = subscriptionObj.user_id;
-                                billingHistoryObject.package_id = subscriptionObj.packageObj._id;
-                                billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
-                                billingHistoryObject.operator_response = error.response.data;
-                                billingHistoryObject.billing_status = error.message;
-                                billingHistoryObject.operator = 'telenor';
-                                let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
-                                let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
-                                if(subcriberUpdated){
-                                    rabbitMq.acknowledge(res);
-                                }
-                            } catch (er) {
-                                let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
-                                if(subcriberUpdated){
-                                    rabbitMq.acknowledge(res);
-                                }
-                            }
-                        }else{
+                         if (error.response.data.errorCode === "500.007.08"){
                             // Consider, tps exceeded, noAcknowledge will requeue this record.
                             console.log('Sending back to queue');
                             rabbitMq.noAcknowledge(res);
                             return;
+                        } else {
+                            // Consider, payment failed for any reason. e.g no credit, number suspended etc
+                            // Enter user into grace period
+                            console.log('Enter user into grace period');
+                            console.log('BillingFailed - ', ' - Package - ', ' - ', (new Date()));
+                            try {
+                                await assignGracePeriodToSubscriber(subscriber,subscriber.user_id,res);
+                                let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
+                                if(subcriberUpdated){
+                                    rabbitMq.acknowledge(res);
+                                }
+                                await addToHistory(subscriber.user_id,response.packageObj._id,subscriptionObj.transaction_id,
+                                    error.response.data,error.response.data.errorMessage,'telenor',subscriptionObj.packageObj.price_point_pkr);
+                            } catch(err) {
+                                console.log("Error could not assign Grace period",err);
+                            }
+
                         }
                     });
                 } else {
@@ -261,12 +216,11 @@ consumeSusbcriptionQueue = async(res) => {
             }
         } else {
             try{
-                //TODO add to billling history
                 let billingHistoryObject = {};
                 billingHistoryObject.user_id = subscriptionObj.user_id;
                 billingHistoryObject.package_id = subscriptionObj.packageObj._id;
                 billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
-                billingHistoryObject.operator_response = "Subscriber is not active hence payment can not be processed!"
+                billingHistoryObject.operator_response = "Subscriber is not active hence payment can not be processed!";
                 billingHistoryObject.billing_status = subscriber.subscription_status;
                 billingHistoryObject.operator = 'telenor';
                 await billingHistoryRepo.createBillingHistory([billingHistoryObject]);
@@ -283,6 +237,75 @@ consumeSusbcriptionQueue = async(res) => {
     } catch (err ) {
         console.error(err);
     }
+}
+
+function assignGracePeriodToSubscriber(subscriber,user_id){
+    return new Promise ((resolve,reject) => {
+        try {
+            let subObj = {};
+            // Check if this subscriber is eligible for grace period
+            let user = await userRepo.getUserById(user_id);
+            if(subscriber.subscription_status === 'billed' && subscriber.auto_renewal === true){
+                // The subscriber is elligible for grace hours, depends on the current subscribed package
+                let currentPackage = await packageRepo.getPackage(user.subscribed_package_id);
+                let nextBillingDate = new Date();
+                nextBillingDate.setHours(nextBilling.getHours() + currentPackage.package_duration);
+        
+                subObj.subscription_status = 'graced';
+                subObj.next_billing_timestamp = nextBillingDate;
+        
+                //Send acknowldement to user
+                let link = 'https://www.goonj.pk/goonjplus/open';
+                let message = "You've been awarded a grace period of "+currentPackage.package_duration+" days. Click below link to open Goonj.\n"+link
+                await billingRepo.sendMessage(message, user.msisdn);
+            } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
+                // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
+                subObj.subscription_status = 'expired';
+                subObj.auto_renewal = false;
+        
+                //Send acknowldement to user
+                let link = 'https://www.goonj.pk/goonjplus/subscribe';
+                let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
+                await billingRepo.sendMessage(message, user.msisdn);
+            } else {
+                subObj.subscription_status = 'not_billed';
+                subObj.auto_renewal = false;
+        
+                //Send acknowldement to user
+                let link = 'https://www.goonj.pk/goonjplus/subscribe';
+                let message = "Failed to bill, please check your balance and try again on Goonj TV\n"+link
+                await billingRepo.sendMessage(message, msisdn);
+            }
+            subObj.consecutive_successive_bill_counts = 0;
+            
+            await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
+            await subscriberRepo.updateSubscriber(subscriber._id, subObj);
+            resolve("done");
+        } catch(err) {
+            console.error(err);
+            reject(err);
+        }
+    })
+
+}
+
+function addToHistory(userId,packageId,transactionId,operatorResponse,billingStatus,operator,pricePoint){
+    return new Promise( (resolve,reject) => {
+        try {
+            let billingHistoryObject = {};
+            billingHistoryObject.user_id = userId;
+            billingHistoryObject.package_id = packageId;
+            billingHistoryObject.transaction_id = transactionId;
+            billingHistoryObject.operator_response = operatorResponse;
+            billingHistoryObject.billing_status = billingStatus;
+            billingHistoryObject.operator = operator;
+            billingHistoryObject.price = pricePoint;
+            let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
+            resolve('done');
+        }catch (er) {
+            reject(er);
+        }
+    } );
 }
 
 const numValidation = require('./numValidation');
