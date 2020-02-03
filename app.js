@@ -239,8 +239,8 @@ consumeSusbcriptionQueue = async(res) => {
     }
 }
 
-function assignGracePeriodToSubscriber(subscriber,user_id){
-    return new Promise ((resolve,reject) => {
+async function assignGracePeriodToSubscriber(subscriber,user_id){
+    return new Promise (async (resolve,reject) => {
         try {
             let subObj = {};
             // Check if this subscriber is eligible for grace period
@@ -289,8 +289,8 @@ function assignGracePeriodToSubscriber(subscriber,user_id){
 
 }
 
-function addToHistory(userId,packageId,transactionId,operatorResponse,billingStatus,operator,pricePoint){
-    return new Promise( (resolve,reject) => {
+async function addToHistory(userId,packageId,transactionId,operatorResponse,billingStatus,operator,pricePoint){
+    return new Promise( async (resolve,reject) => {
         try {
             let billingHistoryObject = {};
             billingHistoryObject.user_id = userId;
