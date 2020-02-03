@@ -23,6 +23,21 @@ function sendMessage(otp, msisdn){
 	}
 }
 
+function sendTextMessage(text, msisdn){
+	let message = text;
+	let messageObj = {};
+	messageObj.message =  message;
+	messageObj.msisdn = msisdn;
+	
+	// Add object in queueing server
+	console.log('Send Message - AddedInQueue - MSISDN - ', msisdn, ' - Message - ', text, ' - ', (new Date()));
+	if (messageObj.msisdn && messageObj.message) {
+		rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+	} else {
+		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
+	}
+}
+
 subscribePackage = async(user, packageObj) => {
 
 	// Fetch user is not already available
@@ -310,6 +325,9 @@ exports.subscribe = async (req, res) => {
 						billingHistory.source = req.body.source;
 						billingHistory.operator = 'telenor';
 						await billingHistoryRepo.createBillingHistory(billingHistory);
+						let text= `Goonj TV 24 hour free trial started.
+						Pehla charge kal mobile balance sei @ Rs8/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe`;
+						sendTextMessage(text,userUpdated.msisdn);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
 					} else {
 						subscribePackage(user, packageObj);
