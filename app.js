@@ -160,13 +160,13 @@ consumeSusbcriptionQueue = async(res) => {
                                         // For the first time or every week of consecutive billing
         
                                         //Send acknowldement to user
-                                        let link = 'https://www.goonj.pk/goonjplus/unsubscribe';
+                                        let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
                                         let message = "Your Goonj TV subscription for "+response.packageObj.package_name+" has been activated at Rs. "+response.packageObj.price_point_pkr+", to unsub click the link below.\n"+link
                                         await billingRepo.sendMessage(message, msisdn);
                                     }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
                                         // Every week
                                         //Send acknowldement to user
-                                        let link = 'https://www.goonj.pk/goonjplus/unsubscribe';
+                                        let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
                                         let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.price_point_pkr+", to unsub click the link below.\n"+link
                                         await billingRepo.sendMessage(message, msisdn);
                                     }
