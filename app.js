@@ -198,7 +198,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 if(subcriberUpdated){
                                     rabbitMq.acknowledge(res);
                                 }
-                                await addToHistory(subscriber.user_id,response.packageObj._id,subscriptionObj.transaction_id,
+                                await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id,
                                     error.response.data,error.response.data.errorMessage,'telenor',subscriptionObj.packageObj.price_point_pkr);
                             } catch(err) {
                                 console.log("Error could not assign Grace period",err);
