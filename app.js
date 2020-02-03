@@ -256,7 +256,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
         
                 //Send acknowldement to user
                 let link = 'https://www.goonj.pk/goonjplus/open';
-                let message = "You've been awarded a grace period of "+currentPackage.package_duration+" days. Click below link to open Goonj.\n"+link
+                let message = "You've been awarded a grace period of "+currentPackage.package_duration+" hours. Click below link to open Goonj.\n"+link
                 await billingRepo.sendMessage(message, user.msisdn);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
                 // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
