@@ -96,7 +96,6 @@ consumeSusbcriptionQueue = async(res) => {
         let subscriber = await subscriberRepo.getSubscriber(subscriptionObj.user_id);
         if (subscriber.active === true) {
             if ( subscriber.amount_billed_today > config.maximum_daily_payment_limit_pkr ) {
-                // TODO set active of this subcriber to false
                 await subscriberRepo.setSubcriberInactive(subscriptionObj.user_id);
                 let billingHistoryObject = {};
                 billingHistoryObject.user_id = subscriptionObj.user_id;
@@ -106,7 +105,6 @@ consumeSusbcriptionQueue = async(res) => {
                 billingHistoryObject.billing_status = subscriber.subscription_status;
                 billingHistoryObject.operator = 'telenor';
                 let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
-                // TODO send email to our emails with user_id of this user and today's UTC time along with amount billed
                 var info = await transporter.sendMail({
                     from: 'paywall@dmdmax.com.pk', // sender address
                     to: "paywall@dmdmax.com.pk", // list of receivers
@@ -155,6 +153,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 await userRepo.updateUser(msisdn, {subscription_status: subObj.subscription_status});
         
                                 let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
+                                // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
                                     await userRepo.updateUserById(response.user_id, {subscribed_package_id: response.packageObj._id});
                                     if(subObj.consecutive_successive_bill_counts === 1){
@@ -183,28 +182,28 @@ consumeSusbcriptionQueue = async(res) => {
                         }
                     }).catch(async (error) => {
                         console.log('Error: - ', error.response.data);
-                        if(error.response.data.errorCode === "500.007.05"){
+                         if (error.response.data.errorCode === "500.007.08"){
+                            // Consider, tps exceeded, noAcknowledge will requeue this record.
+                            console.log('Sending back to queue');
+                            rabbitMq.noAcknowledge(res);
+                            return;
+                        } else {
                             // Consider, payment failed for any reason. e.g no credit, number suspended etc
                             // Enter user into grace period
                             console.log('Enter user into grace period');
-                            console.log('BillingFailed - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
+                            console.log('BillingFailed - ', ' - Package - ', ' - ', (new Date()));
                             try {
                                 await assignGracePeriodToSubscriber(subscriber,subscriber.user_id,res);
                                 let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
                                 if(subcriberUpdated){
                                     rabbitMq.acknowledge(res);
                                 }
+                                await addToHistory(subscriber.user_id,response.packageObj._id,subscriptionObj.transaction_id,
+                                    error.response.data,error.response.data.errorMessage,'telenor',subscriptionObj.packageObj.price_point_pkr);
                             } catch(err) {
                                 console.log("Error could not assign Grace period",err);
                             }
 
-                        }else{
-                            // Consider, tps exceeded, noAcknowledge will requeue this record.
-                            // TODO use noAcknowledge only when TPS Error occurs use in any other context might lead to over billing
-                            // This is why this code can't go to production until we get the tps Error Code from TP and requeue only on that
-                            console.log('Sending back to queue');
-                            rabbitMq.noAcknowledge(res);
-                            return;
                         }
                     });
                 } else {
@@ -217,12 +216,11 @@ consumeSusbcriptionQueue = async(res) => {
             }
         } else {
             try{
-                //TODO add to billling history
                 let billingHistoryObject = {};
                 billingHistoryObject.user_id = subscriptionObj.user_id;
                 billingHistoryObject.package_id = subscriptionObj.packageObj._id;
                 billingHistoryObject.transaction_id = subscriptionObj.transaction_id;
-                billingHistoryObject.operator_response = "Subscriber is not active hence payment can not be processed!"
+                billingHistoryObject.operator_response = "Subscriber is not active hence payment can not be processed!";
                 billingHistoryObject.billing_status = subscriber.subscription_status;
                 billingHistoryObject.operator = 'telenor';
                 await billingHistoryRepo.createBillingHistory([billingHistoryObject]);
