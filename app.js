@@ -173,7 +173,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 }
                             }else{
                                 // Billing failed
-                                await assignGracePeriodToSubscriber(subscriber,user_id,res);
+                                await assignGracePeriodToSubscriber(subscriber,user_id);
                             }
                             let subcriberUpdated = await subscriberRepo.updateSubscriber(user_id, {queued: false})
                             if(subcriberUpdated){
@@ -249,7 +249,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 // The subscriber is elligible for grace hours, depends on the current subscribed package
                 let currentPackage = await packageRepo.getPackage({"_id": user.subscribed_package_id});
                 let nextBillingDate = new Date();
-                nextBillingDate.setHours(nextBilling.getHours() + currentPackage.package_duration);
+                nextBillingDate.setHours(nextBillingDate.getHours() + currentPackage.package_duration);
         
                 subObj.subscription_status = 'graced';
                 subObj.next_billing_timestamp = nextBillingDate;
