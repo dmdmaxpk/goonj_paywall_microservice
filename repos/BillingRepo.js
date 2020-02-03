@@ -58,7 +58,6 @@ subscribePackage = async(subscriptionObj) => {
             data: form
         }).then(function(response){
             subscriptionObj.api_response = response;
-            console.log("response-subscribePackage",response);
             resolve(subscriptionObj);
         }).catch(function(err){
             reject(err);
