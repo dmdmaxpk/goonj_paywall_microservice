@@ -193,7 +193,7 @@ consumeSusbcriptionQueue = async(res) => {
                             console.log('Enter user into grace period');
                             console.log('BillingFailed - ', ' - Package - ', ' - ', (new Date()));
                             try {
-                                await assignGracePeriodToSubscriber(subscriber,subscriber.user_id,res);
+                                await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
                                 let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
                                 if(subcriberUpdated){
                                     rabbitMq.acknowledge(res);
@@ -247,7 +247,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
             let user = await userRepo.getUserById(user_id);
             if(subscriber.subscription_status === 'billed' && subscriber.auto_renewal === true){
                 // The subscriber is elligible for grace hours, depends on the current subscribed package
-                let currentPackage = await packageRepo.getPackage(user.subscribed_package_id);
+                let currentPackage = await packageRepo.getPackage({"_id": user.subscribed_package_id});
                 let nextBillingDate = new Date();
                 nextBillingDate.setHours(nextBilling.getHours() + currentPackage.package_duration);
         
