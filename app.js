@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const mongoose = require('mongoose');
 const config = require('./config');
+const swStats = require('swagger-stats');
+// const apiSpec = require('./swagger.json');
+
 // Connection to Database
 mongoose.connect(config.mongoDB);
 mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
@@ -35,7 +38,7 @@ function skipLog (req, res) {
 app.use(logger('combined', {skip: skipLog}));
 //app.use(logger('dev'));
 
-
+app.use(swStats.getMiddleware({}));
 // Middlewares
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
