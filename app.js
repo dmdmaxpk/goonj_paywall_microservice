@@ -29,7 +29,7 @@ const app = express();
 
 function skipLog (req, res) {
     var url = req.originalUrl;
-    if(url.includes('cron') || url.include('swagger-stats')){
+    if(url.includes('cron') || url.includes('swagger-stats')){
       return true;
     }
     return false;
