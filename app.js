@@ -114,6 +114,7 @@ consumeSusbcriptionQueue = async(res) => {
                     subject: "User Billing Exceeded", // Subject line
                     text: `User ${subscriptionObj.user_id} has exceeded their billing limit. Please check. `, // plain text body
                 });
+                rabbitMq.acknowledge(res);
             } else {
                 if (countThisSec < config.telenor_subscription_api_tps) {
                     console.log("Sending subscription request to telenor");
@@ -205,6 +206,7 @@ consumeSusbcriptionQueue = async(res) => {
                                     error.response.data,error.response.data.errorMessage,'telenor',subscriptionObj.packageObj.price_point_pkr);
                             } catch(err) {
                                 console.log("Error could not assign Grace period",err);
+                                
                             }
 
                         }
@@ -282,7 +284,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
             subObj.consecutive_successive_bill_counts = 0;
             
             await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
-            await subscriberRepo.updateSubscriber(subscriber._id, subObj);
+            await subscriberRepo.updateSubscriber(subscriber.user_id, subObj);
             resolve("done");
         } catch(err) {
             console.error(err);
