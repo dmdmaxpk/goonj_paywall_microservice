@@ -46,7 +46,7 @@ subscribePackage = async(user, packageObj) => {
 	}
 
 	// Fetch subscriber
-	let subscriber = await subscriberRepo.getSubscriber(user_id);
+	let subscriber = await subscriberRepo.getSubscriber(user._id);
 
 	let msisdn = user.msisdn;
 	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+shortId.generate()+"_"+getCurrentDate();

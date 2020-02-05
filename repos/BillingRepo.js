@@ -29,8 +29,10 @@ sendMessage = async(message, msisdn) => {
             headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
             data: form
         }).then(function(response){
+            console.log("Response From Telenor [sendMessage]",response);
             resolve(response.data);
         }).catch(function(err){
+            console.log("Error Message From Telenor [sendMessage]",response);
             reject(err);
         });
     })
