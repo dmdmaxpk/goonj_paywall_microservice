@@ -121,8 +121,9 @@ consumeSusbcriptionQueue = async(res) => {
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
-                        console.log("Response recieved from billingRepo.subscribePackage", response);
                         let operator_response = response.api_response;
+                        console.log("Response from telenor ", operator_response.data);
+
                         let message = operator_response.data.Message;
                         let user_id = response.user_id;
                         let package_id = response.packageObj._id;
@@ -214,7 +215,7 @@ consumeSusbcriptionQueue = async(res) => {
                 } else {
                     console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                     setTimeout(() => {
-                        console.log("calling consumeSusbcriptionQueue after 200 seconds");
+                        console.log("calling consumeSusbcriptionQueue after 500 seconds");
                         consumeSusbcriptionQueue(res);
                     }, 500);
                 }
