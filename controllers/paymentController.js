@@ -23,12 +23,30 @@ function sendMessage(otp, msisdn){
 	}
 }
 
+function sendTextMessage(text, msisdn){
+	let message = text;
+	let messageObj = {};
+	messageObj.message =  message;
+	messageObj.msisdn = msisdn;
+	
+	// Add object in queueing server
+	console.log('Send Message - AddedInQueue - MSISDN - ', msisdn, ' - Message - ', text, ' - ', (new Date()));
+	if (messageObj.msisdn && messageObj.message) {
+		rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+	} else {
+		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
+	}
+}
+
 subscribePackage = async(user, packageObj) => {
 
 	// Fetch user is not already available
 	if(!packageObj){
 		packageObj = await packageRepo.getPackage(user.subscribed_package_id);
 	}
+
+	// Fetch subscriber
+	let subscriber = await subscriberRepo.getSubscriber(user._id);
 
 	let msisdn = user.msisdn;
 	let transactionId = "Goonj_"+msisdn+"_"+packageObj._id+"_"+shortId.generate()+"_"+getCurrentDate();
@@ -39,9 +57,14 @@ subscribePackage = async(user, packageObj) => {
 	subscriptionObj.transactionId = transactionId;
 
 	// Add object in queueing server
-	if (subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
-		rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-		console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
+	if (subscriber.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
+		let updated = await subscriberRepo.updateSubscriber(user._id, {queued: true});
+		if(updated){
+			rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
+			console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
+		}else{
+			console.log('Failed to updated subscriber after adding in queue.');
+		}
 	} else {
 		console.log( 'Could not add in Subscription Queue because critical parameters are missing ', subscriptionObj.msisdn ,
 		subscriptionObj.packageObj.price_point_pkr,subscriptionObj.transactionId, msisdn, ' - ', (new Date()) );
@@ -302,6 +325,8 @@ exports.subscribe = async (req, res) => {
 						billingHistory.source = req.body.source;
 						billingHistory.operator = 'telenor';
 						await billingHistoryRepo.createBillingHistory(billingHistory);
+						let text= `Goonj TV 24 hour free trial started.Pehla charge kal mobile balance sei @ Rs8/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
+						sendTextMessage(text,userUpdated.msisdn);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
 					} else {
 						subscribePackage(user, packageObj);
@@ -396,7 +421,11 @@ exports.status = async (req, res) => {
 // UnSubscribe
 exports.unsubscribe = async (req, res) => {
 	let msisdn = req.body.msisdn;
+	let user_id = req.body.user_id;
 	let user = await userRepo.getUserByMsisdn(msisdn);
+	if (user_id) {
+		user = await userRepo.getUserById(user_id);
+	}
 	
 	if(user){
 		let result = await subscriberRepo.updateSubscriber(user._id, {auto_renewal: false});

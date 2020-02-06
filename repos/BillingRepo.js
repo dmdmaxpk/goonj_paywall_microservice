@@ -6,7 +6,7 @@ generateToken = async () => {
     return new Promise(function(resolve, reject) {
         axios({
             method: 'post',
-            url: config.telenor_dcb_api_baseurl + '/oauthtoken/v1/generate?grant_type=client_credentials',
+            url: config.telenor_dcb_api_baseurl + 'oauthtoken/v1/generate?grant_type=client_credentials',
             headers: {'Authorization': 'Basic Y1J2dW5mTml3d0pJbzlpRzhUT1Zxdk1aMThXSXpXRlQ6TnlEVkdLanZhMFBvNkk1Qw==',
             'Content-Type': 'application/x-www-form-urlencoded' }
         }).then(function(response){
@@ -58,10 +58,8 @@ subscribePackage = async(subscriptionObj) => {
             data: form
         }).then(function(response){
             subscriptionObj.api_response = response;
-            console.log("response-subscribePackage",response);
             resolve(subscriptionObj);
         }).catch(function(err){
-            console.log("response-error",err);
             reject(err);
         });
     })
