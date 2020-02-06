@@ -91,16 +91,20 @@ renewSubscription = async(user) => {
     subscriptionObj.transactionId = transactionId;
 
     // Add object in queueing server
-    if (subscriber.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
-        let updated = await subsriberRepo.updateSubscriber(user._id, {queued: true});
-		if(updated){
-            rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-			console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
-		}else{
-			console.log('Failed to updated subscriber after adding in queue.');
-		}
+    if (subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
+        if(subscriber.queued === false){
+            let updated = await subsriberRepo.updateSubscriber(user._id, {queued: true});
+            if(updated){
+                rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
+                console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
+            }else{
+                console.log('Failed to updated subscriber after adding in queue.');
+            }
+        }else{
+            console.log('Failed to add in renewal queue, current queuing status: ', subscriptionObj.msisdn, ' - ', subscriber.queued);  
+        }
 	} else {
-		console.log( 'Could not add in Renewal Subscription Queue because critical parameters are missing ', subscriptionObj.msisdn ,
+		console.log('Could not add in renewal queue because critical parameters are missing: ', subscriptionObj.msisdn ,
 		subscriptionObj.packageObj.price_point_pkr,subscriptionObj.transactionId, msisdn, ' - ', (new Date()) );
 	}
 }
