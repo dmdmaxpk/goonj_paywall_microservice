@@ -114,7 +114,10 @@ consumeSusbcriptionQueue = async(res) => {
                     subject: "User Billing Exceeded", // Subject line
                     text: `User ${subscriptionObj.user_id} has exceeded their billing limit. Please check. `, // plain text body
                 });
-                rabbitMq.acknowledge(res);
+                let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false})
+                if(subcriberUpdated){
+                    rabbitMq.acknowledge(res);
+                }
             } else {
                 if (countThisSec < config.telenor_subscription_api_tps) {
                     console.log("Sending subscription request to telenor");
@@ -155,12 +158,13 @@ consumeSusbcriptionQueue = async(res) => {
                                 subObj.amount_billed_today = subscriber.amount_billed_today + amount_billed;
                                 subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
                                 subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
-                                await userRepo.updateUser(msisdn, {subscription_status: subObj.subscription_status});
-        
+                                subObj.queued = false;
+
+                                await userRepo.updateUser(msisdn, {subscribed_package_id: response.packageObj._id, subscription_status: subObj.subscription_status});
                                 let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
+                               
                                 // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
-                                    await userRepo.updateUserById(response.user_id, {subscribed_package_id: response.packageObj._id});
                                     if(subObj.consecutive_successive_bill_counts === 1){
                                         // For the first time or every week of consecutive billing
         
@@ -180,10 +184,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 // Billing failed
                                 await assignGracePeriodToSubscriber(subscriber,user_id);
                             }
-                            let subcriberUpdated = await subscriberRepo.updateSubscriber(user_id, {queued: false})
-                            if(subcriberUpdated){
-                                rabbitMq.acknowledge(res);
-                            }
+                            rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
                         console.log('Error: - ', error.response.data);
@@ -195,16 +196,12 @@ consumeSusbcriptionQueue = async(res) => {
                         } else {
                             // Consider, payment failed for any reason. e.g no credit, number suspended etc
                             // Enter user into grace period
-                            console.log('Enter user into grace period');
                             console.log('BillingFailed - ', ' - Package - ', ' - ', (new Date()));
                             try {
                                 await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
-                                let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
-                                if(subcriberUpdated){
-                                    rabbitMq.acknowledge(res);
-                                }
                                 await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id,
                                     error.response.data,error.response.data.errorMessage,'telenor',subscriptionObj.packageObj.price_point_pkr);
+                                rabbitMq.acknowledge(res);
                             } catch(err) {
                                 console.log("Error could not assign Grace period",err);
                                 
@@ -249,6 +246,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
     return new Promise (async (resolve,reject) => {
         try {
             let subObj = {};
+            subObj.queued = false;
             // Check if this subscriber is eligible for grace period
             let user = await userRepo.getUserById(user_id);
             if(subscriber.subscription_status === 'billed' && subscriber.auto_renewal === true){
