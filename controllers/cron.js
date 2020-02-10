@@ -3,6 +3,7 @@ const tokenRefreshService = require('../services/TokenRefreshService');
 const tpsCountService = require('../services/TpsCountService');
 const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
 const grayListService = require('../services/GrayListService');
+const reportsService = require('../services/ReportsService');
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
@@ -32,4 +33,9 @@ exports.checkLastSeenOfUsers = async (req,res) =>  {
 exports.grayListService = async (req,res) =>  {
     await grayListService.checkForUngrayListUsers();
     res.send("GrayListService - Executed");
+}
+
+exports.generateDailyReport = async (req,res) =>  {
+    await reportsService.generateDailyReport();
+    res.send("GenerateDailyReport - Executed");
 }
