@@ -201,6 +201,8 @@ exports.subscribe = async (req, res) => {
 		userObj.source = req.body.source ?  req.body.source : 'unknown';
 		userObj.operator = 'telenor';
 		userObj.subscription_status = 'none';
+		userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
+		userObj.affiliate_mid = req.body.affiliate_mid;
 
 		if(req.body.marketing_source){
 			userObj.marketing_source = req.body.marketing_source;
