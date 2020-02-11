@@ -218,19 +218,6 @@ exports.subscribe = async (req, res) => {
 		userObj.subscription_status = 'none';
 		userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 		userObj.affiliate_mid = req.body.affiliate_mid;
-		if(userObj.source === "HE" && userObj.affiliate_unique_transaction_id
-		 && userObj.affiliate_mid ) {
-			 // send callback to ideation with tid and mid
-			 console.log(`Sending Affiliate - Marketing - Callback TID ${userObj.affiliate_unique_transaction_id}
-				          - MID ${userObj.affiliate_mid}`);
-			 try {
-				await sendCallBackToIdeation(userObj.affiliate_mid,userObj.affiliate_unique_transaction_id);
-				console.log(`Sent - Marketing - Callback TID ${userObj.affiliate_unique_transaction_id}
-				          - MID ${userObj.affiliate_mid}`);
-			 } catch(err) {
-				console.log("Affiliate - Marketing - Callback - Error",err);
-			 }
-		 }
 
 		if(req.body.marketing_source){
 			userObj.marketing_source = req.body.marketing_source;
@@ -341,6 +328,21 @@ exports.subscribe = async (req, res) => {
 				* Let's send this item in queue and update package, auto_renewal and 
 				* billing date times once user successfully billed
 				*/
+				// send callback to ideation
+				if(user.source === "HE" && user.affiliate_unique_transaction_id
+					&& user.affiliate_mid ) {
+						// send callback to ideation with tid and mid
+						console.log(`Sending Affiliate - Marketing - Callback TID ${user.affiliate_unique_transaction_id}
+									- MID ${user.affiliate_mid}`);
+						try {
+							await sendCallBackToIdeation(user.affiliate_mid,user.affiliate_unique_transaction_id);
+							console.log(`Sent - Marketing - Callback TID ${user.affiliate_unique_transaction_id}
+									- MID ${user.affiliate_mid}`);
+						} catch(err) {
+							console.log("Affiliate - Marketing - Callback - Error",err);
+						}
+					}
+				//-------------------------
 				let newPackageId = req.body.package_id;
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
 				if(packageObj){
