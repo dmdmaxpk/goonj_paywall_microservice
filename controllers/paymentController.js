@@ -218,12 +218,14 @@ exports.subscribe = async (req, res) => {
 		userObj.subscription_status = 'none';
 		userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 		userObj.affiliate_mid = req.body.affiliate_mid;
-		if(userObj.source === "affiliate" && userObj.affiliate_unique_transaction_id
+		if(userObj.source === "HE" && userObj.affiliate_unique_transaction_id
 		 && userObj.affiliate_mid ) {
 			 // send callback to ideation with tid and mid
+			 console.log(`Sending Affiliate - Marketing - Callback TID ${userObj.affiliate_unique_transaction_id}
+				          - MID ${userObj.affiliate_mid}`);
 			 try {
 				await sendCallBackToIdeation(userObj.affiliate_mid,userObj.affiliate_unique_transaction_id);
-				console.log(`Affiliate - Marketing - Callback TID ${userObj.affiliate_unique_transaction_id}
+				console.log(`Sent - Marketing - Callback TID ${userObj.affiliate_unique_transaction_id}
 				          - MID ${userObj.affiliate_mid}`);
 			 } catch(err) {
 				console.log("Affiliate - Marketing - Callback - Error",err);
