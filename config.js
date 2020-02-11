@@ -41,6 +41,7 @@ const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
 const telenor_dcb_api_token = '';
 //Ideation Url
 const Ideation_call_back_url = ' http://bpd.o18.click/';
+const time_between_billing_attempts_hours = 8;
 
 let config = {
     development: {
@@ -51,6 +52,7 @@ let config = {
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
         ideation_callback_url: Ideation_call_back_url,
+        time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
@@ -68,6 +70,7 @@ let config = {
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
         ideation_callback_url: Ideation_call_back_url,
+        time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
@@ -85,6 +88,7 @@ let config = {
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
         ideation_callback_url: Ideation_call_back_url,
+        time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,

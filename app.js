@@ -155,6 +155,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 subObj.auto_renewal = true;
                                 subObj.last_billing_timestamp = new Date();
                                 subObj.next_billing_timestamp = nextBilling;
+                                subObj.time_spent_in_grace_period_in_hours = 0;
                                 subObj.amount_billed_today = subscriber.amount_billed_today + amount_billed;
                                 subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
                                 subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
@@ -249,12 +250,13 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
             subObj.queued = false;
             // Check if this subscriber is eligible for grace period
             let user = await userRepo.getUserById(user_id);
+            let currentPackage = await packageRepo.getPackage({"_id": user.subscribed_package_id});
+
             if(subscriber.subscription_status === 'billed' && subscriber.auto_renewal === true){
                 // The subscriber is elligible for grace hours, depends on the current subscribed package
-                let currentPackage = await packageRepo.getPackage({"_id": user.subscribed_package_id});
                 let nextBillingDate = new Date();
-                nextBillingDate.setHours(nextBillingDate.getHours() + currentPackage.package_duration);
-        
+                nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
+                subObj.time_spent_in_grace_period_in_hours = config.time_between_billing_attempts_hours;
                 subObj.subscription_status = 'graced';
                 subObj.next_billing_timestamp = nextBillingDate;
         
@@ -264,13 +266,21 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 await billingRepo.sendMessage(message, user.msisdn);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
                 // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
-                subObj.subscription_status = 'expired';
-                subObj.auto_renewal = false;
-        
-                //Send acknowldement to user
-                let link = 'https://www.goonj.pk/goonjplus/subscribe';
-                let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
-                await billingRepo.sendMessage(message, user.msisdn);
+                if ( subscriber.time_spent_in_grace_period_in_hours > currentPackage.grace_hours){
+                    subObj.subscription_status = 'expired';
+                    subObj.auto_renewal = false;    
+                    //Send acknowldement to user
+                    let link = 'https://www.goonj.pk/goonjplus/subscribe';
+                    let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
+                    await billingRepo.sendMessage(message, user.msisdn);
+                } else {
+                    let nextBillingDate = new Date();
+                    nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
+                    
+                    subObj.time_spent_in_grace_period_in_hours = (subscriber.time_spent_in_grace_period_in_hours + config.time_between_billing_attempts_hours);
+                    subObj.subscription_status = 'graced';
+                    subObj.next_billing_timestamp = nextBillingDate;
+                }
             } else {
                 subObj.subscription_status = 'not_billed';
                 subObj.auto_renewal = false;
