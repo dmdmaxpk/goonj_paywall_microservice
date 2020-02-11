@@ -39,6 +39,8 @@ const queueNames = {
 // Telenor DCB API's configs
 const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
 const telenor_dcb_api_token = '';
+//Ideation Url
+const Ideation_call_back_url = ' http://bpd.o18.click/';
 
 let config = {
     development: {
@@ -48,6 +50,7 @@ let config = {
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
+        ideation_callback_url: Ideation_call_back_url,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
@@ -64,6 +67,7 @@ let config = {
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
+        ideation_callback_url: Ideation_call_back_url,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
@@ -80,6 +84,7 @@ let config = {
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
+        ideation_callback_url: Ideation_call_back_url,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,

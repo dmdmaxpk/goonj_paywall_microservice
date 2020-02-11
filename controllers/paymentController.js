@@ -7,6 +7,7 @@ const billingHistoryRepo = require('../repos/BillingHistoryRepo');
 const viewLogRepo = require('../repos/ViewLogRepo');
 const billingRepo = require('../repos/BillingRepo');
 const shortId = require('shortid');
+const axios = require('axios')
 
 function sendMessage(otp, msisdn){
 	let message = `Use code ${otp} for Goonj TV`;
@@ -21,6 +22,20 @@ function sendMessage(otp, msisdn){
 	} else {
 		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
 	}
+}
+
+function sendCallBackToIdeation(mid,tid){
+	return new Promise(function(resolve, reject) {
+        axios({
+            method: 'post',
+            url: config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded' }
+        }).then(function(response){
+            resolve(response.data);
+        }).catch(function(err){
+            reject(err);
+        });
+    });
 }
 
 function sendTextMessage(text, msisdn){
@@ -203,6 +218,17 @@ exports.subscribe = async (req, res) => {
 		userObj.subscription_status = 'none';
 		userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 		userObj.affiliate_mid = req.body.affiliate_mid;
+		if(userObj.source === "affiliate" && userObj.affiliate_unique_transaction_id
+		 && userObj.affiliate_mid ) {
+			 // send callback to ideation with tid and mid
+			 try {
+				await sendCallBackToIdeation(userObj.affiliate_mid,userObj.affiliate_unique_transaction_id);
+				console.log(`Affiliate - Marketing - Callback TID ${userObj.affiliate_unique_transaction_id}
+				          - MID ${userObj.affiliate_mid}`);
+			 } catch(err) {
+				console.log("Affiliate - Marketing - Callback - Error",err);
+			 }
+		 }
 
 		if(req.body.marketing_source){
 			userObj.marketing_source = req.body.marketing_source;
