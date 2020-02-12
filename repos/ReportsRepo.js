@@ -79,12 +79,9 @@ dailyReport = async() => {
     userStats.forEach(userStat => {
         resultToWrite[userStat.date.toDateString()]['newUser'] = userStat.count;
         totalUsers = totalUsers - userStat.count;
-        console.log('totalUsers',totalUsers)
         resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
     });
-    console.log(resultToWrite);
     susbcriberStats.forEach(subsc => {
-        console.log(subsc.date.toDateString())
         resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
     });
 
@@ -115,7 +112,7 @@ dailyReport = async() => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to: ["paywall@dmdmax.com.pk"], // list of receivers
+                to: ["paywall@dmdmax.com.pk","reports.goonj@dmdmax.com.pk"], // list of receivers
                 subject: `PayWall Report ${(new Date()).toDateString()}`, // Subject line
                 text: `PFA some basic stats for Paywall. `, // plain text bodyday
                 attachments:[
