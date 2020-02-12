@@ -183,7 +183,7 @@ exports.verifyOtp = async (req, res) => {
 						let subscriber = await subscriberRepo.getSubscriber(user._id);
 						if(subscriber){
 							// Subscriber is available and having active subscription
-							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', subscriber: subscriber.subscription_status});
+							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', subscriber: subscriber.subscription_status, user_id: subscriber.user_id});
 						}else{
 							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!'});
 						}
