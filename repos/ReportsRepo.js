@@ -7,9 +7,9 @@ const csvWriter = createCsvWriter({
     path: './report.csv',
     header: [
         {id: 'date', title: 'Date'},
-        {id: 'newUser', title: 'New User'},
-        {id: 'newSubscriber', title: 'New Subcriber'},
+        {id: 'newUser', title: 'New Users'},
         {id: 'trials', title: 'Trials Activated'},
+        {id: 'totalUsers', title: 'Total Users'},
         {id: 'users_billed', title: 'Users Billed'},
         {id: 'revenue', title: 'Revenue'},
 
@@ -29,19 +29,34 @@ var transporter = nodemailer.createTransport({
 
 dailyReport = async() => {
     let susbcriberStats = await Subscriber.aggregate([
+        {
+            "$match": 
+            {
+                "added_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") }
+            }
+        },
         {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" } } , count:{ $sum: 1 } } },
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
         { $sort: {"date": -1}}
           ]);
     let userStats = await User.aggregate([
+            {
+                "$match": 
+                {
+                    "added_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") }
+                }
+            },
         {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },
         "year":{ $year: "$added_dtm" }} , count:{ $sum: 1 } } },
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }},
         {$sort: {"date": -1}} 
     ]);
 
+    let totalUserStats = await User.count({"added_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") }} );
+
+
     let billingStats = await BillingHistory.aggregate([
-            { $match: { "billing_status": "Success" } },
+            { $match: { "billing_status": "Success", "billing_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") } } },
             {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
                 "year":{ $year: "$billing_dtm" } } , revenue:{ $sum: "$price" },count:{$sum: 1} } },
             {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, 
@@ -49,7 +64,7 @@ dailyReport = async() => {
         ]);       
     
     let trialStats = await BillingHistory.aggregate([
-        { $match: { "billing_status": "trial" } },
+        { $match: { "billing_status": "trial","billing_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") }  } },
         {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
             "year":{ $year: "$billing_dtm" } } , trials:{ $sum: 1 } } },
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, 
@@ -60,12 +75,16 @@ dailyReport = async() => {
     userStats.forEach(userStat => {
         resultToWrite[userStat.date.toDateString()] =  {};
     });
-
+    let totalUsers = totalUserStats;
     userStats.forEach(userStat => {
         resultToWrite[userStat.date.toDateString()]['newUser'] = userStat.count;
+        totalUsers = totalUsers - userStat.count;
+        console.log('totalUsers',totalUsers)
+        resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
     });
-
+    console.log(resultToWrite);
     susbcriberStats.forEach(subsc => {
+        console.log(subsc.date.toDateString())
         resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
     });
 
@@ -87,7 +106,8 @@ dailyReport = async() => {
     let resultToWriteToCsv= [];
     for (res in resultToWrite) {
         let temp = {date: res, newUser: resultToWrite[res].newUser , newSubscriber: resultToWrite[res].newSubscriber,
-            revenue: resultToWrite[res].revenue, users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials }
+            revenue: resultToWrite[res].revenue, users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,
+            totalUsers : resultToWrite[res].totalUsers }
         resultToWriteToCsv.push(temp);
     } 
 
