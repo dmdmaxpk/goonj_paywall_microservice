@@ -8,8 +8,10 @@ const csvWriter = createCsvWriter({
     header: [
         {id: 'date', title: 'Date'},
         {id: 'newUser', title: 'New Users'},
-        {id: 'trials', title: 'Trials Activated'},
         {id: 'totalUsers', title: 'Total Users'},
+        {id: 'newSubscriber', title: 'New Subscribers'},
+        {id: 'totalSubscribers', title: 'Total Subscribers'},
+        {id: 'trials', title: 'Trials Activated'},
         {id: 'users_billed', title: 'Users Billed'},
         {id: 'revenue', title: 'Revenue'},
 
@@ -18,12 +20,12 @@ const csvWriter = createCsvWriter({
 var nodemailer = require('nodemailer');
 
 var transporter = nodemailer.createTransport({
-    host: "email-smtp.eu-central-1.amazonaws.com",
+    host: "mail.dmdmax.com.pk",
     port: 465,
     secure: true, // true for 465, false for other ports
     auth: {
-      user: 'AKIAZQA2XAWP7CYJEJXS', // generated ethereal user
-      pass: 'BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs' // generated ethereal password
+      user: 'reports@goonj.pk', // generated ethereal user
+      pass: 'YiVmeCPtzJn39Mu' // generated ethereal password
     }
   });
 
@@ -53,6 +55,7 @@ dailyReport = async() => {
     ]);
 
     let totalUserStats = await User.count({"added_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") }} );
+    let totalSubscriberStats = await Subscriber.count({"added_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") }} );
 
 
     let billingStats = await BillingHistory.aggregate([
@@ -69,7 +72,7 @@ dailyReport = async() => {
             "year":{ $year: "$billing_dtm" } } , trials:{ $sum: 1 } } },
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, 
             "trials": "$trials",_id:-1 }},{$sort: {"date": -1}}
-    ]);    
+    ]);
 
     let resultToWrite= {};
     userStats.forEach(userStat => {
@@ -81,8 +84,12 @@ dailyReport = async() => {
         totalUsers = totalUsers - userStat.count;
         resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
     });
+    var totalSubscriber = totalSubscriberStats;
     susbcriberStats.forEach(subsc => {
         resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
+        totalSubscriber = totalSubscriber - subsc.count;
+        resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
+
     });
 
     billingStats.forEach(billingHistor => {
@@ -104,7 +111,7 @@ dailyReport = async() => {
     for (res in resultToWrite) {
         let temp = {date: res, newUser: resultToWrite[res].newUser , newSubscriber: resultToWrite[res].newSubscriber,
             revenue: resultToWrite[res].revenue, users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,
-            totalUsers : resultToWrite[res].totalUsers }
+            totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers }
         resultToWriteToCsv.push(temp);
     } 
 
@@ -112,7 +119,7 @@ dailyReport = async() => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to: ["paywall@dmdmax.com.pk","reports.goonj@dmdmax.com.pk"], // list of receivers
+                to: ["hamza@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk"], // list of receivers
                 subject: `PayWall Report ${(new Date()).toDateString()}`, // Subject line
                 text: `PFA some basic stats for Paywall. `, // plain text bodyday
                 attachments:[
