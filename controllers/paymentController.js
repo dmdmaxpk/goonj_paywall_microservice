@@ -332,15 +332,15 @@ exports.subscribe = async (req, res) => {
 				if(user.source === "HE" && user.affiliate_unique_transaction_id
 					&& user.affiliate_mid ) {
 						// send callback to ideation with tid and mid
-						console.log(`Sending Affiliate - Marketing - Callback TID ${user.affiliate_unique_transaction_id}
-									- MID ${user.affiliate_mid}`);
-						try {
-							await sendCallBackToIdeation(user.affiliate_mid,user.affiliate_unique_transaction_id);
-							console.log(`Sent - Marketing - Callback TID ${user.affiliate_unique_transaction_id}
-									- MID ${user.affiliate_mid}`);
-						} catch(err) {
-							console.log("Affiliate - Marketing - Callback - Error",err);
-						}
+						// console.log(`Sending Affiliate - Marketing - Callback TID ${user.affiliate_unique_transaction_id}
+						// 			- MID ${user.affiliate_mid}`);
+						// try {
+						// 	await sendCallBackToIdeation(user.affiliate_mid,user.affiliate_unique_transaction_id);
+						// 	console.log(`Sent - Marketing - Callback TID ${user.affiliate_unique_transaction_id}
+						// 			- MID ${user.affiliate_mid}`);
+						// } catch(err) {
+						// 	console.log("Affiliate - Marketing - Callback - Error",err);
+						// }
 					}
 				//-------------------------
 				let newPackageId = req.body.package_id;
