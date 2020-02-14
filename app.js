@@ -24,8 +24,6 @@ require('./models/ViewLog');
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
-var reportsRepo = require('./repos/ReportsRepo');
-reportsRepo.dailyReport();
 
 
 const app = express();
