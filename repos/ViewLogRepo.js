@@ -4,7 +4,7 @@ const ViewLog = mongoose.model('ViewLog');
 createViewLog = async(userId) => {
     if (userId) {
         try {
-            let viewLog = new ViewLog({user_id: userId});
+            let viewLog = new ViewLog({user_id: userId,added_dtm: new Date()});
             let result = await viewLog.save();
             return result;
         } catch(error) {

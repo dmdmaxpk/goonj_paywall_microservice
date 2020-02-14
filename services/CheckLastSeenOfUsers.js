@@ -7,7 +7,7 @@ const config = require('../config')
 checkLastSeenOfUsers = async() => {
     try {
         let renewableSubscribers = await subsriberRepo.getBilledSubscribers();
-        console.log("renewableSubscribers",renewableSubscribers);
+        console.log("[checkLastSeenOfUsers][checkLastSeenOfUsers]",renewableSubscribers);
         for (let i = 0 ; i < renewableSubscribers.length ; i++) {
             let latestViewLog = await ViewLogRepo.getLatestViewLog(renewableSubscribers[i].user_id);
             // if last viewed of user is
