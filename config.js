@@ -30,7 +30,7 @@ const max_graylist_time_in_hrs = 336; // 2 weeks
 const maximum_daily_payment_limit_pkr = 10;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
-const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 336; // 2 weeks
+const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 720; // 2 weeks
 
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
@@ -46,7 +46,7 @@ const time_between_billing_attempts_hours = 8;
 let config = {
     development: {
         port: '5000',
-        mongoDB: 'mongodb://localhost:27017/goonjpaywall',
+        mongoDB: 'mongodb://localhost:27017/goonjpaywall2',
         rabbitMq: 'amqp://localhost',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
