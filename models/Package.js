@@ -13,6 +13,8 @@ const packageSchema = new Schema({
     grace_hours: {type: Number, default: 0 },
     added_dtm: { type: Date, default: Date.now },
     last_modified: Date,
+    logos: [],
+    default: Boolean,
     active: { type: Boolean, default: true }
 }, { strict: true })
 module.exports = mongoose.model('Package', packageSchema);
