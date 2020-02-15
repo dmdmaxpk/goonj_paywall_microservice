@@ -1,5 +1,6 @@
 const config = require('../config');
 const repo = require('../repos/UserRepo');
+const packageRepo = require('../repos/PackageRepo');
 
 // CREATE
 exports.post = async (req, res) => {
@@ -56,4 +57,31 @@ exports.put = async (req, res) => {
 	}else {
 		res.send({'code': config.codes.code_data_not_found, data: 'No user with this msisdn found!'});
 	}
+}
+
+// update PackageId
+
+exports.update_subscribed_package_id = async (req,res) => {
+	let new_package_id = req.body.new_package_id;
+	let user_id = req.body.user_id;
+	let package = await packageRepo.getPackage({_id: new_package_id});
+	if (package) {
+		let user  = await repo.getUserById(user_id);
+		if (user) {
+			user.subscribed_package_id = new_package_id;
+			let updated  = await repo.updateUserById(user_id, user);
+			if (updated) {
+				res.status(200).send({ code: config.codes.code_success, data: updated });
+			} else {
+				res.status(200).send({ code: config.codes.code_error, message: "Error while updating User" });
+			}
+			
+		} else {
+			res.status(200).send({ code: config.codes.code_error, message: "User not Found!" });
+		}
+
+	} else {
+		res.status(200).send({ code: config.codes.code_error, message: "Package does not exist!" });
+	}
+
 }

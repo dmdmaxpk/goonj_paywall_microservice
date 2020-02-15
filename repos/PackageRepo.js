@@ -13,7 +13,7 @@ getPackage = async(query) => {
     if(result && result.length == 1){
         return result[0];
     }
-	return result;
+	return undefined;
 }
 
 getAllPackages = async(query) => {
