@@ -55,9 +55,9 @@ function sendTextMessage(text, msisdn){
 
 subscribePackage = async(user, packageObj) => {
 
-	// Fetch user is not already available
+	// Fetch user if not already available
 	if(!packageObj){
-		packageObj = await packageRepo.getPackage(user.subscribed_package_id);
+		packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
 	}
 
 	// Fetch subscriber

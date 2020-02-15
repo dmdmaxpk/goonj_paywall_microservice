@@ -30,7 +30,7 @@ updatePackage = async(id, postData) => {
     if (result.nModified === 0) {
         return undefined;
     }else{
-        let package = await getPackage(msisdn);
+        let package = await getPackage({_id: id});
         return package;
     }
 }
