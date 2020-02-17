@@ -41,6 +41,20 @@ dailyReport = async(mode = 'prod') => {
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
         { $sort: {"date": -1}}
           ]);
+    
+    let subscription_status_stats = await Subscriber.aggregate([
+        {
+            "$match": 
+            {
+                "added_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") }
+            }
+        },
+        {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" },subscription_status: "$subscription_status" } , count:{ $sum: 1 } } },
+        {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
+        { $sort: {"date": -1}}
+          ]);
+
+
     let userStats = await User.aggregate([
             {
                 "$match": 
@@ -56,13 +70,15 @@ dailyReport = async(mode = 'prod') => {
 
     let totalUserStats = await User.count({"added_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") }} );
     let totalSubscriberStats = await Subscriber.count({"added_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") }} );
+    let totalExpiredCount = await BillingHistory.count({"billing_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") },billing_status: "expired"} );
+    console.log("totalExpiredCount",totalExpiredCount);
 
 
     let billingStats = await BillingHistory.aggregate([
             { $match: { "billing_status": {$in : ["Success","expired"]}, "billing_dtm": { "$gte": new Date("2020-02-07T00:00:00.672Z") } } },
             {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
                 "year":{ $year: "$billing_dtm" },billing_status: "$billing_status" } , revenue:{ $sum: "$price" },count:{$sum: 1} } },
-            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, billing_status: "$billing_status",
+            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, billing_status: "unsubscribed",
                 "revenue": "$revenue","count":"$count",_id:-1 }},{$sort: {"date": -1}}
         ]);       
     
@@ -74,12 +90,7 @@ dailyReport = async(mode = 'prod') => {
             "trials": "$trials",_id:-1 }},{$sort: {"date": -1}}
     ]);
 
-    let currSusbcriberState = await Subscriber.aggregate([
-        { $match: {"added_dtm": {$gte: new Date("2020-01-28T11:06:00.315Z") } } }, 
-        {$group: {_id: "$subscription_status",count: {$sum:1}}}
-        ]);
     
-    console.log('currSusbcriberState',currSusbcriberState)
 
     let resultToWrite= {};
     userStats.forEach(userStat => {
@@ -98,22 +109,23 @@ dailyReport = async(mode = 'prod') => {
         resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
 
     });
-    let dailyUsersExpired = 0;
+    let totalExpiredCountt = totalExpiredCount;
     billingStats.forEach(billingHistor => {
-        console.log(billingHistor);
+        // console.log(billingHistor);
         if(resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "Success") {
             resultToWrite[billingHistor.date.toDateString()]['revenue'] = billingHistor.revenue;
             resultToWrite[billingHistor.date.toDateString()]['users_billed'] = billingHistor.count;
         } else if (resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "expired")  {
-            console.log('users_expired',billingHistor.count);
-            dailyUsersExpired = dailyUsersExpired + billingHistor.count;
+            console.log("expired On the day",billingHistor.count);
+            console.log("date",billingHistor.date.toDateString());
+            totalExpiredCountt = totalExpiredCountt - billingHistor.count;
+            console.log("totalExpiredCountt",totalExpiredCountt);
             resultToWrite[billingHistor.date.toDateString()]['users_expired'] = billingHistor.count;
-            resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = billingHistor.count;
+            resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = totalExpiredCountt;
         }
     });
 
     trialStats.forEach(trialStat => {
-        console.log(trialStat.date.toDateString());
         if(resultToWrite[trialStat.date.toDateString()]) {
             resultToWrite[trialStat.date.toDateString()]['trials'] = trialStat.trials;
         }
@@ -128,16 +140,10 @@ dailyReport = async(mode = 'prod') => {
     } 
 
     try {  
-        var recievers;
-        if (mode = 'prod') {
-            recievers = ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com","mikaeel@dmdmax.com.pk","ceo@ideationtec.com"]
-        } else if (mode = 'test') {
-            recievers = ["paywall@dmdmax.com.pk"];
-        }
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to:  recievers, // list of receivers
+                to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com","mikaeel@dmdmax.com.pk","ceo@ideationtec.com"], // list of receivers
                 subject: `PayWall Report ${(new Date()).toDateString()}`, // Subject line
                 text: `PFA some basic stats for Paywall. `, // plain text bodyday
                 attachments:[
