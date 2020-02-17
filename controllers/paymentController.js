@@ -406,7 +406,6 @@ exports.sendBulkSub = async(req, res) => {
 
 
 exports.subscribeDirectly = async(req, res) => {
-	
 	let packgeObj = {
 		grace_hours: 24,
 		active: true,
@@ -441,7 +440,7 @@ exports.status = async (req, res) => {
 		let result = await subscriberRepo.getSubscriber(user._id);
 		if(result){
 			await viewLogRepo.createViewLog(user._id);
-			res.send({code: config.codes.code_success, data: result});	
+			res.send({code: config.codes.code_success, subscribed_package_id: user.subscribed_package_id, data: result});	
 		}else{
 			res.send({code: config.codes.code_error, data: 'No subscriber found.'});	
 		}
