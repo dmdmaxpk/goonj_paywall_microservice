@@ -282,12 +282,14 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                     
                     subObj.time_spent_in_grace_period_in_hours = (subscriber.time_spent_in_grace_period_in_hours + config.time_between_billing_attempts_hours);
                     subObj.subscription_status = 'graced';
+                    status = 'graced';
                     subObj.next_billing_timestamp = nextBillingDate;
                 }
             } else {
                 subObj.subscription_status = 'not_billed';
                 status = 'not_billed';
                 subObj.auto_renewal = false;
+                console.log("[assignGracePeriodToSubscriber][not_billed]");
         
                 //Send acknowldement to user
                 let link = 'https://www.goonj.pk/goonjplus/subscribe';
@@ -298,6 +300,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
             
             await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
             await subscriberRepo.updateSubscriber(subscriber.user_id, subObj);
+            console.log("[assignGracePeriodToSubscriber][Status],status");
             resolve(status);
         } catch(err) {
             console.error(err);
