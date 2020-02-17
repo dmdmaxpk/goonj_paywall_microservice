@@ -24,8 +24,6 @@ require('./models/ViewLog');
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
-var reportsRepo = require('./repos/ReportsRepo');
-reportsRepo.dailyReport('test')
 
 const app = express();
 
@@ -185,7 +183,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 }
                             }else{
                                 // Billing failed
-                                await assignGracePeriodToSubscriber(subscriber,user_id);
+                                let status = await assignGracePeriodToSubscriber(subscriber,user_id);
                             }
                             rabbitMq.acknowledge(res);
                         }
@@ -201,9 +199,9 @@ consumeSusbcriptionQueue = async(res) => {
                             // Enter user into grace period
                             console.log('BillingFailed - ', ' - Package - ', ' - ', (new Date()));
                             try {
-                                await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
+                                let status = await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
                                 await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id,
-                                    error.response.data,error.response.data.errorMessage,'telenor',subscriptionObj.packageObj.price_point_pkr);
+                                    error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr);
                                 rabbitMq.acknowledge(res);
                             } catch(err) {
                                 console.log("Error could not assign Grace period",err);
@@ -248,6 +246,7 @@ consumeSusbcriptionQueue = async(res) => {
 async function assignGracePeriodToSubscriber(subscriber,user_id){
     return new Promise (async (resolve,reject) => {
         try {
+            let status = "";
             let subObj = {};
             subObj.queued = false;
             // Check if this subscriber is eligible for grace period
@@ -260,6 +259,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
                 subObj.time_spent_in_grace_period_in_hours = config.time_between_billing_attempts_hours;
                 subObj.subscription_status = 'graced';
+                status = 'graced';
                 subObj.next_billing_timestamp = nextBillingDate;
         
                 //Send acknowldement to user
@@ -270,6 +270,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
                 if ( subscriber.time_spent_in_grace_period_in_hours > currentPackage.grace_hours){
                     subObj.subscription_status = 'expired';
+                    status = 'expired';
                     subObj.auto_renewal = false;    
                     //Send acknowldement to user
                     let link = 'https://www.goonj.pk/goonjplus/subscribe';
@@ -285,6 +286,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 }
             } else {
                 subObj.subscription_status = 'not_billed';
+                status = 'not_billed';
                 subObj.auto_renewal = false;
         
                 //Send acknowldement to user
@@ -296,7 +298,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
             
             await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
             await subscriberRepo.updateSubscriber(subscriber.user_id, subObj);
-            resolve("done");
+            resolve(status);
         } catch(err) {
             console.error(err);
             reject(err);
