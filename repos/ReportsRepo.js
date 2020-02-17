@@ -29,7 +29,7 @@ var transporter = nodemailer.createTransport({
     }
   });
 
-dailyReport = async() => {
+dailyReport = async(mode = 'prod') => {
     let susbcriberStats = await Subscriber.aggregate([
         {
             "$match": 
@@ -98,7 +98,7 @@ dailyReport = async() => {
         resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
 
     });
-
+    let dailyUsersExpired = 0;
     billingStats.forEach(billingHistor => {
         console.log(billingHistor);
         if(resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "Success") {
@@ -106,7 +106,9 @@ dailyReport = async() => {
             resultToWrite[billingHistor.date.toDateString()]['users_billed'] = billingHistor.count;
         } else if (resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "expired")  {
             console.log('users_expired',billingHistor.count);
+            dailyUsersExpired = dailyUsersExpired + billingHistor.count;
             resultToWrite[billingHistor.date.toDateString()]['users_expired'] = billingHistor.count;
+            resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = billingHistor.count;
         }
     });
 
@@ -121,15 +123,21 @@ dailyReport = async() => {
     for (res in resultToWrite) {
         let temp = {date: res, newUser: resultToWrite[res].newUser , newSubscriber: resultToWrite[res].newSubscriber,
             revenue: resultToWrite[res].revenue, users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,
-            totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers, totalActiveSubscribers : (resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired < 0)? 0 : resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired   }
+            totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers, totalActiveSubscribers : (resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today < 0)? 0 : resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today   }
         resultToWriteToCsv.push(temp);
     } 
 
     try {  
+        var recievers;
+        if (mode = 'prod') {
+            recievers = ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com","mikaeel@dmdmax.com.pk","ceo@ideationtec.com"]
+        } else if (mode = 'test') {
+            recievers = ["paywall@dmdmax.com.pk"];
+        }
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to: ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com","mikaeel@dmdmax.com.pk","ceo@ideationtec.com"] , // list of receivers
+                to:  recievers, // list of receivers
                 subject: `PayWall Report ${(new Date()).toDateString()}`, // Subject line
                 text: `PFA some basic stats for Paywall. `, // plain text bodyday
                 attachments:[
