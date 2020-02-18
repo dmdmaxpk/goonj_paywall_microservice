@@ -97,6 +97,7 @@ consumeSusbcriptionQueue = async(res) => {
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
         let amount_billed = subscriptionObj.packageObj.price_point_pkr;
         let subscriber = await subscriberRepo.getSubscriber(subscriptionObj.user_id);
+
         if (subscriber.active === true) {
             if ( subscriber.amount_billed_today > config.maximum_daily_payment_limit_pkr ) {
                 await subscriberRepo.setSubcriberInactive(subscriptionObj.user_id);
@@ -161,7 +162,42 @@ consumeSusbcriptionQueue = async(res) => {
                                 subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
                                 subObj.queued = false;
 
-                                await userRepo.updateUser(msisdn, {subscribed_package_id: response.packageObj._id, subscription_status: subObj.subscription_status});
+                                let updatedUser = await userRepo.updateUser(msisdn, {subscribed_package_id: response.packageObj._id, subscription_status: subObj.subscription_status});
+                                if(updatedUser.is_affiliation_callback_executed === false){
+                                    // Checking checks to send affiliate marketing callback.
+                                    if(updatedUser.source === "HE" && updatedUser.affiliate_unique_transaction_id && updatedUser.affiliate_mid) {
+                                        
+                                        let combinedId = user.affiliate_unique_transaction_id + "*" +updatedUser.affiliate_mid;
+                                        let billingHistoryObject = {};
+                                        billingHistoryObject.user_id = updatedUser._id;
+                                        billingHistoryObject.package_id = updatedUser.subscribed_package_id;
+                                        billingHistoryObject.transaction_id = combinedId;
+                                        billingHistoryObject.operator = 'staging';
+
+                                        console.log(`Sending Affiliate Marketing Callback Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`);
+                                        try {
+                                            console.log("Affiliate Marketing - Done");
+                                            // sendCallBackToIdeation(updatedUser.affiliate_mid, user.affiliate_unique_transaction_id).then(function(fulfilled) {
+                                            //     let updated = await userRepo.updateUserById(updatedUser._id, {is_affiliation_callback_executed: true});
+                                            //     if(updated){
+                                            //         console.log(`Successfully Sent Affiliate Marketing Callback Having TID - ${updated.affiliate_unique_transaction_id} - MID ${updated.affiliate_mid}`);
+                                            //         console.log("Ideation response: "+fulfilled);
+                                            //         billingHistoryObject.operator_response = fulfilled;
+                                            //         billingHistoryObject.billing_status = "Affiliate callback sent";
+                                            //     }
+                                            // })
+                                            // .catch(function (error) {
+                                            //     console.log(`Affiliate - Marketing - Callback - Error - Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`, error);
+                                            //     billingHistoryObject.operator_response = err;
+                                            //     billingHistoryObject.billing_status = "Affiliate callback error";
+                                            // });
+                                        } catch(err) {
+                                        	console.log(`Error - Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`, err);
+                                        }
+                                        await billingHistoryRepo.createBillingHistory(billingHistoryObject);
+                                    }
+                                }
+                                
                                 let updatedSubscriber = await subscriberRepo.updateSubscriber(response.user_id, subObj);
                                
                                 // TODO split code inside this condition into a separate function 
@@ -197,7 +233,7 @@ consumeSusbcriptionQueue = async(res) => {
                         } else {
                             // Consider, payment failed for any reason. e.g no credit, number suspended etc
                             // Enter user into grace period
-                            console.log('BillingFailed - ', ' - Package - ', ' - ', (new Date()));
+                            console.log('BillingFailed - Package - ', (new Date()));
                             try {
                                 let status = await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
                                 await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id,
@@ -227,7 +263,7 @@ consumeSusbcriptionQueue = async(res) => {
                 billingHistoryObject.operator_response = "Subscriber is not active hence payment can not be processed!";
                 billingHistoryObject.billing_status = subscriber.subscription_status;
                 billingHistoryObject.operator = 'telenor';
-                await billingHistoryRepo.createBillingHistory([billingHistoryObject]);
+                await billingHistoryRepo.createBillingHistory(billingHistoryObject);
             }catch(err){
                 console.log(err);
             }
@@ -241,6 +277,20 @@ consumeSusbcriptionQueue = async(res) => {
     } catch (err ) {
         console.error(err);
     }
+}
+
+async function sendCallBackToIdeation(mid, tid){
+	return new Promise(function(resolve, reject) {
+        axios({
+            method: 'post',
+            url: config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded' }
+        }).then(function(response){
+            resolve(response.data);
+        }).catch(function(err){
+            reject(err);
+        });
+    });
 }
 
 async function assignGracePeriodToSubscriber(subscriber,user_id){

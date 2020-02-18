@@ -24,20 +24,6 @@ function sendMessage(otp, msisdn){
 	}
 }
 
-function sendCallBackToIdeation(mid,tid){
-	return new Promise(function(resolve, reject) {
-        axios({
-            method: 'post',
-            url: config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`,
-            headers: {'Content-Type': 'application/x-www-form-urlencoded' }
-        }).then(function(response){
-            resolve(response.data);
-        }).catch(function(err){
-            reject(err);
-        });
-    });
-}
-
 function sendTextMessage(text, msisdn){
 	let message = text;
 	let messageObj = {};
@@ -328,21 +314,7 @@ exports.subscribe = async (req, res) => {
 				* Let's send this item in queue and update package, auto_renewal and 
 				* billing date times once user successfully billed
 				*/
-				// send callback to ideation
-				if(user.source === "HE" && user.affiliate_unique_transaction_id
-					&& user.affiliate_mid ) {
-						// send callback to ideation with tid and mid
-						// console.log(`Sending Affiliate - Marketing - Callback TID ${user.affiliate_unique_transaction_id}
-						// 			- MID ${user.affiliate_mid}`);
-						// try {
-						// 	await sendCallBackToIdeation(user.affiliate_mid,user.affiliate_unique_transaction_id);
-						// 	console.log(`Sent - Marketing - Callback TID ${user.affiliate_unique_transaction_id}
-						// 			- MID ${user.affiliate_mid}`);
-						// } catch(err) {
-						// 	console.log("Affiliate - Marketing - Callback - Error",err);
-						// }
-					}
-				//-------------------------
+				
 				let newPackageId = req.body.package_id;
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
 				if(packageObj){
