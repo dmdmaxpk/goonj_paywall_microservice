@@ -177,7 +177,7 @@ consumeSusbcriptionQueue = async(res) => {
                                         console.log(`Sending Affiliate Marketing Callback Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`);
                                         try {
                                             console.log("Affiliate Marketing - Done");
-                                            sendCallBackToIdeation(updatedUser.affiliate_mid, updatedUser.affiliate_unique_transaction_id).then(function(fulfilled) {
+                                            sendCallBackToIdeation(updatedUser.affiliate_mid, updatedUser.affiliate_unique_transaction_id).then(async function(fulfilled) {
                                                 let updated = await userRepo.updateUserById(updatedUser._id, {is_affiliation_callback_executed: true});
                                                 if(updated){
                                                     console.log(`Successfully Sent Affiliate Marketing Callback Having TID - ${updated.affiliate_unique_transaction_id} - MID ${updated.affiliate_mid}`);
