@@ -167,7 +167,7 @@ consumeSusbcriptionQueue = async(res) => {
                                     // Checking checks to send affiliate marketing callback.
                                     if(updatedUser.source === "HE" && updatedUser.affiliate_unique_transaction_id && updatedUser.affiliate_mid) {
                                         
-                                        let combinedId = user.affiliate_unique_transaction_id + "*" +updatedUser.affiliate_mid;
+                                        let combinedId = updatedUser.affiliate_unique_transaction_id + "*" +updatedUser.affiliate_mid;
                                         let billingHistoryObject = {};
                                         billingHistoryObject.user_id = updatedUser._id;
                                         billingHistoryObject.package_id = updatedUser.subscribed_package_id;
