@@ -177,6 +177,7 @@ consumeSusbcriptionQueue = async(res) => {
                                         console.log(`Sending Affiliate Marketing Callback Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`);
                                         try {
                                             console.log("Affiliate Marketing - Done");
+                                            let updated = await userRepo.updateUserById(updatedUser._id, {is_affiliation_callback_executed: true});
                                             // sendCallBackToIdeation(updatedUser.affiliate_mid, user.affiliate_unique_transaction_id).then(function(fulfilled) {
                                             //     let updated = await userRepo.updateUserById(updatedUser._id, {is_affiliation_callback_executed: true});
                                             //     if(updated){
@@ -224,7 +225,7 @@ consumeSusbcriptionQueue = async(res) => {
                             rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
-                        console.log('Error: - ', error);
+                        console.log('Error: - ', error.response.data);
                          if (error.response.data.errorCode === "500.007.08"){
                             // Consider, tps exceeded, noAcknowledge will requeue this record.
                             console.log('Sending back to queue');
