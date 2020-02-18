@@ -177,21 +177,20 @@ consumeSusbcriptionQueue = async(res) => {
                                         console.log(`Sending Affiliate Marketing Callback Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`);
                                         try {
                                             console.log("Affiliate Marketing - Done");
-                                            let updated = await userRepo.updateUserById(updatedUser._id, {is_affiliation_callback_executed: true});
-                                            // sendCallBackToIdeation(updatedUser.affiliate_mid, user.affiliate_unique_transaction_id).then(function(fulfilled) {
-                                            //     let updated = await userRepo.updateUserById(updatedUser._id, {is_affiliation_callback_executed: true});
-                                            //     if(updated){
-                                            //         console.log(`Successfully Sent Affiliate Marketing Callback Having TID - ${updated.affiliate_unique_transaction_id} - MID ${updated.affiliate_mid}`);
-                                            //         console.log("Ideation response: "+fulfilled);
-                                            //         billingHistoryObject.operator_response = fulfilled;
-                                            //         billingHistoryObject.billing_status = "Affiliate callback sent";
-                                            //     }
-                                            // })
-                                            // .catch(function (error) {
-                                            //     console.log(`Affiliate - Marketing - Callback - Error - Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`, error);
-                                            //     billingHistoryObject.operator_response = err;
-                                            //     billingHistoryObject.billing_status = "Affiliate callback error";
-                                            // });
+                                            sendCallBackToIdeation(updatedUser.affiliate_mid, updatedUser.affiliate_unique_transaction_id).then(function(fulfilled) {
+                                                let updated = await userRepo.updateUserById(updatedUser._id, {is_affiliation_callback_executed: true});
+                                                if(updated){
+                                                    console.log(`Successfully Sent Affiliate Marketing Callback Having TID - ${updated.affiliate_unique_transaction_id} - MID ${updated.affiliate_mid}`);
+                                                    console.log("Ideation response: "+fulfilled);
+                                                    billingHistoryObject.operator_response = fulfilled;
+                                                    billingHistoryObject.billing_status = "Affiliate callback sent";
+                                                }
+                                            })
+                                            .catch(function (error) {
+                                                console.log(`Affiliate - Marketing - Callback - Error - Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`, error);
+                                                billingHistoryObject.operator_response = error;
+                                                billingHistoryObject.billing_status = "Affiliate callback error";
+                                            });
                                         } catch(err) {
                                         	console.log(`Error - Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`, err);
                                         }
