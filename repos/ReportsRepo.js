@@ -10,7 +10,6 @@ const csvWriter = createCsvWriter({
         {id: 'newUser', title: 'Number Verified Users'},
         {id: 'newSubscriber', title: 'New Subscribers'},
         {id: 'totalSubscribers', title: 'Total Subscribers'},
-        {id: 'totalActiveSubscribers', title: 'Total Active Subscribers' },
         {id: 'trials', title: 'Trials Activated'},
         {id: 'users_billed', title: 'Users Billed'},
         {id: 'revenue', title: 'Revenue'},

@@ -24,6 +24,7 @@ const userSchema = new Schema({
     marketing_source: { type: String, default: 'none' },
     affiliate_unique_transaction_id: {type:String},
     affiliate_mid: {type:String},
+    is_affiliation_callback_executed: { type : Boolean, default: false },
 
     //fields for FnF flow
     is_gray_listed: { type: Boolean, default: false },
