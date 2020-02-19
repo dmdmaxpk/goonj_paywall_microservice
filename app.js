@@ -172,16 +172,14 @@ consumeSusbcriptionQueue = async(res) => {
                                         billingHistoryObject.user_id = updatedUser._id;
                                         billingHistoryObject.package_id = updatedUser.subscribed_package_id;
                                         billingHistoryObject.transaction_id = combinedId;
-                                        billingHistoryObject.operator = 'staging';
+                                        billingHistoryObject.operator = 'telenor';
 
                                         console.log(`Sending Affiliate Marketing Callback Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`);
                                         try {
-                                            console.log("Affiliate Marketing - Done");
                                             sendCallBackToIdeation(updatedUser.affiliate_mid, updatedUser.affiliate_unique_transaction_id).then(async function(fulfilled) {
                                                 let updated = await userRepo.updateUserById(updatedUser._id, {is_affiliation_callback_executed: true});
                                                 if(updated){
-                                                    console.log(`Successfully Sent Affiliate Marketing Callback Having TID - ${updated.affiliate_unique_transaction_id} - MID ${updated.affiliate_mid}`);
-                                                    console.log("Ideation response: "+fulfilled);
+                                                    console.log(`Successfully Sent Affiliate Marketing Callback Having TID - ${updated.affiliate_unique_transaction_id} - MID ${updated.affiliate_mid} - Ideation Response - ${fulfilled}`);
                                                     billingHistoryObject.operator_response = fulfilled;
                                                     billingHistoryObject.billing_status = "Affiliate callback sent";
                                                 }
@@ -303,7 +301,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
             let user = await userRepo.getUserById(user_id);
             let currentPackage = await packageRepo.getPackage({"_id": user.subscribed_package_id});
 
-            if(subscriber.subscription_status === 'billed' && subscriber.auto_renewal === true){
+            if((subscriber.subscription_status === 'billed' || subscriber.subscription_status === 'trial') && subscriber.auto_renewal === true){
                 // The subscriber is elligible for grace hours, depends on the current subscribed package
                 let nextBillingDate = new Date();
                 nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
@@ -336,15 +334,10 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                     subObj.next_billing_timestamp = nextBillingDate;
                 }
             } else {
-                subObj.subscription_status = 'not_billed';
-                status = 'not_billed';
+                subObj.subscription_status = user.subscription_status;
+                status = user.subscription_status;
                 subObj.auto_renewal = false;
-                console.log("[assignGracePeriodToSubscriber][not_billed]");
-        
-                //Send acknowldement to user
-                let link = 'https://www.goonj.pk/goonjplus/subscribe';
-                let message = "Failed to bill, please check your balance and try again on Goonj TV\n"+link
-                await billingRepo.sendMessage(message, user.msisdn);
+                console.log("[assignGracePeriodToSubscriber][not_billed][else]");
             }
             subObj.consecutive_successive_bill_counts = 0;
             
