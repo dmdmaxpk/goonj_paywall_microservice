@@ -46,7 +46,7 @@ subscribePackage = async(subscriptionObj) => {
         "correlationID": transactionId,
         "msisdn": msisdn,
         "chargableAmount": packageObj.price_point_pkr,
-        "PartnerID": "TP-GoonjDailySub",
+        "PartnerID": packageObj.partner_id,
         "ProductID": "GoonjDCB-Charge"
     }
     
