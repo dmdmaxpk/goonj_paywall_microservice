@@ -59,7 +59,7 @@ subscribePackage = async(user, packageObj) => {
 
 	// Add object in queueing server
 	if (subscriber.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
-		let updated = await subscriberRepo.updateSubscriber(user._id, {queued: true});
+		let updated = await subscriberRepo.updateSubscriber(user._id, {queued: true, auto_renewal: true});
 		if(updated){
 			rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
 			console.log('Payment - SubscribePackage - AddInQueue - ', msisdn, ' - ', (new Date()));
@@ -265,7 +265,7 @@ exports.subscribe = async (req, res) => {
 						res.send({code: config.codes.code_error, message: 'Wrong package id'});
 					}
 				}
-			} else if (subscriber.subscription_status === 'expired'){
+			} else if (subscriber.subscription_status === 'expired' || subscriber.subscription_status === 'not_billed'){
 				/* 
 				* Not already billed
 				* Let's send this item in queue and update package, auto_renewal and 

@@ -335,9 +335,9 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 }
             } else {
                 subObj.subscription_status = user.subscription_status;
-                status = user.subscription_status;
+                status = "payment request tried, failed due to insufficiant balance.";
                 subObj.auto_renewal = false;
-                console.log("[assignGracePeriodToSubscriber][not_billed][else]");
+                console.log("[assignGracePeriodToSubscriber][not_billed][else]", subObj.user_id);
             }
             subObj.consecutive_successive_bill_counts = 0;
             
