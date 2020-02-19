@@ -338,6 +338,10 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 status = "payment request tried, failed due to insufficiant balance.";
                 subObj.auto_renewal = false;
                 console.log("[assignGracePeriodToSubscriber][not_billed][else]", subObj.user_id);
+            
+                //Send acknowldement to user
+                let message = 'You have insufficient balance for Goonj TV, please try again after recharge. Thanks;
+                await billingRepo.sendMessage(message, user.msisdn);
             }
             subObj.consecutive_successive_bill_counts = 0;
             
