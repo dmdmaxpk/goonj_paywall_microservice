@@ -343,7 +343,6 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
             
             await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
             await subscriberRepo.updateSubscriber(subscriber.user_id, subObj);
-            console.log("[assignGracePeriodToSubscriber][Status],status");
             resolve(status);
         } catch(err) {
             console.error(err);
