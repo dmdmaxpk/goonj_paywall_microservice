@@ -92,8 +92,8 @@ consumeMessageQueue = async(response) => {
 }
 
 consumeSusbcriptionQueue = async(res) => {
+    let subscriptionObj = JSON.parse(res.content);
     try {
-        let subscriptionObj = JSON.parse(res.content);
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
         let amount_billed = subscriptionObj.packageObj.price_point_pkr;
         let subscriber = await subscriberRepo.getSubscriber(subscriptionObj.user_id);
@@ -217,7 +217,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 }
                             }else{
                                 // Billing failed
-                                let status = await assignGracePeriodToSubscriber(subscriber,user_id);
+                               await assignGracePeriodToSubscriber(subscriber,user_id);
                             }
                             rabbitMq.acknowledge(res);
                         }
@@ -239,6 +239,8 @@ consumeSusbcriptionQueue = async(res) => {
                             } catch(err) {
                                 console.log("Error could not assign Grace period",err);
                             }
+                            // TODO set queued to false everytime we Ack a message
+                            await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
                             rabbitMq.acknowledge(res);
                         }
                     });
@@ -272,6 +274,8 @@ consumeSusbcriptionQueue = async(res) => {
         }
     } catch (err ) {
         console.error("[consumeSusbcriptionQueue][firstCatchBlock]",err);
+        // TODO set queued to false everytime we Ack a message
+        await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
         rabbitMq.acknowledge(res);
     }
 }
