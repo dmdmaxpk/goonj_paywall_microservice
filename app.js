@@ -254,7 +254,7 @@ consumeSusbcriptionQueue = async(res) => {
                     setTimeout(() => {
                         console.log("calling consumeSusbcriptionQueue after 500 seconds");
                         consumeSusbcriptionQueue(res);
-                    }, 500);
+                    }, 200);
                 }
             }
         } else {

@@ -28,7 +28,7 @@ class RabbitMq {
             }
 
             // Number of items queue will throw at a time.
-            channel.prefetch(5);
+            channel.prefetch(10);
             callback(null, channel);
         });
     }
