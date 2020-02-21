@@ -27,7 +27,7 @@ const codes = {
 
 const max_graylist_time_in_hrs = 336; // 2 weeks
 
-const maximum_daily_payment_limit_pkr = 10;
+const maximum_daily_payment_limit_pkr = 20;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 720; // 2 weeks
