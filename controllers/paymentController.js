@@ -7,7 +7,7 @@ const billingHistoryRepo = require('../repos/BillingHistoryRepo');
 const viewLogRepo = require('../repos/ViewLogRepo');
 const billingRepo = require('../repos/BillingRepo');
 const shortId = require('shortid');
-const axios = require('axios')
+const axios = require('axios');
 
 function sendMessage(otp, msisdn){
 	let message = `Use code ${otp} for Goonj TV`;

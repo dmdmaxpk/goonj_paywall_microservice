@@ -5,6 +5,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 const mongoose = require('mongoose');
 const config = require('./config');
 const swStats = require('swagger-stats');
+const axios = require('axios');
+
 // const apiSpec = require('./swagger.json');
 
 // Connection to Database
@@ -191,6 +193,8 @@ consumeSusbcriptionQueue = async(res) => {
                                             });
                                         } catch(err) {
                                         	console.log(`Error - Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`, err);
+                                            billingHistoryObject.operator_response = err;
+                                            billingHistoryObject.billing_status = "Affiliate callback error: "+err;
                                         }
                                         await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                                     }
