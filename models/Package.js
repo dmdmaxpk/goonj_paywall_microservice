@@ -10,7 +10,9 @@ const packageSchema = new Schema({
     package_desc: {type: String, required: true},
     package_duration: {type: Number, required: true}, // Hours of package 
     price_point_pkr: {type: Number, required: true},
+    display_price_point: Number,
     grace_hours: {type: Number, default: 0 },
+    partner_id: String,
     added_dtm: { type: Date, default: Date.now },
     last_modified: Date,
     logos: [],

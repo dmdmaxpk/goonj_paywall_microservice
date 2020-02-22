@@ -5,6 +5,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 const mongoose = require('mongoose');
 const config = require('./config');
 const swStats = require('swagger-stats');
+const axios = require('axios');
+
 // const apiSpec = require('./swagger.json');
 
 // Connection to Database
@@ -92,8 +94,8 @@ consumeMessageQueue = async(response) => {
 }
 
 consumeSusbcriptionQueue = async(res) => {
+    let subscriptionObj = JSON.parse(res.content);
     try {
-        let subscriptionObj = JSON.parse(res.content);
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
         let amount_billed = subscriptionObj.packageObj.price_point_pkr;
         let subscriber = await subscriberRepo.getSubscriber(subscriptionObj.user_id);
@@ -191,6 +193,8 @@ consumeSusbcriptionQueue = async(res) => {
                                             });
                                         } catch(err) {
                                         	console.log(`Error - Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`, err);
+                                            billingHistoryObject.operator_response = err;
+                                            billingHistoryObject.billing_status = "Affiliate callback error: "+err;
                                         }
                                         await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                                     }
@@ -217,12 +221,17 @@ consumeSusbcriptionQueue = async(res) => {
                                 }
                             }else{
                                 // Billing failed
-                                let status = await assignGracePeriodToSubscriber(subscriber,user_id);
+                               await assignGracePeriodToSubscriber(subscriber,user_id);
                             }
                             rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
-                        console.log('Error: - ', error.response.data);
+                       
+                        if (error.response && error.response.data){
+                            console.log('Error ',error.response.data);
+                        }else {
+                            console.log('Error billing failed');
+                        }
                          if (error.response.data.errorCode === "500.007.08"){
                             // Consider, tps exceeded, noAcknowledge will requeue this record.
                             console.log('Sending back to queue');
@@ -236,12 +245,12 @@ consumeSusbcriptionQueue = async(res) => {
                                 let status = await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
                                 await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id,
                                     error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr);
-                                rabbitMq.acknowledge(res);
                             } catch(err) {
                                 console.log("Error could not assign Grace period",err);
-                                
                             }
-
+                            // TODO set queued to false everytime we Ack a message
+                            await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
+                            rabbitMq.acknowledge(res);
                         }
                     });
                 } else {
@@ -249,7 +258,7 @@ consumeSusbcriptionQueue = async(res) => {
                     setTimeout(() => {
                         console.log("calling consumeSusbcriptionQueue after 500 seconds");
                         consumeSusbcriptionQueue(res);
-                    }, 500);
+                    }, 200);
                 }
             }
         } else {
@@ -273,7 +282,10 @@ consumeSusbcriptionQueue = async(res) => {
             }
         }
     } catch (err ) {
-        console.error(err);
+        console.error("[consumeSusbcriptionQueue][firstCatchBlock]",err);
+        // TODO set queued to false everytime we Ack a message
+        await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
+        rabbitMq.acknowledge(res);
     }
 }
 
@@ -335,15 +347,18 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 }
             } else {
                 subObj.subscription_status = user.subscription_status;
-                status = user.subscription_status;
+                status = "payment request tried, failed due to insufficiant balance.";
                 subObj.auto_renewal = false;
-                console.log("[assignGracePeriodToSubscriber][not_billed][else]");
+                console.log("[assignGracePeriodToSubscriber][not_billed][else]", user._id);
+            
+                //Send acknowldement to user
+                let message = 'You have insufficient balance for Goonj TV, please try again after recharge. Thanks';
+                await billingRepo.sendMessage(message, user.msisdn);
             }
             subObj.consecutive_successive_bill_counts = 0;
             
             await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
             await subscriberRepo.updateSubscriber(subscriber.user_id, subObj);
-            console.log("[assignGracePeriodToSubscriber][Status],status");
             resolve(status);
         } catch(err) {
             console.error(err);

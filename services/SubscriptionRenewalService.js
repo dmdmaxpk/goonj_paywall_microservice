@@ -14,10 +14,9 @@ subscriptionRenewal = async() => {
         let subscribersToRenew = [];
         let subscribersNotToRenew = [];
         for(let i = 0; i < subscribers.length; i++){
-            if (subscribers[i].auto_renewal === false && (subscribers[i].subscription_status === 'billed' 
-            || subscribers[i].subscription_status === 'graced' || subscribers[i].subscription_status === 'trial'  ) ) {
+            if(subscribers[i].auto_renewal === false){
                 subscribersNotToRenew = [...subscribersNotToRenew, subscribers[i] ];
-            } else {
+            }else {
                 subscribersToRenew = [...subscribersToRenew,subscribers[i] ];
             }
         }
@@ -39,7 +38,7 @@ subscriptionRenewal = async() => {
         }
 
         let promisesArr = [];
-        console.log("Subscribers to renew -> ",subscribersToRenew.length);
+        console.log("Subscribers to renew -> ", subscribersToRenew.length);
         for(let i = 0; i < subscribersToRenew.length; i++){
             let promise = getPromise(subscribersToRenew[i].user_id);
             promisesArr.push(promise);
