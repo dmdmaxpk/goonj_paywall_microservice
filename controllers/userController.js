@@ -1,6 +1,7 @@
 const config = require('../config');
 const repo = require('../repos/UserRepo');
 const packageRepo = require('../repos/PackageRepo');
+let billingHistoryRepo = require('../repos/BillingHistoryRepo');
 
 // CREATE
 exports.post = async (req, res) => {
@@ -68,11 +69,22 @@ exports.update_subscribed_package_id = async (req,res) => {
 	if (package) {
 		let user  = await repo.getUserById(user_id);
 		if (user) {
+			let billingHistoryObject = {};
+			billingHistoryObject.user_id = user._id;
+			billingHistoryObject.billing_status = "package-switched";
+			billingHistoryObject.operator = 'telenor';
+
 			user.subscribed_package_id = new_package_id;
 			let updated  = await repo.updateUserById(user_id, user);
 			if (updated) {
+				billingHistoryObject.package_id = updated.subscribed_package_id;
+				await billingHistoryRepo.createBillingHistory(billingHistoryRepo);
 				res.status(200).send({ code: config.codes.code_success, data: updated });
 			} else {
+				billingHistoryObject.billing_status = "package-switching-failed";
+				billingHistoryObject.package_id = updated.subscribed_package_id;
+				await billingHistoryRepo.createBillingHistory(billingHistoryRepo);
+				
 				res.status(200).send({ code: config.codes.code_error, message: "Error while updating User" });
 			}
 			
