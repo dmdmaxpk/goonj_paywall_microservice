@@ -78,13 +78,13 @@ exports.update_subscribed_package_id = async (req,res) => {
 			let updated  = await repo.updateUserById(user_id, user);
 			if (updated) {
 				billingHistoryObject.package_id = updated.subscribed_package_id;
-				await billingHistoryRepo.createBillingHistory(billingHistoryRepo);
+				await billingHistoryRepo.createBillingHistory(billingHistoryObject);
 				res.status(200).send({ code: config.codes.code_success, data: updated });
 			} else {
 				billingHistoryObject.billing_status = "package-switching-failed";
 				billingHistoryObject.package_id = updated.subscribed_package_id;
 				await billingHistoryRepo.createBillingHistory(billingHistoryRepo);
-				
+
 				res.status(200).send({ code: config.codes.code_error, message: "Error while updating User" });
 			}
 			
