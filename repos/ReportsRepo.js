@@ -20,6 +20,17 @@ const csvWriter = createCsvWriter({
 
     ]
 });
+
+
+const csvReportWriter = createCsvWriter({
+    path: './callBackReport.csv',
+    header: [
+        {id: 'tid', title: 'TID'},
+        {id: 'mid', title: 'MID'},
+        {id: "isCallbAckSent",title: "IS CallBack Sent" },
+        {id: 'callBackSentTime', title: 'TIMESTAMP'}
+    ]
+});
 var nodemailer = require('nodemailer');
 
 var transporter = nodemailer.createTransport({
@@ -187,6 +198,81 @@ dailyReport = async(mode = 'prod') => {
 }
 
 
+callBacksReport =async() => {
+    try { 
+        let startDate = new Date("2020-02-18T09:16:28.315Z");
+        let report =  await User.aggregate([ 
+            { 
+                $match: {
+                        source: "HE",
+                        added_dtm: { $gte: startDate } 
+                    } 
+            },
+            {
+                $lookup:  
+                    {        
+                        from: "billinghistories",        
+                        localField: "_id",        
+                        foreignField: "user_id",        
+                        as: "histories" 
+                    } 
+            },
+            { 
+                $project: { 
+                    tid: "$affiliate_unique_transaction_id",
+                    mid: "$affiliate_mid",
+                    added_dtm: "$added_dtm",
+                    callbackhistory: {
+                            $filter: {
+                                input: "$histories",
+                                as: "histor",
+                                cond: {$eq: ["$$histor.billing_status", "Affiliate callback sent" ] }
+                            }
+                    }
+                }
+            }, 
+            { 
+                $project: { 
+                tid: "$tid",
+                mid: "$mid",
+                added_dtm: "$added_dtm",
+                callbackhistorySize: {"$size": "$callbackhistory" },
+                callbackObj: {$arrayElemAt: ["$callbackhistory",0]} 
+                }
+            }, 
+            { 
+                $project: { 
+                tid: "$tid",
+                mid: "$mid",
+                added_dtm: "$added_dtm",
+                isCallbAckSent: {"$cond": { if: {$gte: ["$callbackhistorySize",1] },then:"yes",else:"no" } },
+                callBackSentTime: "$callbackObj.billing_dtm" 
+                }
+            }
+        ]);
+
+        let write = await csvReportWriter.writeRecords(report);
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
+            "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+            subject: `CallBacks Report ${(new Date()).toDateString()}`, // Subject line
+            text: `Callbacks sent with their TIDs and timestamps. `, // plain text bodyday
+            attachments:[
+                {
+                    filename: "callBackReport.csv",
+                    path: "./callBackReport.csv"
+                }
+            ]
+        });
+        console.log("Report",info);
+    } catch(err) {
+        console.log("Error",err);
+    }
+    
+}
+
 module.exports = {
-    dailyReport: dailyReport
+    dailyReport: dailyReport,
+    callBacksReport: callBacksReport
 }
