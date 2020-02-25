@@ -250,7 +250,7 @@ exports.subscribe = async (req, res) => {
 						let updated = subscriberRepo.updateSubscriber(user._id, {auto_renewal: true});
 						if(updated){
 							billingHistoryObject.billing_status = "subscription-request-received-for-the-same-package";
-							await billingHistoryRepo.createBillingHistory(billingHistoryRepo);
+							await billingHistoryRepo.createBillingHistory(billingHistoryObject);
 							res.send({code: config.codes.code_already_subscribed, message: 'Subscribed'});
 						}else{
 							res.send({code: config.codes.code_error, message: 'Error updating record!'});
