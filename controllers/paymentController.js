@@ -227,7 +227,10 @@ exports.subscribe = async (req, res) => {
 			// user could be returning after unsubscribing
 			// or after clearing cache
 
-			// Subscriber already present in DB, let's check his/her subscription status
+			let billingHistoryObject = {};
+			billingHistoryObject.user_id = user._id;
+			billingHistoryObject.package_id = user.subscribed_package_id;
+			billingHistoryObject.operator = 'telenor';
 
 			// creating viewLog meaning that user has seen the app
 			await viewLogRepo.createViewLog(user._id);
@@ -246,6 +249,8 @@ exports.subscribe = async (req, res) => {
 						// Same, package - just switch on auto renewal so that the user can get charge automatically.
 						let updated = subscriberRepo.updateSubscriber(user._id, {auto_renewal: true});
 						if(updated){
+							billingHistoryObject.billing_status = "subscription-request-received-for-the-same-package";
+							await billingHistoryRepo.createBillingHistory(billingHistoryRepo);
 							res.send({code: config.codes.code_already_subscribed, message: 'Subscribed'});
 						}else{
 							res.send({code: config.codes.code_error, message: 'Error updating record!'});
@@ -286,6 +291,8 @@ exports.subscribe = async (req, res) => {
 				}else{
 					let updated = subscriberRepo.updateSubscriber(user._id, {auto_renewal: true});
 					if(updated){
+						billingHistoryObject.billing_status = "subscription-request-received-for-the-same-package-while-user-is-in-trial-period";
+						await billingHistoryRepo.createBillingHistory(billingHistoryRepo);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial updated!'});
 					}else{
 						res.send({code: config.codes.code_error, message: 'Error updating record!'});
