@@ -17,6 +17,7 @@ function sendTextMessage(text, msisdn){
     messageObj.msisdn = msisdn;
     
 	if (messageObj.msisdn && messageObj.message) {
+		console.log('Message Added in queue',messageObj);
 		rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
 	} else {
 		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
