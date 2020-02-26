@@ -303,22 +303,6 @@ async function sendCallBackToIdeation(mid, tid){
     });
 }
 
-async function subscriberQuery(){
-	return new Promise(function(resolve, reject) {
-        axios({
-            method: 'get',
-            url: "https://apis.telenor.com.pk/subscriberQuery/v1/checkinfo/03476733767",
-            headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
-        }).then(function(response){
-            console.log('subscriberQuery: '+response.data);
-            resolve(response.data);
-        }).catch(function(err){
-            console.log('subscriberQuery-error: '+err);
-            reject(err);
-        });
-    });
-}
-
 async function assignGracePeriodToSubscriber(subscriber,user_id){
     return new Promise (async (resolve,reject) => {
         try {
@@ -411,8 +395,6 @@ billingRepo.generateToken().then(async(token) => {
     if(updatedToken){
         config.telenor_dcb_api_token = token.access_token;
         console.log('Token updated in db!');
-        subscriberQuery();
-
         //numValidation.validateNumber();
 
         // RabbitMQ connection
