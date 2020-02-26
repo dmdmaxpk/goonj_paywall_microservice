@@ -452,7 +452,7 @@ exports.unsubscribe = async (req, res) => {
 		result = await billingHistoryRepo.createBillingHistory(billingHistory);
 		// send SMS to user
 		let smsText = `Apki Goonj TV ki subscription khatam kar di gayi hai. Phir se subscribe karne ke liye link par click karein https://www.goonj.pk/goonjplus/subscribe`;
-		messageRepo.sendSmsToUser(user.msisdn,smsText);
+		messageRepo.sendSmsToUser(smsText,user.msisdn);
 		if(result){
 			if(user.marketing_source && user.marketing_source !== 'none'){
 				// This user registered from a marketer, let's put this user in gray list
