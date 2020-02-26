@@ -306,8 +306,8 @@ async function sendCallBackToIdeation(mid, tid){
 async function subscriberQuery(){
 	return new Promise(function(resolve, reject) {
         axios({
-            method: 'post',
-            url: "https://apis.telenor.com.pk/subscriberQuery/v0/checkinfo/03476733767",
+            method: 'get',
+            url: "https://apis.telenor.com.pk/subscriberQuery/v1/checkinfo/03476733767",
             headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
         }).then(function(response){
             console.log('subscriberQuery: '+response.data);
