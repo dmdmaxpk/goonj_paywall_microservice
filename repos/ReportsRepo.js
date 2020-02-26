@@ -162,6 +162,10 @@ dailyReport = async(mode = 'prod') => {
 
     let resultToWriteToCsv= [];
     for (res in resultToWrite) {
+        let liveRevenue = (resultToWrite[res]["revenue-liveonly"])?resultToWrite[res]["revenue-liveonly"]:0;
+        let pslRevenue = (resultToWrite[res]["revenue-pslonly"])?resultToWrite[res]["revenue-pslonly"]:0;
+        let pslAndLiveRevenue = (resultToWrite[res]["revenue-liveandPSL"])?resultToWrite[res]["revenue-liveandPSL"]:0 ;
+        let totalRevenue = liveRevenue + pslRevenue + pslAndLiveRevenue;
         let temp = {date: res, newUser: resultToWrite[res].newUser , newSubscriber: resultToWrite[res].newSubscriber,
             liveOnlyCount: resultToWrite[res]["users-billed-liveonly"]  ,liveOnly: resultToWrite[res]["revenue-liveonly"],
             pslOnlyCount: resultToWrite[res]["users-billed-pslonly"] ,pslOnly: resultToWrite[res]["revenue-pslonly"],
@@ -169,7 +173,7 @@ dailyReport = async(mode = 'prod') => {
             users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,
             totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers, 
             totalActiveSubscribers : (resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today < 0)? 0 : resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today,
-            totalRevenue: (resultToWrite[res]["revenue-liveonly"])?resultToWrite[res]["revenue-liveonly"]:0 + (resultToWrite[res]["revenue-pslonly"])?resultToWrite[res]["revenue-pslonly"]:0 + (resultToWrite[res]["revenue-liveandPSL"])?resultToWrite[res]["revenue-liveandPSL"]:0        
+            totalRevenue:  totalRevenue       
         }
         resultToWriteToCsv.push(temp);
     } 
@@ -178,8 +182,9 @@ dailyReport = async(mode = 'prod') => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
-                "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+                to: ["hamza@dmdmax.com.pk"],
+                // to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
+                // "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
                 subject: `PayWall Report ${(new Date()).toDateString()}`, // Subject line
                 text: `PFA some basic stats for Paywall. `, // plain text bodyday
                 attachments:[
