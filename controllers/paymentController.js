@@ -337,7 +337,7 @@ exports.subscribe = async (req, res) => {
 						billingHistory.source = req.body.source;
 						billingHistory.operator = 'telenor';
 						await billingHistoryRepo.createBillingHistory(billingHistory);
-						let text= `Goonj TV 24 hour free trial started.Pehla charge kal mobile balance sei @ Rs8/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
+						let text= `Goonj TV 24 hour free trial started.Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
 						sendTextMessage(text,userUpdated.msisdn);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
 					} else {
