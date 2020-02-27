@@ -8,6 +8,7 @@ const viewLogRepo = require('../repos/ViewLogRepo');
 const billingRepo = require('../repos/BillingRepo');
 const shortId = require('shortid');
 const axios = require('axios');
+const messageRepo = require('../repos/MessageRepo');
 
 function sendMessage(otp, msisdn){
 	let message = `Use code ${otp} for Goonj TV`;
@@ -449,6 +450,9 @@ exports.unsubscribe = async (req, res) => {
 		billingHistory.source = user.source;
 		billingHistory.operator = 'telenor';
 		result = await billingHistoryRepo.createBillingHistory(billingHistory);
+		// send SMS to user
+		let smsText = `Apki Goonj TV ki subscription khatam kar di gayi hai. Phir se subscribe karne ke liye link par click karein https://www.goonj.pk/goonjplus/subscribe`;
+		messageRepo.sendSmsToUser(smsText,user.msisdn);
 		if(result){
 			if(user.marketing_source && user.marketing_source !== 'none'){
 				// This user registered from a marketer, let's put this user in gray list
