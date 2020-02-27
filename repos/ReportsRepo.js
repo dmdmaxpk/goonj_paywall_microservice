@@ -11,6 +11,7 @@ const csvWriter = createCsvWriter({
         {id: 'newSubscriber', title: 'New Subscribers'},
         {id: 'totalSubscribers', title: 'Total Subscribers'},
         {id: 'trials', title: 'Trials Activated'},
+        {id: 'tempTotalActiveSubscribers',title: 'Total Active Subscribers'},
         {id: 'liveOnlyCount', title: 'Users Billed Live Only'},
         {id: 'pslOnlyCount', title: 'Users Billed PSL Only'},
         {id: 'liveAndPSLCount', title: 'Users Billed Live And PSL'},
@@ -47,6 +48,8 @@ var transporter = nodemailer.createTransport({
 dailyReport = async(mode = 'prod') => {
     let today = new Date();
     let myToday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
+    let dayBeforeYesterday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
+    dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
     let reportStartDate = new Date("2020-02-07T00:00:00.672Z");
     let susbcriberStats = await Subscriber.aggregate([
         {
@@ -67,11 +70,20 @@ dailyReport = async(mode = 'prod') => {
                 "added_dtm": { "$gte": reportStartDate ,$lt: myToday  }
             }
         },
-        {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" },subscription_status: "$subscription_status" } , count:{ $sum: 1 } } },
-        {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
+        {$group: {_id: {subscription_status: "$subscription_status" } , count:{ $sum: 1 } } },
+        {$project: {  "count": "$count",_id: 1 }} ,
         { $sort: {"date": -1}}
           ]);
 
+        console.log("Subscription Stats",subscription_status_stats);
+        
+        let totalActiveSubscribers = subscription_status_stats.reduce((accum,elem) => {
+            if (elem._id.subscription_status === "trial" || elem._id.subscription_status === "graced" || elem._id.subscription_status === "billed") {
+                return accum = accum + elem.count; 
+            }
+            return accum;
+        },0);
+        console.log("Total Active Subscribers",totalActiveSubscribers);
 
     let userStats = await User.aggregate([
             {
@@ -159,6 +171,9 @@ dailyReport = async(mode = 'prod') => {
             resultToWrite[trialStat.date.toDateString()]['trials'] = trialStat.trials;
         }
     });
+    // console.log("myDate",dayBeforeYesterday.toDateString());
+    // console.log("myToday",resultToWrite[dayBeforeYesterday.toDateString()]);
+    resultToWrite[dayBeforeYesterday.toDateString()]["tempTotalActiveSubscribers"] = totalActiveSubscribers; 
 
     let resultToWriteToCsv= [];
     for (res in resultToWrite) {
@@ -170,7 +185,7 @@ dailyReport = async(mode = 'prod') => {
             liveOnlyCount: resultToWrite[res]["users-billed-liveonly"]  ,liveOnly: resultToWrite[res]["revenue-liveonly"],
             pslOnlyCount: resultToWrite[res]["users-billed-pslonly"] ,pslOnly: resultToWrite[res]["revenue-pslonly"],
             liveAndPSLCount: resultToWrite[res]["users-billed-pslandlive"],liveAndPSL: resultToWrite[res]["revenue-liveandPSL"],
-            users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,
+            users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,tempTotalActiveSubscribers: (resultToWrite[res]["tempTotalActiveSubscribers"])?resultToWrite[res]["tempTotalActiveSubscribers"]:"",
             totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers, 
             totalActiveSubscribers : (resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today < 0)? 0 : resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today,
             totalRevenue:  totalRevenue       
@@ -182,9 +197,9 @@ dailyReport = async(mode = 'prod') => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to: ["hamza@dmdmax.com.pk"],
-                // to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
-                // "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+                // to: ["hamza@dmdmax.com.pk"],
+                to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
+                "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
                 subject: `PayWall Report ${(new Date()).toDateString()}`, // Subject line
                 text: `PFA some basic stats for Paywall. `, // plain text bodyday
                 attachments:[
