@@ -395,7 +395,6 @@ billingRepo.generateToken().then(async(token) => {
     if(updatedToken){
         config.telenor_dcb_api_token = token.access_token;
         console.log('Token updated in db!');
-
         //numValidation.validateNumber();
 
         // RabbitMQ connection
