@@ -186,7 +186,7 @@ consumeSusbcriptionQueue = async(res) => {
                                                 await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                                             }
                                         })
-                                        .catch(function (error) {
+                                        .catch(async function (error) {
                                             console.log(`Affiliate - Marketing - Callback - Error - Having TID - ${updatedUser.affiliate_unique_transaction_id} - MID ${updatedUser.affiliate_mid}`, error);
                                             billingHistoryObject.operator_response = error;
                                             billingHistoryObject.billing_status = "Affiliate callback error";
