@@ -3,6 +3,7 @@ const Subscriber = mongoose.model('Subscriber');
 const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const fs = require('fs');
 const csvWriter = createCsvWriter({
     path: './report.csv',
     header: [
@@ -209,6 +210,12 @@ dailyReport = async(mode = 'prod') => {
                     }
                 ]
             });
+            fs.unlink("./report.csv",function(err,data) {
+                if (err) {
+                    console.log("File not deleted");
+                }
+                console.log("data");
+            });
             console.log("info",info);
         }).catch(er => {
             console.log("err",er)
@@ -290,6 +297,12 @@ callBacksReport =async() => {
             ]
         });
         console.log("Report",info);
+        fs.unlink("./callBackReport.csv",function(err,data) {
+            if (err) {
+                console.log("File not deleted");
+            }
+            console.log("data");
+        });
     } catch(err) {
         console.log("Error",err);
     }
