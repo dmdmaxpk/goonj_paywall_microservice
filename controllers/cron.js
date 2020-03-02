@@ -4,6 +4,7 @@ const tpsCountService = require('../services/TpsCountService');
 const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
 const grayListService = require('../services/GrayListService');
 const reportsService = require('../services/ReportsService');
+const billingMonitoringService = require('../services/BillingMonitoringService');
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
@@ -38,4 +39,9 @@ exports.grayListService = async (req,res) =>  {
 exports.generateDailyReport = async (req,res) =>  {
     await reportsService.generateDailyReport();
     res.send("GenerateDailyReport - Executed");
+}
+
+exports.hourlyBillingReport = async (req,res) =>  {
+    await billingMonitoringService.billingInLastHour();
+    res.send("hourlyBillingReport - Executed");
 }

@@ -16,7 +16,15 @@ getUserForUnGray = async(user_id) => {
     return records;
 }
 
+billingInLastHour = async() => {
+    let todayOneHourAgo = new Date(); //step 1 
+    todayOneHourAgo.setHours(todayOneHourAgo.getHours()-1);
+    let billingCountInLastHour = await BillingHistory.find({"billing_dtm": {$gte: todayOneHourAgo},$or: [{billing_status:"Success"},{billing_status: "graced"}] }).count();
+    return billingCountInLastHour;
+}
+
 module.exports = {
     createBillingHistory: createBillingHistory,
-    getUserForUnGray: getUserForUnGray
+    getUserForUnGray: getUserForUnGray,
+    billingInLastHour: billingInLastHour 
 }

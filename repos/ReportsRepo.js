@@ -31,6 +31,7 @@ const csvReportWriter = createCsvWriter({
         {id: 'tid', title: 'TID'},
         {id: 'mid', title: 'MID'},
         {id: "isCallbAckSent",title: "IS CallBack Sent" },
+        {id: 'added_dtm', title: 'User TIMESTAMP'},
         {id: 'callBackSentTime', title: 'TIMESTAMP'}
     ]
 });

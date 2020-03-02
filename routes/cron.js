@@ -24,4 +24,7 @@ router.route('/grayListService')
 router.route('/generateDailyReport')
     .get(controller.generateDailyReport);
 
+router.route('/hourlyBillingReport')
+    .get(controller.hourlyBillingReport);
+
 module.exports = router;
