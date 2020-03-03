@@ -194,6 +194,7 @@ exports.verifyOtp = async (req, res) => {
 exports.subscribe = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
+	let v1_migrated = req.body.v1_migrated;
 	
 	if(!user){
 		// Means no user in DB, let's create one
@@ -205,6 +206,10 @@ exports.subscribe = async (req, res) => {
 		userObj.subscription_status = 'none';
 		userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 		userObj.affiliate_mid = req.body.affiliate_mid;
+		
+		if(v1_migrated){
+			userObj.v1_migrated = v1_migrated;
+		}
 
 		if(req.body.marketing_source){
 			userObj.marketing_source = req.body.marketing_source;
@@ -310,7 +315,8 @@ exports.subscribe = async (req, res) => {
 			postObj.subscription_status = 'none';
 			if (config.is_trial_active) {
 				let nexBilling = new Date();
-				postObj.next_billing_timestamp = nexBilling.setHours ( nexBilling.getHours() + config.trial_hours);
+				// Add 3 days in next billing timestamp for v1 migrated users
+				postObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + (v1_migrated ? 72 : config.trial_hours));
 				postObj.subscription_status = 'trial';
 			}
 
@@ -337,8 +343,15 @@ exports.subscribe = async (req, res) => {
 						billingHistory.source = req.body.source;
 						billingHistory.operator = 'telenor';
 						await billingHistoryRepo.createBillingHistory(billingHistory);
-						let text= `Goonj TV 24 hour free trial started.Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
-						sendTextMessage(text,userUpdated.msisdn);
+						
+						let text;
+						if(v1_migrated){
+							text = `Goonj TV 24 hour free trial started. Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
+						}else{
+							text = `Goonj TV 24 hour free trial started. Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
+						}
+
+						sendTextMessage(text, userUpdated.msisdn);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
 					} else {
 						subscribePackage(user, packageObj);

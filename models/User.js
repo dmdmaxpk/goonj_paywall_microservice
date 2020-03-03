@@ -25,7 +25,8 @@ const userSchema = new Schema({
     affiliate_unique_transaction_id: {type:String},
     affiliate_mid: {type:String},
     is_affiliation_callback_executed: { type : Boolean, default: false },
-
+    v1_migrated: { type : Boolean, default: false, index: true },
+    
     //fields for FnF flow
     is_gray_listed: { type: Boolean, default: false },
     is_black_listed: { type: Boolean, default: false },
