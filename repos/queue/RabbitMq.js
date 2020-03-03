@@ -28,7 +28,7 @@ class RabbitMq {
             }
 
             // Number of items queue will throw at a time.
-            channel.prefetch(10);
+            channel.prefetch(config.telenor_subscription_api_tps);
             callback(null, channel);
         });
     }
