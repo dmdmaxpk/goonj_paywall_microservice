@@ -400,15 +400,22 @@ exports.sendBulkSub = async(req, res) => {
 
 exports.subscribeDirectly = async(req, res) => {
 	let packgeObj = {
-		grace_hours: 24,
+		grace_hours: 336,
+		logos: [
+		"https://content-dmd.s3.eu-central-1.amazonaws.com/TP-Content/static-content/others/tv.png"
+		],
 		active: true,
 		_id: "QDfC",
-		package_name: "Daily Package",
-		package_desc: "Subscribe daily pakage at price Rs. 8/day",
+		package_name: "Live TV Only",
+		package_desc: "Rs. 8/day",
 		package_duration: 24,
-		price_point_pkr: 1,
-		added_dtm: "2020-01-14T10:12:43.003Z"
-		}
+		price_point_pkr: 8,
+		display_price_point: 8,
+		partner_id: "TP-GoonjDailySub",
+		added_dtm: "2020-02-19T07:03:40.413Z",
+		last_modified: "2020-02-19T07:03:40.413Z",
+		default: true
+	}
 
 	var subscriptionObj = {};
 	subscriptionObj.msisdn = req.query.msisdn;
