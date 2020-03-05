@@ -236,8 +236,8 @@ callBacksReport =async() => {
         let report =  await User.aggregate([ 
             { 
                 $match: {
-                        source: "HE",
-                        added_dtm: { $gte: startDate } 
+                        $or:[{source: "HE"},{source: "affiliate_web"}],
+                        added_dtm: { $gte: startDate }
                     } 
             },
             {
