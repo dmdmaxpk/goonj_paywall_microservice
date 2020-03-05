@@ -7,7 +7,7 @@ const subscriberSchema = new Schema({
     //Generating shortid instead of uuid
     _id: { type: ShortId, len: 8, retries: 4 },
 
-    user_id: {type: ShortId, required: true},
+    user_id: {type: ShortId, required: true, unique: true},
     subscription_status: String,  // => billed/un-billed/expired/graced/trial
     last_billing_timestamp: Date,
     next_billing_timestamp: Date,
