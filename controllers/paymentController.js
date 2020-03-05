@@ -193,6 +193,8 @@ exports.verifyOtp = async (req, res) => {
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
 	let msisdn = req.body.msisdn;
+	console.log("========================");
+	console.log(req.body);
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	
 	if(!user){
@@ -211,6 +213,8 @@ exports.subscribe = async (req, res) => {
 		}
 
 		try {
+			console.log("***********************");
+			console.log(req.body);
 			user = await userRepo.createUser(userObj);
 		} catch(er) {
 			res.send({code: config.codes.code_error, message: er.message})
