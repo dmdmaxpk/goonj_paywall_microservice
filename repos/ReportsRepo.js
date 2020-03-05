@@ -4,6 +4,7 @@ const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
+const billinghistoryRepo = require("../repos/BillingHistoryRepo");
 const csvWriter = createCsvWriter({
     path: './report.csv',
     header: [
@@ -200,7 +201,7 @@ dailyReport = async(mode = 'prod') => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
                 // to: ["hamza@dmdmax.com.pk"],
-                to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
+                to:  ["paywall@dmdmax.com.pk","waqas.nawab@telenor.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
                 "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
                 subject: `PayWall Report ${(new Date()).toDateString()}`, // Subject line
                 text: `PFA some basic stats for Paywall. `, // plain text bodyday
@@ -310,7 +311,104 @@ callBacksReport =async() => {
     
 }
 
+const errorCountReportBySource = createCsvWriter({
+    path: './errorCountReportBySource.csv',
+    header: [
+        {id: 'source', title: 'Source'},
+        {id: 'errorMessage', title: 'Error Message'},
+        {id: 'errorCode', title: 'Error Code'},
+        {id: "count",title: "Error Count" }
+    ]
+});
+
+const errorCountReportWriter = createCsvWriter({
+    path: './errorCountReport.csv',
+    header: [
+        {id: 'errorMessage', title: 'Error Message'},
+        {id: 'errorCode', title: 'Error Code'},
+        {id: "count",title: "Error Count" }
+    ]
+});
+
+const dailyUnsubReportWriter = createCsvWriter({
+    path: './dailyUnsubReport.csv',
+    header: [
+        {id: 'date', title: 'Date'},
+        {id: "count",title: "Unsubscribe Count" }
+    ]
+});
+
+errorCountReport = async() => {
+    try {
+        let errorBySourceReport = await billinghistoryRepo.errorCountReportBySource();
+        let errorReport = await billinghistoryRepo.errorCountReport();
+        await errorCountReportWriter.writeRecords(errorReport);
+        await errorCountReportBySource.writeRecords(errorBySourceReport);
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com.pk"], // list of receivers
+            subject: `Daily Error Reports `, // Subject line
+            text: `This report (generated at ${(new Date()).toDateString()}) contains all error count stats from 23rd February 2020 onwards.`, // plain text bodyday
+            attachments:[
+                {
+                    filename: "errorCountReport.csv",
+                    path: "./errorCountReport.csv"
+                },
+                {
+                    filename: "errorCountReportBySource.csv",
+                    path: "./errorCountReportBySource.csv"
+                }
+            ]
+        });
+        console.log("[errorCountReport][emailSent]",info);
+        fs.unlink("./errorCountReport.csv",function(err,data) {
+            if (err) {
+                console.log("File not deleted[errorCountReport]");
+            }
+            console.log("File deleted [errorCountReport]");
+        });
+        fs.unlink("./errorCountReportBySource.csv",function(err,data) {
+            if (err) {
+                console.log("File not deleted[errorCountReportBySource]");
+            }
+            console.log("File deleted [errorCountReportBySource]");
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+dailyUnsubReport = async() => {
+    try {
+        let dailyUnsubReport = await billinghistoryRepo.dailyUnsubReport();
+        await dailyUnsubReportWriter.writeRecords(dailyUnsubReport);
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com.pk"], // list of receivers
+            subject: `Daily Unsubscribed Users Report `, // Subject line
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users.`, // plain text bodyday
+            attachments:[
+                {
+                    filename: "dailyUnsubReport.csv",
+                    path: "./dailyUnsubReport.csv"
+                }
+            ]
+        });
+        console.log("[dailyUnsubReport][emailSent]",info);
+        fs.unlink("./dailyUnsubReport.csv",function(err,data) {
+            if (err) {
+                console.log("File not deleted[dailyUnsubReport]");
+            }
+            console.log("File deleted [dailyUnsubReport]");
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 module.exports = {
     dailyReport: dailyReport,
-    callBacksReport: callBacksReport
+    callBacksReport: callBacksReport,
+    errorCountReport: errorCountReport,
+    dailyUnsubReport: dailyUnsubReport
 }

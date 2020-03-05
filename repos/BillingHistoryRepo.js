@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const BillingHistory = mongoose.model('BillingHistory');
+const User = mongoose.model('User');
 const config = require('../config');
 
 createBillingHistory = async(postData) => {
@@ -23,8 +24,134 @@ billingInLastHour = async() => {
     return billingCountInLastHour;
 }
 
+errorCountReportBySource = async() => {
+    console.time("errorCountReportBySource");
+   let result = await User.aggregate([ {
+            $lookup:{
+                       from: "billinghistories",
+                       localField: "_id",
+                       foreignField: "user_id",
+                       as: "histories"
+                     }
+        }, { 
+            $project: { 
+                        source: 1,
+                        histories:  
+                        { 
+                            $filter: { 
+                            input: "$histories",
+                            as:"history",
+                            cond: {
+                                    $or: [ { $eq: ['$$history.billing_status',"graced"] } ] 
+                                    } 
+                            }
+                        }
+                    }
+        }, {
+            $unwind: "$histories" 
+         }, {
+            $group: { 
+                        _id: {
+                                source: "$source", 
+                                errorMessage: "$histories.operator_response.errorMessage", 
+                                errorCode: "$histories.operator_response.errorCode" 
+                            }, 
+                        count: {$sum: 1} 
+                    }
+        }, {
+            $project: { 
+                        source: "$_id.source",
+                        errorMessage: "$_id.errorMessage", 
+                        errorCode: "$_id.errorCode",
+                        count: "$count"  
+                      } 
+        }
+        , {
+            $sort: { "source": -1 }
+        }
+    ]);
+    console.timeEnd("errorCountReportBySource");
+    return result;
+}
+
+errorCountReport = async() => {
+    console.time("errorCountReport");
+    let result = await User.aggregate([ {
+             $lookup:{
+                        from: "billinghistories",
+                        localField: "_id",
+                        foreignField: "user_id",
+                        as: "histories"
+                      }
+         }, { 
+             $project: { 
+                         source: 1,
+                         histories:  
+                         { 
+                             $filter: { 
+                             input: "$histories",
+                             as:"history",
+                             cond: {
+                                     $or: [ { $eq: ['$$history.billing_status',"graced"] } ] 
+                                     } 
+                             }
+                         }
+                     }
+         }, {
+             $unwind: "$histories" 
+          }, {
+             $group: { 
+                         _id: {
+                                 errorMessage: "$histories.operator_response.errorMessage", 
+                                 errorCode: "$histories.operator_response.errorCode" 
+                             }, 
+                         count: {$sum: 1} 
+                     }
+         }, {
+             $project: { 
+                         errorMessage: "$_id.errorMessage", 
+                         errorCode: "$_id.errorCode",
+                         count: "$count"  
+                       } 
+         }
+         , {
+             $sort: { count: -1 }
+         }
+     ]);
+     console.timeEnd("errorCountReport");
+     return result;
+ 
+}
+
+dailyUnsubReport = async() => {
+    let result = await BillingHistory.aggregate([
+        {
+            $match:{
+                "billing_status" : "expired"
+            }
+        },{
+            $group: {
+                _id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
+                "year":{ $year: "$billing_dtm" }},
+                count:{$sum: 1} 
+            }
+        },{ 
+            $project: { 
+                date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                count:"$count" 
+            } 
+        },
+        { $sort: { date: -1} }
+        ]);
+     return result;
+ 
+}
+
 module.exports = {
     createBillingHistory: createBillingHistory,
     getUserForUnGray: getUserForUnGray,
-    billingInLastHour: billingInLastHour 
+    billingInLastHour: billingInLastHour,
+    errorCountReportBySource: errorCountReportBySource,
+    errorCountReport: errorCountReport,
+    dailyUnsubReport: dailyUnsubReport
 }

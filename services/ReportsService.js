@@ -1,9 +1,10 @@
 const reportsRepo = require('../repos/ReportsRepo');
 
 generateDailyReport = async() => {
-    console.log("generateDailyReport");
+    console.log("generateDailyReports");
     reportsRepo.dailyReport();
-
+    reportsRepo.callBacksReport();
+    reportsRepo.dailyUnsubReport();
     reportsRepo.callBacksReport();
 }
 
