@@ -167,7 +167,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 let updatedUser = await userRepo.updateUser(msisdn, {subscribed_package_id: response.packageObj._id, subscription_status: subObj.subscription_status});
                                 if(updatedUser.is_affiliation_callback_executed === false){
                                     // Checking checks to send affiliate marketing callback.
-                                    if(updatedUser.source === "HE" && updatedUser.affiliate_unique_transaction_id && updatedUser.affiliate_mid) {
+                                    if((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id && updatedUser.affiliate_mid) {
                                         
                                         let combinedId = updatedUser.affiliate_unique_transaction_id + "*" +updatedUser.affiliate_mid;
                                         let billingHistoryObject = {};
@@ -433,6 +433,9 @@ app.listen(port, () => console.log(`APP running on port ${port}`));
 const tokenRefreshCron = require('./services/TokenRefreshService');
 const subscriptionRenewalCron = require('./services/SubscriptionRenewalService');
 const tpsCountService = require('./services/TpsCountService');
+
+const reportService = require('./services/ReportsService');
+reportService.generateDailyReport();
 
 /*
 TODO:

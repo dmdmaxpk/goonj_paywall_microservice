@@ -18,10 +18,10 @@ billingInLastHour = async() => {
         if(billingCountThisHour < 50){
             // Shoot an email
             var info = await transporter.sendMail({
-                from: 'paywall@dmdmax.com.pk', // sender address
-                to:  ["paywall@dmdmax.com.pk"], // list of receivers
-                subject: `Billing Count for this hour ${new Date()}`, // Subject line
-                text: `Number of billing and graced count for this hour is ${billingCountThisHour}. `, // plain text bodyday
+                from: ['paywall@dmdmax.com.pk'], // sender address
+                //to:  ["paywall@dmdmax.com.pk"], // list of receivers
+                subject: `Billing Count for this hour`, // Subject line
+                text: `Number of billing and graced count for this hour(${new Date()}) is ${billingCountThisHour}. `, // plain text bodyday
             });
             console.log("[billingInLastHour][EmailSent][info]",info);
         }
