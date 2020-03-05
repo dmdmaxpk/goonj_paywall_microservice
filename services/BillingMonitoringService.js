@@ -19,7 +19,7 @@ billingInLastHour = async() => {
             // Shoot an email
             var info = await transporter.sendMail({
                 from: ['paywall@dmdmax.com.pk'], // sender address
-                //to:  ["paywall@dmdmax.com.pk"], // list of receivers
+                to:  ["paywall@dmdmax.com.pk"], // list of receivers
                 subject: `Billing Count for this hour`, // Subject line
                 text: `Number of billing and graced count for this hour(${new Date()}) is ${billingCountThisHour}. `, // plain text bodyday
             });

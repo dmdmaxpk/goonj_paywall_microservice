@@ -348,7 +348,7 @@ errorCountReport = async() => {
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
             to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com.pk"], // list of receivers
-            subject: `Daily Error Reports `, // Subject line
+            subject: `Daily Error Reports`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains all error count stats from 23rd February 2020 onwards.`, // plain text bodyday
             attachments:[
                 {
@@ -386,7 +386,7 @@ dailyUnsubReport = async() => {
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
             to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com.pk"], // list of receivers
-            subject: `Daily Unsubscribed Users Report `, // Subject line
+            subject: `Daily Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users.`, // plain text bodyday
             attachments:[
                 {
