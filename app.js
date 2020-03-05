@@ -434,6 +434,9 @@ const tokenRefreshCron = require('./services/TokenRefreshService');
 const subscriptionRenewalCron = require('./services/SubscriptionRenewalService');
 const tpsCountService = require('./services/TpsCountService');
 
+const reportService = require('./services/ReportsService');
+reportService.generateDailyReport();
+
 /*
 TODO:
 0. Set TPS for both apis sms and subscriptions
