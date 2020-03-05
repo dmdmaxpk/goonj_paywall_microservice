@@ -14,14 +14,17 @@ var transporter = nodemailer.createTransport({
 billingInLastHour = async() => {
     try {
         let billingCountThisHour = await billingHistoryRepo.billingInLastHour();
-        console.log('billingCountThisHour',billingCountThisHour)
-        var info = await transporter.sendMail({
-            from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk"], // list of receivers
-            subject: `Billing Count for this hour ${new Date()}`, // Subject line
-            text: `Number of billing and graced count for this hour is ${billingCountThisHour}. `, // plain text bodyday
-        });
-        console.log("[billingInLastHour][EmailSent][info]",info);
+        console.log('billingCountThisHour',billingCountThisHour);
+        if(billingCountThisHour < 50){
+            // Shoot an email
+            var info = await transporter.sendMail({
+                from: 'paywall@dmdmax.com.pk', // sender address
+                to:  ["paywall@dmdmax.com.pk"], // list of receivers
+                subject: `Billing Count for this hour ${new Date()}`, // Subject line
+                text: `Number of billing and graced count for this hour is ${billingCountThisHour}. `, // plain text bodyday
+            });
+            console.log("[billingInLastHour][EmailSent][info]",info);
+        }
     }catch(err) {
         console.log(err);
     }
