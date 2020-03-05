@@ -410,7 +410,6 @@ billingRepo.generateToken().then(async(token) => {
                 rabbitMq.consumeQueue(config.queueNames.messageDispathcer, (response) => {
                     consumeMessageQueue(response);
                 });
-
                 
                 // Subscriptin Queue
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
