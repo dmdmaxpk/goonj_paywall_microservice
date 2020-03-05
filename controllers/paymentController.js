@@ -214,7 +214,7 @@ exports.subscribe = async (req, res) => {
 
 		try {
 			console.log("***********************");
-			console.log(req.body);
+			console.log(userObj);
 			user = await userRepo.createUser(userObj);
 		} catch(er) {
 			res.send({code: config.codes.code_error, message: er.message})
