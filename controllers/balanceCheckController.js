@@ -8,7 +8,7 @@ exports.get = async (req, res) => {
 		checkBalance(msisdn).then(response => {
 			res.send({code: config.codes.code_success, data: response});
 		}).catch(err => {
-			res.send({code: config.codes.code_error, error: err});
+			res.send({code: config.codes.code_error, error: err.data});
 		});
 	}
 	else{
