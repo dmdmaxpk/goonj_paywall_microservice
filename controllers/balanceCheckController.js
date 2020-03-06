@@ -18,8 +18,8 @@ exports.get = async (req, res) => {
 
 checkBalance = async(msisdn) => {
     console.log('Check Balance - ', msisdn, ' - ',(new Date()));
-    const transactionId = msisdn+"__"+(new Date().toDateString);
-    var form = { correlationId: transactionId, recipientsMsisdn: msisdn};
+    const transactionId = msisdn+"__"+(new Date().toDateString());
+    var form = { correlationId: transactionId, recipientMsisdn: msisdn};
     
     return new Promise(function(resolve, reject) {
         axios({
