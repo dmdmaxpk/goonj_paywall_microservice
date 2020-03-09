@@ -64,8 +64,8 @@ let config = {
     },
     staging: {
         port: '5000',
-        mongoDB: 'mongodb://localhost:27017/goonjpaywall',
-        rabbitMq: 'amqp://localhost',
+        mongoDB: 'mongodb://mongodb:27017/goonjpaywall',
+        rabbitMq: 'amqp://rabbitmq',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
