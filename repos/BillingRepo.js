@@ -65,9 +65,32 @@ subscribePackage = async(subscriptionObj) => {
     })
 };
 
+// To check balance
+checkBalance = async(msisdn) => {
+    console.log('Checking Balance - ', msisdn, ' - ',(new Date()));
+    const transactionId = msisdn+"__"+(new Date().toDateString());
+    var form = { correlationId: transactionId, recipientMsisdn: msisdn};
+    
+    return new Promise(function(resolve, reject) {
+        axios({
+            method: 'post',
+            url: config.telenor_dcb_api_baseurl + 'balanceinquiry/v1/fetch',
+            headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
+            data: form
+        }).then(function(response){
+            console.log('Check Balance Success - ', msisdn, ' - Balance - ', response.data, ' - ',(new Date()));
+            resolve(response.data);
+        }).catch(function(err){
+            console.log('Check Balance Error - ', msisdn, ' - Error - ', err, ' - ',(new Date()));
+            reject(err);
+        });
+    })
+};
+
 module.exports = {
     generateToken: generateToken,
     sendMessage: sendMessage,
     subscribePackage: subscribePackage,
-    sendMessage: sendMessage
+    sendMessage: sendMessage,
+    checkBalance: checkBalance
 }

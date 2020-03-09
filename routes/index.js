@@ -8,8 +8,6 @@ router.use('/user',    require('./userRoutes'));
 router.use('/package',    require('./packageRoutes'));
 router.use('/otp',    require('./otpRoutes'));
 
-router.use('/balance',    require('./balanceCheckRoute'));
-
 // Payment routes
 router.use('/payment',    require('./paymentRoute'));
 
