@@ -22,10 +22,12 @@ require('./models/BillingHistory');
 require('./models/ApiToken');
 require('./models/TpsCount');
 require('./models/ViewLog');
+require('./models/ChargingAttempt');
 
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
+var chargingAttemptRepo = require('./repos/ChargingAttemptRepo');
 
 const app = express();
 
@@ -133,7 +135,10 @@ consumeSusbcriptionQueue = async(res) => {
                         let message = operator_response.data.Message;
                         let user_id = response.user_id;
                         let package_id = response.packageObj._id;
+                        let packageObj = response.packageObj;
                         let transaction_id = response.transactionId;
+                        let mini_charge = response.mini_charge;
+                        let price_charged = response.price_to_charge;
                         let msisdn = response.msisdn;
         
                         let billingHistoryObject = {};
@@ -143,7 +148,13 @@ consumeSusbcriptionQueue = async(res) => {
                         billingHistoryObject.operator_response = response.api_response.data;
                         billingHistoryObject.billing_status = message;
                         billingHistoryObject.operator = 'telenor';
-                        billingHistoryObject.price = response.packageObj.price_point_pkr;
+
+                        if(mini_charge){
+                            billingHistoryObject.price = price_charged;
+                            billingHistoryObject.mini_charge = true;
+                        }else{
+                            billingHistoryObject.price = response.packageObj.price_point_pkr;
+                        }
 
                         let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                         if(history && response){
@@ -162,6 +173,10 @@ consumeSusbcriptionQueue = async(res) => {
                                 subObj.amount_billed_today = subscriber.amount_billed_today + amount_billed;
                                 subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
                                 subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
+                                if(mini_charge){
+                                    subObj.mini_charge = mini_charge;
+                                }
+
                                 subObj.queued = false;
 
                                 let updatedUser = await userRepo.updateUser(msisdn, {subscribed_package_id: response.packageObj._id, subscription_status: subObj.subscription_status});
@@ -200,19 +215,30 @@ consumeSusbcriptionQueue = async(res) => {
                                
                                 // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
-                                    if(subObj.consecutive_successive_bill_counts === 1){
-                                        // For the first time or every week of consecutive billing
-        
+                                    if(subObj.mini_charge){
+                                        await chargingAttemptRepo.resetAttempts(subscriber._id);
+                                        console.log("Sending %age discout message to "+msisdn);
+                                        let percentage = ((price_charged / packageObj.price_point_pkr)*100);
+
                                         //Send acknowldement to user
                                         let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
-                                        let message = "Your Goonj TV subscription for "+response.packageObj.package_name+" has been activated at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
+                                        let message = "You've got "+percentage+"% discount on "+response.packageObj.package_name+", to unsub click the link below.\n"+link
                                         await billingRepo.sendMessage(message, msisdn);
-                                    }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
-                                        // Every week
-                                        //Send acknowldement to user
-                                        let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
-                                        let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
-                                        await billingRepo.sendMessage(message, msisdn);
+                                    }else{
+                                        if(subObj.consecutive_successive_bill_counts === 1){
+                                            // For the first time or every week of consecutive billing
+            
+                                            //Send acknowldement to user
+                                            let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
+                                            let message = "Your Goonj TV subscription for "+response.packageObj.package_name+" has been activated at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
+                                            await billingRepo.sendMessage(message, msisdn);
+                                        }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
+                                            // Every week
+                                            //Send acknowldement to user
+                                            let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
+                                            let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
+                                            await billingRepo.sendMessage(message, msisdn);
+                                        }
                                     }
                                 }
                             }else{
@@ -222,7 +248,6 @@ consumeSusbcriptionQueue = async(res) => {
                             rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
-                       
                         if (error.response && error.response.data){
                             console.log('Error ',error.response.data);
                         }else {
@@ -239,10 +264,9 @@ consumeSusbcriptionQueue = async(res) => {
                             console.log('BillingFailed - Package - ', (new Date()));
                             try {
                                 let status = await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
-                                await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id,
-                                    error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr);
+                                await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id, error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr, mini_charge?true:false);
                             } catch(err) {
-                                console.log("Error could not assign Grace period",err);
+                                console.log("Error could not assign Grace period", err);
                             }
                             // TODO set queued to false everytime we Ack a message
                             await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
@@ -322,6 +346,14 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 let link = 'https://www.goonj.pk/goonjplus/open';
                 let message = "You've been awarded a grace period of "+currentPackage.package_duration+" hours. Click below link to open Goonj.\n"+link
                 await billingRepo.sendMessage(message, user.msisdn);
+
+                let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
+                if(attempt && attempt.active === false){
+                    await chargingAttemptRepo.markActive(subscriber._id);
+                    await chargingAttemptRepo.resetAttempts(subscriber._id);
+                    console.log('MicroCharging - Activated and Reset - Subscriber ', subscriber._id, ' - ', (new Date()));
+                }
+                checkForMiniCharging(subscriber._id);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
                 // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
                 if ( subscriber.time_spent_in_grace_period_in_hours > currentPackage.grace_hours){
@@ -332,6 +364,9 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                     let link = 'https://www.goonj.pk/goonjplus/subscribe';
                     let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
                     await billingRepo.sendMessage(message, user.msisdn);
+                    await chargingAttemptRepo.resetAttempts(subscriber._id);
+                    await chargingAttemptRepo.markInActive();
+                    console.log('MicroCharging - InActiveAfterExpiration - Subscriber ', subscriber._id, ' - ', (new Date()));
                 } else {
                     let nextBillingDate = new Date();
                     nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
@@ -340,6 +375,8 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                     subObj.subscription_status = 'graced';
                     status = 'graced';
                     subObj.next_billing_timestamp = nextBillingDate;
+                    
+                    checkForMiniCharging();
                 }
             } else {
                 subObj.subscription_status = user.subscription_status;
@@ -364,7 +401,19 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
 
 }
 
-async function addToHistory(userId,packageId,transactionId,operatorResponse,billingStatus,operator,pricePoint){
+async function checkForMiniCharging(subscriber_id){
+    let attempt = await chargingAttemptRepo.getAttempt(subscriber_id);
+    if(attempt){
+        await chargingAttemptRepo.incrementAttempt(subscriber_id);
+        let chargingAttemptController = require('./controllers/ChargingAttemptController');
+        chargingAttemptController.microChargingAttempt();
+    }else{
+        await chargingAttemptRepo.createAttempt({subscriber_id: subscriber_id, number_of_attempts_today: 1});    
+        console.log('Created grace attempts record for subscriber ', subscriber_id);
+    }
+}
+
+async function addToHistory(userId,packageId,transactionId,operatorResponse,billingStatus,operator,pricePoint, mini_charge){
     return new Promise( async (resolve,reject) => {
         try {
             let billingHistoryObject = {};
@@ -375,6 +424,7 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
             billingHistoryObject.billing_status = billingStatus;
             billingHistoryObject.operator = operator;
             billingHistoryObject.price = pricePoint;
+            billingHistoryObject.mini_charge = mini_charge;
             let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
             resolve('done');
         }catch (er) {
