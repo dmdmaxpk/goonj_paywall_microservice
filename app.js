@@ -436,9 +436,15 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
 // Prefetch a token for the first time
 billingRepo.generateToken().then(async(token) => {
     console.log('Token Fetched', token);
-    let updatedToken = await tokenRepo.updateToken(token.access_token);
-    console.log(updatedToken);
-    if(updatedToken){
+    let currentToken = await ApiTokenRepo.getToken();
+    if(currentToken){
+        currentToken = await tokenRepo.updateToken(token.access_token);
+    }else{
+        currentToken = await tokenRepo.createToken(token.access_token);
+    }
+    
+    console.log(currentToken);
+    if(currentToken){
         config.telenor_dcb_api_token = token.access_token;
         console.log('Token updated in db!');
         //numValidation.validateNumber();
