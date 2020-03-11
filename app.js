@@ -468,6 +468,8 @@ billingRepo.generateToken().then(async(token) => {
             }
         });
     }
+}).catch(err => {
+    console.log('Error while fetching token', err);
 });
 
 
