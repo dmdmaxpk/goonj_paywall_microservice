@@ -440,7 +440,7 @@ billingRepo.generateToken().then(async(token) => {
     if(currentToken){
         currentToken = await tokenRepo.updateToken(token.access_token);
     }else{
-        currentToken = await tokenRepo.createToken(token.access_token);
+        currentToken = await tokenRepo.createToken({token:token.access_token});
     }
     
     console.log(currentToken);
