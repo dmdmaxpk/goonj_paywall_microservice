@@ -436,7 +436,7 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
 // Prefetch a token for the first time
 billingRepo.generateToken().then(async(token) => {
     console.log('Token Fetched', token);
-    let currentToken = await ApiTokenRepo.getToken();
+    let currentToken = await tokenRepo.getToken();
     if(currentToken){
         currentToken = await tokenRepo.updateToken(token.access_token);
     }else{
