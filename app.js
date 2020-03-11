@@ -437,6 +437,7 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
 billingRepo.generateToken().then(async(token) => {
     console.log('Token Fetched', token);
     let updatedToken = await tokenRepo.updateToken(token.access_token);
+    console.log(updatedToken);
     if(updatedToken){
         config.telenor_dcb_api_token = token.access_token;
         console.log('Token updated in db!');
