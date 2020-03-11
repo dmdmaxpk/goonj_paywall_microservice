@@ -437,6 +437,7 @@ const numValidation = require('./numValidation');
 
 // Prefetch a token for the first time
 billingRepo.generateToken().then(async(token) => {
+    console.log('Token Fetched', token);
     let updatedToken = await tokenRepo.updateToken(token.access_token);
     if(updatedToken){
         config.telenor_dcb_api_token = token.access_token;
