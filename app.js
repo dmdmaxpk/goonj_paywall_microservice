@@ -433,8 +433,6 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
     } );
 }
 
-const numValidation = require('./numValidation');
-
 // Prefetch a token for the first time
 billingRepo.generateToken().then(async(token) => {
     console.log('Token Fetched', token);
