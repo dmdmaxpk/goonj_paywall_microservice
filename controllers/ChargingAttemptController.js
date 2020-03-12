@@ -11,7 +11,7 @@ microChargingAttempt = async (user_id, subscriber_id) => {
 	billlHistory.package_id = user.subscribed_package_id;
 	billlHistory.operator = "telenor";
 
-	billingRepo.checkBalance(user.msisdn).then(result => {
+	billingRepo.checkBalance(user.msisdn).then(async(result) => {
 		billlHistory.operator_response = result;
 		billlHistory.billing_status = "balance-fetched"
 		await historyRepo.createBillingHistory(billlHistory);
@@ -57,7 +57,7 @@ microChargingAttempt = async (user_id, subscriber_id) => {
 			}
 		}
 		
-	}).catch(err => {
+	}).catch(async(err) => {
 		console.log("Error fetching balance: ", err);
 		billlHistory.operator_response = err.message;
 		billlHistory.billing_status = "balance-fetch-error"

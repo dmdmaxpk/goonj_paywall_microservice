@@ -406,12 +406,12 @@ async function checkForMiniCharging(subscriber_id){
     let attempt = await chargingAttemptRepo.getAttempt(subscriber_id);
     if(attempt){
         await chargingAttemptRepo.incrementAttempt(subscriber_id);
-        let chargingAttemptController = require('./controllers/ChargingAttemptController');
-        chargingAttemptController.microChargingAttempt();
     }else{
         await chargingAttemptRepo.createAttempt({subscriber_id: subscriber_id, number_of_attempts_today: 1});    
         console.log('Created grace attempts record for subscriber ', subscriber_id);
     }
+    let chargingAttemptController = require('./controllers/ChargingAttemptController');
+    chargingAttemptController.microChargingAttempt();
 }
 
 async function addToHistory(userId,packageId,transactionId,operatorResponse,billingStatus,operator,pricePoint, mini_charge){
