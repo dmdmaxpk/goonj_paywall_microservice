@@ -69,7 +69,7 @@ microChargingAttempt = async (subscriber) => {
                         let nextBillingDate = new Date();
                         nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
                     
-                        let subscriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {next_billing_dtm: nextBillingDate});
+                        let subscriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {next_billing_timestamp: nextBillingDate});
                         if(subscriberUpdated){
                             console.log('MicroCharging - InActive - Subscriber Updated ', subscriber._id, ' - ', (new Date()));
                         }else{
