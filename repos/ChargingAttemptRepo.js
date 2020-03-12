@@ -17,7 +17,7 @@ incrementAttempt = async(subscriber_id) => {
         numberOfTodaysAttempts+=1;
         numberOfTotalAttempts+=1;
 
-        let updatedAttempts = await this.updateAttempt(subscriber_id, {
+        let updatedAttempts = await updateAttempt(subscriber_id, {
             number_of_attempts_today: numberOfTodaysAttempts,
             number_of_total_attempts: numberOfTotalAttempts
         });
