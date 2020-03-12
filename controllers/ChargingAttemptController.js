@@ -3,19 +3,20 @@ const repo = require('../repos/ChargingAttemptRepo');
 const billingRepo = require('../repos/BillingRepo');
 const historyRepo = require('../repos/BillingHistoryRepo');
 const userRepo = require('../repos/UserRepo');
+const packageRepo = require('../repos/PackageRepo');
 
 microChargingAttempt = async (user_id, subscriber_id) => {
-	console.log("User Id: ", user_id);
-	console.log("Subscriber Id: ", subscriber_id);
 	let user = await userRepo.getUserById(user_id);
+	let package = await packageRepo.getUserById(user.subscribed_package_id);
+	let packagePrice = package.price_point_pkr;
+
 	let billlHistory = {};
 	billlHistory.user_id = user_id;
 	
-	billlHistory.package_id = user.subscribed_package_id;
+	billlHistory.package_id = package._id;
 	billlHistory.operator = "telenor";
 
 	billingRepo.checkBalance(user.msisdn).then(async(result) => {
-		console.log("BalanceFetched - ", result);
 		billlHistory.transaction_id = result.CorrelationID;
 		billlHistory.operator_response = result;
 		billlHistory.billing_status = "balance-fetched"
@@ -28,12 +29,20 @@ microChargingAttempt = async (user_id, subscriber_id) => {
 			// Band is available e.g. 5-10
 			// Pick the ceiling value
 			flooringValue = splitted[0];
+			if(flooringValue === 0){
+				flooringValue = 1;
+			}
+
 			ceilingValue = splitted[1];
+
+			if(flooringValue > packagePrice){
+				ceilingValue = packagePrice;
+			}
 		}else{
 			// Band is not available. E.g: More than 50
-			let packagePrice = package.price_point_pkr;
-			packagePrice-=1;
-			ceilingValue = packagePrice;
+			let currentpackagePrice = packagePrice;
+			currentpackagePrice-=1;
+			ceilingValue = currentpackagePrice;
 			flooringValue = 1;
 		}
 
@@ -52,10 +61,10 @@ microChargingAttempt = async (user_id, subscriber_id) => {
 					// Must be between balance band
 					let updated = await repo.updateAttempt(subscriber_id, {"price_to_charge": currentPrice});
 					if(updated){
-						console.log('MicroChargingAttempt - AgainScheduled - Price - ',ceilingValue, ' - Subscriber ', subscriber_id, ' - ', (new Date()));
+						console.log('MicroChargingAttempt - AgainScheduled - Price - ',currentPrice, ' - Subscriber ', subscriber_id, ' - ', (new Date()));
 					}
 				}else{
-					// Less than flooring value means or as soon as it becomes zero
+					// Less than flooring value or as soon as it becomes zero
 					await repo.markInActive(subscriber_id);
 					console.log('MicroCharging - InActive - Subscriber ', subscriber_id, ' - ', (new Date()));
 				}
