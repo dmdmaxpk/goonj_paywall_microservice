@@ -2,16 +2,19 @@ const config = require('../config');
 const repo = require('../repos/ChargingAttemptRepo');
 const billingRepo = require('../repos/BillingRepo');
 const historyRepo = require('../repos/BillingHistoryRepo');
+const userRepo = require('../repos/UserRepo');
 
 microChargingAttempt = async (user_id, subscriber_id) => {
-
+	let user = await userRepo.getUserById(user_id);
 	let billlHistory = {};
 	billlHistory.user_id = user_id;
-	billlHistory.transaction_id = result.CorrelationID;
+	
 	billlHistory.package_id = user.subscribed_package_id;
 	billlHistory.operator = "telenor";
 
 	billingRepo.checkBalance(user.msisdn).then(async(result) => {
+		console.log("BalanceFetched - ", result);
+		billlHistory.transaction_id = result.CorrelationID;
 		billlHistory.operator_response = result;
 		billlHistory.billing_status = "balance-fetched"
 		await historyRepo.createBillingHistory(billlHistory);
