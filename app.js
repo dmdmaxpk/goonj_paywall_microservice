@@ -97,6 +97,9 @@ consumeMessageQueue = async(response) => {
 
 consumeSusbcriptionQueue = async(res) => {
     let subscriptionObj = JSON.parse(res.content);
+    let mini_charge = subscriptionObj.mini_charge;
+    let price_charged = subscriptionObj.price_to_charge;
+
     try {
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
         let amount_billed = subscriptionObj.packageObj.price_point_pkr;
@@ -137,8 +140,6 @@ consumeSusbcriptionQueue = async(res) => {
                         let package_id = response.packageObj._id;
                         let packageObj = response.packageObj;
                         let transaction_id = response.transactionId;
-                        let mini_charge = response.mini_charge;
-                        let price_charged = response.price_to_charge;
                         let msisdn = response.msisdn;
         
                         let billingHistoryObject = {};
@@ -429,7 +430,7 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
             }else{
                 billingHistoryObject.mini_charge = false;
             }
-            
+
             let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
             resolve('done');
         }catch (er) {
