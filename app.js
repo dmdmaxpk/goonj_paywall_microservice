@@ -252,11 +252,11 @@ consumeSusbcriptionQueue = async(res) => {
                             rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
-                        console.log(error);
                         if (error.response && error.response.data){
                             console.log('Error ',error.response.data);
                         }else {
-                            console.log('Error billing failed');
+                            console.log('Error billing failed: ', error);
+
                         }
                          if (error.response.data.errorCode === "500.007.08"){
                             // Consider, tps exceeded, noAcknowledge will requeue this record.
