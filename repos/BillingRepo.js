@@ -65,9 +65,29 @@ subscribePackage = async(subscriptionObj) => {
     })
 };
 
+
+// To Check if user is customer of telenor
+subscriberQuery = async(msisdn) => {
+    console.log('subscriberQuery - PartnerId - ', msisdn );
+    
+    return new Promise(function(resolve, reject) {
+        axios({
+            method: 'get',
+            url: config.telenor_dcb_api_baseurl + `subscriberQuery/v3/checkinfo/${msisdn}`,
+            headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
+        }).then(function(response){
+            console.log("subscriberQuery Response" , response);
+            resolve(response);
+        }).catch(function(err){
+            reject(err);
+        });
+    })
+};
+
 module.exports = {
     generateToken: generateToken,
     sendMessage: sendMessage,
     subscribePackage: subscribePackage,
-    sendMessage: sendMessage
+    sendMessage: sendMessage,
+    subscriberQuery: subscriberQuery
 }

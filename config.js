@@ -34,7 +34,8 @@ const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 7
 
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
-    subscriptionDispatcher: 'subscriptionDispatcher'
+    subscriptionDispatcher: 'subscriptionDispatcher',
+    subscriberQueryDispatcher: 'subscriberQueryDispatcher'
 }
 // Telenor DCB API's configs
 const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
