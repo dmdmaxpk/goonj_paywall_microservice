@@ -218,9 +218,11 @@ consumeSusbcriptionQueue = async(res) => {
                                 if(updatedSubscriber){
                                     if(subObj.mini_charge){
                                         await chargingAttemptRepo.resetAttempts(subscriber._id);
+                                        await chargingAttemptRepo.markInActive(subscriber._id);
+
                                         console.log("Sending %age discout message to "+msisdn);
                                         let percentage = ((price_charged / packageObj.price_point_pkr)*100);
-
+                                        percentage = (100 - percentage);
                                         //Send acknowldement to user
                                         let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
                                         let message = "You've got "+percentage+"% discount on "+response.packageObj.package_name+", to unsub click the link below.\n"+link
@@ -265,7 +267,7 @@ consumeSusbcriptionQueue = async(res) => {
                             console.log('BillingFailed - Package - ', (new Date()));
                             try {
                                 let status = await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
-                                await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id, error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr, mini_charge);
+                                await addToHistory(subscriber.user_id, subscriptionObj.packageObj._id, subscriptionObj.transaction_id, error.response.data, status,'telenor', subscriptionObj.packageObj.price_point_pkr, mini_charge, subscriber._id);
                             } catch(err) {
                                 console.log("Error: could not assign Grace period", err);
                             }
@@ -418,7 +420,7 @@ async function checkForMiniCharging(user_id, subscriber_id){
     chargingAttemptController.microChargingAttempt(user_id, subscriber_id);
 }
 
-async function addToHistory(userId,packageId,transactionId,operatorResponse,billingStatus,operator,pricePoint, mini_charge){
+async function addToHistory(userId, packageId, transactionId, operatorResponse, billingStatus, operator, pricePoint, mini_charge, subscriber_id){
     return new Promise( async (resolve,reject) => {
         try {
             let billingHistoryObject = {};
@@ -428,10 +430,12 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
             billingHistoryObject.operator_response = operatorResponse;
             billingHistoryObject.billing_status = billingStatus;
             billingHistoryObject.operator = operator;
-            billingHistoryObject.price = pricePoint;
             if(mini_charge){
+                let attempt = await chargingAttemptRepo.getAttempt(subscriber_id);
+                billingHistoryObject.price = attempt.price_to_charge;
                 billingHistoryObject.mini_charge = mini_charge;
             }else{
+                billingHistoryObject.price = pricePoint;
                 billingHistoryObject.mini_charge = false;
             }
 
