@@ -26,6 +26,7 @@ require('./models/ViewLog');
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
+var subscriptionQueryConsumer = require('./repos/queue/consumers/subscriptionQuery');
 
 const app = express();
 
@@ -404,6 +405,7 @@ billingRepo.generateToken().then(async(token) => {
                 // Let's create queues
                 rabbitMq.createQueue(config.queueNames.messageDispathcer); // to dispatch messages like otp/subscription message/un-sub message etc
                 rabbitMq.createQueue(config.queueNames.subscriptionDispatcher); // to process subscription requests
+                rabbitMq.createQueue(config.queueNames.subscriberQueryDispatcher);
 
                 //Let's start queue consumption
                 // Messaging Queue
@@ -414,6 +416,12 @@ billingRepo.generateToken().then(async(token) => {
                 // Subscriptin Queue
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
                     consumeSusbcriptionQueue(response);
+                });
+
+                // Subscriptin Queue
+                rabbitMq.consumeQueue(config.queueNames.subscriberQueryDispatcher, (response) => {
+                    console.log("subscriberQueryDispatcher",JSON.parse(response.content) );
+                    subscriptionQueryConsumer.consume(response);
                 });
             }
         });

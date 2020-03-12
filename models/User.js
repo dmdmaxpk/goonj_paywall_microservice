@@ -32,9 +32,11 @@ const userSchema = new Schema({
     is_black_listed: { type: Boolean, default: false },
     
     // operator of the user (telenor/zong/ufone etc)
-    operator: String,
     added_dtm: { type: Date, default: Date.now, index: true },
     last_modified: Date,
+    operator: {
+        type: String
+    },
     active: { type: Boolean, default: true, index: true }
 }, { strict: true });
 

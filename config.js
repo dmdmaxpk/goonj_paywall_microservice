@@ -4,6 +4,7 @@ const env = process.env.NODE_ENV || 'development';
 
 const telenor_message_api_tps = 5;
 const telenor_subscription_api_tps = 15;
+const telenor_subscriber_query_api_tps = 5;
 
 const codes = {
     code_error: -1,
@@ -57,6 +58,7 @@ let config = {
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
+        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
@@ -75,6 +77,7 @@ let config = {
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
+        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
@@ -93,6 +96,7 @@ let config = {
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
+        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
