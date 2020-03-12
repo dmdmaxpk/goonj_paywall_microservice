@@ -264,9 +264,9 @@ consumeSusbcriptionQueue = async(res) => {
                             console.log('BillingFailed - Package - ', (new Date()));
                             try {
                                 let status = await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
-                                await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id, error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr, mini_charge?true:false);
+                                await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id, error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr, mini_charge !== undefined ? true : false);
                             } catch(err) {
-                                console.log("Error could not assign Grace period", err);
+                                console.log("Error: could not assign Grace period", err);
                             }
                             // TODO set queued to false everytime we Ack a message
                             await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
