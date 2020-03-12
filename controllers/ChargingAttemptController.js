@@ -7,7 +7,7 @@ const packageRepo = require('../repos/PackageRepo');
 
 microChargingAttempt = async (user_id, subscriber_id) => {
 	let user = await userRepo.getUserById(user_id);
-	let package = await packageRepo.getUserById(user.subscribed_package_id);
+	let package = await packageRepo.getPackage({_id: user.subscribed_package_id});
 	let packagePrice = package.price_point_pkr;
 
 	let billlHistory = {};
