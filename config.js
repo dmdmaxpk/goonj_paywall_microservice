@@ -4,6 +4,7 @@ const env = process.env.NODE_ENV || 'development';
 
 const telenor_message_api_tps = 5;
 const telenor_subscription_api_tps = 15;
+const balance_check_api_tps = 3;
 
 const codes = {
     code_error: -1,
@@ -34,11 +35,13 @@ const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 7
 
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
-    subscriptionDispatcher: 'subscriptionDispatcher'
+    subscriptionDispatcher: 'subscriptionDispatcher',
+    balanceCheckDispatcher: 'balanceCheckDispatcher'
 }
 // Telenor DCB API's configs
 const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
 const telenor_dcb_api_token = '';
+
 //Ideation Url
 const Ideation_call_back_url = ' http://bpd.o18.click/';
 const time_between_billing_attempts_hours = 8;
@@ -56,6 +59,7 @@ let config = {
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
+        balance_check_api_tps: balance_check_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
@@ -74,6 +78,7 @@ let config = {
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
+        balance_check_api_tps: balance_check_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
@@ -92,6 +97,7 @@ let config = {
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
+        balance_check_api_tps: balance_check_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,

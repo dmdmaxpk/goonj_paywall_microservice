@@ -28,6 +28,7 @@ var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
 var chargingAttemptRepo = require('./repos/ChargingAttemptRepo');
+var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use(logger('combined', {skip: skipLog}));
 //app.use(logger('dev'));
 
 app.use(swStats.getMiddleware({}));
+
 // Middlewares
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -65,7 +67,7 @@ var transporter = nodemailer.createTransport({
       user: 'AKIAZQA2XAWP7CYJEJXS', // generated ethereal user
       pass: 'BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs' // generated ethereal password
     }
-  });
+});
 
 
 consumeMessageQueue = async(response) => {
@@ -95,10 +97,39 @@ consumeMessageQueue = async(response) => {
     }
 }
 
+consumeBalanceCheckQueue = async(response) => {
+    try {
+        let subscriber = JSON.parse(response.content);
+        
+        let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.balanceCheckDispatcher);
+        if (countThisSec < config.balance_check_api_tps) {
+            console.log("Sending Balance Check Request To Telenor - Subscriber ", subscriber._id);
+            
+            balanceCheckConsumer.microChargingAttempt(subscriber)
+            .then(async (data) => {
+                console.log('Success: ', data);
+                await tpsCountRepo.incrementTPSCount(config.queueNames.balanceCheckDispatcher);
+                rabbitMq.acknowledge(response);
+            }).catch(error => {
+                console.log('Error: ', error.message);
+                rabbitMq.acknowledge(response);
+            });
+            
+        } else {
+            console.log("TPS quota full for balance check, waiting for ms to elapse - ", new Date());
+            setTimeout(() => {
+                consumeMessageQueue(response);
+            }, 500);
+        }
+    } catch (err ) {
+        console.error(err);
+    }
+}
+
 consumeSusbcriptionQueue = async(res) => {
     let subscriptionObj = JSON.parse(res.content);
-    let mini_charge = subscriptionObj.mini_charge;
-    let price_charged = subscriptionObj.price_to_charge;
+    let micro_charge = subscriptionObj.micro_charge;
+    let micro_price_to_charge = subscriptionObj.price_to_charge;
 
     try {
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
@@ -129,6 +160,7 @@ consumeSusbcriptionQueue = async(res) => {
             } else {
                 if (countThisSec < config.telenor_subscription_api_tps) {
                     console.log("Sending subscription request to telenor");
+
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
@@ -150,9 +182,9 @@ consumeSusbcriptionQueue = async(res) => {
                         billingHistoryObject.billing_status = message;
                         billingHistoryObject.operator = 'telenor';
 
-                        if(mini_charge){
-                            billingHistoryObject.price = price_charged;
-                            billingHistoryObject.mini_charge = true;
+                        if(micro_charge){
+                            billingHistoryObject.price = micro_price_to_charge;
+                            billingHistoryObject.micro_charge = true;
                         }else{
                             billingHistoryObject.price = response.packageObj.price_point_pkr;
                         }
@@ -174,10 +206,6 @@ consumeSusbcriptionQueue = async(res) => {
                                 subObj.amount_billed_today = subscriber.amount_billed_today + amount_billed;
                                 subObj.total_successive_bill_counts = ((subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts : 0) + 1);
                                 subObj.consecutive_successive_bill_counts = ((subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0) + 1);
-                                if(mini_charge){
-                                    subObj.mini_charge = mini_charge;
-                                }
-
                                 subObj.queued = false;
 
                                 let updatedUser = await userRepo.updateUser(msisdn, {subscribed_package_id: response.packageObj._id, subscription_status: subObj.subscription_status});
@@ -216,7 +244,7 @@ consumeSusbcriptionQueue = async(res) => {
                                
                                 // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
-                                    if(mini_charge){
+                                    if(micro_charge){
                                         await chargingAttemptRepo.resetAttempts(subscriber._id);
                                         await chargingAttemptRepo.markInActive(subscriber._id);
 
@@ -247,7 +275,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 }
                             }else{
                                 // Billing failed
-                               await assignGracePeriodToSubscriber(subscriber,user_id);
+                               await assignGracePeriodToSubscriber(subscriber);
                             }
                             rabbitMq.acknowledge(res);
                         }
@@ -256,9 +284,9 @@ consumeSusbcriptionQueue = async(res) => {
                             console.log('Error ',error.response.data);
                         }else {
                             console.log('Error billing failed: ', error);
-
                         }
-                         if (error.response.data.errorCode === "500.007.08"){
+
+                        if (error.response.data.errorCode === "500.007.08"){
                             // Consider, tps exceeded, noAcknowledge will requeue this record.
                             console.log('Sending back to queue');
                             rabbitMq.noAcknowledge(res);
@@ -268,8 +296,8 @@ consumeSusbcriptionQueue = async(res) => {
                             // Enter user into grace period
                             console.log('BillingFailed - Package - ', (new Date()));
                             try {
-                                let status = await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
-                                await addToHistory(subscriber.user_id, subscriptionObj.packageObj._id, subscriptionObj.transaction_id, error.response.data, status,'telenor', subscriptionObj.packageObj.price_point_pkr, mini_charge, subscriber._id);
+                                await assignGracePeriodToSubscriber(subscriber);
+                                await addToHistory(subscriber.user_id, subscriptionObj.packageObj._id, subscriptionObj.transaction_id, error.response.data, subscriber.subscription_status,'telenor', subscriptionObj.packageObj.price_point_pkr, micro_charge, subscriber._id);
                             } catch(err) {
                                 console.log("Error: could not assign Grace period", err);
                             }
@@ -328,7 +356,7 @@ async function sendCallBackToIdeation(mid, tid){
     });
 }
 
-async function assignGracePeriodToSubscriber(subscriber, user_id){
+async function assignGracePeriodToSubscriber(subscriber){
     return new Promise (async (resolve,reject) => {
         try {
             let status = "";
@@ -358,7 +386,7 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
                     await chargingAttemptRepo.resetAttempts(subscriber._id);
                     console.log('MicroCharging - Activated and Reset - Subscriber ', subscriber._id, ' - ', (new Date()));
                 }
-                checkForMiniCharging(subscriber.user_id, subscriber._id);
+                addMicroChargingToQueue(subscriber);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
                 // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
                 if ( subscriber.time_spent_in_grace_period_in_hours > currentPackage.grace_hours){
@@ -369,9 +397,13 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
                     let link = 'https://www.goonj.pk/goonjplus/subscribe';
                     let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
                     await billingRepo.sendMessage(message, user.msisdn);
-                    await chargingAttemptRepo.resetAttempts(subscriber._id);
-                    await chargingAttemptRepo.markInActive(subscriber._id);
-                    console.log('MicroCharging - InActiveAfterExpiration - Subscriber ', subscriber._id, ' - ', (new Date()));
+                    
+                    let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
+                    if(attempt && attempt.active === false){
+                        await chargingAttemptRepo.resetAttempts(subscriber._id);
+                        await chargingAttemptRepo.markInActive(subscriber._id);
+                        console.log('MicroCharging - InActiveAfterExpiration - Subscriber ', subscriber._id, ' - ', (new Date()));
+                    }
                 } else {
                     let nextBillingDate = new Date();
                     nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
@@ -381,12 +413,8 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
                     status = 'graced';
 
                     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
-                    if(attempt){
-                        if(attempt.active === true){
-                            checkForMiniCharging(subscriber.user_id, subscriber._id);
-                        }else {
-                            subObj.next_billing_timestamp = nextBillingDate;
-                        }
+                    if(attempt && attempt.active === true){
+                        addMicroChargingToQueue(subscriber);
                     }else{
                         subObj.next_billing_timestamp = nextBillingDate;
                     }
@@ -414,19 +442,19 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
 
 }
 
-async function checkForMiniCharging(user_id, subscriber_id){
-    let attempt = await chargingAttemptRepo.getAttempt(subscriber_id);
+async function addMicroChargingToQueue(subscriber){
+    let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
     if(attempt){
-        await chargingAttemptRepo.incrementAttempt(subscriber_id);
-        let chargingAttemptController = require('./controllers/ChargingAttemptController');
-        chargingAttemptController.microChargingAttempt(user_id, subscriber_id);
+        await chargingAttemptRepo.incrementAttempt(subscriber._id);
+        rabbitMq.addInQueue(config.queueNames.balanceCheckDispatcher, subscriber);
+        console.log('MicroCharging Added In Queue - Subscriber ', subscriber._id);
     }else{
-        await chargingAttemptRepo.createAttempt({subscriber_id: subscriber_id, number_of_attempts_today: 1});    
-        console.log('Created grace attempts record for subscriber ', subscriber_id);
+        await chargingAttemptRepo.createAttempt({subscriber_id: subscriber._id, number_of_attempts_today: 1});    
+        console.log('Created Charging Attempt Record - Subscriber ', subscriber_id);
     }
 }
 
-async function addToHistory(userId, packageId, transactionId, operatorResponse, billingStatus, operator, pricePoint, mini_charge, subscriber_id){
+async function addToHistory(userId, packageId, transactionId, operatorResponse, billingStatus, operator, pricePoint, micro_charge, subscriber_id){
     return new Promise( async (resolve,reject) => {
         try {
             let billingHistoryObject = {};
@@ -436,13 +464,13 @@ async function addToHistory(userId, packageId, transactionId, operatorResponse, 
             billingHistoryObject.operator_response = operatorResponse;
             billingHistoryObject.billing_status = billingStatus;
             billingHistoryObject.operator = operator;
-            if(mini_charge){
+            if(micro_charge){
                 let attempt = await chargingAttemptRepo.getAttempt(subscriber_id);
                 billingHistoryObject.price = attempt.price_to_charge;
-                billingHistoryObject.mini_charge = mini_charge;
+                billingHistoryObject.micro_charge = micro_charge;
             }else{
                 billingHistoryObject.price = pricePoint;
-                billingHistoryObject.mini_charge = false;
+                billingHistoryObject.micro_charge = false;
             }
 
             let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
@@ -480,6 +508,7 @@ billingRepo.generateToken().then(async(token) => {
                 // Let's create queues
                 rabbitMq.createQueue(config.queueNames.messageDispathcer); // to dispatch messages like otp/subscription message/un-sub message etc
                 rabbitMq.createQueue(config.queueNames.subscriptionDispatcher); // to process subscription requests
+                rabbitMq.createQueue(config.queueNames.balanceCheckDispatcher); // to process balance check requests
 
                 //Let's start queue consumption
                 // Messaging Queue
@@ -490,6 +519,11 @@ billingRepo.generateToken().then(async(token) => {
                 // Subscriptin Queue
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
                     consumeSusbcriptionQueue(response);
+                });
+
+                 // Balance Check Queue
+                 rabbitMq.consumeQueue(config.queueNames.balanceCheckDispatcher, (response) => {
+                    consumeBalanceCheckQueue(response);
                 });
             }
         });

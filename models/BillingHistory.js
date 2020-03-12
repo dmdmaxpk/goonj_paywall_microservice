@@ -26,7 +26,7 @@ const billingHistorySchema = new Schema({
     //source of the user(android/ios/web/other)
     source: String,
 
-    mini_charge: { type: Boolean, default: false, index: true },
+    micro_charge: { type: Boolean, default: false, index: true },
     
     // operator of the user (telenor/zong/ufone etc)
     operator: String

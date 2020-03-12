@@ -9,7 +9,6 @@ const subscriberSchema = new Schema({
 
     user_id: {type: ShortId, required: true, unique: true},
     subscription_status: String,  // => billed/un-billed/expired/graced/trial
-    mini_charge: {type: Boolean, default: false, index: true},
     last_billing_timestamp: Date,
     next_billing_timestamp: Date,
     auto_renewal: { type: Boolean, default: true, index: true },

@@ -36,6 +36,11 @@ subscriptionRenewal = async() => {
             billingHistory.billing_status = 'expired';
             billingHistory.source = user.source;
             billingHistory.operator = 'telenor';
+
+            let attempt = await chargeAttemptRepo.getAttempt(subscriber._id);
+            if(attempt && attempt.active === true){
+                await attempt.updateAttempt(subscriber._id, {active: false});
+            }
             await billingHistoryRepo.createBillingHistory(billingHistory);
         }
 
@@ -95,7 +100,7 @@ renewSubscription = async(user) => {
     if(chargeAttempt && chargeAttempt.active === true && chargeAttempt.number_of_attempts_today >= 2){
         transactionId = "GoonjMiniCharge_"+msisdn+"_"+subscriber._id+"_Price_"+chargeAttempt.price_to_charge+"_"+shortId.generate()+"_"+getCurrentDate();
         subscriptionObj.attemp_id = chargeAttempt._id;
-        subscriptionObj.mini_charge = true;
+        subscriptionObj.micro_charge = true;
         subscriptionObj.price_to_charge = chargeAttempt.price_to_charge;
     }else{
         transactionId = "Goonj_"+msisdn+"_"+subscriber._id+"_"+packageObj._id+"_"+shortId.generate()+"_"+getCurrentDate();
@@ -104,12 +109,12 @@ renewSubscription = async(user) => {
 
     
     // Add object in queueing server
-    if (subscriptionObj.msisdn && (subscriptionObj.packageObj || subscriptionObj.mini_charge) && subscriptionObj.transactionId ) {
+    if (subscriptionObj.msisdn && (subscriptionObj.packageObj || subscriptionObj.micro_charge) && subscriptionObj.transactionId ) {
         if(subscriber.queued === false){
             let updated = await subsriberRepo.updateSubscriber(user._id, {queued: true});
             if(updated){
                 rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-                if(subscriptionObj.mini_charge){
+                if(subscriptionObj.micro_charge){
                     console.log('RenewSubscriptionMiniCharge - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));    
                 }else{
                     console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));

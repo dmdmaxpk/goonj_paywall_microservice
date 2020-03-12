@@ -10,7 +10,9 @@ incrementTPSCount = async(queueName) => {
             query = {$inc: {messagetpsCount: 1}};
         } else if (queueName === config.queueNames.subscriptionDispatcher) {
             query = {$inc: {subscriptiontpsCount: 1}};
-        }        
+        } else if (queueName === config.queueNames.balanceCheckDispatcher) {
+            query = {$inc: {balanceCheckCount: 1}};
+        }         
         await TpsCount.update({},query);
         return true;
     } else {

@@ -39,13 +39,13 @@ sendMessage = async(message, msisdn) => {
 
 // To subscribe package
 subscribePackage = async(subscriptionObj) => {
-    let {msisdn, packageObj, transactionId, mini_charge, price_to_charge} = subscriptionObj;
+    let {msisdn, packageObj, transactionId, micro_charge, price_to_charge} = subscriptionObj;
     let form = {
         "correlationID": transactionId,
         "msisdn": msisdn
     }
 
-    if(mini_charge){
+    if(micro_charge){
         console.log('MiniChargeTelenorBilling - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', ' - Price - ', price_to_charge, ' - TransectionId - ', transactionId, ' - ', (new Date()));
         form.chargableAmount = price_to_charge;
     }else{
