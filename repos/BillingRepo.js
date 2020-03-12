@@ -39,17 +39,24 @@ sendMessage = async(message, msisdn) => {
 
 // To subscribe package
 subscribePackage = async(subscriptionObj) => {
-    let {msisdn, packageObj, transactionId} = subscriptionObj;
-    console.log('TelenorBilling - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', packageObj.package_name, ' - Price - ', packageObj.price_point_pkr, ' - TransectionId - ', transactionId, ' - ', (new Date()));
-    
+    let {msisdn, packageObj, transactionId, micro_charge, price_to_charge} = subscriptionObj;
     let form = {
         "correlationID": transactionId,
-        "msisdn": msisdn,
-        "chargableAmount": packageObj.price_point_pkr,
-        "PartnerID": packageObj.partner_id,
-        "ProductID": "GoonjDCB-Charge"
+        "msisdn": msisdn
+    }
+
+    if(micro_charge){
+        console.log('MiniChargeTelenorBilling - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', ' - Price - ', price_to_charge, ' - TransectionId - ', transactionId, ' - ', (new Date()));
+        form.chargableAmount = price_to_charge;
+    }else{
+        console.log('TelenorBilling - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', packageObj.package_name, ' - Price - ', packageObj.price_point_pkr, ' - TransectionId - ', transactionId, ' - ', (new Date()));
+        form.chargableAmount = packageObj.price_point_pkr;
     }
     
+    form.PartnerID = packageObj.partner_id;
+    form.ProductID = "GoonjDCB-Charge";
+
+    console.log("Form Data: ", form);
     return new Promise(function(resolve, reject) {
         axios({
             method: 'post',
@@ -81,6 +88,27 @@ subscriberQuery = async(msisdn) => {
         }).catch(function(err){
             reject(err);
         });
+    });
+}
+// To check balance
+checkBalance = async(msisdn) => {
+    console.log('Checking Balance - ', msisdn, ' - ',(new Date()));
+    const transactionId = msisdn+"__"+(new Date().toDateString());
+    var form = { correlationId: transactionId, recipientMsisdn: msisdn};
+    
+    return new Promise(function(resolve, reject) {
+        axios({
+            method: 'post',
+            url: config.telenor_dcb_api_baseurl + 'balanceinquiry/v1/fetch',
+            headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
+            data: form
+        }).then(function(response){
+            console.log('Check Balance Success - ', msisdn, ' - Balance - ', response.data, ' - ',(new Date()));
+            resolve(response.data);
+        }).catch(function(err){
+            console.log('Check Balance Error - ', msisdn, ' - Error - ', err, ' - ',(new Date()));
+            reject(err);
+        });
     })
 };
 
@@ -89,5 +117,6 @@ module.exports = {
     sendMessage: sendMessage,
     subscribePackage: subscribePackage,
     sendMessage: sendMessage,
-    subscriberQuery: subscriberQuery
+    subscriberQuery: subscriberQuery,
+    checkBalance: checkBalance
 }

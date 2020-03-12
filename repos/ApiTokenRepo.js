@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const ApiToken = mongoose.model('ApiToken');
 
 createToken = async(postData) => {
-    postData.last_modified = new Date();
     let token = new ApiToken(postData);
     let result = await token.save();
     return result;
