@@ -381,10 +381,14 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
                     status = 'graced';
 
                     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
-                    if(!attempt || (attempt && attempt.active === false)){
-                        subObj.next_billing_timestamp = nextBillingDate;
+                    if(attempt){
+                        if(attempt.active === true && attempt.price_to_charge > 0){
+                            checkForMiniCharging(subscriber.user_id, subscriber._id);
+                        }else {
+                            subObj.next_billing_timestamp = nextBillingDate;
+                        }
                     }else{
-                        checkForMiniCharging(subscriber.user_id, subscriber._id);
+                        subObj.next_billing_timestamp = nextBillingDate;
                     }
                 }
             } else {
@@ -414,12 +418,12 @@ async function checkForMiniCharging(user_id, subscriber_id){
     let attempt = await chargingAttemptRepo.getAttempt(subscriber_id);
     if(attempt){
         await chargingAttemptRepo.incrementAttempt(subscriber_id);
+        let chargingAttemptController = require('./controllers/ChargingAttemptController');
+        chargingAttemptController.microChargingAttempt(user_id, subscriber_id);
     }else{
         await chargingAttemptRepo.createAttempt({subscriber_id: subscriber_id, number_of_attempts_today: 1});    
         console.log('Created grace attempts record for subscriber ', subscriber_id);
     }
-    let chargingAttemptController = require('./controllers/ChargingAttemptController');
-    chargingAttemptController.microChargingAttempt(user_id, subscriber_id);
 }
 
 async function addToHistory(userId, packageId, transactionId, operatorResponse, billingStatus, operator, pricePoint, mini_charge, subscriber_id){

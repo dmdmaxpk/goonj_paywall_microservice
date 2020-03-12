@@ -65,6 +65,7 @@ microChargingAttempt = async (user_id, subscriber_id) => {
 					}
 				}else{
 					// Less than flooring value or as soon as it becomes zero
+					await repo.updateAttempt(subscriber_id, {"price_to_charge": currentPrice});
 					await repo.markInActive(subscriber_id);
 					console.log('MicroCharging - InActive - Subscriber ', subscriber_id, ' - ', (new Date()));
 				}
