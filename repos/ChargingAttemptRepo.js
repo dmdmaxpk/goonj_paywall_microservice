@@ -70,5 +70,7 @@ module.exports = {
     incrementAttempt: incrementAttempt,
     resetAttempts: resetAttempts,
     getAttempt: getAttempt,
-    updateAttempt: updateAttempt
+    updateAttempt: updateAttempt,
+    markInActive: markInActive,
+    markActive: markActive
 }
