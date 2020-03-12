@@ -216,13 +216,14 @@ consumeSusbcriptionQueue = async(res) => {
                                
                                 // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
-                                    if(subObj.mini_charge){
+                                    if(mini_charge){
                                         await chargingAttemptRepo.resetAttempts(subscriber._id);
                                         await chargingAttemptRepo.markInActive(subscriber._id);
 
                                         console.log("Sending %age discout message to "+msisdn);
                                         let percentage = ((price_charged / packageObj.price_point_pkr)*100);
                                         percentage = (100 - percentage);
+
                                         //Send acknowldement to user
                                         let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
                                         let message = "You've got "+percentage+"% discount on "+response.packageObj.package_name+", to unsub click the link below.\n"+link
@@ -251,6 +252,7 @@ consumeSusbcriptionQueue = async(res) => {
                             rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
+                        console.log(error);
                         if (error.response && error.response.data){
                             console.log('Error ',error.response.data);
                         }else {
