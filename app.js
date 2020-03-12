@@ -450,7 +450,7 @@ async function addMicroChargingToQueue(subscriber){
         console.log('MicroCharging Added In Queue - Subscriber ', subscriber._id);
     }else{
         await chargingAttemptRepo.createAttempt({subscriber_id: subscriber._id, number_of_attempts_today: 1});    
-        console.log('Created Charging Attempt Record - Subscriber ', subscriber_id);
+        console.log('Created Charging Attempt Record - Subscriber ', subscriber._id);
     }
 }
 
