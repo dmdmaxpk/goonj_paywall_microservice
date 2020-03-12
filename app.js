@@ -363,7 +363,7 @@ async function assignGracePeriodToSubscriber(subscriber){
             let subObj = {};
             subObj.queued = false;
             // Check if this subscriber is eligible for grace period
-            let user = await userRepo.getUserById(user_id);
+            let user = await userRepo.getUserById(subscriber.user_id);
             let currentPackage = await packageRepo.getPackage({"_id": user.subscribed_package_id});
 
             if((subscriber.subscription_status === 'billed' || subscriber.subscription_status === 'trial') && subscriber.auto_renewal === true){
