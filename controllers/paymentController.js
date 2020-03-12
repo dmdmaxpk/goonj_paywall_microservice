@@ -319,7 +319,18 @@ exports.subscribe = async (req, res) => {
 				postObj.subscription_status = 'trial';
 			}
 
-			await userRepo.updateUserById(user._id, {subscription_status: postObj.subscription_status});
+			let updateUserObj = {};
+			updateUserObj.subscription_status = postObj.subscription_status;
+			if(req.body.marketing_source){
+				updateUserObj.marketing_source = req.body.marketing_source;
+			}
+			if(req.body.affiliate_unique_transaction_id && req.body.affiliate_mid){
+				updateUserObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
+				updateUserObj.affiliate_mid = req.body.affiliate_mid;
+			}
+			updateUserObj.source = req.body.source ?  req.body.source : 'unknown';
+
+			await userRepo.updateUserById(user._id, updateUserObj);
 			let subscriber = await subscriberRepo.createSubscriber(postObj);
 			if(subscriber){
 				/* 
