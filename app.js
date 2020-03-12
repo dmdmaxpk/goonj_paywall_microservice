@@ -370,7 +370,7 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
                     let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
                     await billingRepo.sendMessage(message, user.msisdn);
                     await chargingAttemptRepo.resetAttempts(subscriber._id);
-                    await chargingAttemptRepo.markInActive();
+                    await chargingAttemptRepo.markInActive(subscriber._id);
                     console.log('MicroCharging - InActiveAfterExpiration - Subscriber ', subscriber._id, ' - ', (new Date()));
                 } else {
                     let nextBillingDate = new Date();
