@@ -118,7 +118,7 @@ consumeBalanceCheckQueue = async(response) => {
         } else {
             console.log("TPS quota full for balance check, waiting for ms to elapse - ", new Date());
             setTimeout(() => {
-                consumeMessageQueue(response);
+                consumeBalanceCheckQueue(response);
             }, 500);
         }
     } catch (err ) {
