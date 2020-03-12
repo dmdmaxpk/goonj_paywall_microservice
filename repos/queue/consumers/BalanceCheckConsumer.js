@@ -12,7 +12,7 @@ microChargingAttempt = async (subscriber) => {
 	let packagePrice = package.price_point_pkr;
 
 	let billlHistory = {};
-	billlHistory.user_id = user_id;
+	billlHistory.user_id = user._id;
 	
 	billlHistory.package_id = package._id;
 	billlHistory.operator = "telenor";
