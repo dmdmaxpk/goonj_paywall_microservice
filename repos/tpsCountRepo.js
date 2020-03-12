@@ -32,6 +32,9 @@ getTPSCount = async(queueName) => {
         } else if (queueName === config.queueNames.subscriptionDispatcher) {
             query =  {subscriptiontpsCount: 1};
             fieldName = "subscriptiontpsCount";
+        } else if (queueName === config.queueNames.balanceCheckDispatcher) {
+            query =  {balanceCheckCount: 1};
+            fieldName = "balanceCheckCount";
         }
         try {
             let tps = await TpsCount.findOne({},fieldName);
