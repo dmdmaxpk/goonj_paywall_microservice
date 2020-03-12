@@ -375,7 +375,6 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
                     subObj.time_spent_in_grace_period_in_hours = (subscriber.time_spent_in_grace_period_in_hours + config.time_between_billing_attempts_hours);
                     subObj.subscription_status = 'graced';
                     status = 'graced';
-                    subObj.next_billing_timestamp = nextBillingDate;
 
                     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
                     if(!attempt || (attempt && attempt.active === false)){
