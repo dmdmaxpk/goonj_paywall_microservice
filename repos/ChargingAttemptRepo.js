@@ -33,7 +33,7 @@ incrementAttempt = async(subscriber_id) => {
 }
 
 getAttempt = async(subscriber_id) => {
-    result = await ChargingAttempt.findOne({subscriber_id: subscriber_id, active: true});
+    result = await ChargingAttempt.findOne({subscriber_id: subscriber_id});
 	return result;
 }
 

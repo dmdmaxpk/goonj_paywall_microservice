@@ -376,8 +376,13 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
                     subObj.subscription_status = 'graced';
                     status = 'graced';
                     subObj.next_billing_timestamp = nextBillingDate;
-                    
-                    checkForMiniCharging(subscriber.user_id, subscriber._id);
+
+                    let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
+                    if(!attempt || (attempt && attempt.active === false)){
+                        subObj.next_billing_timestamp = nextBillingDate;
+                    }else{
+                        checkForMiniCharging(subscriber.user_id, subscriber._id);
+                    }
                 }
             } else {
                 subObj.subscription_status = user.subscription_status;

@@ -47,7 +47,7 @@ microChargingAttempt = async (user_id, subscriber_id) => {
 		}
 
 		let attempt = await repo.getAttempt(subscriber_id);
-		if(attempt){
+		if(attempt && attempt.active === true){
 			let currentPrice = attempt.price_to_charge;
 			if(currentPrice === 0){
 				// Means not tried for micro charging before or it has been reset
