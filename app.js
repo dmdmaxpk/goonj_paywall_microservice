@@ -324,7 +324,7 @@ async function sendCallBackToIdeation(mid, tid){
     });
 }
 
-async function assignGracePeriodToSubscriber(subscriber,user_id){
+async function assignGracePeriodToSubscriber(subscriber, user_id){
     return new Promise (async (resolve,reject) => {
         try {
             let status = "";
@@ -377,7 +377,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                     status = 'graced';
                     subObj.next_billing_timestamp = nextBillingDate;
                     
-                    checkForMiniCharging();
+                    checkForMiniCharging(subscriber._id);
                 }
             } else {
                 subObj.subscription_status = user.subscription_status;
