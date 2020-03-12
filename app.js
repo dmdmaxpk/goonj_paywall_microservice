@@ -382,7 +382,7 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
 
                     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
                     if(attempt){
-                        if(attempt.active === true && attempt.price_to_charge > 0){
+                        if(attempt.active === true){
                             checkForMiniCharging(subscriber.user_id, subscriber._id);
                         }else {
                             subObj.next_billing_timestamp = nextBillingDate;
