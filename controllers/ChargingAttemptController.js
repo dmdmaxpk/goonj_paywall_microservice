@@ -5,6 +5,8 @@ const historyRepo = require('../repos/BillingHistoryRepo');
 const userRepo = require('../repos/UserRepo');
 
 microChargingAttempt = async (user_id, subscriber_id) => {
+	console.log("User Id: ", user_id);
+	console.log("Subscriber Id: ", subscriber_id);
 	let user = await userRepo.getUserById(user_id);
 	let billlHistory = {};
 	billlHistory.user_id = user_id;

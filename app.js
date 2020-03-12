@@ -354,7 +354,7 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
                     await chargingAttemptRepo.resetAttempts(subscriber._id);
                     console.log('MicroCharging - Activated and Reset - Subscriber ', subscriber._id, ' - ', (new Date()));
                 }
-                checkForMiniCharging(subscriber._id);
+                checkForMiniCharging(subscriber.user_id, subscriber._id);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
                 // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
                 if ( subscriber.time_spent_in_grace_period_in_hours > currentPackage.grace_hours){
@@ -377,7 +377,7 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
                     status = 'graced';
                     subObj.next_billing_timestamp = nextBillingDate;
                     
-                    checkForMiniCharging(subscriber._id);
+                    checkForMiniCharging(subscriber.user_id, subscriber._id);
                 }
             } else {
                 subObj.subscription_status = user.subscription_status;
@@ -402,7 +402,7 @@ async function assignGracePeriodToSubscriber(subscriber, user_id){
 
 }
 
-async function checkForMiniCharging(subscriber_id){
+async function checkForMiniCharging(user_id, subscriber_id){
     let attempt = await chargingAttemptRepo.getAttempt(subscriber_id);
     if(attempt){
         await chargingAttemptRepo.incrementAttempt(subscriber_id);
@@ -411,7 +411,7 @@ async function checkForMiniCharging(subscriber_id){
         console.log('Created grace attempts record for subscriber ', subscriber_id);
     }
     let chargingAttemptController = require('./controllers/ChargingAttemptController');
-    chargingAttemptController.microChargingAttempt();
+    chargingAttemptController.microChargingAttempt(user_id, subscriber_id);
 }
 
 async function addToHistory(userId,packageId,transactionId,operatorResponse,billingStatus,operator,pricePoint, mini_charge){
