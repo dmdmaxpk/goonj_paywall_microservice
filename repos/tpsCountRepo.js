@@ -48,7 +48,7 @@ getTPSCount = async(queueName) => {
 
 resetTPSCount = async() => {
     try {
-        let updated = await TpsCount.update({},{$set:{ messagetpsCount: 0  , subscriptiontpsCount: 0   }},{upsert: true});
+        let updated = await TpsCount.update({},{$set:{ messagetpsCount: 0  , subscriptiontpsCount: 0, balanceCheckCount: 0   }},{upsert: true});
     } catch (err) {
         throw err;
     }
