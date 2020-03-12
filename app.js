@@ -264,7 +264,7 @@ consumeSusbcriptionQueue = async(res) => {
                             console.log('BillingFailed - Package - ', (new Date()));
                             try {
                                 let status = await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
-                                await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id, error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr, mini_charge !== undefined ? true : false);
+                                await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id, error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr, mini_charge);
                             } catch(err) {
                                 console.log("Error: could not assign Grace period", err);
                             }
@@ -424,7 +424,12 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
             billingHistoryObject.billing_status = billingStatus;
             billingHistoryObject.operator = operator;
             billingHistoryObject.price = pricePoint;
-            billingHistoryObject.mini_charge = mini_charge;
+            if(mini_charge){
+                billingHistoryObject.mini_charge = mini_charge;
+            }else{
+                billingHistoryObject.mini_charge = false;
+            }
+            
             let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
             resolve('done');
         }catch (er) {
