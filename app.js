@@ -110,7 +110,7 @@ consumeBalanceCheckQueue = async(response) => {
                 console.log('Success: ', data);
                 await tpsCountRepo.incrementTPSCount(config.queueNames.balanceCheckDispatcher);
                 rabbitMq.acknowledge(response);
-            }).catch(error => {
+            }).catch(async(error) => {
                 console.log('Error: ', error.message);
                 await tpsCountRepo.incrementTPSCount(config.queueNames.balanceCheckDispatcher);
                 rabbitMq.acknowledge(response);
