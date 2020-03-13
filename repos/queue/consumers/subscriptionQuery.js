@@ -6,8 +6,8 @@ let subscriberRepo = require("../../SubscriberRepo");
 let config = require("../../../config");
 
 consume = async(message) => {
+    let message_content = JSON.parse(message.content);
     try {
-        let message_content = JSON.parse(message.content);
         console.log("consumer of subscriptionQuery",message_content);
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriberQueryDispatcher);
         if (countThisSec < config.telenor_message_api_tps) { 
