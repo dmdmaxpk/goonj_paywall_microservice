@@ -3,6 +3,7 @@ let tpsCountRepo = require("../../tpsCountRepo");
 let billingHistoryRepo = require("../../BillingHistoryRepo");
 let userRepo = require("../../UserRepo");
 let subscriberRepo = require("../../SubscriberRepo");
+let messageRepo = require("../../MessageRepo");
 let config = require("../../../config");
 
 consume = async(message) => {
@@ -25,7 +26,7 @@ consume = async(message) => {
 
             // once response is recieved save appropriate response in User model
             // set fields on User model "active", "autorenewal" appropriately
-            if (api_response.Message === "Success") {
+            if (api_response.Message === "Success" || api_response.AssetStatus === "Active") {
                 // user is customer of telenor
                 await userRepo.updateUserById(message_content.user_id,{
                     operator: "telenor"
@@ -33,6 +34,7 @@ consume = async(message) => {
             } else {
                 // for now just print the response
                 console.log("api_response",api_response);
+                revokeUserAccess(message_content.user_id,api_response,message_content.user_id.msisdn);
             }
             
             rabbitMq.acknowledge(message);
@@ -47,23 +49,7 @@ consume = async(message) => {
             if ( error.response.data.errorCode === "500.002.03" && error.response.data.errorMessage === "Not a valid Telenor Customer. Please try again.") {
                 // user is not customer of telenor
                 // set operator and set active of user to false
-                console.log("Reached here");
-                await userRepo.updateUserById(message_content.user_id,{
-                    operator: "not_telenor",
-                    active: false
-                });
-                // also set active and autorenewal of subscriber to false
-                await subscriberRepo.updateSubscriber(message_content.user_id,{
-                    active: false,
-                    auto_renewal: false
-                });
-
-                let billingHistory = {};
-                billingHistory.user_id = message_content.user_id;
-                billingHistory.billing_status = "subscriber_query_api_error";
-                billingHistory.operator = "not_telenor";
-                billingHistory.operator_response = error.response.data;
-                await billingHistoryRepo.createBillingHistory(billingHistory);
+                revokeUserAccess(message_content.user_id,error.response.data,message_content.msisdn);
             }
         }
         console.error("Subscriber Query",error);
@@ -76,3 +62,32 @@ consume = async(message) => {
 module.exports = {
     consume: consume
 }
+
+
+async function  revokeUserAccess(user_id,data,msisdn){
+    await userRepo.updateUserById(user_id,{
+        operator: "not_telenor",
+        active: false
+    });
+    // also set active and autorenewal of subscriber to false
+    await subscriberRepo.updateSubscriber(user_id,{
+        active: false,
+        auto_renewal: false
+    });
+    
+    accesRevokeMessageToUser(msisdn);
+
+    let billingHistory = {};
+    billingHistory.user_id = user_id;
+    billingHistory.billing_status = "subscriber_query_api_error";
+    billingHistory.operator = "not_telenor";
+    billingHistory.operator_response = data;
+    await billingHistoryRepo.createBillingHistory(billingHistory);
+
+}
+
+async function accesRevokeMessageToUser(msisdn){
+    let text = `Dear user we regret to inform you that your access to goonjhas been revoked.`
+    messageRepo.sendSmsToUser(msisdn)
+}
+
