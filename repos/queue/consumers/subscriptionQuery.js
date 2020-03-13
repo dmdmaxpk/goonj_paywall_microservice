@@ -44,7 +44,7 @@ consume = async(message) => {
         }
     } catch (error) {
         if (error && error.response.data && error.response.data.errorCode && error.response.data.errorMessage ) {
-            if ( error.response.data.errorCode === "500.002.03" && error.response.data.errorMessage === "Not a valid Telenor Customer.Please try again.") {
+            if ( error.response.data.errorCode === "500.002.03" && error.response.data.errorMessage === "Not a valid Telenor Customer. Please try again.") {
                 // user is not customer of telenor
                 // set operator and set active of user to false
                 console.log("Reached here");
@@ -57,6 +57,13 @@ consume = async(message) => {
                     active: false,
                     auto_renewal: false
                 });
+
+                let billingHistory = {};
+                billingHistory.user_id = message_content.user_id;
+                billingHistory.billing_status = "subscriber_query_api_error";
+                billingHistory.operator = "not_telenor";
+                billingHistory.operator_response = error.response.data;
+                await billingHistoryRepo.createBillingHistory(billingHistory);
             }
         }
         console.error("Subscriber Query",error);
