@@ -44,9 +44,11 @@ consume = async(message) => {
         }
     } catch (error) {
         if (error && error.response && error.response.errorCode && error.response.errorMessage ) {
+            console.log("Reached here -",error.response.errorCode,error.response.errorMessage);
             if ( error.response.errorCode === "500.002.03" && error.response.errorMessage === "Not a valid Telenor Customer.Please try again.") {
                 // user is not customer of telenor
                 // set operator and set active of user to false
+                console.log("Reached here");
                 await userRepo.updateUserById(message_content.user_id,{
                     operator: "not_telenor",
                     active: false
