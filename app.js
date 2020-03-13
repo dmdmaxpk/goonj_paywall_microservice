@@ -526,7 +526,6 @@ billingRepo.generateToken().then(async(token) => {
 
                 // Subscriptin Queue
                 rabbitMq.consumeQueue(config.queueNames.subscriberQueryDispatcher, (response) => {
-                    console.log("subscriberQueryDispatcher",JSON.parse(response.content) );
                     subscriptionQueryConsumer.consume(response);
                 });
 
@@ -535,7 +534,9 @@ billingRepo.generateToken().then(async(token) => {
                     consumeBalanceCheckQueue(response);
                 });
 
-    }
+            }
+        });
+    }       
 }).catch(err => {
     console.log('Error while fetching token', err);
 });
@@ -546,14 +547,6 @@ app.use('/', require('./routes/index'));
 
 // Start Server
 let { port } = config;
-app.listen(port, () => console.log(`APP running on port ${port}`));
-
-/*
-TODO:
-0. Set TPS for both apis sms and subscriptions
-5. grace periods - expiry - sms notifications etc
-6. Maintain history as well
-7. Check on over billing
-8. Trial
-*/
- 
+app.listen(port, () => {
+    console.log(`APP running on port ${port}`)
+});

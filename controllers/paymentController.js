@@ -85,7 +85,6 @@ exports.sendOtp = async (req, res) => {
 		userObj.msisdn = msisdn;
 		userObj.subscribed_package_id = 'none';
 		userObj.source = req.body.source ? req.body.source : 'unknown';
-		userObj.operator = 'telenor';
 		userObj.subscription_status = 'none';
 
 		if(req.body.marketing_source){
@@ -201,7 +200,6 @@ exports.subscribe = async (req, res) => {
 		userObj.msisdn = msisdn;
 		userObj.subscribed_package_id = req.body.package_id;
 		userObj.source = req.body.source ?  req.body.source : 'unknown';
-		userObj.operator = 'telenor';
 		userObj.subscription_status = 'none';
 		userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 		userObj.affiliate_mid = req.body.affiliate_mid;
@@ -231,7 +229,6 @@ exports.subscribe = async (req, res) => {
 			let billingHistoryObject = {};
 			billingHistoryObject.user_id = user._id;
 			billingHistoryObject.package_id = user.subscribed_package_id;
-			billingHistoryObject.operator = 'telenor';
 
 			// creating viewLog meaning that user has seen the app
 			await viewLogRepo.createViewLog(user._id);
@@ -347,7 +344,7 @@ exports.subscribe = async (req, res) => {
 						billingHistory.operator_response = undefined;
 						billingHistory.billing_status = 'trial';
 						billingHistory.source = req.body.source;
-						billingHistory.operator = 'telenor';
+						billingHistory.operator = user.operator;
 						await billingHistoryRepo.createBillingHistory(billingHistory);
 						
 						let text = `Goonj TV 24 hour free trial started. Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
@@ -468,7 +465,7 @@ exports.unsubscribe = async (req, res) => {
 		billingHistory.operator_response = undefined;
 		billingHistory.billing_status = 'unsubscribe-request-recieved';
 		billingHistory.source = user.source;
-		billingHistory.operator = 'telenor';
+		billingHistory.operator = user.operator;
 		result = await billingHistoryRepo.createBillingHistory(billingHistory);
 		// send SMS to user
 		let smsText = `Apki Goonj TV ki subscription khatam kar di gayi hai. Phir se subscribe karne ke liye link par click karein https://www.goonj.pk/goonjplus/subscribe`;

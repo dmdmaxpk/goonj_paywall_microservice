@@ -83,8 +83,8 @@ subscriberQuery = async(msisdn) => {
             url: config.telenor_dcb_api_baseurl + `subscriberQuery/v3/checkinfo/${msisdn}`,
             headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
         }).then(function(response){
-            console.log("subscriberQuery Response" , response);
-            resolve(response);
+            console.log("subscriberQuery Response" , response.data);
+            resolve(response.data);
         }).catch(function(err){
             reject(err);
         });

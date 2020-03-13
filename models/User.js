@@ -7,7 +7,7 @@ const ObjectId = Schema.ObjectId;
 const userSchema = new Schema({
     //Generating shortid instead of uuid
     _id: { type: ShortId, len: 8, retries: 4 },
-    msisdn: { type: String,required:true, index: true, validate: /^034[0-9]{8}$/ },
+    msisdn: { type: String,required:true, index: true },
     subscription_status: String,
     subscribed_package_id: {type: ShortId, required: true},
 
