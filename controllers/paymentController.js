@@ -218,7 +218,7 @@ exports.subscribe = async (req, res) => {
 		}
 	}
 
-	if(user){
+	if(user && user.active === true){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriber(user._id);
 		if(subscriber){
@@ -361,6 +361,8 @@ exports.subscribe = async (req, res) => {
 				res.send({code: config.codes.code_error, message: 'Failed to create subscriber'});
 			}
 		}
+	} else {
+		res.status(200).json({message: "This account is not of an active telenor user"}); 
 	}
 }
 
