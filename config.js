@@ -3,9 +3,9 @@ const env = process.env.NODE_ENV || 'development';
 // application gets environment from either system envs or from this file in above line.
 
 const telenor_message_api_tps = 5;
-const telenor_subscription_api_tps = 15;
+const telenor_subscription_api_tps = 25;
 const telenor_subscriber_query_api_tps = 5;
-const balance_check_api_tps = 3;
+const balance_check_api_tps = 5;
 
 const codes = {
     code_error: -1,
