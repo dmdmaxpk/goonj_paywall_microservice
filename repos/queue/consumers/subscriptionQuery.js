@@ -26,7 +26,7 @@ consume = async(message) => {
 
             // once response is recieved save appropriate response in User model
             // set fields on User model "active", "autorenewal" appropriately
-            if (api_response.Message === "Success" || api_response.AssetStatus === "Active") {
+            if (api_response.Message === "Success" && api_response.AssetStatus === "Active") {
                 // user is customer of telenor
                 await userRepo.updateUserById(message_content.user_id,{
                     operator: "telenor"
