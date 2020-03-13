@@ -87,7 +87,7 @@ async function  revokeUserAccess(user_id,data,msisdn){
 }
 
 async function accesRevokeMessageToUser(msisdn){
-    let text = `Dear user we regret to inform you that your access to goonj has been revoked.`
+    let text = `Dear user we regret to inform you that your access to Goonj TV has been revoked.`
     messageRepo.sendSmsToUser(text,msisdn)
 }
 
