@@ -53,7 +53,7 @@ consume = async(message) => {
                     active: false
                 });
                 // also set active and autorenewal of subscriber to false
-                await subscriberRepo.updateUserById(message_content.user_id,{
+                await subscriberRepo.updateSubscriber(message_content.user_id,{
                     active: false,
                     auto_renewal: false
                 });
