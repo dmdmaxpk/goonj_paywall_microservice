@@ -34,7 +34,7 @@ consume = async(message) => {
             } else {
                 // for now just print the response
                 console.log("api_response",api_response);
-                revokeUserAccess(message_content.user_id,api_response,message_content.user_id.msisdn);
+                revokeUserAccess(message_content.user_id,api_response,message_content.msisdn);
             }
             
             rabbitMq.acknowledge(message);
