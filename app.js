@@ -444,7 +444,7 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
 }
 
 async function addMicroChargingToQueue(subscriber){
-    await chargeAttemptRepo.unqueue(subscriber._id);
+    await chargingAttemptRepo.unqueue(subscriber._id);
     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
     if(attempt){
         await chargingAttemptRepo.incrementAttempt(subscriber._id);
