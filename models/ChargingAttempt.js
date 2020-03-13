@@ -9,6 +9,7 @@ const chargingAttemptsSchema = new Schema({
     number_of_attempts_today: {type: Number, default: 0},
     number_of_total_attempts: {type: Number, default: 0},
     active: {type: Boolean, default: true},
+    queued: {type: Boolean, default: false},
     last_modified: Date,
     added_dtm: { type: Date, default: Date.now }
 }, { strict: true });

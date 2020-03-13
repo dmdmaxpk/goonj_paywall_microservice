@@ -97,7 +97,8 @@ renewSubscription = async(user) => {
     subscriptionObj.user_id = user._id;
     subscriptionObj.msisdn = msisdn;
     
-    if(chargeAttempt && chargeAttempt.active === true && chargeAttempt.number_of_attempts_today >= 2){
+    if(chargeAttempt && chargeAttempt.queued === false && chargeAttempt.active === true && chargeAttempt.number_of_attempts_today >= 2){
+        await chargeAttemptRepo.queue(subscriber._id);
         transactionId = "GoonjMiniCharge_"+msisdn+"_"+subscriber._id+"_Price_"+chargeAttempt.price_to_charge+"_"+shortId.generate()+"_"+getCurrentDate();
         subscriptionObj.attemp_id = chargeAttempt._id;
         subscriptionObj.micro_charge = true;

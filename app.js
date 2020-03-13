@@ -250,7 +250,7 @@ consumeSusbcriptionQueue = async(res) => {
                                         await chargingAttemptRepo.markInActive(subscriber._id);
 
                                         console.log("Sending %age discout message to "+msisdn);
-                                        let percentage = ((price_charged / packageObj.price_point_pkr)*100);
+                                        let percentage = ((price_to_charge / packageObj.price_point_pkr)*100);
                                         percentage = (100 - percentage);
 
                                         //Send acknowldement to user
@@ -444,6 +444,7 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
 }
 
 async function addMicroChargingToQueue(subscriber){
+    await chargeAttemptRepo.unqueue(subscriber._id);
     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
     if(attempt){
         await chargingAttemptRepo.incrementAttempt(subscriber._id);
