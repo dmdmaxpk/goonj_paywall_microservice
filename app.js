@@ -248,6 +248,7 @@ consumeSusbcriptionQueue = async(res) => {
                                     if(micro_charge){
                                         await chargingAttemptRepo.resetAttempts(subscriber._id);
                                         await chargingAttemptRepo.markInActive(subscriber._id);
+                                        await chargingAttemptRepo.unqueue(subscriber._id);
 
                                         console.log("Sending %age discout message to "+msisdn);
                                         let percentage = ((micro_price_to_charge / packageObj.price_point_pkr)*100);
@@ -276,6 +277,10 @@ consumeSusbcriptionQueue = async(res) => {
                                 }
                             }else{
                                 // Billing failed
+                                if(micro_charge){
+                                    await chargingAttemptRepo.unqueue(subscriber._id);
+                                }
+
                                await assignGracePeriodToSubscriber(subscriber);
                             }
                             rabbitMq.acknowledge(res);
@@ -297,6 +302,10 @@ consumeSusbcriptionQueue = async(res) => {
                             // Enter user into grace period
                             console.log('BillingFailed - Package - ', (new Date()));
                             try {
+                                if(micro_charge){
+                                    await chargingAttemptRepo.unqueue(subscriber._id);
+                                }
+                                
                                 await assignGracePeriodToSubscriber(subscriber, subscriptionObj, error, micro_charge);
                             } catch(err) {
                                 console.log("Error: could not assign Grace period", err);
@@ -444,7 +453,6 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
 }
 
 async function addMicroChargingToQueue(subscriber){
-    await chargingAttemptRepo.unqueue(subscriber._id);
     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
     if(attempt){
         await chargingAttemptRepo.incrementAttempt(subscriber._id);
