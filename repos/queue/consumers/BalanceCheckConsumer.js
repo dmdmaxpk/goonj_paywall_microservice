@@ -29,47 +29,56 @@ microChargingAttempt = async (subscriber) => {
             let splitted = band.split("-");
             if(splitted.length == 2){
                 // Band is available e.g. 5-10
-                // Pick the ceiling value
                 flooringValue = splitted[0];
                 ceilingValue = splitted[1];
-    
-                if(flooringValue > packagePrice){
-                    ceilingValue = packagePrice;
-                }
             }else{
                 // Band is not available. E.g: More than 50
-                let currentpackagePrice = packagePrice;
-                currentpackagePrice-=1;
-                ceilingValue = currentpackagePrice;
+                ceilingValue = (packagePrice-1);
                 flooringValue = 1;
             }
     
             let attempt = await repo.getAttempt(subscriber._id);
             if(attempt && attempt.active === true){
-                let currentPrice = attempt.price_to_charge;
-                if(currentPrice === 0){
+                let attemptPrice = attempt.price_to_charge;
+                if(attemptPrice === 0){
                     // Means not tried for micro charging before or it has been reset
                     let updated = await repo.updateAttempt(subscriber._id, {"price_to_charge": ceilingValue});
                     if(updated){
                         console.log('MicroChargingAttempt - Scheduled For Price - ',ceilingValue, ' - Subscriber ', subscriber._id, ' - ', (new Date()));
                     }
                 }else{
-                    currentPrice-=1;
-                    if(currentPrice > 0 && currentPrice >= flooringValue){
-                        // Must be between balance band
-                        let updated = await repo.updateAttempt(subscriber._id, {"price_to_charge": currentPrice});
-                        if(updated){
-                            console.log('MicroChargingAttempt - AgainScheduled For Price - ',currentPrice, ' - Subscriber ', subscriber._id, ' - ', (new Date()));
+                    let price_to_charge = attemptPrice;
+                    if(ceilingValue < attemptPrice){
+                        price_to_charge = ceilingValue;    
+                    }else{
+                        price_to_charge-=1;
+                    }
+
+                    // Must be between balance band
+                    if(price_to_charge > 0 && price_to_charge >= flooringValue){
+                        
+                        // If the price to charge is greater than package's actual price, charge for package price only
+                        if(price_to_charge >= packagePrice){
+                            let updated = await repo.updateAttempt(subscriber._id, {"price_to_charge": packagePrice});
+                            if(updated){
+                                console.log('MicroChargingAttempt - AgainScheduled For Package Actual Price - ',packagePrice, ' - Subscriber ', subscriber._id, ' - ', (new Date()));
+                            }
+                        }else{
+                            let updated = await repo.updateAttempt(subscriber._id, {"price_to_charge": price_to_charge});
+                            if(updated){
+                                console.log('MicroChargingAttempt - AgainScheduled For Price - ',price_to_charge, ' - Subscriber ', subscriber._id, ' - ', (new Date()));
+                            }
                         }
+                        
                     }else{
                         // Less than flooring value or as soon as it becomes zero
-                        await repo.updateAttempt(subscriber._id, {"price_to_charge": currentPrice});
+                        await repo.updateAttempt(subscriber._id, {"price_to_charge": price_to_charge});
                         await repo.markInActive(subscriber._id);
     
                         let nextBillingDate = new Date();
                         nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
                     
-                        let subscriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {next_billing_dtm: nextBillingDate});
+                        let subscriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {next_billing_timestamp: nextBillingDate});
                         if(subscriberUpdated){
                             console.log('MicroCharging - InActive - Subscriber Updated ', subscriber._id, ' - ', (new Date()));
                         }else{

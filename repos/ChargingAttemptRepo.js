@@ -43,12 +43,22 @@ resetAttempts = async(subscriber_id) => {
 }
 
 markInActive = async(subscriber_id) => {
-    let result = await updateAttempt(subscriber_id, {active: false});
+    let result = await updateAttempt(subscriber_id, {active: false, queued: false});
 	return result;
 }
 
 markActive = async(subscriber_id) => {
-    let result = await updateAttempt(subscriber_id, {active: true});
+    let result = await updateAttempt(subscriber_id, {active: true, queued: false});
+	return result;
+}
+
+queue = async(subscriber_id) => {
+    let result = await updateAttempt(subscriber_id, {queued: true});
+	return result;
+}
+
+unqueue = async(subscriber_id) => {
+    let result = await updateAttempt(subscriber_id, {queued: false});
 	return result;
 }
 
@@ -72,5 +82,7 @@ module.exports = {
     getAttempt: getAttempt,
     updateAttempt: updateAttempt,
     markInActive: markInActive,
-    markActive: markActive
+    markActive: markActive,
+    queue: queue,
+    unqueue: unqueue
 }
