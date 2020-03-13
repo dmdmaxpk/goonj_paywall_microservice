@@ -297,8 +297,7 @@ consumeSusbcriptionQueue = async(res) => {
                             // Enter user into grace period
                             console.log('BillingFailed - Package - ', (new Date()));
                             try {
-                                await assignGracePeriodToSubscriber(subscriber);
-                                await addToHistory(subscriber.user_id, subscriptionObj.packageObj._id, subscriptionObj.transaction_id, error.response.data, subscriber.subscription_status,'telenor', subscriptionObj.packageObj.price_point_pkr, micro_charge, subscriber._id);
+                                await assignGracePeriodToSubscriber(subscriber, subscriptionObj, error, micro_charge);
                             } catch(err) {
                                 console.log("Error: could not assign Grace period", err);
                             }
@@ -357,7 +356,7 @@ async function sendCallBackToIdeation(mid, tid){
     });
 }
 
-async function assignGracePeriodToSubscriber(subscriber){
+async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error, micro_charge){
     return new Promise (async (resolve,reject) => {
         try {
             let status = "";
@@ -434,6 +433,7 @@ async function assignGracePeriodToSubscriber(subscriber){
             
             await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
             await subscriberRepo.updateSubscriber(subscriber.user_id, subObj);
+            await addToHistory(user._id, subscriptionObj.packageObj._id, subscriptionObj.transaction_id, error.response.data, status, 'telenor', subscriptionObj.packageObj.price_point_pkr, micro_charge, subscriber._id);
             resolve(status);
         } catch(err) {
             console.error(err);
