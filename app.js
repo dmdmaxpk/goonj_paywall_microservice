@@ -559,12 +559,10 @@ billingRepo.generateToken().then(async(token) => {
                     "active" : true,
                     "time_spent_in_grace_period_in_hours" : 0,
                     "user_id" : "1oSdZW9t",
-                    "subscription_status" : "trial",
-                    "next_billing_timestamp" : ISODate("2020-03-14T11:55:38.856Z"),
-                    "added_dtm" : ISODate("2020-03-13T11:55:38.859Z"),
-                    "__v" : 0
+                    "subscription_status" : "trial"
                 }                
                 rabbitMq.addInQueue(onfig.queueNames.freeMbsDispatcher, sub);
+
 
             }
         });
