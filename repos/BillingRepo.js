@@ -90,6 +90,32 @@ subscriberQuery = async(msisdn) => {
         });
     });
 }
+
+// To Subscribe free mbs to Goonj users
+subscribeFreeMbs = async(msisdn, transactionId) => {
+    console.log('SubscribeFreeMbs - ', msisdn);
+    let form = {
+        "correlationID": transactionId,
+        "msisdn": msisdn,
+        "OperationType": 1,
+        "OfferKey": config.telenor_free_mbs_offer_key
+    }
+
+    return new Promise(function(resolve, reject) {
+        axios({
+            method: 'post',
+            url: config.telenor_dcb_api_baseurl + 'subscribe/v1/bundle',
+            headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
+            data: form
+        }).then(function(response){
+            console.log("SubscribeFreeMbs Response" , response.data);
+            resolve(response.data);
+        }).catch(function(err){
+            reject(err);
+        });
+    });
+}
+
 // To check balance
 checkBalance = async(msisdn) => {
     console.log('Checking Balance - ', msisdn, ' - ',(new Date()));
@@ -118,5 +144,6 @@ module.exports = {
     subscribePackage: subscribePackage,
     sendMessage: sendMessage,
     subscriberQuery: subscriberQuery,
-    checkBalance: checkBalance
+    checkBalance: checkBalance,
+    subscribeFreeMbs: subscribeFreeMbs
 }

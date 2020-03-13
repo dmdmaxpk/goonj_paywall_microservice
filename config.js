@@ -1,10 +1,12 @@
 const env = process.env.NODE_ENV || 'development';
 
 // application gets environment from either system envs or from this file in above line.
+const telenor_free_mbs_offer_key = 502105;
 
 const telenor_message_api_tps = 5;
 const telenor_subscription_api_tps = 15;
 const telenor_subscriber_query_api_tps = 5;
+const telenor_free_mbs_api_tps = 3;
 const balance_check_api_tps = 3;
 
 const codes = {
@@ -28,7 +30,6 @@ const codes = {
 }
 
 const max_graylist_time_in_hrs = 336; // 2 weeks
-
 const maximum_daily_payment_limit_pkr = 20;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
@@ -38,7 +39,8 @@ const queueNames = {
     messageDispathcer: 'messageDispathcer',
     subscriptionDispatcher: 'subscriptionDispatcher',
     subscriberQueryDispatcher: 'subscriberQueryDispatcher',
-    balanceCheckDispatcher: 'balanceCheckDispatcher'
+    balanceCheckDispatcher: 'balanceCheckDispatcher',
+    freeMbsDispatcher: 'freeMbsDispatcher'
 }
 // Telenor DCB API's configs
 const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
@@ -63,6 +65,8 @@ let config = {
         telenor_subscription_api_tps: telenor_subscription_api_tps,
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         balance_check_api_tps: balance_check_api_tps,
+        telenor_free_mbs_api_tps: telenor_free_mbs_api_tps,
+        telenor_free_mbs_offer_key: telenor_free_mbs_offer_key,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
@@ -83,6 +87,8 @@ let config = {
         telenor_subscription_api_tps: telenor_subscription_api_tps,
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         balance_check_api_tps: balance_check_api_tps,
+        telenor_free_mbs_api_tps: telenor_free_mbs_api_tps,
+        telenor_free_mbs_offer_key: telenor_free_mbs_offer_key,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
@@ -103,6 +109,8 @@ let config = {
         telenor_subscription_api_tps: telenor_subscription_api_tps,
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         balance_check_api_tps: balance_check_api_tps,
+        telenor_free_mbs_api_tps: telenor_free_mbs_api_tps,
+        telenor_free_mbs_offer_key: telenor_free_mbs_offer_key,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,

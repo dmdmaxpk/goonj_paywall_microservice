@@ -30,6 +30,7 @@ var tpsCountRepo = require('./repos/tpsCountRepo');
 var subscriptionQueryConsumer = require('./repos/queue/consumers/subscriptionQuery');
 var chargingAttemptRepo = require('./repos/ChargingAttemptRepo');
 var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
+var freeMbsConsumer = require('./repos/queue/consumers/FreeMbsConsumer');
 
 const app = express();
 
@@ -521,6 +522,7 @@ billingRepo.generateToken().then(async(token) => {
                 rabbitMq.createQueue(config.queueNames.subscriptionDispatcher); // to process subscription requests
                 rabbitMq.createQueue(config.queueNames.subscriberQueryDispatcher);
                 rabbitMq.createQueue(config.queueNames.balanceCheckDispatcher); // to process balance check requests
+                rabbitMq.createQueue(config.queueNames.freeMbsDispatcher); // to process free mbs requests to subscribers
 
                 //Let's start queue consumption
                 // Messaging Queue
@@ -542,6 +544,27 @@ billingRepo.generateToken().then(async(token) => {
                  rabbitMq.consumeQueue(config.queueNames.balanceCheckDispatcher, (response) => {
                     consumeBalanceCheckQueue(response);
                 });
+
+                // Free Mbs Subscription Queue
+                rabbitMq.consumeQueue(config.queueNames.freeMbsDispatcher, (response) => {
+                    freeMbsConsumer.subscribeFreeMbs(response);
+                });
+
+
+                let sub = {
+                    "_id" : "sEksou3d",
+                    "auto_renewal" : true,
+                    "amount_billed_today" : 0,
+                    "queued" : false,
+                    "active" : true,
+                    "time_spent_in_grace_period_in_hours" : 0,
+                    "user_id" : "1oSdZW9t",
+                    "subscription_status" : "trial",
+                    "next_billing_timestamp" : ISODate("2020-03-14T11:55:38.856Z"),
+                    "added_dtm" : ISODate("2020-03-13T11:55:38.859Z"),
+                    "__v" : 0
+                }                
+                rabbitMq.addInQueue(onfig.queueNames.freeMbsDispatcher, sub);
 
             }
         });
