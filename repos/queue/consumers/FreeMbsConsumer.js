@@ -1,8 +1,9 @@
-
+const config = require('../../../config');
 const billingRepo = require('../../BillingRepo');
 const historyRepo = require('../../BillingHistoryRepo');
 const userRepo = require('../../UserRepo');
 const packageRepo = require('../../PackageRepo');
+const tpsCountRepo = require('../../tpsCountRepo');
 const shortId = require('shortid');
 
 subscribeFreeMbs = async (message) => {
