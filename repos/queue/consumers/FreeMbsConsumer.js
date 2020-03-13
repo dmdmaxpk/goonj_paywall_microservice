@@ -14,7 +14,7 @@ subscribeFreeMbs = async (message) => {
         return new Promise(async (resolve,reject) => {
             let user = await userRepo.getUserById(subscriber.user_id);
             let package = await packageRepo.getPackage({_id: user.subscribed_package_id});
-            let transaction_id = "GoonjMbs_"+user.msisdn+"_"+user.subscribed_package_id+"_"+shortId.generate()+"_"+(new Date());
+            let transaction_id = "GoonjMbs_"+user.msisdn+"_"+user.subscribed_package_id+"_"+shortId.generate()+"_"+(getCurrentDate());
     
             let billlHistory = {};
             billlHistory.user_id = user._id;
@@ -43,8 +43,18 @@ subscribeFreeMbs = async (message) => {
             subscribeFreeMbs(message);
         }, 200);
     }
-    
-	
+}
+
+// Helper functions
+function getCurrentDate() {
+    var now = new Date();
+    var strDateTime = [
+        [now.getFullYear(),
+            AddZero(now.getMonth() + 1),
+            AddZero(now.getDate())].join("-"),
+        [AddZero(now.getHours()),
+            AddZero(now.getMinutes())].join(":")];
+    return strDateTime;
 }
 
 module.exports = {
