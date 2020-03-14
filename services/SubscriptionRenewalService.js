@@ -39,7 +39,7 @@ subscriptionRenewal = async() => {
 
             let attempt = await chargeAttemptRepo.getAttempt(subscriber._id);
             if(attempt && attempt.active === true){
-                await attempt.updateAttempt(subscriber._id, {active: false});
+                await chargeAttemptRepo.updateAttempt(subscriber._id, {active: false});
             }
             await billingHistoryRepo.createBillingHistory(billingHistory);
         }
