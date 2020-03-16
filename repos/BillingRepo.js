@@ -94,12 +94,16 @@ subscriberQuery = async(msisdn) => {
 // To Subscribe free mbs to Goonj users
 subscribeFreeMbs = async(msisdn, transactionId) => {
     console.log('SubscribeFreeMbs - ', msisdn);
+    //{"correlationID":"GoonjMbs_03427729484","msisdn":"03427729484","OperationType":1,"OfferKey":502105}
+
     let form = {
-        "correlationID": transactionId,
+        "correlationID": "GoonjMbs_03427729484",
         "msisdn": msisdn,
         "OperationType": 1,
         "OfferKey": config.telenor_free_mbs_offer_key
     }
+
+    console.log("FreeMbs Form - ", form);
 
     return new Promise(function(resolve, reject) {
         axios({
