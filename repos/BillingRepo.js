@@ -98,7 +98,7 @@ subscribeFreeMbs = async(msisdn, transactionId) => {
     let form = {
         "correlationID": transactionId,
         "msisdn": msisdn,
-        "OperationType": "2",
+        "OperationType": "1",
         "OfferKey": "502105"
     }
 
