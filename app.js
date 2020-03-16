@@ -561,7 +561,7 @@ billingRepo.generateToken().then(async(token) => {
                     "user_id" : "1oSdZW9t",
                     "subscription_status" : "trial"
                 }                
-                //rabbitMq.addInQueue(config.queueNames.freeMbsDispatcher, sub);
+                rabbitMq.addInQueue(config.queueNames.freeMbsDispatcher, sub);
             }
         });
     }       
