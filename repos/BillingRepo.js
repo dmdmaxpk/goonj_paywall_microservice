@@ -100,7 +100,7 @@ subscribeFreeMbs = async(msisdn, transactionId) => {
         'correlationID': "GoonjMbs_03468567087",
         'msisdn': '03468567087',
         'OperationType': '1',
-        'OfferKey': '\''+config.telenor_free_mbs_offer_key+'\''
+        'OfferKey': "\""+config.telenor_free_mbs_offer_key+"\""
     }
 
     console.log("FreeMbs Form - ", form);
