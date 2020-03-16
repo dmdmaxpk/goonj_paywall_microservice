@@ -247,6 +247,7 @@ consumeSusbcriptionQueue = async(res) => {
                                
                                 // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
+                                    subscribeFreeMbs(updatedSubscriber);
                                     if(micro_charge){
                                         await chargingAttemptRepo.resetAttempts(subscriber._id);
                                         await chargingAttemptRepo.markInActive(subscriber._id);
@@ -549,25 +550,16 @@ billingRepo.generateToken().then(async(token) => {
                 rabbitMq.consumeQueue(config.queueNames.freeMbsDispatcher, (response) => {
                     freeMbsConsumer.subscribeFreeMbs(response);
                 });
-
-
-                let sub = {
-                    "_id" : "sEksou3d",
-                    "auto_renewal" : true,
-                    "amount_billed_today" : 0,
-                    "queued" : false,
-                    "active" : true,
-                    "time_spent_in_grace_period_in_hours" : 0,
-                    "user_id" : "1oSdZW9t",
-                    "subscription_status" : "trial"
-                }                
-                rabbitMq.addInQueue(config.queueNames.freeMbsDispatcher, sub);
             }
         });
     }       
 }).catch(err => {
     console.log('Error while fetching token', err);
 });
+
+function subscribeFreeMbs(subscriber){
+	rabbitMq.addInQueue(config.queueNames.freeMbsDispatcher, subscriber);
+}
 
 
 // Import routes
