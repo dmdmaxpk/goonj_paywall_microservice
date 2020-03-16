@@ -31,8 +31,6 @@ var subscriptionQueryConsumer = require('./repos/queue/consumers/subscriptionQue
 var chargingAttemptRepo = require('./repos/ChargingAttemptRepo');
 var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
 var freeMbsConsumer = require('./repos/queue/consumers/FreeMbsConsumer');
-var reportsService = require('./services/ReportsService');
-reportsService.generateDailyReport();
 
 const app = express();
 
