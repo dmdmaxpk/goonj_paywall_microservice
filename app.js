@@ -31,6 +31,8 @@ var subscriptionQueryConsumer = require('./repos/queue/consumers/subscriptionQue
 var chargingAttemptRepo = require('./repos/ChargingAttemptRepo');
 var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
 var freeMbsConsumer = require('./repos/queue/consumers/FreeMbsConsumer');
+var reportsService = require('./services/ReportsService');
+reportsService.generateDailyReport();
 
 const app = express();
 
@@ -247,7 +249,7 @@ consumeSusbcriptionQueue = async(res) => {
                                
                                 // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
-                                    subscribeFreeMbs(updatedSubscriber);
+                                    // subscribeFreeMbs(updatedSubscriber);
                                     if(micro_charge){
                                         await chargingAttemptRepo.resetAttempts(subscriber._id);
                                         await chargingAttemptRepo.markInActive(subscriber._id);

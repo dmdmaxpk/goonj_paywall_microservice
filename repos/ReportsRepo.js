@@ -200,9 +200,9 @@ dailyReport = async(mode = 'prod') => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                //to:  ["paywall@dmdmax.com.pk"],
-                to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
-                "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+                to:  ["hamza@dmdmax.com.pk"],
+                // to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
+                // "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
                 subject: `Paywall Report`, // Subject line
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
                 attachments:[
@@ -277,9 +277,9 @@ callBacksReport =async() => {
                 $project: { 
                 tid: "$tid",
                 mid: "$mid",
-                added_dtm: "$added_dtm",
+                added_dtm: { '$dateToString' : { date: "$added_dtm",'format':'%Y-%m-%d-%H:%M:%S','timezone' : "Asia/Karachi" } },
                 isCallbAckSent: {"$cond": { if: {$gte: ["$callbackhistorySize",1] },then:"yes",else:"no" } },
-                callBackSentTime: "$callbackObj.billing_dtm" 
+                callBackSentTime: { '$dateToString' : { date: "$callbackObj.billing_dtm",'format':'%Y-%m-%d-%H:%M:%S','timezone' : "Asia/Karachi" } } 
                 }
             }
         ]);
@@ -287,9 +287,9 @@ callBacksReport =async() => {
         let write = await csvReportWriter.writeRecords(report);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["paywall@dmdmax.com.pk"],
-            to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
-            "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+            to:  ["hamza@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
+            // "mikaeel@dmdmax.com.pk","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
             subject: `Callbacks Report`, // Subject line
             text: `Callbacks sent with their TIDs and timestamps -  ${(new Date()).toDateString()}`, // plain text bodyday
             attachments:[
@@ -347,7 +347,8 @@ errorCountReport = async() => {
         await errorCountReportBySource.writeRecords(errorBySourceReport);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com.pk"], // list of receivers
+            to:  ["hamza@dmdmax.com.pk",],
+            // to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com.pk"], // list of receivers
             subject: `Daily Error Reports`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains all error count stats from 23rd February 2020 onwards.`, // plain text bodyday
             attachments:[
@@ -385,7 +386,8 @@ dailyUnsubReport = async() => {
         await dailyUnsubReportWriter.writeRecords(dailyUnsubReport);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com.pk"], // list of receivers
+            to:  ["hamza@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com.pk"], // list of receivers
             subject: `Daily Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users.`, // plain text bodyday
             attachments:[
