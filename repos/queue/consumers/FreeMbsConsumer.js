@@ -29,7 +29,7 @@ subscribeFreeMbs = async (message) => {
                 rabbitMq.acknowledge(message);
                 resolve(result);
             }).catch(async(err) => {
-                console.log("Error subscribing free mbs: ", err);
+                console.log("Error subscribing free mbs: ", err.message);
                 billlHistory.operator_response = err.message;
                 billlHistory.billing_status = "free-mbs-offer-subscribe-error";
                 await historyRepo.createBillingHistory(billlHistory);
