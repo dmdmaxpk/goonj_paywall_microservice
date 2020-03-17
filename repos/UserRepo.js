@@ -14,6 +14,11 @@ getGraylistUsers =async() => {
     return results;
 }
 
+getPslPackageUsers = async() => {
+    let results = await User.find({subscribed_package_id : {$in: ["QDfD","QDfE"]} }).limit(5000);
+    return results;
+}
+
 getUserByMsisdn =async(msisdn) => {
     result = await User.findOne({msisdn: msisdn});
     return result;
@@ -61,5 +66,6 @@ module.exports = {
     getUserById: getUserById,
     updateUser: updateUser,
     updateUserById: updateUserById,
-    deleteUser: deleteUser
+    deleteUser: deleteUser,
+    getPslPackageUsers: getPslPackageUsers
 }

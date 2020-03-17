@@ -5,9 +5,11 @@ const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
 const grayListService = require('../services/GrayListService');
 const reportsService = require('../services/ReportsService');
 const billingMonitoringService = require('../services/BillingMonitoringService');
+const messageService = require('../services/MessageService');
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
+    await messageService.changePackageOfUsers();
     res.send("Subscription renewal - Executed");
 }
 
