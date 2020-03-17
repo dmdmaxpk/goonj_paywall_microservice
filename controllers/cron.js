@@ -9,8 +9,12 @@ const messageService = require('../services/MessageService');
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
-    await messageService.changePackageOfUsers();
     res.send("Subscription renewal - Executed");
+}
+
+exports.postPSLUserMigration = async (req,res) =>  {
+    await messageService.changePackageOfUsers();
+    res.send("POST PSL User Migration - Executed");
 }
 
 exports.refreshToken = async (req,res) =>  {

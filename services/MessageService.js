@@ -14,7 +14,7 @@ changePackageOfUsers = async() => {
                 let billinghistory = {
                     user_id: user._id,
                     source: user.source,
-                    billing_status: "changed_packages_of_all_psl_users_to_livepackage_on_tp_request"
+                    billing_status: "changed_package_on_tp_request"
                 }
                 billinghistoryRepo.createBillingHistory(billinghistory);
             } else if (user.subscription_status === "graced" || user.subscription_status === "billed" || user.subscription_status === "trial" ) {
@@ -24,7 +24,7 @@ changePackageOfUsers = async() => {
                 let billinghistory = {
                     user_id: user._id,
                     source: user.source,
-                    billing_status: "changed_packages_of_all_psl_users_to_livepackage_on_tp_request"
+                    billing_status: "changed_package_on_tp_request"
                 }
                 billinghistoryRepo.createBillingHistory(billinghistory);
                 let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${user._id}`;
