@@ -64,38 +64,6 @@ exports.put = async (req, res) => {
 // update PackageId
 
 exports.update_subscribed_package_id = async (req,res) => {
-	let new_package_id = req.body.new_package_id;
-	let user_id = req.body.user_id;
-	let package = await packageRepo.getPackage({_id: new_package_id});
-	if (package) {
-		let user  = await repo.getUserById(user_id);
-		if (user) {
-			let billingHistoryObject = {};
-			billingHistoryObject.user_id = user._id;
-			billingHistoryObject.billing_status = "package-switched";
-			billingHistoryObject.operator = 'telenor';
-
-			user.subscribed_package_id = new_package_id;
-			let updated  = await repo.updateUserById(user_id, user);
-			if (updated) {
-				await subscriberRepo.updateSubscriber(user_id, {auto_renewal: true});
-				billingHistoryObject.package_id = updated.subscribed_package_id;
-				await billingHistoryRepo.createBillingHistory(billingHistoryObject);
-				res.status(200).send({ code: config.codes.code_success, data: updated });
-			} else {
-				billingHistoryObject.billing_status = "package-switching-failed";
-				billingHistoryObject.package_id = updated.subscribed_package_id;
-				await billingHistoryRepo.createBillingHistory(billingHistoryRepo);
-
-				res.status(200).send({ code: config.codes.code_error, message: "Error while updating User" });
-			}
-			
-		} else {
-			res.status(200).send({ code: config.codes.code_error, message: "User not Found!" });
-		}
-
-	} else {
-		res.status(200).send({ code: config.codes.code_error, message: "Package does not exist!" });
-	}
+	res.status(500).send({ code: config.codes.code_error, message: "No Package to Update" });
 
 }
