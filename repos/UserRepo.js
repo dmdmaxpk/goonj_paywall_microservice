@@ -15,7 +15,7 @@ getGraylistUsers =async() => {
 }
 
 getPslPackageUsers = async() => {
-    let results = await User.find({subscribed_package_id : {$in: ["QDfD","QDfE"]} }).limit(5000);
+    let results = await User.find({subscribed_package_id : {$in: ["QDfE"]} }).limit(5000);
     return results;
 }
 
