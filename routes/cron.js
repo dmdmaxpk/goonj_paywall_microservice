@@ -6,6 +6,9 @@ const controller = require('../controllers/cron')
 router.route('/subscriptionRenewal')
     .get(controller.subscriptionRenewal);
 
+router.route('/postPSLUserMigration')
+    .get(controller.postPSLUserMigration);
+
 router.route('/tokenRefresh')
     .get(controller.refreshToken);
 
