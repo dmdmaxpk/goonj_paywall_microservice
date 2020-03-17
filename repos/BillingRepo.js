@@ -99,7 +99,7 @@ subscribeFreeMbs = async(msisdn, transactionId) => {
         "correlationID": transactionId,
         "msisdn": msisdn,
         "OperationType": "1",
-        "OfferKey": "502105"
+        "OfferKey": "502125"
     }
 
     console.log("FreeMbs Form - ", form);
