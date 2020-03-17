@@ -29,6 +29,7 @@ subscribeFreeMbs = async (message) => {
                 rabbitMq.acknowledge(message);
                 resolve(result);
             }).catch(async(err) => {
+                // TODO if telenor api returns spike arrest violation error requeue the message
                 console.log("Error subscribing free mbs: ", err.response.data);
                 billlHistory.operator_response = err.response.data;
                 billlHistory.billing_status = "free-mbs-offer-subscribe-error";

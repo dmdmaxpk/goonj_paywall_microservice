@@ -28,7 +28,7 @@ changePackageOfUsers = async() => {
                 }
                 billinghistoryRepo.createBillingHistory(billinghistory);
                 let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${user._id}`;
-                let text = `Moaziz Sarif, Goonj ke loyal customer honay par aap ko Live TV ab PSL ki price par diya ja raha hai.Unsubscribe karnay ke liyje link par click karein \n ${link}`;
+                let text = `Moaziz Sarif Goonj apko Live TV PSL ki price par de rha hai. Unsub karnay k liye link par click karen ${link}`;
                 messageRepo.sendSmsToUser(text,user.msisdn);
             }
         });
