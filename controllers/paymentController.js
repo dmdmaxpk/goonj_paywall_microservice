@@ -353,7 +353,7 @@ exports.subscribe = async (req, res) => {
 						
 						let text = `Goonj TV 24 hour free trial started. Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
 						sendTextMessage(text, userUpdated.msisdn);
-						// subscribeFreeMbs(subscriber);
+						subscribeFreeMbs(subscriber);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
 					} else {
 						subscribePackage(user, packageObj);
