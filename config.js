@@ -2,7 +2,7 @@ const env = process.env.NODE_ENV || 'development';
 
 // application gets environment from either system envs or from this file in above line.
 // Total tps is 40 for now but we need to increase this
-const telenor_message_api_tps = 35;
+const telenor_message_api_tps = 5;
 const telenor_subscription_api_tps = 15;
 const telenor_subscriber_query_api_tps = 8;
 const telenor_free_mbs_api_tps = 2;
