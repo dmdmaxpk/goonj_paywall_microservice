@@ -19,6 +19,11 @@ getPslPackageUsers = async() => {
     return results;
 }
 
+getPslOnlyPackageUsers = async() => {
+    let results = await User.find({subscribed_package_id : {$in: ["QDfD"]} }).limit(5000);
+    return results;
+}
+
 getUserByMsisdn =async(msisdn) => {
     result = await User.findOne({msisdn: msisdn});
     return result;
@@ -67,5 +72,6 @@ module.exports = {
     updateUser: updateUser,
     updateUserById: updateUserById,
     deleteUser: deleteUser,
-    getPslPackageUsers: getPslPackageUsers
+    getPslPackageUsers: getPslPackageUsers,
+    getPslOnlyPackageUsers: getPslOnlyPackageUsers
 }

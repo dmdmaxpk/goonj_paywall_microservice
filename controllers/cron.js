@@ -17,6 +17,11 @@ exports.postPSLUserMigration = async (req,res) =>  {
     res.send("POST PSL User Migration - Executed");
 }
 
+exports.postPSLOnlyUserMigration = async (req,res) =>  {
+    await messageService.changePackageOfPSLOnlyUsers();
+    res.send("POST PSL Only User Migration - Executed");
+}
+
 exports.refreshToken = async (req,res) =>  {
     await tokenRefreshService.refreshToken();
     res.send("Token Refresh - Executed");
