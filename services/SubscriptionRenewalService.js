@@ -108,7 +108,9 @@ renewSubscription = async(user) => {
     }
     subscriptionObj.transactionId = transactionId;
 
-    
+    if (subscriber.is_discounted === true && subscriber.discounted_price){ 
+        subscriptionObj.price_point_pkr = subscriber.discounted_price;
+    }
     // Add object in queueing server
     if (subscriptionObj.msisdn && (subscriptionObj.packageObj || subscriptionObj.micro_charge) && subscriptionObj.transactionId ) {
         if(subscriber.queued === false){
