@@ -80,6 +80,8 @@ subscribePackage = async(user, packageObj) => {
 
 // Generate OTP and save to collection
 exports.sendOtp = async (req, res) => {
+	let gw_transaction_id = req.body.transaction_id;
+
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	
@@ -98,7 +100,7 @@ exports.sendOtp = async (req, res) => {
 		try {
 			user = await userRepo.createUser(userObj);
 		} catch (err) {
-			res.send({code: config.codes.code_error, message: err.message })
+			res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
 		}
 		if(user){
 			console.log('Payment - OTP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
@@ -125,15 +127,15 @@ exports.sendOtp = async (req, res) => {
 			if(record){
 				// OTP updated successfuly in collection, let's send this otp to user by adding this otp in messaging queue
 				sendMessage(record.otp, record.msisdn);
-				res.send({'code': config.codes.code_success, data: 'OTP sent'});
+				res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
 			}else{
 				// Failed to update
-				res.send({'code': config.codes.code_error, 'message': 'Failed to update OTP'});
+				res.send({'code': config.codes.code_error, 'message': 'Failed to update OTP', gw_transaction_id: gw_transaction_id});
 			}
 		}else{
 			// Record already present in collection without verification, send this already generated otp to user so he can verify
 			sendMessage(otpUser.otp, otpUser.msisdn);
-			res.send({'code': config.codes.code_success, data: 'OTP sent'});
+			res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
 		}
 	}else{
 		// Means no user present in collection, let's create one.
@@ -143,16 +145,18 @@ exports.sendOtp = async (req, res) => {
 		if(record){
 			// OTP created successfuly in collection, let's send this otp to user and acknowldge him/her
 			sendMessage(record.otp, record.msisdn);
-			res.send({'code': config.codes.code_success, data: 'OTP sent'});
+			res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
 		}else{
 			// Failed to create
-			res.send({'code': config.codes.code_error, 'message': 'Failed to create OTP'});
+			res.send({'code': config.codes.code_error, 'message': 'Failed to create OTP', gw_transaction_id: gw_transaction_id});
 		}
 	}
 }
 
 // Validate OTP
 exports.verifyOtp = async (req, res) => {
+	let gw_transaction_id = req.body.transaction_id;
+
 	let msisdn = req.body.msisdn;
 	let otp = req.body.otp;
 	let otpUser = await otpRepo.getOtp(msisdn);
@@ -161,7 +165,7 @@ exports.verifyOtp = async (req, res) => {
 		// Record already present in collection, lets check it further.
 		if(otpUser.verified === true){
 			// Means, this user is already verified by otp, so let's now push an error
-			res.send({code: config.codes.code_error, message: 'Already verified with this OTP'});
+			res.send({code: config.codes.code_error, message: 'Already verified with this OTP', gw_transaction_id: gw_transaction_id});
 		}else{
 			// Let's validate this otp
 			if(otpUser.otp === otp){
@@ -173,28 +177,30 @@ exports.verifyOtp = async (req, res) => {
 						let subscriber = await subscriberRepo.getSubscriber(user._id);
 						if(subscriber){
 							// Subscriber is available and having active subscription
-							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', subscriber: subscriber.subscription_status, user_id: subscriber.user_id, subscribed_package_id: user.subscribed_package_id});
+							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', subscriber: subscriber.subscription_status, user_id: subscriber.user_id, subscribed_package_id: user.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 						}else{
-							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!'});
+							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', gw_transaction_id: gw_transaction_id});
 						}
 					}else{
-						res.send({code: config.codes.code_error, data: 'User not found!'});
+						res.send({code: config.codes.code_error, data: 'User not found!', gw_transaction_id: gw_transaction_id});
 					}
 				}else{
-					res.send({code: config.codes.code_error, data: 'Failed to validate!'});
+					res.send({code: config.codes.code_error, data: 'Failed to validate!', gw_transaction_id: gw_transaction_id});
 				}
 			}else{
-				res.send({code: config.codes.code_otp_not_validated, message: 'OTP mismatch error'});
+				res.send({code: config.codes.code_otp_not_validated, message: 'OTP mismatch error', gw_transaction_id: gw_transaction_id});
 			}
 		}
 	}else{
 		// Means no user present in collection, let's throw an error to user.
-		res.send({code: config.codes.code_error, message: 'No OTP found to validate'});
+		res.send({code: config.codes.code_error, message: 'No OTP found to validate', gw_transaction_id: gw_transaction_id});
 	}
 }
 
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
+	let gw_transaction_id = req.body.transaction_id;
+
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	
@@ -215,7 +221,7 @@ exports.subscribe = async (req, res) => {
 		try {
 			user = await userRepo.createUser(userObj);
 		} catch(er) {
-			res.send({code: config.codes.code_error, message: er.message})
+			res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
 		}
 		if(user){
 			console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
@@ -246,16 +252,16 @@ exports.subscribe = async (req, res) => {
 				if(currentPackageId === newPackageId){
 					if(autoRenewal === true){
 						// Already subscribed, no need to subsribed package again
-						res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed'});
+						res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed', gw_transaction_id: gw_transaction_id});
 					}else{
 						// Same, package - just switch on auto renewal so that the user can get charge automatically.
 						let updated = subscriberRepo.updateSubscriber(user._id, {auto_renewal: true});
 						if(updated){
 							billingHistoryObject.billing_status = "subscription-request-received-for-the-same-package";
 							await billingHistoryRepo.createBillingHistory(billingHistoryObject);
-							res.send({code: config.codes.code_already_subscribed, message: 'Subscribed'});
+							res.send({code: config.codes.code_already_subscribed, message: 'Subscribed', gw_transaction_id: gw_transaction_id});
 						}else{
-							res.send({code: config.codes.code_error, message: 'Error updating record!'});
+							res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
 						}
 					}
 				}else{
@@ -267,9 +273,9 @@ exports.subscribe = async (req, res) => {
 					let packageObj = await packageRepo.getPackage({_id: newPackageId});
 					if(packageObj){
 						subscribePackage(user, packageObj)
-						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
+						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 					}else{
-						res.send({code: config.codes.code_error, message: 'Wrong package id'});
+						res.send({code: config.codes.code_error, message: 'Wrong package id', gw_transaction_id: gw_transaction_id});
 					}
 				}
 			} else if (subscriber.subscription_status === 'expired' || subscriber.subscription_status === 'not_billed'){
@@ -282,26 +288,26 @@ exports.subscribe = async (req, res) => {
 				let packageObj = await packageRepo.getPackage({_id: newPackageId});
 				if(packageObj){
 					subscribePackage(user, packageObj)
-					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
+					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 				}else{
-					res.send({code: config.codes.code_error, message: 'Wrong package id'});
+					res.send({code: config.codes.code_error, message: 'Wrong package id', gw_transaction_id: gw_transaction_id});
 				}
 			} else if (subscriber.subscription_status === 'trial'){
 				let autoRenewal = subscriber.auto_renewal;
 				if(autoRenewal === true){
-					res.send({code: config.codes.code_trial_activated, message: 'Trial is already activated!'});
+					res.send({code: config.codes.code_trial_activated, message: 'Trial is already activated!', gw_transaction_id: gw_transaction_id});
 				}else{
 					let updated = subscriberRepo.updateSubscriber(user._id, {auto_renewal: true});
 					if(updated){
 						billingHistoryObject.billing_status = "subscription-request-received-for-the-same-package-while-user-is-in-trial-period";
 						await billingHistoryRepo.createBillingHistory(billingHistoryRepo);
-						res.send({code: config.codes.code_trial_activated, message: 'Trial updated!'});
+						res.send({code: config.codes.code_trial_activated, message: 'Trial updated!', gw_transaction_id: gw_transaction_id});
 					}else{
-						res.send({code: config.codes.code_error, message: 'Error updating record!'});
+						res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
 					}
 				}
 			} else  {
-				res.send({code: config.codes.code_trial_activated, subcription_status: subscriber.subscription_status});
+				res.send({code: config.codes.code_trial_activated, subcription_status: subscriber.subscription_status, gw_transaction_id: gw_transaction_id});
 			}
 		} else{
 			// User is entering into the system for the first time
@@ -354,20 +360,20 @@ exports.subscribe = async (req, res) => {
 						let text = `Goonj TV 24 hour free trial started. Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
 						sendTextMessage(text, userUpdated.msisdn);
 						subscribeFreeMbs(subscriber);
-						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
+						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 					} else {
 						subscribePackage(user, packageObj);
-						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!'});
+						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 					}
 				}else{
-					res.send({code: config.codes.code_error, message: 'Wrong package id'});
+					res.send({code: config.codes.code_error, message: 'Wrong package id', gw_transaction_id: gw_transaction_id});
 				}
 			}else{
-				res.send({code: config.codes.code_error, message: 'Failed to create subscriber'});
+				res.send({code: config.codes.code_error, message: 'Failed to create subscriber', gw_transaction_id: gw_transaction_id});
 			}
 		}
 	} else {
-		res.status(200).json({message: "This account is not of an active telenor user"}); 
+		res.status(200).json({message: "This account is not of an active telenor user", gw_transaction_id: gw_transaction_id}); 
 	}
 }
 
@@ -438,6 +444,8 @@ exports.subscribeDirectly = async(req, res) => {
 
 // Check status
 exports.status = async (req, res) => {
+	let gw_transaction_id = req.body.transaction_id;
+
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	if(user){
@@ -446,15 +454,17 @@ exports.status = async (req, res) => {
 			await viewLogRepo.createViewLog(user._id);
 			res.send({code: config.codes.code_success, subscribed_package_id: user.subscribed_package_id, data: result});	
 		}else{
-			res.send({code: config.codes.code_error, data: 'No subscriber found.'});	
+			res.send({code: config.codes.code_error, data: 'No subscriber found.', gw_transaction_id: gw_transaction_id});	
 		}
 	}else{
-		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
+		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.', gw_transaction_id: gw_transaction_id});
 	}
 }
 
 // UnSubscribe
 exports.unsubscribe = async (req, res) => {
+	let gw_transaction_id = req.body.transaction_id;
+	
 	let msisdn = req.body.msisdn;
 	let user_id = req.body.user_id;
 	let user = await userRepo.getUserByMsisdn(msisdn);
@@ -482,16 +492,16 @@ exports.unsubscribe = async (req, res) => {
 				// This user registered from a marketer, let's put this user in gray list
 				result = await userRepo.updateUser(msisdn, {is_gray_listed: true});
 				if(result){
-					res.send({code: config.codes.code_success, message: 'Successfully unsubscribed'});	
+					res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});	
 				}
 			}else{
-				res.send({code: config.codes.code_success, message: 'Successfully unsubscribed'});	
+				res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});	
 			}
 		}else{
-			res.send({code: config.codes.code_error, message: 'Failed to unsubscribe'});	
+			res.send({code: config.codes.code_error, message: 'Failed to unsubscribe', gw_transaction_id: gw_transaction_id});	
 		}
 	}else{
-		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
+		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.', gw_transaction_id: gw_transaction_id});
 	}
 }
 
