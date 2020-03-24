@@ -20,7 +20,9 @@ const subscriberSchema = new Schema({
     amount_billed_today: {type: Number, default: 0}, // amount charged from user today.
     queued: { type: Boolean, default: false },
     active: { type: Boolean, default: true, index: true },
-    time_spent_in_grace_period_in_hours: { type: Number, default: 0 }
+    time_spent_in_grace_period_in_hours: { type: Number, default: 0 },
+    is_discounted: { type: Boolean, default: false },
+    discounted_price: { type: Number }
 }, { strict: true })
 
 module.exports = mongoose.model('Subscriber', subscriberSchema);

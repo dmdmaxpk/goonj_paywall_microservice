@@ -31,6 +31,9 @@ const userSchema = new Schema({
     is_gray_listed: { type: Boolean, default: false },
     is_black_listed: { type: Boolean, default: false },
     
+    //fields on TP request to change package
+    is_package_changed: { type: Boolean, default: false },
+    is_message_sent: { type: Boolean, default: false },
     // operator of the user (telenor/zong/ufone etc)
     added_dtm: { type: Date, default: Date.now, index: true },
     last_modified: Date,

@@ -45,6 +45,7 @@ consume = async(message) => {
             }, 200);
         }
     } catch (error) {
+        // TODO if telenor api returns spike arrest violation error requeue the message
         if (error && error.response.data && error.response.data.errorCode && error.response.data.errorMessage ) {
             if ( error.response.data.errorCode === "500.002.03" && error.response.data.errorMessage === "Not a valid Telenor Customer. Please try again.") {
                 // user is not customer of telenor

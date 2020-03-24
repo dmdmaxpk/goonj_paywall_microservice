@@ -5,10 +5,21 @@ const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
 const grayListService = require('../services/GrayListService');
 const reportsService = require('../services/ReportsService');
 const billingMonitoringService = require('../services/BillingMonitoringService');
+const messageService = require('../services/MessageService');
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
     res.send("Subscription renewal - Executed");
+}
+
+exports.postPSLUserMigration = async (req,res) =>  {
+    await messageService.changePackageOfUsers();
+    res.send("POST PSL User Migration - Executed");
+}
+
+exports.postPSLOnlyUserMigration = async (req,res) =>  {
+    await messageService.changePackageOfPSLOnlyUsers();
+    res.send("POST PSL Only User Migration - Executed");
 }
 
 exports.refreshToken = async (req,res) =>  {
