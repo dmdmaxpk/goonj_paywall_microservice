@@ -452,7 +452,7 @@ exports.status = async (req, res) => {
 		let result = await subscriberRepo.getSubscriber(user._id);
 		if(result){
 			await viewLogRepo.createViewLog(user._id);
-			res.send({code: config.codes.code_success, subscribed_package_id: user.subscribed_package_id, data: result});	
+			res.send({code: config.codes.code_success, subscribed_package_id: user.subscribed_package_id, data: result, gw_transaction_id: gw_transaction_id});	
 		}else{
 			res.send({code: config.codes.code_error, data: 'No subscriber found.', gw_transaction_id: gw_transaction_id});	
 		}
