@@ -22,10 +22,15 @@ require('./models/BillingHistory');
 require('./models/ApiToken');
 require('./models/TpsCount');
 require('./models/ViewLog');
+require('./models/ChargingAttempt');
 
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
+var subscriptionQueryConsumer = require('./repos/queue/consumers/subscriptionQuery');
+var chargingAttemptRepo = require('./repos/ChargingAttemptRepo');
+var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
+var freeMbsConsumer = require('./repos/queue/consumers/FreeMbsConsumer');
 
 const app = express();
 
@@ -41,6 +46,7 @@ app.use(logger('combined', {skip: skipLog}));
 //app.use(logger('dev'));
 
 app.use(swStats.getMiddleware({}));
+
 // Middlewares
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -63,7 +69,7 @@ var transporter = nodemailer.createTransport({
       user: 'AKIAZQA2XAWP7CYJEJXS', // generated ethereal user
       pass: 'BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs' // generated ethereal password
     }
-  });
+});
 
 
 consumeMessageQueue = async(response) => {
@@ -93,8 +99,41 @@ consumeMessageQueue = async(response) => {
     }
 }
 
+consumeBalanceCheckQueue = async(response) => {
+    try {
+        let subscriber = JSON.parse(response.content);
+        
+        let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.balanceCheckDispatcher);
+        if (countThisSec < config.balance_check_api_tps) {
+            console.log("Sending Balance Check Request To Telenor - Subscriber ", subscriber._id);
+            
+            balanceCheckConsumer.microChargingAttempt(subscriber)
+            .then(async (data) => {
+                console.log('Success: ', data);
+                await tpsCountRepo.incrementTPSCount(config.queueNames.balanceCheckDispatcher);
+                rabbitMq.acknowledge(response);
+            }).catch(async(error) => {
+                console.log('Error: ', error.message);
+                await tpsCountRepo.incrementTPSCount(config.queueNames.balanceCheckDispatcher);
+                rabbitMq.acknowledge(response);
+            });
+            
+        } else {
+            console.log("TPS quota full for balance check, waiting for ms to elapse - ", new Date());
+            setTimeout(() => {
+                consumeBalanceCheckQueue(response);
+            }, 500);
+        }
+    } catch (err ) {
+        console.error(err);
+    }
+}
+
 consumeSusbcriptionQueue = async(res) => {
     let subscriptionObj = JSON.parse(res.content);
+    let micro_charge = subscriptionObj.micro_charge;
+    let micro_price_to_charge = subscriptionObj.price_to_charge;
+
     try {
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
         let amount_billed = subscriptionObj.packageObj.price_point_pkr;
@@ -124,6 +163,7 @@ consumeSusbcriptionQueue = async(res) => {
             } else {
                 if (countThisSec < config.telenor_subscription_api_tps) {
                     console.log("Sending subscription request to telenor");
+
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
@@ -133,6 +173,7 @@ consumeSusbcriptionQueue = async(res) => {
                         let message = operator_response.data.Message;
                         let user_id = response.user_id;
                         let package_id = response.packageObj._id;
+                        let packageObj = response.packageObj;
                         let transaction_id = response.transactionId;
                         let msisdn = response.msisdn;
         
@@ -143,7 +184,13 @@ consumeSusbcriptionQueue = async(res) => {
                         billingHistoryObject.operator_response = response.api_response.data;
                         billingHistoryObject.billing_status = message;
                         billingHistoryObject.operator = 'telenor';
-                        billingHistoryObject.price = response.packageObj.price_point_pkr;
+
+                        if(micro_charge){
+                            billingHistoryObject.price = micro_price_to_charge;
+                            billingHistoryObject.micro_charge = true;
+                        }else{
+                            billingHistoryObject.price = response.packageObj.price_point_pkr;
+                        }
 
                         let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                         if(history && response){
@@ -200,35 +247,55 @@ consumeSusbcriptionQueue = async(res) => {
                                
                                 // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
-                                    if(subObj.consecutive_successive_bill_counts === 1){
-                                        // For the first time or every week of consecutive billing
-        
+                                    subscribeFreeMbs(updatedSubscriber);
+                                    if(micro_charge){
+                                        await chargingAttemptRepo.resetAttempts(subscriber._id);
+                                        await chargingAttemptRepo.markInActive(subscriber._id);
+                                        await chargingAttemptRepo.unqueue(subscriber._id);
+
+                                        console.log("Sending %age discout message to "+msisdn);
+                                        let percentage = ((micro_price_to_charge / packageObj.price_point_pkr)*100);
+                                        percentage = (100 - percentage);
+
                                         //Send acknowldement to user
                                         let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
-                                        let message = "Your Goonj TV subscription for "+response.packageObj.package_name+" has been activated at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
+                                        let message = "You've got "+percentage+"% discount on "+response.packageObj.package_name+", to unsub click the link below.\n"+link
                                         await billingRepo.sendMessage(message, msisdn);
-                                    }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
-                                        // Every week
-                                        //Send acknowldement to user
-                                        let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
-                                        let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
-                                        await billingRepo.sendMessage(message, msisdn);
+                                    }else{
+                                        if(subObj.consecutive_successive_bill_counts === 1){
+                                            // For the first time or every week of consecutive billing
+            
+                                            //Send acknowldement to user
+                                            let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
+                                            let message = "Your Goonj TV subscription for "+response.packageObj.package_name+" has been activated at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
+                                            await billingRepo.sendMessage(message, msisdn);
+                                        }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
+                                            // Every week
+                                            //Send acknowldement to user
+                                            let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
+                                            let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
+                                            await billingRepo.sendMessage(message, msisdn);
+                                        }
                                     }
                                 }
                             }else{
                                 // Billing failed
-                               await assignGracePeriodToSubscriber(subscriber,user_id);
+                                if(micro_charge){
+                                    await chargingAttemptRepo.unqueue(subscriber._id);
+                                }
+
+                               await assignGracePeriodToSubscriber(subscriber);
                             }
                             rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
-                       
                         if (error.response && error.response.data){
                             console.log('Error ',error.response.data);
                         }else {
-                            console.log('Error billing failed');
+                            console.log('Error billing failed: ', error);
                         }
-                         if (error.response.data.errorCode === "500.007.08"){
+
+                        if (error.response.data.errorCode === "500.007.08"){
                             // Consider, tps exceeded, noAcknowledge will requeue this record.
                             console.log('Sending back to queue');
                             rabbitMq.noAcknowledge(res);
@@ -238,11 +305,13 @@ consumeSusbcriptionQueue = async(res) => {
                             // Enter user into grace period
                             console.log('BillingFailed - Package - ', (new Date()));
                             try {
-                                let status = await assignGracePeriodToSubscriber(subscriber,subscriber.user_id);
-                                await addToHistory(subscriber.user_id,subscriptionObj.packageObj._id,subscriptionObj.transaction_id,
-                                    error.response.data,status,'telenor',subscriptionObj.packageObj.price_point_pkr);
+                                if(micro_charge){
+                                    await chargingAttemptRepo.unqueue(subscriber._id);
+                                }
+                                
+                                await assignGracePeriodToSubscriber(subscriber, subscriptionObj, error, micro_charge);
                             } catch(err) {
-                                console.log("Error could not assign Grace period",err);
+                                console.log("Error: could not assign Grace period", err);
                             }
                             // TODO set queued to false everytime we Ack a message
                             await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
@@ -299,14 +368,14 @@ async function sendCallBackToIdeation(mid, tid){
     });
 }
 
-async function assignGracePeriodToSubscriber(subscriber,user_id){
+async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error, micro_charge){
     return new Promise (async (resolve,reject) => {
         try {
             let status = "";
             let subObj = {};
             subObj.queued = false;
             // Check if this subscriber is eligible for grace period
-            let user = await userRepo.getUserById(user_id);
+            let user = await userRepo.getUserById(subscriber.user_id);
             let currentPackage = await packageRepo.getPackage({"_id": user.subscribed_package_id});
 
             if((subscriber.subscription_status === 'billed' || subscriber.subscription_status === 'trial') && subscriber.auto_renewal === true){
@@ -322,6 +391,14 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                 let link = 'https://www.goonj.pk/goonjplus/open';
                 let message = "You've been awarded a grace period of "+currentPackage.package_duration+" hours. Click below link to open Goonj.\n"+link
                 await billingRepo.sendMessage(message, user.msisdn);
+
+                let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
+                if(attempt && attempt.active === false){
+                    await chargingAttemptRepo.markActive(subscriber._id);
+                    await chargingAttemptRepo.resetAttempts(subscriber._id);
+                    console.log('MicroCharging - Activated and Reset - Subscriber ', subscriber._id, ' - ', (new Date()));
+                }
+                addMicroChargingToQueue(subscriber);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
                 // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
                 if ( subscriber.time_spent_in_grace_period_in_hours > currentPackage.grace_hours){
@@ -332,6 +409,13 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                     let link = 'https://www.goonj.pk/goonjplus/subscribe';
                     let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
                     await billingRepo.sendMessage(message, user.msisdn);
+                    
+                    let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
+                    if(attempt && attempt.active === false){
+                        await chargingAttemptRepo.resetAttempts(subscriber._id);
+                        await chargingAttemptRepo.markInActive(subscriber._id);
+                        console.log('MicroCharging - InActiveAfterExpiration - Subscriber ', subscriber._id, ' - ', (new Date()));
+                    }
                 } else {
                     let nextBillingDate = new Date();
                     nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
@@ -339,7 +423,13 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
                     subObj.time_spent_in_grace_period_in_hours = (subscriber.time_spent_in_grace_period_in_hours + config.time_between_billing_attempts_hours);
                     subObj.subscription_status = 'graced';
                     status = 'graced';
-                    subObj.next_billing_timestamp = nextBillingDate;
+
+                    let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
+                    if(attempt && attempt.active === true){
+                        addMicroChargingToQueue(subscriber);
+                    }else{
+                        subObj.next_billing_timestamp = nextBillingDate;
+                    }
                 }
             } else {
                 subObj.subscription_status = user.subscription_status;
@@ -355,6 +445,7 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
             
             await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
             await subscriberRepo.updateSubscriber(subscriber.user_id, subObj);
+            await addToHistory(user._id, subscriptionObj.packageObj._id, subscriptionObj.transaction_id, error.response.data, status, 'telenor', subscriptionObj.packageObj.price_point_pkr, micro_charge, subscriber._id);
             resolve(status);
         } catch(err) {
             console.error(err);
@@ -364,7 +455,19 @@ async function assignGracePeriodToSubscriber(subscriber,user_id){
 
 }
 
-async function addToHistory(userId,packageId,transactionId,operatorResponse,billingStatus,operator,pricePoint){
+async function addMicroChargingToQueue(subscriber){
+    let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
+    if(attempt){
+        await chargingAttemptRepo.incrementAttempt(subscriber._id);
+        rabbitMq.addInQueue(config.queueNames.balanceCheckDispatcher, subscriber);
+        console.log('MicroCharging Added In Queue - Subscriber ', subscriber._id);
+    }else{
+        await chargingAttemptRepo.createAttempt({subscriber_id: subscriber._id, number_of_attempts_today: 1});    
+        console.log('Created Charging Attempt Record - Subscriber ', subscriber._id);
+    }
+}
+
+async function addToHistory(userId, packageId, transactionId, operatorResponse, billingStatus, operator, pricePoint, micro_charge, subscriber_id){
     return new Promise( async (resolve,reject) => {
         try {
             let billingHistoryObject = {};
@@ -374,7 +477,15 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
             billingHistoryObject.operator_response = operatorResponse;
             billingHistoryObject.billing_status = billingStatus;
             billingHistoryObject.operator = operator;
-            billingHistoryObject.price = pricePoint;
+            if(micro_charge){
+                let attempt = await chargingAttemptRepo.getAttempt(subscriber_id);
+                billingHistoryObject.price = attempt.price_to_charge;
+                billingHistoryObject.micro_charge = micro_charge;
+            }else{
+                billingHistoryObject.price = pricePoint;
+                billingHistoryObject.micro_charge = false;
+            }
+
             let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
             resolve('done');
         }catch (er) {
@@ -383,12 +494,18 @@ async function addToHistory(userId,packageId,transactionId,operatorResponse,bill
     } );
 }
 
-const numValidation = require('./numValidation');
-
 // Prefetch a token for the first time
 billingRepo.generateToken().then(async(token) => {
-    let updatedToken = await tokenRepo.updateToken(token.access_token);
-    if(updatedToken){
+    console.log('Token Fetched', token);
+    let currentToken = await tokenRepo.getToken();
+    if(currentToken){
+        currentToken = await tokenRepo.updateToken(token.access_token);
+    }else{
+        currentToken = await tokenRepo.createToken({token:token.access_token});
+    }
+    
+    console.log(currentToken);
+    if(currentToken){
         config.telenor_dcb_api_token = token.access_token;
         console.log('Token updated in db!');
         //numValidation.validateNumber();
@@ -404,6 +521,9 @@ billingRepo.generateToken().then(async(token) => {
                 // Let's create queues
                 rabbitMq.createQueue(config.queueNames.messageDispathcer); // to dispatch messages like otp/subscription message/un-sub message etc
                 rabbitMq.createQueue(config.queueNames.subscriptionDispatcher); // to process subscription requests
+                rabbitMq.createQueue(config.queueNames.subscriberQueryDispatcher);
+                rabbitMq.createQueue(config.queueNames.balanceCheckDispatcher); // to process balance check requests
+                rabbitMq.createQueue(config.queueNames.freeMbsDispatcher); // to process free mbs requests to subscribers
 
                 //Let's start queue consumption
                 // Messaging Queue
@@ -415,30 +535,37 @@ billingRepo.generateToken().then(async(token) => {
                 rabbitMq.consumeQueue(config.queueNames.subscriptionDispatcher, (response) => {
                     consumeSusbcriptionQueue(response);
                 });
+
+                // Subscriptin Queue
+                rabbitMq.consumeQueue(config.queueNames.subscriberQueryDispatcher, (response) => {
+                    subscriptionQueryConsumer.consume(response);
+                });
+
+                 // Balance Check Queue
+                 rabbitMq.consumeQueue(config.queueNames.balanceCheckDispatcher, (response) => {
+                    consumeBalanceCheckQueue(response);
+                });
+
+                // Free Mbs Subscription Queue
+                rabbitMq.consumeQueue(config.queueNames.freeMbsDispatcher, (response) => {
+                    freeMbsConsumer.subscribeFreeMbs(response);
+                });
             }
         });
-    }
+    }       
+}).catch(err => {
+    console.log('Error while fetching token', err);
 });
 
+function subscribeFreeMbs(subscriber){
+	rabbitMq.addInQueue(config.queueNames.freeMbsDispatcher, subscriber);
+}
 
 // Import routes
 app.use('/', require('./routes/index'));
 
 // Start Server
 let { port } = config;
-app.listen(port, () => console.log(`APP running on port ${port}`));
-
-// Cron Jobs
-const tokenRefreshCron = require('./services/TokenRefreshService');
-const subscriptionRenewalCron = require('./services/SubscriptionRenewalService');
-const tpsCountService = require('./services/TpsCountService');
-
-/*
-TODO:
-0. Set TPS for both apis sms and subscriptions
-5. grace periods - expiry - sms notifications etc
-6. Maintain history as well
-7. Check on over billing
-8. Trial
-*/
- 
+app.listen(port, () => {
+    console.log(`APP running on port ${port}`)
+});

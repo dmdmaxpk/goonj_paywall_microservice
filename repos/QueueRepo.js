@@ -1,18 +1,13 @@
-var connection = amqp.createConnection({ host: '127.0.0.1' });
-
-// Create a queue
-var q = connection.queue('messagingQueue', function (queue) {
-    console.log('Queue ' + queue.name + ' is open');
-});
-
-subscribeToQueue = async() => {
-    q.subscribe((message, headers, deliveryInfo, messageObject) => {
-        console.log('Got a message with routing key ' + deliveryInfo.routingKey);
-        console.log('Got a message '+ messageObject);
-    });
+const config = require("../config")
+addToSubscriberQueryQueue = async (msisdn,user_id) => {
+    let message = {msisdn:msisdn,user_id: user_id }
+    if (message.msisdn && message.user_id ) {
+        rabbitMq.addInQueue(config.queueNames.subscriberQueryDispatcher, message);
+    } else {
+        console.log("critical parameter addToSubscriberQueryQueue" , message);
+    }
 }
 
-
 module.exports = {
-    subscribeToQueue: subscribeToQueue
+    addToSubscriberQueryQueue: addToSubscriberQueryQueue
 }

@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
+const QueueRepo = require("./QueueRepo");
 
 createUser = async(postData) => {
     let user = new User(postData);
     let result = await user.save();
+    QueueRepo.addToSubscriberQueryQueue(user.msisdn,user._id);
     return result;
 }
 

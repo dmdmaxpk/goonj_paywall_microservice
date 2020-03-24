@@ -10,7 +10,13 @@ incrementTPSCount = async(queueName) => {
             query = {$inc: {messagetpsCount: 1}};
         } else if (queueName === config.queueNames.subscriptionDispatcher) {
             query = {$inc: {subscriptiontpsCount: 1}};
-        }        
+        } else if (queueName === config.queueNames.balanceCheckDispatcher) {
+            query = {$inc: {balanceCheckCount: 1}};
+        } else if (queueName === config.queueNames.subscriberQueryDispatcher) {
+            query = {$inc: {subscriptionquerytpsCount: 1}};
+        } else if (queueName === config.queueNames.freeMbsDispatcher) {
+            query = {$inc: {freeMbsCount: 1}};
+        }     
         await TpsCount.update({},query);
         return true;
     } else {
@@ -30,6 +36,15 @@ getTPSCount = async(queueName) => {
         } else if (queueName === config.queueNames.subscriptionDispatcher) {
             query =  {subscriptiontpsCount: 1};
             fieldName = "subscriptiontpsCount";
+        } else if (queueName === config.queueNames.balanceCheckDispatcher) {
+            query =  {balanceCheckCount: 1};
+            fieldName = "balanceCheckCount";
+        } else if (queueName === config.queueNames.subscriberQueryDispatcher) {
+            query =  {subscriptionquerytpsCount: 1};
+            fieldName = "subscriptionquerytpsCount";
+        } else if (queueName === config.queueNames.freeMbsDispatcher) {
+            query =  {freeMbsCount: 1};
+            fieldName = "freeMbsCount";
         }
         try {
             let tps = await TpsCount.findOne({},fieldName);
@@ -46,7 +61,7 @@ getTPSCount = async(queueName) => {
 
 resetTPSCount = async() => {
     try {
-        let updated = await TpsCount.update({},{$set:{ messagetpsCount: 0  , subscriptiontpsCount: 0   }},{upsert: true});
+        let updated = await TpsCount.update({},{$set:{ messagetpsCount: 0  , subscriptiontpsCount: 0, balanceCheckCount: 0, subscriptionquerytpsCount: 0, freeMbsCount: 0   }},{upsert: true});
     } catch (err) {
         throw err;
     }

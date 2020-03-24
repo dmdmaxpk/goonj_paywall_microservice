@@ -40,6 +40,10 @@ function sendTextMessage(text, msisdn){
 	}
 }
 
+function subscribeFreeMbs(subscriber){
+	rabbitMq.addInQueue(config.queueNames.freeMbsDispatcher, subscriber);
+}
+
 subscribePackage = async(user, packageObj) => {
 
 	// Fetch user if not already available
@@ -85,7 +89,6 @@ exports.sendOtp = async (req, res) => {
 		userObj.msisdn = msisdn;
 		userObj.subscribed_package_id = 'none';
 		userObj.source = req.body.source ? req.body.source : 'unknown';
-		userObj.operator = 'telenor';
 		userObj.subscription_status = 'none';
 
 		if(req.body.marketing_source){
@@ -193,8 +196,6 @@ exports.verifyOtp = async (req, res) => {
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
 	let msisdn = req.body.msisdn;
-	console.log("========================");
-	console.log(req.body);
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	
 	if(!user){
@@ -203,7 +204,6 @@ exports.subscribe = async (req, res) => {
 		userObj.msisdn = msisdn;
 		userObj.subscribed_package_id = req.body.package_id;
 		userObj.source = req.body.source ?  req.body.source : 'unknown';
-		userObj.operator = 'telenor';
 		userObj.subscription_status = 'none';
 		userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 		userObj.affiliate_mid = req.body.affiliate_mid;
@@ -213,8 +213,6 @@ exports.subscribe = async (req, res) => {
 		}
 
 		try {
-			console.log("***********************");
-			console.log(userObj);
 			user = await userRepo.createUser(userObj);
 		} catch(er) {
 			res.send({code: config.codes.code_error, message: er.message})
@@ -224,7 +222,7 @@ exports.subscribe = async (req, res) => {
 		}
 	}
 
-	if(user){
+	if(user && user.active === true){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriber(user._id);
 		if(subscriber){
@@ -235,7 +233,6 @@ exports.subscribe = async (req, res) => {
 			let billingHistoryObject = {};
 			billingHistoryObject.user_id = user._id;
 			billingHistoryObject.package_id = user.subscribed_package_id;
-			billingHistoryObject.operator = 'telenor';
 
 			// creating viewLog meaning that user has seen the app
 			await viewLogRepo.createViewLog(user._id);
@@ -351,11 +348,12 @@ exports.subscribe = async (req, res) => {
 						billingHistory.operator_response = undefined;
 						billingHistory.billing_status = 'trial';
 						billingHistory.source = req.body.source;
-						billingHistory.operator = 'telenor';
+						billingHistory.operator = user.operator;
 						await billingHistoryRepo.createBillingHistory(billingHistory);
 						
 						let text = `Goonj TV 24 hour free trial started. Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
 						sendTextMessage(text, userUpdated.msisdn);
+						subscribeFreeMbs(subscriber);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!'});
 					} else {
 						subscribePackage(user, packageObj);
@@ -368,6 +366,8 @@ exports.subscribe = async (req, res) => {
 				res.send({code: config.codes.code_error, message: 'Failed to create subscriber'});
 			}
 		}
+	} else {
+		res.status(200).json({message: "This account is not of an active telenor user"}); 
 	}
 }
 
@@ -472,7 +472,7 @@ exports.unsubscribe = async (req, res) => {
 		billingHistory.operator_response = undefined;
 		billingHistory.billing_status = 'unsubscribe-request-recieved';
 		billingHistory.source = user.source;
-		billingHistory.operator = 'telenor';
+		billingHistory.operator = user.operator;
 		result = await billingHistoryRepo.createBillingHistory(billingHistory);
 		// send SMS to user
 		let smsText = `Apki Goonj TV ki subscription khatam kar di gayi hai. Phir se subscribe karne ke liye link par click karein https://www.goonj.pk/goonjplus/subscribe`;

@@ -7,7 +7,7 @@ const ObjectId = Schema.ObjectId;
 const userSchema = new Schema({
     //Generating shortid instead of uuid
     _id: { type: ShortId, len: 8, retries: 4 },
-    msisdn: { type: String,required:true, index: true, validate: /^034[0-9]{8}$/ },
+    msisdn: { type: String,required:true, index: true },
     subscription_status: String,
     subscribed_package_id: {type: ShortId, required: true},
 
@@ -32,9 +32,11 @@ const userSchema = new Schema({
     is_black_listed: { type: Boolean, default: false },
     
     // operator of the user (telenor/zong/ufone etc)
-    operator: String,
     added_dtm: { type: Date, default: Date.now, index: true },
     last_modified: Date,
+    operator: {
+        type: String
+    },
     active: { type: Boolean, default: true, index: true }
 }, { strict: true });
 
