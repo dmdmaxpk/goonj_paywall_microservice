@@ -257,6 +257,7 @@ exports.subscribe = async (req, res) => {
 						// Same, package - just switch on auto renewal so that the user can get charge automatically.
 						let updated = subscriberRepo.updateSubscriber(user._id, {auto_renewal: true});
 						if(updated){
+							billingHistoryObject.source = user.source;
 							billingHistoryObject.billing_status = "subscription-request-received-for-the-same-package";
 							await billingHistoryRepo.createBillingHistory(billingHistoryObject);
 							res.send({code: config.codes.code_already_subscribed, message: 'Subscribed', gw_transaction_id: gw_transaction_id});
@@ -359,7 +360,7 @@ exports.subscribe = async (req, res) => {
 						
 						let text = `Goonj TV 24 hour free trial started. Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
 						sendTextMessage(text, userUpdated.msisdn);
-						subscribeFreeMbs(subscriber);
+						//subscribeFreeMbs(subscriber);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 					} else {
 						subscribePackage(user, packageObj);

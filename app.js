@@ -247,7 +247,7 @@ consumeSusbcriptionQueue = async(res) => {
                                
                                 // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
-                                    subscribeFreeMbs(updatedSubscriber);
+                                    //subscribeFreeMbs(updatedSubscriber);
                                     if(micro_charge){
                                         await chargingAttemptRepo.resetAttempts(subscriber._id);
                                         await chargingAttemptRepo.markInActive(subscriber._id);
