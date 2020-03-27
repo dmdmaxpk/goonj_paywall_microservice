@@ -481,7 +481,7 @@ exports.unsubscribe = async (req, res) => {
 		billingHistory.transaction_id = undefined;
 		billingHistory.operator_response = undefined;
 		billingHistory.billing_status = 'unsubscribe-request-recieved';
-		billingHistory.source = user.source;
+		billingHistory.source = req.body.source ? req.body.source : "na";
 		billingHistory.operator = user.operator;
 		result = await billingHistoryRepo.createBillingHistory(billingHistory);
 		// send SMS to user
