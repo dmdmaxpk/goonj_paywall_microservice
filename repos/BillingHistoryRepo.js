@@ -120,14 +120,13 @@ errorCountReport = async() => {
      ]);
      console.timeEnd("errorCountReport");
      return result;
- 
 }
 
 dailyUnsubReport = async() => {
     let result = await BillingHistory.aggregate([
         {
             $match:{
-                "billing_status" : "unsubscribe-request-recieved"
+                "billing_status" : "expired"
             }
         },{
             $group: {

@@ -567,9 +567,6 @@ app.use('/', require('./routes/index'));
 // Start Server
 let { port } = config;
 app.listen(port, () => {
-    console.log(`APP running on port ${port}`)
-
-    let reportService = require('./services/ReportsService');
-    reportService.generateDailyReport();
+    console.log(`APP running on port ${port}`);
 });
 
