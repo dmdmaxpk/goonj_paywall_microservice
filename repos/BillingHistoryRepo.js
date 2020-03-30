@@ -127,7 +127,7 @@ dailyUnsubReport = async() => {
     let result = await BillingHistory.aggregate([
         {
             $match:{
-                "billing_status" : "expired"
+                "billing_status" : "unsubscribe-request-recieved"
             }
         },{
             $group: {

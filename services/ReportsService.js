@@ -4,9 +4,9 @@ generateDailyReport = async() => {
     console.log("generateDailyReports");
     //reportsRepo.dailyReport();
     //reportsRepo.callBacksReport();
-    //reportsRepo.dailyUnsubReport();
+    reportsRepo.dailyUnsubReport();
     //reportsRepo.errorCountReport();
-    reportsRepo.dailyFullAndPartialChargedUsers();
+    //reportsRepo.dailyFullAndPartialChargedUsers();
 }
 
 module.exports = {
