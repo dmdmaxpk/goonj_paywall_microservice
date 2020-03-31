@@ -473,16 +473,20 @@ dailyTrialToBilledUsers = async() => {
                             if(diff === 24){
                                 let currentObj = isMultipleDatePresent(trialToBilledUsers, trialDate);
                                 if(currentObj){
-                                    currentObj.msisdn.push(element.msisdn);
+                                    currentObj.msisdn.push({"msisdn":element.msisdn});
                                     currentObj.total = (currentObj.total + 1);
                                 }else{
                                     trialDate.setHours(0, 0, 0, 0);
                                     billingDate.setHours(0, 0, 0, 0);
-    
+
+                                    let dateDiff = billingDate.getDate() - trialDate.getDate();
+                                    if(dateDiff == 2)
+                                        billingDate.setDate(billingDate.getDate() + 1);
+
                                     let object = {};
                                     object.trial_date = trialDate;
                                     object.billed_date = billingDate;
-                                    object.msisdn = [element.msisdn];
+                                    object.msisdn = [{"msisdn":element.msisdn}];
                                     object.total = 1;
                                     trialToBilledUsers.push(object);
                                 }
