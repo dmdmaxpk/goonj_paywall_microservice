@@ -516,10 +516,10 @@ dailyTrialToBilledUsers = async() => {
         await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["paywall@dmdmax.com.pk"],
-            //to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
-            subject: 'Trial To Billed Users Count',
-            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}`, // plain text bodyday
+            //to:  ["paywall@dmdmax.com.pk"],
+            to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            subject: 'Trial To Billed Users',
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date data.`, // plain text bodyday
             attachments:[
                 {
                     filename: "trialToBilledUsers.csv",
