@@ -515,6 +515,12 @@ dailyTrialToBilledUsers = async() => {
             ]
         });
         console.log("[trialToBilledUsers][emailSent]", info);
+        fs.unlink("./trialToBilledUsers.csv",function(err,data) {
+            if (err) {
+                console.log("File not deleted");
+            }
+            console.log("data");
+        });
     } catch (error) {
         console.error(error);
     }
@@ -556,6 +562,12 @@ dailyFullAndPartialChargedUsers = async() => {
             ]
         });
         console.log("[fullAndPartialChargedUsers][emailSent]", info);
+        fs.unlink("./fullAndPartialChargedUsers.csv",function(err,data) {
+            if (err) {
+                console.log("File not deleted");
+            }
+            console.log("data");
+        });
     } catch (error) {
         console.error(error);
     }
