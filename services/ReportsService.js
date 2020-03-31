@@ -6,6 +6,7 @@ generateDailyReport = async() => {
     reportsRepo.callBacksReport();
     reportsRepo.dailyUnsubReport();
     reportsRepo.errorCountReport();
+    reportsRepo.dailyFullAndPartialChargedUsers();
 }
 
 module.exports = {
