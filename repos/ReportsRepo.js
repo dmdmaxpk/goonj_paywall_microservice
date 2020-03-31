@@ -509,6 +509,10 @@ dailyTrialToBilledUsers = async() => {
         lastTenDays.setDate(lastTenDays.getDate() - 11);
         lastTenDays.setHours(0, 0, 0, 0);
 
+        trialToBilledUsers.forEach(element => {
+            element.msisdn = JSON.stringify(element.msisdn);
+        });
+
         await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
