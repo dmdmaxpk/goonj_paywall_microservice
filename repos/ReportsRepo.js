@@ -50,6 +50,15 @@ const csvFullAndPartialCharged = createCsvWriter({
     ]
 });
 
+const csvTrialToBilledUsers = createCsvWriter({
+    path: './trialToBilledUsers.csv',
+    header: [
+        {id: 'date', title: 'Date'},
+        {id: 'user_ids', title: 'Users'},
+        {id: 'total', title: 'Total Users'}
+    ]
+});
+
 var transporter = nodemailer.createTransport({
     host: "mail.dmdmax.com.pk",
     port: 465,
@@ -444,7 +453,6 @@ dailyTrialToBilledUsers = async() => {
                         let billingDate = new Date(subElement.billing_dtm);
                         if(trialDate){
                             let diff = parseInt(Math.abs(trialDate.getTime() - billingDate.getTime()) / 36e5);
-                            console.log(diff);
                             if(diff === 24){
                                 let recordDate = new Date(element.added_dtm);
                                 recordDate.setHours(0, 0, 0, 0);
@@ -471,7 +479,21 @@ dailyTrialToBilledUsers = async() => {
             }
         });
 
-        console.log(trialToBilledUsers);
+        await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["paywall@dmdmax.com.pk"],
+            //to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            subject: 'Trial To Billed Users Count',
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial.`, // plain text bodyday
+            attachments:[
+                {
+                    filename: "trialToBilledUsers.csv",
+                    path: "./trialToBilledUsers.csv"
+                }
+            ]
+        });
+        console.log("[trialToBilledUsers][emailSent]", info);
     } catch (error) {
         console.error(error);
     }
