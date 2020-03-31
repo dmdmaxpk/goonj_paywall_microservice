@@ -7,6 +7,8 @@ const fs = require('fs');
 const billinghistoryRepo = require("../repos/BillingHistoryRepo");
 var nodemailer = require('nodemailer');
 
+var usersRepo = require('./UserRepo');
+
 const csvWriter = createCsvWriter({
     path: './report.csv',
     header: [
@@ -425,6 +427,57 @@ function isDatePresent(array, dateToFind) {
     return result;
 }
 
+dailyTrialToBilledUsers = async() => {
+    try {
+        let trialToBilled = await usersRepo.dailyTrialToBilledUsers();
+        let trialToBilledUsers = [];
+
+        trialToBilled.forEach(element => {
+            let trialDate = undefined;
+            let BreakException = {};
+
+            try{
+                element.usershistory.forEach(subElement => {
+                    if(subElement.billing_status === 'trial'){
+                        trialDate = new Date(subElement.billing_dtm);
+                    }else if(subElement.billing_status === 'Success' && (!subElement.micro_charge || (subElement.micro_charge && subElement.micro_charge === false))){
+                        let billingDate = new Date(subElement.billing_dtm);
+                        if(trialDate){
+                            let diff = parseInt(Math.abs(trialDate.getTime() - billingDate.getTime()) / 36e5);
+                            console.log(diff);
+                            if(diff === 24){
+                                let recordDate = new Date(element.added_dtm);
+                                recordDate.setHours(0, 0, 0, 0);
+    
+                                let currentObj = isDatePresent(trialToBilledUsers, recordDate);
+                                if(currentObj){
+                                    currentObj.user_ids.push(element._id);
+                                    currentObj.total = (currentObj.total + 1);
+                                }else{
+                                    let object = {};
+                                    object.date = recordDate;
+                                    object.user_ids = [element._id];
+                                    object.total = 1;
+                                    trialToBilledUsers.push(object);
+                                }
+                                throw BreakException;
+                            }
+                        }
+                    }
+                });
+            }catch(e){
+                if(e !== BreakException)
+                    throw e;
+            }
+        });
+
+        console.log(trialToBilledUsers);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
 dailyFullAndPartialChargedUsers = async() => {
     try {
         let dailyReport = await billinghistoryRepo.getDailyFullyChargedAndPartialChargedUsers();
@@ -470,5 +523,6 @@ module.exports = {
     callBacksReport: callBacksReport,
     errorCountReport: errorCountReport,
     dailyUnsubReport: dailyUnsubReport,
-    dailyFullAndPartialChargedUsers: dailyFullAndPartialChargedUsers
+    dailyFullAndPartialChargedUsers: dailyFullAndPartialChargedUsers,
+    dailyTrialToBilledUsers: dailyTrialToBilledUsers
 }

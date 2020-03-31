@@ -64,6 +64,37 @@ deleteUser = async(user_id) => {
 }
 
 
+dailyTrialToBilledUsers = async() => {
+    let today = new Date();;
+    today.setHours(0, 0, 0, 0);
+
+    let lastTenDays = new Date();
+    lastTenDays.setDate(lastTenDays.getDate() - 10);
+    lastTenDays.setHours(0, 0, 0, 0);
+    console.log("Query from - ", lastTenDays, ' - to ', today);
+
+    let result = await User.aggregate([
+        {
+            $match:{
+                $and: [{added_dtm: {$gte: new Date(lastTenDays)}}, {added_dtm: {$lt: new Date(today)}}]
+            }
+        },{ 
+            $sort : { 
+                added_dtm : -1
+            }
+        },{
+            $lookup:{
+                from: "billinghistories",
+                localField: "_id",
+                foreignField: "user_id",
+                as: "usershistory"
+            }
+        }
+        ]);
+     return result;
+}
+
+
 module.exports = {
     createUser: createUser,
     getGraylistUsers: getGraylistUsers,
@@ -73,5 +104,6 @@ module.exports = {
     updateUserById: updateUserById,
     deleteUser: deleteUser,
     getPslPackageUsers: getPslPackageUsers,
-    getPslOnlyPackageUsers: getPslOnlyPackageUsers
+    getPslOnlyPackageUsers: getPslOnlyPackageUsers,
+    dailyTrialToBilledUsers: dailyTrialToBilledUsers
 }
