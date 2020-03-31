@@ -53,9 +53,14 @@ const csvFullAndPartialCharged = createCsvWriter({
 const csvTrialToBilledUsers = createCsvWriter({
     path: './trialToBilledUsers.csv',
     header: [
-        {id: 'date', title: 'Date'},
-        {id: 'user_ids', title: 'Users'},
-        {id: 'total', title: 'Total Users'}
+        {id: 'trial_date', title: 'Trial Activation Date'},
+        {id: 'billed_date', title: "Successfull Billing Date"},
+        {id: 'msisdn', title: 'List of MSISDNs'},
+        {id: 'total', title: 'Total Count'}
+
+        //{id: 'billed_in_13_days', title: 'Billed within 13 Days'},
+        //{id: 'msisdn_13_days', title: 'List of MSISDNs of Users Billed Within 13 Days'},
+        //{id: 'total_13_days', title: 'Total Count of Users Billed With 13 Days'}
     ]
 });
 
@@ -436,6 +441,18 @@ function isDatePresent(array, dateToFind) {
     return result;
 }
 
+function isMultipleDatePresent(array, date1ToFind, date2ToFind) {
+    let newDate1ToFind = new Date(date1ToFind);
+    let newDate2ToFind = new Date(date2ToFind);
+    newDate1ToFind.setHours(0, 0, 0, 0);
+    newDate2ToFind.setHours(0, 0, 0, 0);
+    const result = array.find(o =>
+         new Date(o.trial_date).getTime() === new Date(newDate1ToFind).getTime()
+         && new Date(o.billed_date).getTime() === new Date(newDate2ToFind).getTime()
+         );
+    return result;
+}
+
 dailyTrialToBilledUsers = async() => {
     try {
         let trialToBilled = await usersRepo.dailyTrialToBilledUsers();
@@ -449,22 +466,27 @@ dailyTrialToBilledUsers = async() => {
                 element.usershistory.forEach(subElement => {
                     if(subElement.billing_status === 'trial'){
                         trialDate = new Date(subElement.billing_dtm);
+                    
                     }else if(subElement.billing_status === 'Success' && (!subElement.micro_charge || (subElement.micro_charge && subElement.micro_charge === false))){
                         let billingDate = new Date(subElement.billing_dtm);
+                        
                         if(trialDate){
                             let diff = parseInt(Math.abs(trialDate.getTime() - billingDate.getTime()) / 36e5);
                             if(diff === 24){
-                                let recordDate = new Date(element.added_dtm);
-                                recordDate.setHours(0, 0, 0, 0);
-    
-                                let currentObj = isDatePresent(trialToBilledUsers, recordDate);
+                                let currentObj = isMultipleDatePresent(trialToBilledUsers, trialDate, billingDate);
                                 if(currentObj){
-                                    currentObj.user_ids.push(element._id);
+                                    currentObj.msisdn.push(element.msisdn);
                                     currentObj.total = (currentObj.total + 1);
                                 }else{
+                                    trialDate.setHours(0, 0, 0, 0);
+                                    billingDate.setHours(0, 0, 0, 0);
+                                    let newTrialDate = trialDate.getTime();
+                                    let newBilledDate = billingDate.getTime();
+
                                     let object = {};
-                                    object.date = recordDate;
-                                    object.user_ids = [element._id];
+                                    object.trial_date = newTrialDate;
+                                    object.billed_date = newBilledDate;
+                                    object.msisdn = [element.msisdn];
                                     object.total = 1;
                                     trialToBilledUsers.push(object);
                                 }
