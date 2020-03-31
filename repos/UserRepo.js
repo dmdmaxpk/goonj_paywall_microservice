@@ -65,11 +65,12 @@ deleteUser = async(user_id) => {
 
 
 dailyTrialToBilledUsers = async() => {
-    let today = new Date();;
+    let today = new Date();
+    today.setHours(today.getHours - 24);
     today.setHours(0, 0, 0, 0);
 
     let lastTenDays = new Date();
-    lastTenDays.setDate(lastTenDays.getDate() - 10);
+    lastTenDays.setDate(lastTenDays.getDate() - 11);
     lastTenDays.setHours(0, 0, 0, 0);
     console.log("Query from - ", lastTenDays, ' - to ', today);
 

@@ -441,15 +441,12 @@ function isDatePresent(array, dateToFind) {
     return result;
 }
 
-function isMultipleDatePresent(array, date1ToFind, date2ToFind) {
+function isMultipleDatePresent(array, date1ToFind) {
     let newDate1ToFind = new Date(date1ToFind);
-    let newDate2ToFind = new Date(date2ToFind);
 
     newDate1ToFind.setHours(0, 0, 0, 0);
-    newDate2ToFind.setHours(0, 0, 0, 0);
     const result = array.find(o =>
          new Date(o.trial_date).getTime() === newDate1ToFind.getTime()
-         && new Date(o.billed_date).getTime() === newDate2ToFind.getTime()
          );
     return result;
 }
@@ -474,7 +471,7 @@ dailyTrialToBilledUsers = async() => {
                         if(trialDate){
                             let diff = parseInt(Math.abs(trialDate.getTime() - billingDate.getTime()) / 36e5);
                             if(diff === 24){
-                                let currentObj = isMultipleDatePresent(trialToBilledUsers, trialDate, billingDate);
+                                let currentObj = isMultipleDatePresent(trialToBilledUsers, trialDate);
                                 if(currentObj){
                                     currentObj.msisdn.push(element.msisdn);
                                     currentObj.total = (currentObj.total + 1);
@@ -500,13 +497,21 @@ dailyTrialToBilledUsers = async() => {
             }
         });
 
+        let today = new Date();
+        today.setHours(today.getHours - 24);
+        today.setHours(0, 0, 0, 0);
+
+        let lastTenDays = new Date();
+        lastTenDays.setDate(lastTenDays.getDate() - 11);
+        lastTenDays.setHours(0, 0, 0, 0);
+
         await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
             to:  ["paywall@dmdmax.com.pk"],
             //to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Trial To Billed Users Count',
-            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial.`, // plain text bodyday
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}`, // plain text bodyday
             attachments:[
                 {
                     filename: "trialToBilledUsers.csv",
