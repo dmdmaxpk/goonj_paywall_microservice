@@ -442,13 +442,14 @@ function isDatePresent(array, dateToFind) {
 }
 
 function isMultipleDatePresent(array, date1ToFind, date2ToFind) {
-    let newDate1ToFind = new Date(date1ToFind);
-    let newDate2ToFind = new Date(date2ToFind);
+    let newDate1ToFind = date1ToFind.getTime();
+    let newDate2ToFind = date2ToFind.getTime();
+
     newDate1ToFind.setHours(0, 0, 0, 0);
     newDate2ToFind.setHours(0, 0, 0, 0);
     const result = array.find(o =>
-         new Date(o.trial_date).getTime() === new Date(newDate1ToFind).getTime()
-         && new Date(o.billed_date).getTime() === new Date(newDate2ToFind).getTime()
+         new Date(o.trial_date).getTime() === newDate1ToFind.getTime()
+         && new Date(o.billed_date).getTime() === newDate2ToFind.getTime()
          );
     return result;
 }
@@ -480,12 +481,10 @@ dailyTrialToBilledUsers = async() => {
                                 }else{
                                     trialDate.setHours(0, 0, 0, 0);
                                     billingDate.setHours(0, 0, 0, 0);
-                                    let newTrialDate = trialDate.getTime();
-                                    let newBilledDate = billingDate.getTime();
-
+    
                                     let object = {};
-                                    object.trial_date = newTrialDate;
-                                    object.billed_date = newBilledDate;
+                                    object.trial_date = trialDate;
+                                    object.billed_date = billingDate;
                                     object.msisdn = [element.msisdn];
                                     object.total = 1;
                                     trialToBilledUsers.push(object);
