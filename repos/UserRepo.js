@@ -66,7 +66,7 @@ deleteUser = async(user_id) => {
 
 dailyTrialToBilledUsers = async() => {
     let today = new Date();
-    today.setHours(today.getHours - 24);
+    today.setHours(today.getHours() - 24);
     today.setHours(0, 0, 0, 0);
 
     let lastTenDays = new Date();
