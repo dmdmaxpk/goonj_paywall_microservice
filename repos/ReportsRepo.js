@@ -481,7 +481,7 @@ dailyTrialToBilledUsers = async() => {
 
                                     let dateDiff = billingDate.getDate() - trialDate.getDate();
                                     if(dateDiff == 2)
-                                        billingDate.setDate(billingDate.getDate() + 1);
+                                        billingDate.setDate(billingDate.getDate() - 1);
 
                                     let object = {};
                                     object.trial_date = trialDate;
