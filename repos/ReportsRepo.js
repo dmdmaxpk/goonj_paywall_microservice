@@ -442,8 +442,8 @@ function isDatePresent(array, dateToFind) {
 }
 
 function isMultipleDatePresent(array, date1ToFind, date2ToFind) {
-    let newDate1ToFind = date1ToFind.getTime();
-    let newDate2ToFind = date2ToFind.getTime();
+    let newDate1ToFind = new Date(date1ToFind);
+    let newDate2ToFind = new Date(date2ToFind);
 
     newDate1ToFind.setHours(0, 0, 0, 0);
     newDate2ToFind.setHours(0, 0, 0, 0);
