@@ -9,8 +9,32 @@ var nodemailer = require('nodemailer');
 
 var usersRepo = require('./UserRepo');
 
+
+let currentDate = getCurrentDate();
+
+let paywallRevFileName = currentDate+"_PaywallRevReport.csv";
+let paywallRevFilePath = `./${paywallRevFileName}`;
+
+let paywallUnsubReport = currentDate+"_UnsubReport.csv";
+let paywallUnsubFilePath = `./${paywallUnsubReport}`;
+
+let paywallErrorCountReport = currentDate+"_ErrorCountReport.csv";
+let paywallErrorCountFilePath = `./${paywallErrorCountReport}`;
+
+let paywallErrorCountReportBySource = currentDate+"_ErrorCountReportBySource.csv";
+let paywallErrorCountBySourceFilePath = `./${paywallErrorCountReportBySource}`;
+
+let paywallFullAndPartialChargedReport = currentDate+"_FullAndPartialCharged.csv";
+let paywallFullAndPartialChargedReportFilePath = `./${paywallFullAndPartialChargedReport}`;
+
+let paywallCallbackReport = currentDate+"_CallbackReport.csv";
+let paywallCallbackFilePath = `./${paywallCallbackReport}`;
+
+let paywallTrialToBilledUsers = currentDate+"_TrialToBilled.csv";
+let paywallTrialToBilledUsersFilePath = `./${paywallTrialToBilledUsers}`;
+
 const csvWriter = createCsvWriter({
-    path: './report.csv',
+    path: paywallRevFilePath,
     header: [
         {id: 'date', title: 'Date'},
         {id: 'newUser', title: 'Number Verified Users'},
@@ -30,7 +54,7 @@ const csvWriter = createCsvWriter({
 });
 
 const csvReportWriter = createCsvWriter({
-    path: './callBackReport.csv',
+    path: paywallCallbackFilePath,
     header: [
         {id: 'tid', title: 'TID'},
         {id: 'mid', title: 'MID'},
@@ -41,7 +65,7 @@ const csvReportWriter = createCsvWriter({
 });
 
 const csvFullAndPartialCharged = createCsvWriter({
-    path: './fullAndPartialChargedUsers.csv',
+    path: paywallFullAndPartialChargedReportFilePath,
     header: [
         {id: 'date', title: 'Date'},
         {id: 'fully_charged_users', title: 'Fully Charged Users'},
@@ -51,7 +75,7 @@ const csvFullAndPartialCharged = createCsvWriter({
 });
 
 const csvTrialToBilledUsers = createCsvWriter({
-    path: './trialToBilledUsers.csv',
+    path: paywallTrialToBilledUsersFilePath,
     header: [
         {id: 'trial_date', title: 'Trial Activation Date'},
         {id: 'billed_date', title: "Successfull Billing Date"},
@@ -226,19 +250,19 @@ dailyReport = async(mode = 'prod') => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                // to:  ["hamza@dmdmax.com.pk"],
+                //to:  ["farhan.ali@dmdmax.com"],
                 to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
                 "mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
                 subject: `Paywall Report`, // Subject line
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
                 attachments:[
                     {
-                        filename: "report.csv",
-                        path: "./report.csv"
+                        filename: paywallRevFileName,
+                        path: paywallRevFilePath
                     }
                 ]
             });
-            fs.unlink("./report.csv",function(err,data) {
+            fs.unlink(paywallRevFilePath,function(err,data) {
                 if (err) {
                     console.log("File not deleted");
                 }
@@ -312,20 +336,20 @@ callBacksReport =async() => {
         let write = await csvReportWriter.writeRecords(report);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            // to:  ["hamza@dmdmax.com.pk"],
+            //to:  ["farhan.ali@dmdmax.com"],
             to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
             "mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
             subject: `Callbacks Report`, // Subject line
             text: `Callbacks sent with their TIDs and timestamps -  ${(new Date()).toDateString()}`, // plain text bodyday
             attachments:[
                 {
-                    filename: "callBackReport.csv",
-                    path: "./callBackReport.csv"
+                    filename: paywallCallbackReport,
+                    path: paywallCallbackFilePath
                 }
             ]
         });
         console.log("Report",info);
-        fs.unlink("./callBackReport.csv",function(err,data) {
+        fs.unlink(paywallCallbackFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted");
             }
@@ -338,7 +362,7 @@ callBacksReport =async() => {
 }
 
 const errorCountReportBySource = createCsvWriter({
-    path: './errorCountReportBySource.csv',
+    path: paywallErrorCountBySourceFilePath,
     header: [
         {id: 'source', title: 'Source'},
         {id: 'errorMessage', title: 'Error Message'},
@@ -348,7 +372,7 @@ const errorCountReportBySource = createCsvWriter({
 });
 
 const errorCountReportWriter = createCsvWriter({
-    path: './errorCountReport.csv',
+    path: paywallErrorCountFilePath,
     header: [
         {id: 'errorMessage', title: 'Error Message'},
         {id: 'errorCode', title: 'Error Code'},
@@ -357,7 +381,7 @@ const errorCountReportWriter = createCsvWriter({
 });
 
 const dailyUnsubReportWriter = createCsvWriter({
-    path: './dailyUnsubReport.csv',
+    path: paywallUnsubFilePath,
     header: [
         {id: 'date', title: 'Date'},
         {id: "count",title: "Unsubscribe Count" }
@@ -372,29 +396,29 @@ errorCountReport = async() => {
         await errorCountReportBySource.writeRecords(errorBySourceReport);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            // to:  ["hamza@dmdmax.com.pk",],
+            //to:  ["farhan.ali@dmdmax.com"],
             to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Error Reports`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains all error count stats from 23rd February 2020 onwards.`, // plain text bodyday
             attachments:[
                 {
-                    filename: "errorCountReport.csv",
-                    path: "./errorCountReport.csv"
+                    filename: paywallErrorCountReport,
+                    path: paywallErrorCountFilePath
                 },
                 {
-                    filename: "errorCountReportBySource.csv",
-                    path: "./errorCountReportBySource.csv"
+                    filename: paywallErrorCountReportBySource,
+                    path: paywallErrorCountBySourceFilePath
                 }
             ]
         });
         console.log("[errorCountReport][emailSent]",info);
-        fs.unlink("./errorCountReport.csv",function(err,data) {
+        fs.unlink(paywallErrorCountFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted[errorCountReport]");
             }
             console.log("File deleted [errorCountReport]");
         });
-        fs.unlink("./errorCountReportBySource.csv",function(err,data) {
+        fs.unlink(paywallErrorCountBySourceFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted[errorCountReportBySource]");
             }
@@ -417,13 +441,13 @@ dailyUnsubReport = async() => {
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users.`, // plain text bodyday
             attachments:[
                 {
-                    filename: "dailyUnsubReport.csv",
-                    path: "./dailyUnsubReport.csv"
+                    filename: paywallUnsubReport,
+                    path: paywallUnsubFilePath
                 }
             ]
         });
         console.log("[dailyUnsubReport][emailSent]",info);
-        fs.unlink("./dailyUnsubReport.csv",function(err,data) {
+        fs.unlink(paywallUnsubFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted[dailyUnsubReport]");
             }
@@ -514,19 +538,19 @@ dailyTrialToBilledUsers = async() => {
         await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            //to:  ["paywall@dmdmax.com.pk"],
+            //to:  ["farhan.ali@dmdmax.com"],
             to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Trial To Billed Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date data.`, // plain text bodyday
             attachments:[
                 {
-                    filename: "trialToBilledUsers.csv",
-                    path: "./trialToBilledUsers.csv"
+                    filename: paywallTrialToBilledUsers,
+                    path: paywallTrialToBilledUsersFilePath
                 }
             ]
         });
         console.log("[trialToBilledUsers][emailSent]", info);
-        fs.unlink("./trialToBilledUsers.csv",function(err,data) {
+        fs.unlink(paywallTrialToBilledUsersFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted");
             }
@@ -560,19 +584,19 @@ dailyFullAndPartialChargedUsers = async() => {
         await csvFullAndPartialCharged.writeRecords(array);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            //to:  ["paywall@dmdmax.com.pk"],
+            //to:  ["farhan.ali@dmdmax.com"],
             to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Full & Partial Charged Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of full & partial charged users.`, // plain text bodyday
             attachments:[
                 {
-                    filename: "fullAndPartialChargedUsers.csv",
-                    path: "./fullAndPartialChargedUsers.csv"
+                    filename: paywallFullAndPartialChargedReport,
+                    path: paywallFullAndPartialChargedReportFilePath
                 }
             ]
         });
         console.log("[fullAndPartialChargedUsers][emailSent]", info);
-        fs.unlink("./fullAndPartialChargedUsers.csv",function(err,data) {
+        fs.unlink(paywallFullAndPartialChargedReportFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted");
             }
@@ -581,6 +605,15 @@ dailyFullAndPartialChargedUsers = async() => {
     } catch (error) {
         console.error(error);
     }
+}
+
+function getCurrentDate(){
+    var dateObj = new Date();
+    var month = dateObj.getUTCMonth() + 1; //months from 1-12
+    var day = dateObj.getUTCDate();
+    var year = dateObj.getUTCFullYear();
+    newdate = day + "-" + month + "-" + year;
+    return newdate;
 }
 
 module.exports = {
