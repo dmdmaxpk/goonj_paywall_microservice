@@ -171,6 +171,8 @@ getDailyFullyChargedAndPartialChargedUsers = async() => {
      return result;
 }
 
+
+
 module.exports = {
     createBillingHistory: createBillingHistory,
     getUserForUnGray: getUserForUnGray,

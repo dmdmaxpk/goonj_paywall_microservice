@@ -7,6 +7,8 @@ const fs = require('fs');
 const billinghistoryRepo = require("../repos/BillingHistoryRepo");
 var nodemailer = require('nodemailer');
 
+var usersRepo = require('./UserRepo');
+
 const csvWriter = createCsvWriter({
     path: './report.csv',
     header: [
@@ -45,6 +47,20 @@ const csvFullAndPartialCharged = createCsvWriter({
         {id: 'fully_charged_users', title: 'Fully Charged Users'},
         {id: "partially_charged_users",title: "Partially Charged Users" },
         {id: 'total', title: 'Total'}
+    ]
+});
+
+const csvTrialToBilledUsers = createCsvWriter({
+    path: './trialToBilledUsers.csv',
+    header: [
+        {id: 'trial_date', title: 'Trial Activation Date'},
+        {id: 'billed_date', title: "Successfull Billing Date"},
+        //{id: 'msisdn', title: 'List of MSISDNs'},
+        {id: 'total', title: 'Total Count'}
+
+        //{id: 'billed_in_13_days', title: 'Billed within 13 Days'},
+        //{id: 'msisdn_13_days', title: 'List of MSISDNs of Users Billed Within 13 Days'},
+        //{id: 'total_13_days', title: 'Total Count of Users Billed With 13 Days'}
     ]
 });
 
@@ -240,7 +256,6 @@ dailyReport = async(mode = 'prod') => {
     console.log("resultToWrite",resultToWriteToCsv);
 }
 
-
 callBacksReport =async() => {
     try { 
         let startDate = new Date("2020-02-18T09:16:28.315Z");
@@ -419,10 +434,107 @@ dailyUnsubReport = async() => {
     }
 }
 
-
 function isDatePresent(array, dateToFind) {
     const result = array.find(o => new Date(o.date).getTime() === new Date(dateToFind).getTime());
     return result;
+}
+
+function isMultipleDatePresent(array, date1ToFind) {
+    let newDate1ToFind = new Date(date1ToFind);
+
+    newDate1ToFind.setHours(0, 0, 0, 0);
+    const result = array.find(o =>
+         new Date(o.trial_date).getTime() === newDate1ToFind.getTime()
+         );
+    return result;
+}
+
+dailyTrialToBilledUsers = async() => {
+    try {
+        let trialToBilled = await usersRepo.dailyTrialToBilledUsers();
+        let trialToBilledUsers = [];
+
+        trialToBilled.forEach(element => {
+            let trialDate = undefined;
+            let BreakException = {};
+
+            try{
+                element.usershistory.forEach(subElement => {
+                    if(subElement.billing_status === 'trial'){
+                        trialDate = new Date(subElement.billing_dtm);
+                    
+                    }else if(subElement.billing_status === 'Success' && (!subElement.micro_charge || (subElement.micro_charge && subElement.micro_charge === false))){
+                        let billingDate = new Date(subElement.billing_dtm);
+                        
+                        if(trialDate){
+                            let diff = parseInt(Math.abs(trialDate.getTime() - billingDate.getTime()) / 36e5);
+                            if(diff === 24){
+                                let currentObj = isMultipleDatePresent(trialToBilledUsers, trialDate);
+                                if(currentObj){
+                                    currentObj.msisdn.push({"msisdn":element.msisdn});
+                                    currentObj.total = (currentObj.total + 1);
+                                }else{
+                                    trialDate.setHours(0, 0, 0, 0);
+                                    billingDate.setHours(0, 0, 0, 0);
+
+                                    let dateDiff = billingDate.getDate() - trialDate.getDate();
+                                    if(dateDiff == 2)
+                                        billingDate.setDate(billingDate.getDate() - 1);
+
+                                    let object = {};
+                                    object.trial_date = trialDate;
+                                    object.billed_date = billingDate;
+                                    object.msisdn = [{"msisdn":element.msisdn}];
+                                    object.total = 1;
+                                    trialToBilledUsers.push(object);
+                                }
+                                throw BreakException;
+                            }
+                        }
+                    }
+                });
+            }catch(e){
+                if(e !== BreakException)
+                    throw e;
+            }
+        });
+
+        let today = new Date();
+        today.setHours(today.getHours() - 24);
+        today.setHours(0, 0, 0, 0);
+
+        let lastTenDays = new Date();
+        lastTenDays.setDate(lastTenDays.getDate() - 11);
+        lastTenDays.setHours(0, 0, 0, 0);
+
+        trialToBilledUsers.forEach(element => {
+            element.msisdn = JSON.stringify(element.msisdn);
+        });
+
+        await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            //to:  ["paywall@dmdmax.com.pk"],
+            to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            subject: 'Trial To Billed Users',
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date data.`, // plain text bodyday
+            attachments:[
+                {
+                    filename: "trialToBilledUsers.csv",
+                    path: "./trialToBilledUsers.csv"
+                }
+            ]
+        });
+        console.log("[trialToBilledUsers][emailSent]", info);
+        fs.unlink("./trialToBilledUsers.csv",function(err,data) {
+            if (err) {
+                console.log("File not deleted");
+            }
+            console.log("data");
+        });
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 dailyFullAndPartialChargedUsers = async() => {
@@ -460,6 +572,12 @@ dailyFullAndPartialChargedUsers = async() => {
             ]
         });
         console.log("[fullAndPartialChargedUsers][emailSent]", info);
+        fs.unlink("./fullAndPartialChargedUsers.csv",function(err,data) {
+            if (err) {
+                console.log("File not deleted");
+            }
+            console.log("data");
+        });
     } catch (error) {
         console.error(error);
     }
@@ -470,5 +588,6 @@ module.exports = {
     callBacksReport: callBacksReport,
     errorCountReport: errorCountReport,
     dailyUnsubReport: dailyUnsubReport,
-    dailyFullAndPartialChargedUsers: dailyFullAndPartialChargedUsers
+    dailyFullAndPartialChargedUsers: dailyFullAndPartialChargedUsers,
+    dailyTrialToBilledUsers: dailyTrialToBilledUsers
 }
