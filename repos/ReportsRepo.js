@@ -55,7 +55,7 @@ const csvTrialToBilledUsers = createCsvWriter({
     header: [
         {id: 'trial_date', title: 'Trial Activation Date'},
         {id: 'billed_date', title: "Successfull Billing Date"},
-        {id: 'msisdn', title: 'List of MSISDNs'},
+        //{id: 'msisdn', title: 'List of MSISDNs'},
         {id: 'total', title: 'Total Count'}
 
         //{id: 'billed_in_13_days', title: 'Billed within 13 Days'},
@@ -256,7 +256,6 @@ dailyReport = async(mode = 'prod') => {
     console.log("resultToWrite",resultToWriteToCsv);
 }
 
-
 callBacksReport =async() => {
     try { 
         let startDate = new Date("2020-02-18T09:16:28.315Z");
@@ -435,7 +434,6 @@ dailyUnsubReport = async() => {
     }
 }
 
-
 function isDatePresent(array, dateToFind) {
     const result = array.find(o => new Date(o.date).getTime() === new Date(dateToFind).getTime());
     return result;
@@ -538,7 +536,6 @@ dailyTrialToBilledUsers = async() => {
         console.error(error);
     }
 }
-
 
 dailyFullAndPartialChargedUsers = async() => {
     try {
