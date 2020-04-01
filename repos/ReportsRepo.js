@@ -338,7 +338,7 @@ callBacksReport =async() => {
             from: 'paywall@dmdmax.com.pk', // sender address
             to:  ["farhan.ali@dmdmax.com"],
             //to:  ["paywall@dmdmax.com.pk","Tauseef.Khan@telenor.com.pk","zara.naqi@telenor.com.pk","sherjeel.hassan@telenor.com.pk","mikaeel@dmdmax.com",
-            "mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+            //"mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
             subject: `Callbacks Report`, // Subject line
             text: `Callbacks sent with their TIDs and timestamps -  ${(new Date()).toDateString()}`, // plain text bodyday
             attachments:[
