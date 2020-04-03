@@ -9,4 +9,10 @@ router.route('/graylist/:msisdn')
 router.route('/update_package')
     .post(userController.update_subscribed_package_id);
 
+router.route('/')
+    .put(userController.put);
+
+router.route('/')
+    .get(userController.get);
+
 module.exports = router;

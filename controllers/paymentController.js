@@ -448,7 +448,14 @@ exports.status = async (req, res) => {
 	let gw_transaction_id = req.body.transaction_id;
 
 	let msisdn = req.body.msisdn;
-	let user = await userRepo.getUserByMsisdn(msisdn);
+	let user = undefined;
+	let user_id = req.body.user_id;
+	if (user_id){
+		user = await userRepo.getUserById(user_id);
+	} else {
+		user = await userRepo.getUserByMsisdn(msisdn);
+	}
+	console.log("User",user);
 	if(user){
 		let result = await subscriberRepo.getSubscriber(user._id);
 		if(result){
