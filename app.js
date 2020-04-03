@@ -54,12 +54,14 @@ app.use(mongoSanitize());
 
 
 let subscriberRepo = require('./repos/SubscriberRepo');
+let messageService = require('./services/MessageService');
 let billingHistoryRepo = require('./repos/BillingHistoryRepo');
 let tokenRepo = require('./repos/ApiTokenRepo');
 var packageRepo = require('./repos/PackageRepo');
 var userRepo = require('./repos/UserRepo');
 var nodemailer = require('nodemailer');
 
+messageService.usersCheckingScript();
 
 var transporter = nodemailer.createTransport({
     host: "email-smtp.eu-central-1.amazonaws.com",

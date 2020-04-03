@@ -10,6 +10,7 @@
 		"axios": "^0.18.1",
 		"body-parser": "~1.18.2",
 		"cron": "~1.7.2",
+		"csv-parser": "^2.3.2",
 		"csv-writer": "^1.6.0",
 		"debug": "~2.6.9",
 		"express": "^4.17.1",
