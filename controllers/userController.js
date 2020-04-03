@@ -21,11 +21,16 @@ exports.post = async (req, res) => {
 
 // GET
 exports.get = async (req, res) => {
-	let { msisdn } = req.query;
-	if (msisdn) {
-		result = await repo.getUserByMsisdn(msisdn);
+	let { msisdn,user_id } = req.query;
+	if (msisdn || user_id) {
+		let result = undefined ;
+		if (msisdn) {
+			result = await repo.getUserByMsisdn(msisdn);
+		} else {
+			result = await repo.getUserById(user_id);
+		}
 		if(result){
-			res.send({code: config.codes.code_success, data: result});
+			res.send({code: config.codes.code_success, data: {fullname: result.fullname,email: result.email, dateOfBirth: result.dateOfBirth,msisdn: result.msisdn  } });
 		}else{
 			res.send({code: config.codes.code_data_not_found, message: 'Data not found'});
 		}
@@ -55,9 +60,21 @@ exports.isgraylisted = async (req, res) => {
 
 // UPDATE
 exports.put = async (req, res) => {
-	const result = await repo.updateUser(req.params.msisdn, req.body);
+	let result = undefined ;
+	let updatePayload= {
+		fullname: req.body.fullname,
+		email: req.body.email,
+		dateOfBirth: req.body.dateOfBirth, 
+	}
+	console.log("query",req.query);
+	console.log("updatePaylod",updatePayload);
+	if (!req.query.user_id) {
+		result = await repo.updateUser(req.query.msisdn, updatePayload);
+	} else {
+		result = await repo.updateUserById(req.query.user_id, updatePayload)
+	}
 	if (result) {
-		res.send({'code': config.codes.code_record_updated, data : result});
+		res.send({'code': config.codes.code_record_updated, data : {fullname: result.fullname,email: result.email, dateOfBirth: result.dateOfBirth,msisdn: result.msisdn  } });
 	}else {
 		res.send({'code': config.codes.code_data_not_found, data: 'No user with this msisdn found!'});
 	}

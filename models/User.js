@@ -18,6 +18,7 @@ const userSchema = new Schema({
     description: String,
     preferences: { type: Array, index: true },
     avatar: String,
+    dateOfBirth: {type: Date },
 
     //source of the user or the origin of the user
     source: String,
