@@ -120,7 +120,6 @@ errorCountReport = async() => {
      ]);
      console.timeEnd("errorCountReport");
      return result;
- 
 }
 
 dailyUnsubReport = async() => {
@@ -144,8 +143,35 @@ dailyUnsubReport = async() => {
         { $sort: { date: -1} }
         ]);
      return result;
- 
 }
+
+getDailyFullyChargedAndPartialChargedUsers = async() => {
+    let result = await BillingHistory.aggregate([{
+        $match: {
+            "billing_status": "Success",
+            "billing_dtm": {$gte: new Date("2020-03-14T00:00:00.000Z")}
+        }
+    },{
+        $group: {
+            _id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },"year":{ $year: "$billing_dtm"}, "micro_charge_state": "$micro_charge"}, 
+            count:{ $sum: 1 } 
+        } 
+    },{
+        $project: {
+            _id: 0,
+            micro_charge_state: "$_id.micro_charge_state",
+                    date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                    total: "$count"
+        }
+    },{ 
+        $sort: { 
+            date: -1
+        } 
+    }]);
+     return result;
+}
+
+
 
 module.exports = {
     createBillingHistory: createBillingHistory,
@@ -153,5 +179,6 @@ module.exports = {
     billingInLastHour: billingInLastHour,
     errorCountReportBySource: errorCountReportBySource,
     errorCountReport: errorCountReport,
-    dailyUnsubReport: dailyUnsubReport
+    dailyUnsubReport: dailyUnsubReport,
+    getDailyFullyChargedAndPartialChargedUsers: getDailyFullyChargedAndPartialChargedUsers
 }

@@ -13,7 +13,7 @@ exports.subscriptionRenewal = async (req,res) =>  {
 }
 
 exports.postPSLUserMigration = async (req,res) =>  {
-    await messageService.changePackageOfUsers();
+    //await messageService.changePackageOfUsers();
     res.send("POST PSL User Migration - Executed");
 }
 

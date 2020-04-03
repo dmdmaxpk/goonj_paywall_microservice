@@ -249,7 +249,7 @@ consumeSusbcriptionQueue = async(res) => {
                                
                                 // TODO split code inside this condition into a separate function 
                                 if(updatedSubscriber){
-                                    subscribeFreeMbs(updatedSubscriber);
+                                    //subscribeFreeMbs(updatedSubscriber);
                                     if(micro_charge){
                                         await chargingAttemptRepo.resetAttempts(subscriber._id);
                                         await chargingAttemptRepo.markInActive(subscriber._id);
@@ -569,5 +569,9 @@ app.use('/', require('./routes/index'));
 // Start Server
 let { port } = config;
 app.listen(port, () => {
-    console.log(`APP running on port ${port}`)
+    console.log(`APP running on port ${port}`);
+
+    //let service = require('./services/ReportsService');
+    //service.generateDailyReport();
 });
+

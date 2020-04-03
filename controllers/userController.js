@@ -37,17 +37,19 @@ exports.get = async (req, res) => {
 
 // GET
 exports.isgraylisted = async (req, res) => {
+	let gw_transaction_id = req.query.transaction_id;
+
 	let { msisdn } = req.params;
 	if (msisdn) {
 		result = await repo.getUserByMsisdn(msisdn);
 		if(result){
-			res.send({code: config.codes.code_success, subscription_status: result.subscription_status, is_gray_listed: result.is_gray_listed});
+			res.send({code: config.codes.code_success, subscription_status: result.subscription_status, is_gray_listed: result.is_gray_listed, gw_transaction_id: gw_transaction_id});
 		}else{
-			res.send({code: config.codes.code_data_not_found, message: 'Data not found'});
+			res.send({code: config.codes.code_data_not_found, message: 'Data not found', gw_transaction_id: gw_transaction_id});
 		}
 	}
 	else{
-		res.send({code: config.codes.code_invalid_data_provided, message: 'Invalid msisdn'});
+		res.send({code: config.codes.code_invalid_data_provided, message: 'Invalid msisdn', gw_transaction_id: gw_transaction_id});
 	}
 }
 
