@@ -2,12 +2,12 @@ const reportsRepo = require('../repos/ReportsRepo');
 
 generateDailyReport = async() => {
     console.log("generateDailyReports");
-    reportsRepo.dailyReport();
+    //reportsRepo.dailyReport();
     reportsRepo.callBacksReport();
-    reportsRepo.dailyUnsubReport();
+    //reportsRepo.dailyUnsubReport();
     reportsRepo.errorCountReport();
     reportsRepo.dailyFullAndPartialChargedUsers();
-    reportsRepo.dailyTrialToBilledUsers();
+    //reportsRepo.dailyTrialToBilledUsers();
 }
 
 module.exports = {
