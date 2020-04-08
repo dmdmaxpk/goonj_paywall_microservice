@@ -15,6 +15,7 @@ generateDailyReport = async() => {
     await sleep(120*1000);
     reportsRepo.dailyTrialToBilledUsers();*/
 
+    await sleep(20*1000)
     reportsRepo.dailyChannelWiseUnsub();
 }
 

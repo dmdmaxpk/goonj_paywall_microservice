@@ -391,13 +391,8 @@ const dailyChannelWiseUnsubWriter = createCsvWriter({
     path: paywallChannelWiseUnsubReportFilePath,
     header: [
         {id: 'date', title: 'Date'},
-
-        {id: 'sms', title: 'Sms'},
-        {id: 'app', title: 'App'},
-        {id: 'web', title: 'Web'},
-        {id: 'cc', title: 'Customer Care'},
-
-        {id: "total",title: "Total" }
+        {id: 'source', title: 'Channel'},
+        {id: "count",title: "Total" }
     ]
 });
 
