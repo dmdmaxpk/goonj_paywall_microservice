@@ -145,6 +145,42 @@ dailyUnsubReport = async() => {
      return result;
 }
 
+dailyChannelWiseUnsub = async() => {
+    let result = await BillingHistory.aggregate([
+        {
+            $match:{
+                "billing_status" : "unsubscribe-request-recieved",
+                "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")},
+            }
+        },{
+            $group:{
+                _id: {"user_id": "$user_id", "source": "$source", "day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" }, "year":{ $year: "$billing_dtm" }}
+            }
+        },{ 
+                 $project: { 
+                _id: 0,
+                source: "$_id.source",
+                user_id: "$_id.user_id",
+                        date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }}
+                 } 
+        },{
+            $group:{
+                _id: {"date": "$date", "source": "$source"},
+                count: {$sum: 1}	
+            }
+        },{ 
+                 $project: { 
+                _id: 0,
+                        date: "$_id.date",
+                source: "$_id.source",
+                count: "$count"
+                 } 
+        },
+        { $sort: { date: -1} }
+        ]);
+     return result;
+}
+
 getDailyFullyChargedAndPartialChargedUsers = async() => {
     let result = await BillingHistory.aggregate([{
         $match: {
@@ -180,5 +216,6 @@ module.exports = {
     errorCountReportBySource: errorCountReportBySource,
     errorCountReport: errorCountReport,
     dailyUnsubReport: dailyUnsubReport,
+    dailyChannelWiseUnsub: dailyChannelWiseUnsub,
     getDailyFullyChargedAndPartialChargedUsers: getDailyFullyChargedAndPartialChargedUsers
 }

@@ -18,6 +18,9 @@ let paywallRevFilePath = `./${paywallRevFileName}`;
 let paywallUnsubReport = currentDate+"_UnsubReport.csv";
 let paywallUnsubFilePath = `./${paywallUnsubReport}`;
 
+let paywallChannelWiseUnsubReport = currentDate+"_ChannelWiseUnsub.csv";
+let paywallChannelWiseUnsubReportFilePath = `./${paywallChannelWiseUnsubReport}`;
+
 let paywallErrorCountReport = currentDate+"_ErrorCountReport.csv";
 let paywallErrorCountFilePath = `./${paywallErrorCountReport}`;
 
@@ -384,6 +387,20 @@ const dailyUnsubReportWriter = createCsvWriter({
     ]
 });
 
+const dailyChannelWiseUnsubWriter = createCsvWriter({
+    path: paywallChannelWiseUnsubReportFilePath,
+    header: [
+        {id: 'date', title: 'Date'},
+
+        {id: 'sms', title: 'Sms'},
+        {id: 'app', title: 'App'},
+        {id: 'web', title: 'Web'},
+        {id: 'cc', title: 'Customer Care'},
+
+        {id: "total",title: "Total" }
+    ]
+});
+
 errorCountReport = async() => {
     try {
         let errorBySourceReport = await billinghistoryRepo.errorCountReportBySource();
@@ -454,9 +471,51 @@ dailyUnsubReport = async() => {
     }
 }
 
+dailyChannelWiseUnsub = async() => {
+    try {
+        let dailyChannelWiseUnsub = await billinghistoryRepo.dailyChannelWiseUnsub();    
+        await dailyChannelWiseUnsubWriter.writeRecords(dailyChannelWiseUnsub);
+
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["paywall@dmdmax.com.pk"],
+            //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.`, // plain text bodyday
+            attachments:[
+                {
+                    filename: paywallChannelWiseUnsubReport,
+                    path: paywallChannelWiseUnsubReportFilePath
+                }
+            ]
+        });
+        console.log("[dailyChannelWiseUnsub][emailSent]",info);
+        fs.unlink(paywallChannelWiseUnsubReportFilePath,function(err,data) {
+            if (err) {
+                console.log("File not deleted[dailyChannelWiseUnsub]");
+            }
+            console.log("File deleted [dailyChannelWiseUnsub]");
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 function isDatePresent(array, dateToFind) {
     const result = array.find(o => new Date(o.date).getTime() === new Date(dateToFind).getTime());
     return result;
+}
+
+function isDateAndSourcePresent(array, dateToFind, source) {
+    return new Promise(async(resolve, reject) => {
+        array.forEach(o => {
+            if(new Date(o.date).getTime() === new Date(dateToFind).getTime() && o.source === source){
+                resolve(o);
+                return;
+            }
+        });
+        reject('Not found!');
+    });
 }
 
 function isMultipleDatePresent(array, date1ToFind) {
@@ -618,5 +677,6 @@ module.exports = {
     errorCountReport: errorCountReport,
     dailyUnsubReport: dailyUnsubReport,
     dailyFullAndPartialChargedUsers: dailyFullAndPartialChargedUsers,
-    dailyTrialToBilledUsers: dailyTrialToBilledUsers
+    dailyTrialToBilledUsers: dailyTrialToBilledUsers,
+    dailyChannelWiseUnsub: dailyChannelWiseUnsub
 }
