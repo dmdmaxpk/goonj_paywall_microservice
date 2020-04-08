@@ -391,8 +391,11 @@ const dailyChannelWiseUnsubWriter = createCsvWriter({
     path: paywallChannelWiseUnsubReportFilePath,
     header: [
         {id: 'date', title: 'Date'},
-        {id: 'source', title: 'Channel'},
-        {id: "count",title: "Total" }
+        {id: 'app', title: 'App'},
+        {id: 'web', title: 'Web'},
+        {id: 'sms', title: 'Sms'},
+        {id: 'cc', title: 'Customer Care'},
+        {id: "total",title: "Total" }
     ]
 });
 
@@ -468,12 +471,46 @@ dailyUnsubReport = async() => {
 
 dailyChannelWiseUnsub = async() => {
     try {
+        let records = [];
         let dailyChannelWiseUnsub = await billinghistoryRepo.dailyChannelWiseUnsub();    
-        await dailyChannelWiseUnsubWriter.writeRecords(dailyChannelWiseUnsub);
+        dailyChannelWiseUnsub.forEach(element => {
+            let date = element.date;
+            let source = element.source;
+            let count = element.count;
+            
+            let present = isDatePresent(date);
+            if(present){
+                if(source === "app" || source == "na"){
+                    present.app = (present.app + count);
+                    present.total = (present.total + count);
+                }else if(source === "web"){
+                    present.web = (present.web + count);
+                    present.total = (present.total + count);
+                }else if(source === "sms"){
+                    present.sms = (present.sms + count);
+                    present.total = (present.total + count);
+                }else if(source === "cc"){
+                    present.cc = (present.cc + count);
+                    present.total = (present.total + count);
+                }
+            }else{
+                let app = (source === "app" || source == "na") ? count : 0;
+                let web = source === "web" ? count : 0;
+                let sms = source === "sms" ? count : 0;
+                let cc = source === "cc" ? count : 0;
+                let total = (app + web + sms + cc);
+
+                let object = {date: date, app: app, web: web, sms: sms, cc: cc, total: total};
+                records.push(object);
+            }
+            
+        });
+
+        await dailyChannelWiseUnsubWriter.writeRecords(records);
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk"],
+            to:  ["farhan.ali@dmdmax.com"],
             //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.`, // plain text bodyday
@@ -499,18 +536,6 @@ dailyChannelWiseUnsub = async() => {
 function isDatePresent(array, dateToFind) {
     const result = array.find(o => new Date(o.date).getTime() === new Date(dateToFind).getTime());
     return result;
-}
-
-function isDateAndSourcePresent(array, dateToFind, source) {
-    return new Promise(async(resolve, reject) => {
-        array.forEach(o => {
-            if(new Date(o.date).getTime() === new Date(dateToFind).getTime() && o.source === source){
-                resolve(o);
-                return;
-            }
-        });
-        reject('Not found!');
-    });
 }
 
 function isMultipleDatePresent(array, date1ToFind) {
