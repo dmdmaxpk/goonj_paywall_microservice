@@ -478,7 +478,7 @@ dailyChannelWiseUnsub = async() => {
             let source = element.source;
             let count = element.count;
             
-            let present = isDatePresent(date);
+            let present = isDatePresent(records, date);
             if(present){
                 if(source === "app" || source == "na"){
                     present.app = (present.app + count);
