@@ -6,11 +6,11 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
 const billinghistoryRepo = require("../repos/BillingHistoryRepo");
 var nodemailer = require('nodemailer');
-
 var usersRepo = require('./UserRepo');
 
 
-let currentDate = getCurrentDate();
+let currentDate = null;
+currentDate = getCurrentDate();
 
 let paywallRevFileName = currentDate+"_PaywallRevReport.csv";
 let paywallRevFilePath = `./${paywallRevFileName}`;
@@ -510,8 +510,8 @@ dailyChannelWiseUnsub = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["farhan.ali@dmdmax.com"],
-            //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            //to:  ["farhan.ali@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.`, // plain text bodyday
             attachments:[
@@ -687,7 +687,7 @@ function getCurrentDate(){
     var month = dateObj.getMonth() + 1; //months from 1-12
     var day = dateObj.getDate();
     var year = dateObj.getFullYear();
-    newdate = day + "-" + month + "-" + year;
+    let newdate = day + "-" + month + "-" + year;
     return newdate;
 }
 

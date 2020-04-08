@@ -2,7 +2,6 @@ const reportsRepo = require('../repos/ReportsRepo');
 
 generateDailyReport = async() => {
     console.log("generateDailyReports");
-    
     reportsRepo.dailyReport();
     await sleep(120*1000);
     reportsRepo.callBacksReport();
