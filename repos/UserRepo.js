@@ -30,7 +30,6 @@ getUserByMsisdn =async(msisdn) => {
 }
 
 getUserById =async(id) => {
-    console.log("id",id);
     let result = await User.findOne({_id: id});
     return result;
 }
