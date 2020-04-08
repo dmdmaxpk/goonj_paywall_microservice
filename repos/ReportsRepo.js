@@ -489,7 +489,7 @@ dailyChannelWiseUnsub = async() => {
                 }else if(source === "sms"){
                     present.sms = (present.sms + count);
                     present.total = (present.total + count);
-                }else if(source === "cc"){
+                }else if(source === "CC"){
                     present.cc = (present.cc + count);
                     present.total = (present.total + count);
                 }
@@ -497,7 +497,7 @@ dailyChannelWiseUnsub = async() => {
                 let app = (source === "app" || source == "na") ? count : 0;
                 let web = source === "web" ? count : 0;
                 let sms = source === "sms" ? count : 0;
-                let cc = source === "cc" ? count : 0;
+                let cc = source === "CC" ? count : 0;
                 let total = (app + web + sms + cc);
 
                 let object = {date: date, app: app, web: web, sms: sms, cc: cc, total: total};
