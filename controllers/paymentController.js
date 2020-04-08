@@ -455,7 +455,6 @@ exports.status = async (req, res) => {
 	} else {
 		user = await userRepo.getUserByMsisdn(msisdn);
 	}
-	console.log("User",user);
 	if(user){
 		let result = await subscriberRepo.getSubscriber(user._id);
 		if(result){
