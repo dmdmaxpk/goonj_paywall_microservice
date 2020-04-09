@@ -86,17 +86,17 @@ unsubscribe = async(user_id) => {
 
 removeNumberAndHistory = async(msisdn) => {
     let userRepo = require('../repos/UserRepo');
+    let historyRepo = require('../repos/BillingHistoryRepo');
+
     let user = await userRepo.getUserByMsisdn(msisdn);
     if (user) { 
         let userId = user._id;
         await userRepo.deleteUser(userId);
-        await Subscriber.deleteOne({ user_id: userId });
-        let historyRepo = require('../repos/BillingHistoryRepo');
+        await deleteSubscriber(userId);
         await historyRepo.deleteMany(userId);
-        console.log('Done');
+        console.log(`The MSISDN ${msisdn} records deleted successfully`);
     } else {
-        console.log('Not Found');
-         return undefined;
+        console.log(`The MSISDN ${msisdn} failed to delete records`);
     }
 }
 
