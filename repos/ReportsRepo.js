@@ -84,10 +84,6 @@ const csvTrialToBilledUsers = createCsvWriter({
         {id: 'billed_date', title: "Successfull Billing Date"},
         //{id: 'msisdn', title: 'List of MSISDNs'},
         {id: 'total', title: 'Total Count'}
-
-        //{id: 'billed_in_13_days', title: 'Billed within 13 Days'},
-        //{id: 'msisdn_13_days', title: 'List of MSISDNs of Users Billed Within 13 Days'},
-        //{id: 'total_13_days', title: 'Total Count of Users Billed With 13 Days'}
     ]
 });
 
@@ -395,6 +391,7 @@ const dailyChannelWiseUnsubWriter = createCsvWriter({
         {id: 'web', title: 'Web'},
         {id: 'sms', title: 'Sms'},
         {id: 'cc', title: 'Customer Care'},
+        {id: 'expired', title: 'Expired By System'},
         {id: "total",title: "Total" }
     ]
 });
@@ -472,7 +469,9 @@ dailyUnsubReport = async() => {
 dailyChannelWiseUnsub = async() => {
     try {
         let records = [];
-        let dailyChannelWiseUnsub = await billinghistoryRepo.dailyChannelWiseUnsub();    
+        let dailyChannelWiseUnsub = await billinghistoryRepo.dailyChannelWiseUnsub();  
+        let dailyExpiredBySystem = await billinghistoryRepo.dailyExpiredBySystem();
+
         dailyChannelWiseUnsub.forEach(element => {
             let date = element.date;
             let source = element.source;
@@ -494,13 +493,16 @@ dailyChannelWiseUnsub = async() => {
                     present.total = (present.total + count);
                 }
             }else{
+                let expiredBySystem = isDatePresent(dailyExpiredBySystem, date);
                 let app = (source === "app" || source == "na") ? count : 0;
                 let web = source === "web" ? count : 0;
                 let sms = source === "sms" ? count : 0;
                 let cc = source === "CC" ? count : 0;
-                let total = (app + web + sms + cc);
+                let expired = expiredBySystem !== undefined ? expiredBySystem.count : 0;
 
-                let object = {date: date, app: app, web: web, sms: sms, cc: cc, total: total};
+                let total = (app + web + sms + cc + expired);
+
+                let object = {date: date, app: app, web: web, sms: sms, cc: cc, expired: expired, total: total};
                 records.push(object);
             }
             
@@ -510,10 +512,10 @@ dailyChannelWiseUnsub = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            to:  ["farhan.ali@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
-            text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.`, // plain text bodyday
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.\n\nNote: Expired By System column indicates those users expired by the system because their grace time is over and they still have no balance.`, // plain text bodyday
             attachments:[
                 {
                     filename: paywallChannelWiseUnsubReport,

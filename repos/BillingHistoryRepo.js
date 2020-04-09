@@ -150,7 +150,7 @@ dailyChannelWiseUnsub = async() => {
         {
             $match:{
                 "billing_status" : "unsubscribe-request-recieved",
-                "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")},
+                "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")}
             }
         },{
             $group:{
@@ -175,6 +175,42 @@ dailyChannelWiseUnsub = async() => {
                 source: "$_id.source",
                 count: "$count"
                  } 
+        },
+        { $sort: { date: -1} }
+        ]);
+     return result;
+}
+
+dailyExpiredBySystem = async() => {
+    let result = await BillingHistory.aggregate([
+        {
+            $match:{
+                "billing_status" : "expired",
+		"billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")},
+		"operator_response": {$exists: true}
+            }
+        },{
+            $group: {
+                _id: {"user_id":"$user_id", "day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
+                "year":{ $year: "$billing_dtm" }},
+                count:{$sum: 1} 
+            }
+        },{ 
+            $project: { 
+                date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                count:"$count" 
+            } 
+        },{ 
+            $group: { 
+                _id: "$date",
+                count:{$sum: 1} 
+            } 
+        },{ 
+            $project: {
+		_id: 0, 
+                date: "$_id",
+                count:"$count" 
+            } 
         },
         { $sort: { date: -1} }
         ]);
@@ -217,5 +253,6 @@ module.exports = {
     errorCountReport: errorCountReport,
     dailyUnsubReport: dailyUnsubReport,
     dailyChannelWiseUnsub: dailyChannelWiseUnsub,
+    dailyExpiredBySystem: dailyExpiredBySystem,
     getDailyFullyChargedAndPartialChargedUsers: getDailyFullyChargedAndPartialChargedUsers
 }
