@@ -9,6 +9,11 @@ createBillingHistory = async(postData) => {
     return result;
 }
 
+deleteMany = async(user_id) => {
+    const result = await BillingHistory.deleteMany({user_id: user_id});
+    return result;
+}
+
 getUserForUnGray = async(user_id) => {
     let dayToCompare = new Date();
     dayToCompare = dayToCompare.setHours(dayToCompare.getHours() - config.max_graylist_time_in_hrs);
@@ -247,6 +252,7 @@ getDailyFullyChargedAndPartialChargedUsers = async() => {
 
 module.exports = {
     createBillingHistory: createBillingHistory,
+    deleteMany: deleteMany,
     getUserForUnGray: getUserForUnGray,
     billingInLastHour: billingInLastHour,
     errorCountReportBySource: errorCountReportBySource,

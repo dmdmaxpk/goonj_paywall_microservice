@@ -84,6 +84,22 @@ unsubscribe = async(user_id) => {
     }
 }
 
+removeNumberAndHistory = async(msisdn) => {
+    let userRepo = require('../repos/UserRepo');
+    let user = await userRepo.getUserByMsisdn(msisdn);
+    if (user) { 
+        let userId = user._id;
+        await userRepo.deleteUser(userId);
+        await Subscriber.deleteOne({ user_id: userId });
+        let historyRepo = require('../repos/BillingHistoryRepo');
+        await historyRepo.deleteMany(userId);
+        console.log('Done');
+    } else {
+        console.log('Not Found');
+         return undefined;
+    }
+}
+
 
 
 module.exports = {
@@ -95,5 +111,6 @@ module.exports = {
     resetAmountBilledToday: resetAmountBilledToday,
     setSubcriberInactive: setSubcriberInactive,
     getBilledSubscribers: getBilledSubscribers,
-    unsubscribe: unsubscribe
+    unsubscribe: unsubscribe,
+    removeNumberAndHistory: removeNumberAndHistory
 }
