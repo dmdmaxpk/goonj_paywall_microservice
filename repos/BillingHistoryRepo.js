@@ -186,6 +186,32 @@ dailyChannelWiseUnsub = async() => {
      return result;
 }
 
+dailyChannelWiseTrialActivated = async() => {
+    let result = await BillingHistory.aggregate([
+        {
+            $match:{
+                billing_status: "trial",
+                "billing_dtm": {$gte:new Date("2020-04-01T00:00:00.000Z")}
+            }
+        },{
+            $group: {
+                    _id: {"source":"$source", "day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
+                    "year":{ $year: "$billing_dtm" }},
+                    count:{$sum: 1} 
+            }
+        },{ 
+            $project: {
+            _id: 0,
+            source: "$_id.source",
+                date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                count:"$count" 
+            } 
+        },
+        { $sort: { date: -1} }
+        ]);
+     return result;
+}
+
 dailyExpiredBySystem = async() => {
     let result = await BillingHistory.aggregate([
         {
@@ -260,5 +286,6 @@ module.exports = {
     dailyUnsubReport: dailyUnsubReport,
     dailyChannelWiseUnsub: dailyChannelWiseUnsub,
     dailyExpiredBySystem: dailyExpiredBySystem,
-    getDailyFullyChargedAndPartialChargedUsers: getDailyFullyChargedAndPartialChargedUsers
+    getDailyFullyChargedAndPartialChargedUsers: getDailyFullyChargedAndPartialChargedUsers,
+    dailyChannelWiseTrialActivated: dailyChannelWiseTrialActivated
 }

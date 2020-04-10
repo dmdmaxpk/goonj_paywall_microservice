@@ -21,6 +21,9 @@ let paywallUnsubFilePath = `./${paywallUnsubReport}`;
 let paywallChannelWiseUnsubReport = currentDate+"_ChannelWiseUnsub.csv";
 let paywallChannelWiseUnsubReportFilePath = `./${paywallChannelWiseUnsubReport}`;
 
+let paywallChannelWiseTrial = currentDate+"_ChannelWiseTrial.csv";
+let paywallChannelWiseTrialFilePath = `./${paywallChannelWiseTrial}`;
+
 let paywallErrorCountReport = currentDate+"_ErrorCountReport.csv";
 let paywallErrorCountFilePath = `./${paywallErrorCountReport}`;
 
@@ -95,7 +98,7 @@ var transporter = nodemailer.createTransport({
       user: 'reports@goonj.pk', // generated ethereal user
       pass: 'YiVmeCPtzJn39Mu' // generated ethereal password
     }
-  });
+});
 
 dailyReport = async(mode = 'prod') => {
     let today = new Date();
@@ -396,6 +399,17 @@ const dailyChannelWiseUnsubWriter = createCsvWriter({
     ]
 });
 
+const dailyChannelWiseTrialWriter = createCsvWriter({
+    path: paywallChannelWiseTrialFilePath,
+    header: [
+        {id: 'date', title: 'Date'},
+        {id: 'app', title: 'App'},
+        {id: 'web', title: 'Web'},
+        {id: 'HE', title: 'Affiliate'},
+        {id: "total",title: "Total" }
+    ]
+});
+
 errorCountReport = async() => {
     try {
         let errorBySourceReport = await billinghistoryRepo.errorCountReportBySource();
@@ -529,6 +543,67 @@ dailyChannelWiseUnsub = async() => {
                 console.log("File not deleted[dailyChannelWiseUnsub]");
             }
             console.log("File deleted [dailyChannelWiseUnsub]");
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+dailyChannelWiseTrialActivated = async() => {
+    try {
+        let records = [];
+        let dailyChannelWiseTrial = await billinghistoryRepo.dailyChannelWiseTrialActivated(); 
+
+        dailyChannelWiseTrial.forEach(element => {
+            let date = element.date;
+            let source = element.source;
+            let count = element.count;
+            
+            let present = isDatePresent(records, date);
+            if(present){
+                if(source === "app"){
+                    present.app = (present.app + count);
+                    present.total = (present.total + count);
+                }else if(source === "web"){
+                    present.web = (present.web + count);
+                    present.total = (present.total + count);
+                }else if(source === "HE"){
+                    present.HE = (present.HE + count);
+                    present.total = (present.total + count);
+                }
+            }else{
+                let app = source === "app" ? count : 0;
+                let web = source === "web" ? count : 0;
+                let HE = source === "HE" ? count : 0;
+                let total = (app + web + HE);
+
+                let object = {date: date, app: app, web: web, HE: HE, total: total};
+                records.push(object);
+            }
+            
+        });
+
+        await dailyChannelWiseTrialWriter.writeRecords(records);
+
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["farhan.ali@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            subject: `Source Wise Trial Activated Report`, // Subject line
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of trials activated with respect to source.`, // plain text bodyday
+            attachments:[
+                {
+                    filename: paywallChannelWiseTrial,
+                    path: paywallChannelWiseTrialFilePath
+                }
+            ]
+        });
+        console.log("[paywallChannelWiseTrial][emailSent]",info);
+        fs.unlink(paywallChannelWiseTrialFilePath,function(err,data) {
+            if (err) {
+                console.log("File not deleted[paywallChannelWiseTrial]");
+            }
+            console.log("File deleted [paywallChannelWiseTrial]");
         });
     } catch (error) {
         console.error(error);
@@ -700,5 +775,6 @@ module.exports = {
     dailyUnsubReport: dailyUnsubReport,
     dailyFullAndPartialChargedUsers: dailyFullAndPartialChargedUsers,
     dailyTrialToBilledUsers: dailyTrialToBilledUsers,
-    dailyChannelWiseUnsub: dailyChannelWiseUnsub
+    dailyChannelWiseUnsub: dailyChannelWiseUnsub,
+    dailyChannelWiseTrialActivated: dailyChannelWiseTrialActivated
 }
