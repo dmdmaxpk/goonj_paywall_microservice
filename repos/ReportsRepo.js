@@ -587,8 +587,8 @@ dailyChannelWiseTrialActivated = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["farhan.ali@dmdmax.com"],
-            //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            //to:  ["farhan.ali@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Source Wise Trial Activated Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of trials activated with respect to source.`, // plain text bodyday
             attachments:[
