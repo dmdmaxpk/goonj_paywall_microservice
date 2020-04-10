@@ -155,7 +155,8 @@ dailyChannelWiseUnsub = async() => {
         {
             $match:{
                 "billing_status" : "unsubscribe-request-recieved",
-                "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")}
+                "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")},
+                "operator": "telenor"
             }
         },{
             $group:{
@@ -245,6 +246,11 @@ dailyExpiredBySystem = async() => {
         },
         { $sort: { date: -1} }
         ]);
+     return result;
+}
+
+dailyNonTelenorUsers = async() => {
+    let result = await BillingHistory.aggregate([         {             $match:{ "billing_status":"unsubscribe-request-recieved",                 "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")}, "operator": "not_telenor"             }         },{             $group: {                     _id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },                     "year":{ $year: "$billing_dtm" }},                     count:{$sum: 1}              }         },{              $project: {             _id: 0,             date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},              count:"$count"              }          },         { $sort: { date: -1} }         ]);
      return result;
 }
 

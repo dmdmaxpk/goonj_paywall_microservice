@@ -4,7 +4,7 @@ const subscriberRepo = require('../repos/SubscriberRepo');
 generateDailyReport = async() => {
     console.log("generateDailyReports");
 
-    reportsRepo.dailyReport();
+    /*reportsRepo.dailyReport();
     
     await sleep(120*1000);
     reportsRepo.callBacksReport();
@@ -19,17 +19,17 @@ generateDailyReport = async() => {
     reportsRepo.dailyFullAndPartialChargedUsers();
     
     await sleep(120*1000);
-    reportsRepo.dailyTrialToBilledUsers();
+    reportsRepo.dailyTrialToBilledUsers();*/
     
     await sleep(120*1000);
     reportsRepo.dailyChannelWiseUnsub();
 
-    await sleep(120*1000);
-    reportsRepo.dailyChannelWiseTrialActivated();
+    //await sleep(120*1000);
+    //reportsRepo.dailyChannelWiseTrialActivated();
     
     //Unsub Zara's number daily
-    await sleep(120*1000);
-    await removeNumberAndHistory('03458561755');
+    //await sleep(120*1000);
+    //await removeNumberAndHistory('03458561755');
 }
 
 function sleep(ms) {
