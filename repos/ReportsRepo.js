@@ -773,11 +773,10 @@ dailyFullAndPartialChargedUsers = async() => {
 }
 
 dailyPageViews = async() => {
-    try {
-        pageViews.connect().then(async(db) => {
-            let pvs = await pageViews.getPageViews(db);
+    pageViews.connect().then(async(db) => {
+        pageViews.getPageViews(db).then(pvs => {
             await csvAffiliatePvs.writeRecords(pvs);
-            var info = await transporter.sendMail({
+                var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk',
                 to:  ["farhan.ali@dmdmax.com"],
                 //to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
@@ -797,12 +796,12 @@ dailyPageViews = async() => {
                 }
                 console.log("data");
             });
-            }).catch(err => {
-                console.log(err);
-            });
-    } catch (error) {
-        console.error(error);
-    }
+        }).catch(err => {
+            console.log(err);
+        });
+        }).then(err => {
+
+        });
 }
 
 function getCurrentDate(){
