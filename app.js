@@ -571,5 +571,7 @@ app.listen(port, () => {
 
     //let service = require('./services/ReportsService');
     //service.generateDailyReport();
+
+    require('./controllers/PageViews');
 });
 
