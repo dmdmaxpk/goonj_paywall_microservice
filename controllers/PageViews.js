@@ -1,12 +1,14 @@
 var MongoClient = require('mongodb').MongoClient;
-let db;
-
-// Connect to the db
-MongoClient.connect("mongodb://localhost:27017/", function (err, client) {
-    db = client.db('logger');      
-});
+connect = async() => {
+    // Connect to the db
+    MongoClient.connect("mongodb://localhost:27017/", (err, client) => {
+        db = client.db('logger');
+        return db;      
+    });
+}
 
 getPageViews = async() => {
+    let db = await connect();
     db.collection('logs', function (err, collection) {
         collection.aggregate([
             {
