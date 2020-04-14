@@ -1,9 +1,15 @@
 var MongoClient = require('mongodb').MongoClient;
 
 connect = async() => {
-    MongoClient.connect("mongodb://localhost:27017/", function(err, client) {
-        db = client.db('logger');
-        return db;
+    return new Promise((resolve, reject) => {
+        MongoClient.connect("mongodb://localhost:27017/", function(err, client) {
+            if(err){
+                reject(err);
+            }else{
+                db = client.db('logger');
+                resolve(db);
+            }
+        });
     });
 }
 

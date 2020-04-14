@@ -774,29 +774,32 @@ dailyFullAndPartialChargedUsers = async() => {
 
 dailyPageViews = async() => {
     try {
-        let connection = await pageViews.connect();
-        let pvs = await pageViews.getPageViews(connection);
-        await csvAffiliatePvs.writeRecords(pvs);
-        var info = await transporter.sendMail({
-            from: 'paywall@dmdmax.com.pk',
-            to:  ["farhan.ali@dmdmax.com"],
-            //to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
-            subject: 'Affiliate Page Views',
-            text: `This report (generated at ${(new Date()).toDateString()}) contains affiliate page views`, // plain text bodyday
-            attachments:[
-                {
-                    filename: affiliatePvs,
-                    path: affiliatePvsFilePath
+        pageViews.connect().then(db => {
+            let pvs = await pageViews.getPageViews(db);
+            await csvAffiliatePvs.writeRecords(pvs);
+            var info = await transporter.sendMail({
+                from: 'paywall@dmdmax.com.pk',
+                to:  ["farhan.ali@dmdmax.com"],
+                //to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+                subject: 'Affiliate Page Views',
+                text: `This report (generated at ${(new Date()).toDateString()}) contains affiliate page views`, // plain text bodyday
+                attachments:[
+                    {
+                        filename: affiliatePvs,
+                        path: affiliatePvsFilePath
+                    }
+                ]
+            });
+            console.log("[csvAffiliatePvs][emailSent]", info);
+            fs.unlink(affiliatePvsFilePath,function(err,data) {
+                if (err) {
+                    console.log("File not deleted");
                 }
-            ]
-        });
-        console.log("[csvAffiliatePvs][emailSent]", info);
-        fs.unlink(affiliatePvsFilePath,function(err,data) {
-            if (err) {
-                console.log("File not deleted");
-            }
-            console.log("data");
-        });
+                console.log("data");
+            });
+            }).catch(err => {
+                console.log(err);
+            });
     } catch (error) {
         console.error(error);
     }
