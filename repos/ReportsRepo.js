@@ -774,7 +774,7 @@ dailyFullAndPartialChargedUsers = async() => {
 
 dailyPageViews = async() => {
     try {
-        pageViews.connect().then(db => {
+        pageViews.connect().then(async(db) => {
             let pvs = await pageViews.getPageViews(db);
             await csvAffiliatePvs.writeRecords(pvs);
             var info = await transporter.sendMail({
