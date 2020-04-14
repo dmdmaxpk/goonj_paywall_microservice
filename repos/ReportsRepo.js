@@ -774,7 +774,8 @@ dailyFullAndPartialChargedUsers = async() => {
 
 dailyPageViews = async() => {
     try {
-        let pvs = await pageViews.getPageViews();
+        let connection = await pageViews.connect();
+        let pvs = await pageViews.getPageViews(connection);
         await csvAffiliatePvs.writeRecords(pvs);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
