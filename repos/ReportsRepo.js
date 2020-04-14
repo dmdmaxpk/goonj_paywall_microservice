@@ -778,8 +778,8 @@ dailyPageViews = async() => {
             await csvAffiliatePvs.writeRecords(pvs);
                 var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk',
-                to:  ["farhan.ali@dmdmax.com"],
-                //to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+                //to:  ["farhan.ali@dmdmax.com"],
+                to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"], // list of receivers
                 subject: 'Affiliate Page Views',
                 text: `This report (generated at ${(new Date()).toDateString()}) contains affiliate page views`, // plain text bodyday
                 attachments:[

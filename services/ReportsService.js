@@ -4,7 +4,7 @@ const subscriberRepo = require('../repos/SubscriberRepo');
 generateDailyReport = async() => {
     console.log("generateDailyReports");
 
-    /*reportsRepo.dailyReport();
+    reportsRepo.dailyReport();
 
     //Unsub Zara's number daily
     await sleep(120*1000);
@@ -31,7 +31,7 @@ generateDailyReport = async() => {
     await sleep(120*1000);
     reportsRepo.dailyChannelWiseTrialActivated();
 
-    await sleep(120*1000);*/
+    await sleep(120*1000);
     reportsRepo.dailyPageViews();
 }
 
