@@ -8,6 +8,8 @@ const billinghistoryRepo = require("../repos/BillingHistoryRepo");
 var nodemailer = require('nodemailer');
 var usersRepo = require('./UserRepo');
 
+var pageViews = require('../controllers/PageViews');
+
 
 let currentDate = null;
 currentDate = getCurrentDate();
@@ -38,6 +40,9 @@ let paywallCallbackFilePath = `./${paywallCallbackReport}`;
 
 let paywallTrialToBilledUsers = currentDate+"_TrialToBilled.csv";
 let paywallTrialToBilledUsersFilePath = `./${paywallTrialToBilledUsers}`;
+
+let affiliatePvs = currentDate+"_AffiliatePageViews.csv";
+let affiliatePvsFilePath = `./${affiliatePvs}`;
 
 const csvWriter = createCsvWriter({
     path: paywallRevFilePath,
@@ -87,6 +92,14 @@ const csvTrialToBilledUsers = createCsvWriter({
         {id: 'billed_date', title: "Successfull Billing Date"},
         //{id: 'msisdn', title: 'List of MSISDNs'},
         {id: 'total', title: 'Total Count'}
+    ]
+});
+
+const csvAffiliatePvs = createCsvWriter({
+    path: affiliatePvsFilePath,
+    header: [
+        {id: '_id', title: 'Date'},
+        {id: 'count', title: "Page Views"},
     ]
 });
 
@@ -759,6 +772,35 @@ dailyFullAndPartialChargedUsers = async() => {
     }
 }
 
+dailyPageViews = async() => {
+    try {
+        let pvs = await pageViews.getPageViews();
+        await csvAffiliatePvs.writeRecords(pvs);
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            subject: 'Affiliate Page Views',
+            text: `This report (generated at ${(new Date()).toDateString()}) contains affiliate page views`, // plain text bodyday
+            attachments:[
+                {
+                    filename: affiliatePvs,
+                    path: affiliatePvsFilePath
+                }
+            ]
+        });
+        console.log("[csvAffiliatePvs][emailSent]", info);
+        fs.unlink(affiliatePvsFilePath,function(err,data) {
+            if (err) {
+                console.log("File not deleted");
+            }
+            console.log("data");
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 function getCurrentDate(){
     var dateObj = new Date();
     var month = dateObj.getMonth() + 1; //months from 1-12
@@ -776,5 +818,6 @@ module.exports = {
     dailyFullAndPartialChargedUsers: dailyFullAndPartialChargedUsers,
     dailyTrialToBilledUsers: dailyTrialToBilledUsers,
     dailyChannelWiseUnsub: dailyChannelWiseUnsub,
-    dailyChannelWiseTrialActivated: dailyChannelWiseTrialActivated
+    dailyChannelWiseTrialActivated: dailyChannelWiseTrialActivated,
+    dailyPageViews: dailyPageViews
 }

@@ -569,9 +569,7 @@ let { port } = config;
 app.listen(port, () => {
     console.log(`APP running on port ${port}`);
 
-    //let service = require('./services/ReportsService');
-    //service.generateDailyReport();
-
-    require('./controllers/PageViews');
+    let service = require('./services/ReportsService');
+    service.generateDailyReport();
 });
 

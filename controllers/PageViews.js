@@ -1,9 +1,12 @@
 var MongoClient = require('mongodb').MongoClient;
-
+let db;
 
 // Connect to the db
 MongoClient.connect("mongodb://localhost:27017/", function (err, client) {
-    var db = client.db('logger');
+    db = client.db('logger');      
+});
+
+getPageViews = async() => {
     db.collection('logs', function (err, collection) {
         collection.aggregate([
             {
@@ -35,7 +38,11 @@ MongoClient.connect("mongodb://localhost:27017/", function (err, client) {
                     console.log(err);
                     return;
                 }
-                console.log(items);         
+                return items;         
             });;
-    });       
-});
+    });
+}
+
+module.exports = {
+    getPageViews: getPageViews
+}
