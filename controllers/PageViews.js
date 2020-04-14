@@ -2,8 +2,8 @@ var MongoClient = require('mongodb').MongoClient;
 
 
 // Connect to the db
-MongoClient.connect("mongodb://localhost:27017/logger", function (err, client) {
-    var db = client.db('goonjpaywall');
+MongoClient.connect("mongodb://localhost:27017/", function (err, client) {
+    var db = client.db('logger');
     db.collection('logs', function (err, collection) {
         collection.aggregate([
             {
