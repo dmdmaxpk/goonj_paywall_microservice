@@ -468,6 +468,29 @@ exports.status = async (req, res) => {
 	}
 }
 
+exports.fetchStatus = async (req, res) => {
+	let msisdn = req.query.msisdn;
+
+	let user = await userRepo.getUserByMsisdn(msisdn);
+	if(user){
+		let result = await subscriberRepo.getSubscriber(user._id);
+		if(result){
+			await viewLogRepo.createViewLog(user._id);
+			res.send({code: config.codes.code_success, subscribed_package_id: user.subscribed_package_id, data: result});	
+		}else{
+			res.send({code: config.codes.code_error, data: 'No subscriber found.'});	
+		}
+	}else{
+		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
+	}
+}
+
+exports.delete = async (req, res) => {
+	let msisdn = req.query.msisdn;
+	await subscriberRepo.removeNumberAndHistory(msisdn);
+	res.send({code: config.codes.code_success, message: 'Done'});
+}
+
 // UnSubscribe
 exports.unsubscribe = async (req, res) => {
 	let gw_transaction_id = req.body.transaction_id;

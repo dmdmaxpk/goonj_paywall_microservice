@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/paymentController')
+const controller = require('../controllers/paymentController');
 
 
 router.route('/otp/send')
@@ -27,5 +27,14 @@ router.route('/bulksub')
 
 router.route('/bill/directly')
     .get(controller.subscribeDirectly);
+
+
+// THIS IS ONLY ALLOWED FOR NAUMAN QA TO TEST, THESE SHOULD BE REMOVED ONCE QA IS OVER
+// Todo: remove following route.
+router.route('/fetchStatus')
+    .get(controller.fetchStatus);
+
+router.route('/delete')
+    .get(controller.delete);
 
 module.exports = router;
