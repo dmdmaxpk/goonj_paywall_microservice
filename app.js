@@ -315,12 +315,12 @@ consumeSusbcriptionQueue = async(res) => {
                             console.log('Error billing failed: ', error);
                         }
 
-                        winstonLogger.info('Payment Failed - catch block', { user_id: user_id, subscriber_id: subscriber._id, error: error.response.data });
+                        winstonLogger.info('Payment Failed - catch block', { user_id: subscriber.user_id, subscriber_id: subscriber._id, error: error.response.data });
 
                         if (error.response.data.errorCode === "500.007.08"){
                             // Consider, tps exceeded, noAcknowledge will requeue this record.
                             console.log('Sending back to queue');
-                            winstonLogger.info('Sending back to queue', { user_id: user_id, subscriber_id: subscriber._id, error: error.response.data });
+                            winstonLogger.info('Sending back to queue', { user_id: subscriber.user_id, subscriber_id: subscriber._id, error: error.response.data });
                             rabbitMq.noAcknowledge(res);
                             return;
                         } else {
@@ -336,7 +336,7 @@ consumeSusbcriptionQueue = async(res) => {
                             } catch(err) {
                                 console.log("Error: could not assign Grace period", err);
                             }
-                            winstonLogger.info('BillingFailed', { user_id: user_id, subscriber_id: subscriber._id, error: error.response.data });
+                            winstonLogger.info('BillingFailed', { user_id: subscriber.user_id, subscriber_id: subscriber._id, error: error.response.data });
 
                             // TODO set queued to false everytime we Ack a message
                             await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
