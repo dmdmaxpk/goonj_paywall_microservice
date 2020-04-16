@@ -78,7 +78,7 @@ const winstonLogger = winston.createLogger({
     format: winston.format.json(),
     defaultMeta: { service: 'paywall_service' },
     transports: [
-      new winston.transports.File({ filename: '/home/winston_logs/info.log', level: 'info' })    ]
+      new winston.transports.File({ filename: '/home/winston_logs/consumer.log', level: 'info' })    ]
 });
 
 consumeMessageQueue = async(response) => {
@@ -140,15 +140,21 @@ consumeBalanceCheckQueue = async(response) => {
 
 consumeSusbcriptionQueue = async(res) => {
     let subscriptionObj = JSON.parse(res.content);
-    winstonLogger.info('Subscription object received in consumer', { subscription: subscriptionObj });
 
     let micro_charge = subscriptionObj.micro_charge;
     let micro_price_to_charge = subscriptionObj.price_to_charge;
+    let subscriber = await subscriberRepo.getSubscriber(subscriptionObj.user_id);
+
+    winstonLogger.info('Subscription object received in consumer', { 
+        user_id: subscriptionObj.user_id,
+        subscriber: subscriber,
+        micro_charge: micro_charge,
+        micro_price_to_charge: micro_price_to_charge
+    });
 
     try {
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
         let amount_billed = subscriptionObj.packageObj.price_point_pkr;
-        let subscriber = await subscriberRepo.getSubscriber(subscriptionObj.user_id);
 
         if (subscriber.active === true) {
             if ( subscriber.amount_billed_today > config.maximum_daily_payment_limit_pkr ) {
@@ -175,14 +181,12 @@ consumeSusbcriptionQueue = async(res) => {
                 if (countThisSec < config.telenor_subscription_api_tps) {
                     console.log("Sending subscription request to telenor");
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
-                    winstonLogger.info('Sub req to telenor', { subscription: subscriptionObj });
-
+                    
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
                         let operator_response = response.api_response;
                         console.log("Response from telenor ", operator_response.data);
-                        winstonLogger.info('Response from telenor', { response: response });
-
+                        
                         let message = operator_response.data.Message;
                         let user_id = response.user_id;
                         let package_id = response.packageObj._id;
@@ -199,18 +203,15 @@ consumeSusbcriptionQueue = async(res) => {
                         billingHistoryObject.operator = 'telenor';
 
                         if(micro_charge){
-                            winstonLogger.info('Micro charge', { user_id: user_id, subscriber_id: subscriber._id });
                             billingHistoryObject.price = micro_price_to_charge;
                             billingHistoryObject.micro_charge = true;
                         }else{
-                            winstonLogger.info('Full charge', { user_id: user_id, subscriber_id: subscriber._id });
                             billingHistoryObject.price = response.packageObj.price_point_pkr;
                         }
 
                         let history = await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                         if(history && response){
                             if(message === 'Success'){
-                                winstonLogger.info('Successfully billed', { user_id: user_id, subscriber_id: subscriber._id });
                                 // Billed successfully
                                 console.log('BillingSuccess - ', response.msisdn, ' - Package - ', response.packageObj._id, ' - ', (new Date()));
                                 let nextBilling = new Date();
@@ -228,7 +229,6 @@ consumeSusbcriptionQueue = async(res) => {
                                 subObj.queued = false;
 
                                 let updatedUser = await userRepo.updateUser(msisdn, {subscribed_package_id: response.packageObj._id, subscription_status: subObj.subscription_status});
-                                winstonLogger.info('User updated', { user: updatedUser });
                                 if(updatedUser.is_affiliation_callback_executed === false){
                                     // Checking checks to send affiliate marketing callback.
                                     if((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id && updatedUser.affiliate_mid) {
@@ -298,10 +298,7 @@ consumeSusbcriptionQueue = async(res) => {
                             }else{
                                 // Billing failed
                                 if(micro_charge){
-                                    winstonLogger.info('Billing failed for micro charge', { user_id: user_id, subscriber_id: subscriber._id });
                                     await chargingAttemptRepo.unqueue(subscriber._id);
-                                }else{
-                                    winstonLogger.info('Billing failed', { user_id: user_id, subscriber_id: subscriber._id });
                                 }
 
                                await assignGracePeriodToSubscriber(subscriber);
@@ -315,12 +312,9 @@ consumeSusbcriptionQueue = async(res) => {
                             console.log('Error billing failed: ', error);
                         }
 
-                        winstonLogger.info('Payment Failed - catch block', { user_id: subscriber.user_id, subscriber_id: subscriber._id, error: error.response.data });
-
                         if (error.response.data.errorCode === "500.007.08"){
                             // Consider, tps exceeded, noAcknowledge will requeue this record.
                             console.log('Sending back to queue');
-                            winstonLogger.info('Sending back to queue', { user_id: subscriber.user_id, subscriber_id: subscriber._id, error: error.response.data });
                             rabbitMq.noAcknowledge(res);
                             return;
                         } else {
@@ -336,7 +330,6 @@ consumeSusbcriptionQueue = async(res) => {
                             } catch(err) {
                                 console.log("Error: could not assign Grace period", err);
                             }
-                            winstonLogger.info('BillingFailed', { user_id: subscriber.user_id, subscriber_id: subscriber._id, error: error.response.data });
 
                             // TODO set queued to false everytime we Ack a message
                             await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
@@ -370,13 +363,11 @@ consumeSusbcriptionQueue = async(res) => {
             if(subcriberUpdated){
                 rabbitMq.acknowledge(res);
             }
-            winstonLogger.info('Subscriber is not active hence payment can not be processed!', { user_id: subcriberUpdated.user_id, subscriber_id: subcriberUpdated._id });
         }
     } catch (err ) {
         console.error("[consumeSusbcriptionQueue][firstCatchBlock]",err);
         // TODO set queued to false everytime we Ack a message
         let subcriberUpdated = await subscriberRepo.updateSubscriber(subscriptionObj.user_id, {queued: false});
-        winstonLogger.info('FirstCatchBlock', { user_id: subcriberUpdated.user_id, subscriber_id: subcriberUpdated._id });
         rabbitMq.acknowledge(res);
     }
 }
@@ -396,11 +387,6 @@ async function sendCallBackToIdeation(mid, tid){
 }
 
 async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error, micro_charge){
-    if(!subscriptionObj){
-        winstonLogger.info('Grace period with single parameter', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
-    }else{
-        winstonLogger.info('Grace period with all parameter', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
-    }
     return new Promise (async (resolve,reject) => {
         try {
             let status = "";
@@ -411,7 +397,6 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
             let currentPackage = await packageRepo.getPackage({"_id": user.subscribed_package_id});
 
             if((subscriber.subscription_status === 'billed' || subscriber.subscription_status === 'trial') && subscriber.auto_renewal === true){
-                winstonLogger.info('Subscriber is eligible for grace', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
                 
                 // The subscriber is elligible for grace hours, depends on the current subscribed package
                 let nextBillingDate = new Date();
@@ -434,7 +419,6 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 }
                 addMicroChargingToQueue(subscriber);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
-                winstonLogger.info('Subscriber is already enjoying grace', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
                 // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
                 if ( subscriber.time_spent_in_grace_period_in_hours > currentPackage.grace_hours){
                     subObj.subscription_status = 'expired';
@@ -451,9 +435,7 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                         await chargingAttemptRepo.markInActive(subscriber._id);
                         console.log('MicroCharging - InActiveAfterExpiration - Subscriber ', subscriber._id, ' - ', (new Date()));
                     }
-                    winstonLogger.info('Subscriber has expired grace', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
                 } else {
-                    winstonLogger.info('Subscriber is currently enjoying grace', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
                     let nextBillingDate = new Date();
                     nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
                     
@@ -477,19 +459,15 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 //Send acknowldement to user
                 let message = 'You have insufficient balance for Goonj TV, please try again after recharge. Thanks';
                 await billingRepo.sendMessage(message, user.msisdn);
-
-                winstonLogger.info('Payment request tried, failed due to insufficiant balance.', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
             }
             subObj.consecutive_successive_bill_counts = 0;
             
             await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
             await subscriberRepo.updateSubscriber(subscriber.user_id, subObj);
             await addToHistory(user._id, subscriptionObj.packageObj._id, subscriptionObj.transaction_id, error.response.data, status, 'telenor', subscriptionObj.packageObj.price_point_pkr, micro_charge, subscriber._id);
-            winstonLogger.info('Resolve', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
             resolve(status);
         } catch(err) {
             //Todo: Point-1
-            winstonLogger.info('Reject', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
             console.error(err);
             reject(err);
         }
@@ -507,7 +485,6 @@ async function addMicroChargingToQueue(subscriber){
         await chargingAttemptRepo.createAttempt({subscriber_id: subscriber._id, number_of_attempts_today: 1});    
         console.log('Created Charging Attempt Record - Subscriber ', subscriber._id);
     }
-    winstonLogger.info('Addid micro charging to queue', { user_id: subscriber.user_id, subscriber_id: subscriber._id });
 }
 
 async function addToHistory(userId, packageId, transactionId, operatorResponse, billingStatus, operator, pricePoint, micro_charge, subscriber_id){

@@ -6,8 +6,15 @@ const userRepo = require('../repos/UserRepo');
 const config = require('../config');
 const shortId = require('shortid');
 const chargeAttemptRepo = require('../repos/ChargingAttemptRepo');
+const winston = require('winston');
 
-// To generate token to consume telenor dcb apis
+const winstonLogger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    defaultMeta: { service: 'paywall_service' },
+    transports: [
+      new winston.transports.File({ filename: '/home/winston_logs/queue.log', level: 'info' })    ]
+});
 
 subscriptionRenewal = async() => {
     try {
@@ -113,16 +120,34 @@ renewSubscription = async(user) => {
     }
     // Add object in queueing server
     if (subscriptionObj.msisdn && (subscriptionObj.packageObj || subscriptionObj.micro_charge) && subscriptionObj.transactionId ) {
+        winstonLogger.info('Preparing to add in queue', { 
+            user_id: subscriptionObj.user_id,
+            subscriber: subscriber,
+            micro_charge: subscriptionObj.micro_charge,
+            micro_price_to_charge: subscriptionObj.price_to_charge
+        });
+
         if(subscriber.queued === false){
             let updated = await subsriberRepo.updateSubscriber(user._id, {queued: true});
             if(updated){
+                winstonLogger.info('Subscriber queued true', { 
+                    user_id: subscriptionObj.user_id,
+                    subscriber: updated
+                });
                 rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
+                winstonLogger.info('Added in queue', { 
+                    user_id: subscriptionObj.user_id
+                });
+
                 if(subscriptionObj.micro_charge){
                     console.log('RenewSubscriptionMiniCharge - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));    
                 }else{
                     console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
                 }
             }else{
+                winstonLogger.info('Failed to add subscriber', { 
+                    subscriber: subscriber
+                });
                 console.log('Failed to updated subscriber after adding in queue.');
             }
         }else{
