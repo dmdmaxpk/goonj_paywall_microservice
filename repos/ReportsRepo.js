@@ -69,6 +69,7 @@ const csvReportWriter = createCsvWriter({
     header: [
         {id: 'tid', title: 'TID'},
         {id: 'mid', title: 'MID'},
+        {id: "isValidUser",title: "Is Valid Telenor User" },
         {id: "isCallbAckSent",title: "IS CallBack Sent" },
         {id: 'added_dtm', title: 'User TIMESTAMP'},
         {id: 'callBackSentTime', title: 'TIMESTAMP'}
@@ -123,7 +124,8 @@ dailyReport = async(mode = 'prod') => {
         {
             "$match": 
             {
-                "added_dtm": { "$gte": reportStartDate ,$lt: myToday  }
+                "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
+                "active": true
             }
         },
         {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" } } , count:{ $sum: 1 } } },
@@ -135,7 +137,8 @@ dailyReport = async(mode = 'prod') => {
         {
             "$match": 
             {
-                "added_dtm": { "$gte": reportStartDate ,$lt: myToday  }
+                "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
+                active:true
             }
         },
         {$group: {_id: {subscription_status: "$subscription_status" } , count:{ $sum: 1 } } },
@@ -157,7 +160,9 @@ dailyReport = async(mode = 'prod') => {
             {
                 "$match": 
                 {
-                    "added_dtm": { "$gte": reportStartDate ,$lt: myToday  }
+                    "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
+                    active:true,
+                    operator:"telenor"
                 }
             },
         {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },
@@ -166,8 +171,8 @@ dailyReport = async(mode = 'prod') => {
         {$sort: {"date": -1}} 
     ]);
 
-    let totalUserStats = await User.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  } } );
-    let totalSubscriberStats = await Subscriber.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  } } );
+    let totalUserStats = await User.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
+    let totalSubscriberStats = await Subscriber.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
     let totalExpiredCount = await BillingHistory.count({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
     console.log("totalExpiredCount",totalExpiredCount);
 
@@ -263,26 +268,26 @@ dailyReport = async(mode = 'prod') => {
 
     try {  
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
-            var info = await transporter.sendMail({
-                from: 'paywall@dmdmax.com.pk', // sender address
-                //to:  ["farhan.ali@dmdmax.com"],
-                to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
-                subject: `Paywall Report`, // Subject line
-                text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
-                attachments:[
-                    {
-                        filename: paywallRevFileName,
-                        path: paywallRevFilePath
-                    }
-                ]
-            });
-            fs.unlink(paywallRevFilePath,function(err,data) {
-                if (err) {
-                    console.log("File not deleted");
-                }
-                console.log("data");
-            });
-            console.log("info",info);
+            // var info = await transporter.sendMail({
+            //     from: 'paywall@dmdmax.com.pk', // sender address
+            //     //to:  ["farhan.ali@dmdmax.com"],
+            //     // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
+            //     subject: `Paywall Report`, // Subject line
+            //     text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
+            //     attachments:[
+            //         {
+            //             filename: paywallRevFileName,
+            //             path: paywallRevFilePath
+            //         }
+            //     ]
+            // });
+            // fs.unlink(paywallRevFilePath,function(err,data) {
+            //     if (err) {
+            //         console.log("File not deleted");
+            //     }
+            //     console.log("data");
+            // });
+            // console.log("info",info);
         }).catch(er => {
             console.log("err",er)
         })
@@ -316,6 +321,7 @@ callBacksReport =async() => {
                     tid: "$affiliate_unique_transaction_id",
                     mid: "$affiliate_mid",
                     added_dtm: "$added_dtm",
+                    operator: "$operator",
                     callbackhistory: {
                             $filter: {
                                 input: "$histories",
@@ -329,18 +335,22 @@ callBacksReport =async() => {
                 $project: { 
                 tid: "$tid",
                 mid: "$mid",
+                isValidUser: {$cond: {if: {$eq:["$operator","telenor"]}, then: true, else: false } },
                 added_dtm: "$added_dtm",
                 callbackhistorySize: {"$size": "$callbackhistory" },
-                callbackObj: {$arrayElemAt: ["$callbackhistory",0]} 
+                callbackObj: {$arrayElemAt: ["$callbackhistory",0]},
+                added_dm: { '$dateToString' : { date: "$added_dtm",'format':'%Y-%m-%d-%H:%M:%S','timezone' : "Asia/Karachi" } },
+                billing_dm: { '$dateToString' : { date: "$callbackObj.billing_dtm",'format':'%Y-%m-%d-%H:%M:%S','timezone' : "Asia/Karachi" } }
                 }
             }, 
             { 
                 $project: { 
                 tid: "$tid",
                 mid: "$mid",
-                added_dtm: { '$dateToString' : { date: "$added_dtm",'format':'%Y-%m-%d-%H:%M:%S','timezone' : "Asia/Karachi" } },
-                isCallbAckSent: {"$cond": { if: {$gte: ["$callbackhistorySize",1] },then:"yes",else:"no" } },
-                callBackSentTime: { '$dateToString' : { date: "$callbackObj.billing_dtm",'format':'%Y-%m-%d-%H:%M:%S','timezone' : "Asia/Karachi" } } 
+                isValidUser: "$isValidUser",
+                added_dtm:  {$cond: {if: "$isValidUser", then: "$added_dm" , else: "" } },
+                isCallbAckSent: {$cond: { if: { $and: [{$gte: ["$callbackhistorySize",1]},{$eq: [ "$isValidUser",true ]} ] } ,then:"yes",else:"no" }} ,
+                callBackSentTime: {$cond: {if: "$isValidUser", then: "$billing_dm" , else: "" } }  
                 }
             }
         ]);
@@ -348,8 +358,8 @@ callBacksReport =async() => {
         let write = await csvReportWriter.writeRecords(report);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+            to:  ["hamza@dmdmax.com"],
+            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
             subject: `Callbacks Report`, // Subject line
             text: `Callbacks sent with their TIDs and timestamps -  ${(new Date()).toDateString()}`, // plain text bodyday
             attachments:[

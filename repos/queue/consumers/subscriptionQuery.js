@@ -68,11 +68,13 @@ module.exports = {
 async function  revokeUserAccess(user_id,data,msisdn){
     await userRepo.updateUserById(user_id,{
         operator: "not_telenor",
+        subscription_status: "expired",
         active: false
     });
     // also set active and autorenewal of subscriber to false
     await subscriberRepo.updateSubscriber(user_id,{
         active: false,
+        subscription_status: "expired",
         auto_renewal: false
     });
     
@@ -80,7 +82,7 @@ async function  revokeUserAccess(user_id,data,msisdn){
 
     let billingHistory = {};
     billingHistory.user_id = user_id;
-    billingHistory.billing_status = "subscriber_query_api_error";
+    billingHistory.billing_status = "blocked";
     billingHistory.operator = "not_telenor";
     billingHistory.operator_response = data;
     await billingHistoryRepo.createBillingHistory(billingHistory);
