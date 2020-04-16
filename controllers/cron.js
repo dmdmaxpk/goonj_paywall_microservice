@@ -38,7 +38,7 @@ exports.tpsCountReset = async (req,res) =>  {
 }
 
 exports.checkLastSeenOfUsers = async (req,res) =>  {
-    await checkLastSeenOfUsersService.checkLastSeenOfUsers();
+    // await checkLastSeenOfUsersService.checkLastSeenOfUsers();
     res.send("CheckLastSeenOfUsers - Executed");
 }
 
