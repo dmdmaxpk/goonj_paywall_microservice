@@ -268,26 +268,26 @@ dailyReport = async(mode = 'prod') => {
 
     try {  
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
-            // var info = await transporter.sendMail({
-            //     from: 'paywall@dmdmax.com.pk', // sender address
-            //     //to:  ["farhan.ali@dmdmax.com"],
-            //     // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
-            //     subject: `Paywall Report`, // Subject line
-            //     text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
-            //     attachments:[
-            //         {
-            //             filename: paywallRevFileName,
-            //             path: paywallRevFilePath
-            //         }
-            //     ]
-            // });
-            // fs.unlink(paywallRevFilePath,function(err,data) {
-            //     if (err) {
-            //         console.log("File not deleted");
-            //     }
-            //     console.log("data");
-            // });
-            // console.log("info",info);
+            var info = await transporter.sendMail({
+                // from: 'paywall@dmdmax.com.pk', // sender address
+                //to:  ["farhan.ali@dmdmax.com"],
+                to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
+                subject: `Paywall Report`, // Subject line
+                text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
+                attachments:[
+                    {
+                        filename: paywallRevFileName,
+                        path: paywallRevFilePath
+                    }
+                ]
+            });
+            fs.unlink(paywallRevFilePath,function(err,data) {
+                if (err) {
+                    console.log("File not deleted");
+                }
+                console.log("data");
+            });
+            console.log("info",info);
         }).catch(er => {
             console.log("err",er)
         })
@@ -358,8 +358,8 @@ callBacksReport =async() => {
         let write = await csvReportWriter.writeRecords(report);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["hamza@dmdmax.com"],
-            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+            // to:  ["hamza@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
             subject: `Callbacks Report`, // Subject line
             text: `Callbacks sent with their TIDs and timestamps -  ${(new Date()).toDateString()}`, // plain text bodyday
             attachments:[
