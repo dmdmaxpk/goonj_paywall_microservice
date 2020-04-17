@@ -122,17 +122,21 @@ renewSubscription = async(user) => {
     if (subscriptionObj.msisdn && (subscriptionObj.packageObj || subscriptionObj.micro_charge) && subscriptionObj.transactionId ) {
         winstonLogger.info('Preparing to add in queue', { 
             user_id: subscriptionObj.user_id,
-            subscriber: subscriber,
             micro_charge: subscriptionObj.micro_charge,
-            micro_price_to_charge: subscriptionObj.price_to_charge
+            micro_price_to_charge: subscriptionObj.price_to_charge,
+            time: new Date()
         });
 
         if(subscriber.queued === false){
             let updated = await subsriberRepo.updateSubscriber(user._id, {queued: true});
+            winstonLogger.info('Subscriber queued true - before if', { 
+                user_id: subscriptionObj.user_id,
+                time: new Date()
+            });
             if(updated){
-                winstonLogger.info('Subscriber queued true', { 
+                winstonLogger.info('Subscriber queued true - after if', { 
                     user_id: subscriptionObj.user_id,
-                    subscriber: updated
+                    time: new Date()
                 });
                 rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
                 winstonLogger.info('Added in queue', { 
@@ -145,12 +149,15 @@ renewSubscription = async(user) => {
                     console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
                 }
             }else{
-                winstonLogger.info('Failed to add subscriber', { 
+                winstonLogger.info('Failed to add subscriber in queue', { 
                     subscriber: subscriber
                 });
                 console.log('Failed to updated subscriber after adding in queue.');
             }
         }else{
+            winstonLogger.info('Failed to add in renewal queue', { 
+                user_id: subscriptionObj.user_id
+            });
             console.log('Failed to add in renewal queue, current queuing status: ', subscriptionObj.msisdn, ' - ', subscriber.queued);  
         }
 	} else {
