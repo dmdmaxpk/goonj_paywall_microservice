@@ -269,7 +269,7 @@ dailyReport = async(mode = 'prod') => {
     try {  
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
-                // from: 'paywall@dmdmax.com.pk', // sender address
+                from: 'paywall@dmdmax.com.pk', // sender address
                 //to:  ["farhan.ali@dmdmax.com"],
                 to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
                 subject: `Paywall Report`, // Subject line
