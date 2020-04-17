@@ -374,7 +374,7 @@ exports.subscribe = async (req, res) => {
 			}
 		}
 	} else {
-		res.status(200).json({message: "This account is not of an active telenor user", gw_transaction_id: gw_transaction_id}); 
+		res.status(200).json({code: config.codes.code_error, message: "This account is not of an active telenor user", gw_transaction_id: gw_transaction_id}); 
 	}
 }
 
