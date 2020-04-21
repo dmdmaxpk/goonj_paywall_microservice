@@ -47,6 +47,7 @@ const telenor_dcb_api_token = '';
 
 //Ideation Url
 const Ideation_call_back_url = ' http://bpd.o18.click/';
+const Ideation_call_back_url_2 = ' http://bpd.o18.click/';
 const time_between_billing_attempts_hours = 8;
 
 let config = {

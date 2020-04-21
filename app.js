@@ -231,7 +231,8 @@ consumeSusbcriptionQueue = async(res) => {
                                 let updatedUser = await userRepo.updateUser(msisdn, {subscribed_package_id: response.packageObj._id, subscription_status: subObj.subscription_status});
                                 if(updatedUser.is_affiliation_callback_executed === false){
                                     // Checking checks to send affiliate marketing callback.
-                                    if((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id && updatedUser.affiliate_mid) {
+                                    if((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id
+                                     && updatedUser.affiliate_mid && updatedUser.affiliate_mid !== "1") {
                                         
                                         let combinedId = updatedUser.affiliate_unique_transaction_id + "*" +updatedUser.affiliate_mid;
                                         let billingHistoryObject = {};
@@ -257,6 +258,8 @@ consumeSusbcriptionQueue = async(res) => {
                                             await billingHistoryRepo.createBillingHistory(billingHistoryObject);
                                         });
                                         
+                                    } else {
+                                        console.log("No Affiliate callback executed");
                                     }
                                 }
                                 
@@ -373,10 +376,18 @@ consumeSusbcriptionQueue = async(res) => {
 }
 
 async function sendCallBackToIdeation(mid, tid){
+    let url; 
+    if (mid === "1569") {
+        url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
+    } else if (mid === "goonj"){
+        url = config.Ideation_call_back_url_2 + `p?mid=${mid}&tid=${tid}`;
+    } else if (mid === "1"){
+        return new Promise((resolve,reject) => { reject(null)})
+    }
 	return new Promise(function(resolve, reject) {
         axios({
             method: 'post',
-            url: config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`,
+            url: url,
             headers: {'Content-Type': 'application/x-www-form-urlencoded' }
         }).then(function(response){
             resolve(response.data);
