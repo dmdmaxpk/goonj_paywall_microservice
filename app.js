@@ -233,10 +233,10 @@ consumeSusbcriptionQueue = async(res) => {
                                     // Checking checks to send affiliate marketing callback.
                                     console.log(`updatedUser`,
                                     ((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id
-                                    && updatedUser.affiliate_mid && updatedUser.affiliate_mid !== "1"),
+                                    && updatedUser.affiliate_mid && updatedUser.affiliate_mid != "1"),
                                     updatedUser.source,updatedUser.source,updatedUser.affiliate_mid,updatedUser.affiliate_unique_transaction_id);
                                     if((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id
-                                     && updatedUser.affiliate_mid && updatedUser.affiliate_mid !== "1") {
+                                     && updatedUser.affiliate_mid && updatedUser.affiliate_mid != "1") {
                                         console.log(`updatedUser - 1`);
                                         let combinedId = updatedUser.affiliate_unique_transaction_id + "*" +updatedUser.affiliate_mid;
                                         let billingHistoryObject = {};
@@ -380,7 +380,7 @@ consumeSusbcriptionQueue = async(res) => {
 }
 
 async function sendCallBackToIdeation(mid, tid){
-    let url; 
+    var url; 
     if (mid === "1569") {
         url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
     } else if (mid === "goonj"){
@@ -388,6 +388,7 @@ async function sendCallBackToIdeation(mid, tid){
     } else if (mid === "1"){
         return new Promise((resolve,reject) => { reject(null)})
     }
+    console.log("url",url)
 	return new Promise(function(resolve, reject) {
         axios({
             method: 'post',
