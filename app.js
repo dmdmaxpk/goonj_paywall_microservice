@@ -384,7 +384,7 @@ async function sendCallBackToIdeation(mid, tid){
     if (mid === "1569") {
         url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
     } else if (mid === "goonj"){
-        url = config.Ideation_call_back_url_2 + `?txid=${tid}`;
+        url = config.ideation_callback_url2 + `?txid=${tid}`;
     } else if (mid === "1"){
         return new Promise((resolve,reject) => { reject(null)})
     }
