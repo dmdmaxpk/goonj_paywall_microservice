@@ -234,7 +234,7 @@ consumeSusbcriptionQueue = async(res) => {
                                     console.log(`updatedUser`,
                                     ((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id
                                     && updatedUser.affiliate_mid && updatedUser.affiliate_mid !== "1"),
-                                    updatedUser);
+                                    updatedUser.source,updatedUser.source,updatedUser.affiliate_mid,affiliate_unique_transaction_id);
                                     if((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id
                                      && updatedUser.affiliate_mid && updatedUser.affiliate_mid !== "1") {
                                         console.log(`updatedUser - 1`);
