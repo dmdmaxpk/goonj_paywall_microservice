@@ -231,9 +231,13 @@ consumeSusbcriptionQueue = async(res) => {
                                 let updatedUser = await userRepo.updateUser(msisdn, {subscribed_package_id: response.packageObj._id, subscription_status: subObj.subscription_status});
                                 if(updatedUser.is_affiliation_callback_executed === false){
                                     // Checking checks to send affiliate marketing callback.
+                                    console.log(`updatedUser`,
+                                    ((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id
+                                    && updatedUser.affiliate_mid && updatedUser.affiliate_mid !== "1"),
+                                    updatedUser);
                                     if((updatedUser.source === "HE" || updatedUser.source === "affiliate_web") && updatedUser.affiliate_unique_transaction_id
                                      && updatedUser.affiliate_mid && updatedUser.affiliate_mid !== "1") {
-                                        
+                                        console.log(`updatedUser - 1`);
                                         let combinedId = updatedUser.affiliate_unique_transaction_id + "*" +updatedUser.affiliate_mid;
                                         let billingHistoryObject = {};
                                         billingHistoryObject.user_id = updatedUser._id;
