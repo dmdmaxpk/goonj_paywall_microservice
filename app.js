@@ -282,22 +282,21 @@ consumeSusbcriptionQueue = async(res) => {
                                         percentage = (100 - percentage);
 
                                         //Send acknowldement to user
-                                        let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
-                                        let message = "You've got "+percentage+"% discount on "+response.packageObj.package_name+", to unsub click the link below.\n"+link
+                                        let message = "You've got "+percentage+"% discount on "+response.packageObj.package_name;
                                         await billingRepo.sendMessage(message, msisdn);
                                     }else{
                                         if(subObj.consecutive_successive_bill_counts === 1){
                                             // For the first time or every week of consecutive billing
             
                                             //Send acknowldement to user
-                                            let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
-                                            let message = "Your Goonj TV subscription for "+response.packageObj.package_name+" has been activated at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
+                                            let link = 'https://www.goonj.pk/live';
+                                            let message = 'Ap Pakistan ki best Live TV service istamal kar rahey hain. Service deikhnay k liye click karein.\n'+link ;
                                             await billingRepo.sendMessage(message, msisdn);
                                         }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
                                             // Every week
                                             //Send acknowldement to user
-                                            let link = `https://www.goonj.pk/goonjplus/unsubscribe?uid=${response.user_id}`;
-                                            let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+", to unsub click the link below.\n"+link
+                                            let link = 'https://www.goonj.pk/live';
+                                            let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+". Goonj TV Deikhnay k liay click karein.\n"+link
                                             await billingRepo.sendMessage(message, msisdn);
                                         }
                                     }
