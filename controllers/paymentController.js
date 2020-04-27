@@ -358,7 +358,7 @@ exports.subscribe = async (req, res) => {
 						billingHistory.operator = user.operator;
 						await billingHistoryRepo.createBillingHistory(billingHistory);
 						
-						let text = `Goonj TV 24 hour free trial started. Pehla charge kal mobile balance sei @ Rs${packageObj.display_price_point}/daily hoga. To unsub https://www.goonj.pk/goonjplus/unsubscribe?uid=${userUpdated._id}`;
+						let text = `Apko Goonj TV 24 hour free trial dey dia gaya ha. Jub chahien jaib se Mobile nikalien aur TOP LIVE TV channels deikhen siraf Rs. ${packageObj.display_price_point}/d main`;
 						sendTextMessage(text, userUpdated.msisdn);
 						//subscribeFreeMbs(subscriber);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
