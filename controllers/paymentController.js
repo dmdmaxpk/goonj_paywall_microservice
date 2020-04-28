@@ -444,6 +444,37 @@ exports.subscribeDirectly = async(req, res) => {
 	});
 }
 
+exports.recharge = async (req, res) => {
+	let gw_transaction_id = req.body.transaction_id;
+
+	let user_id = req.body.uid;
+	let msisdn = req.body.msisdn;
+	
+	let user = await userRepo.getUserById(user_id);
+	if(user){
+		if(user.msisdn === msisdn){
+			// Supposing, this is verified user
+			let subscriber = await subscriberRepo.getSubscriber(user._id);
+			if(subscriber && subscriber.subscription_status === 'graced'){
+				// try charge attempt
+				let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
+				if(packageObj){
+					subscribePackage(user, packageObj)
+					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+				}else{
+					res.send({code: config.codes.code_error, message: 'No subscribed package found!', gw_transaction_id: gw_transaction_id});
+				}
+			}else{
+				res.send({code: config.codes.code_error, message: 'Something went wrong!', gw_transaction_id: gw_transaction_id});
+			}
+		}else{
+			res.send({code: config.codes.code_error, message: 'User verification failed!', gw_transaction_id: gw_transaction_id});
+		}	
+	}else{
+		res.send({code: config.codes.code_error, message: 'Invalid data provided.', gw_transaction_id: gw_transaction_id});
+	}
+}
+
 // Check status
 exports.status = async (req, res) => {
 	let gw_transaction_id = req.body.transaction_id;
