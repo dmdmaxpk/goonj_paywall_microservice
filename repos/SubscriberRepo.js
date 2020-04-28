@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Subscriber = mongoose.model('Subscriber');
+const moment = require("moment");
 
 createSubscriber = async(postData) => {
     let subscriber = new Subscriber(postData);
@@ -13,9 +14,7 @@ getSubscriber =async(user_id) => {
 }
 
 getRenewableSubscribers =async() => {
-    let results = await Subscriber.find(
-        {$or:[{subscription_status:'billed'},{subscription_status:'graced'},{subscription_status:'trial'}], 
-        next_billing_timestamp: {$lte: new Date()}, active: true}).limit(4000);
+    let results = await Subscriber.find({is_billable_in_this_cycle: true}).limit(4000);
     return results;
 }
 
@@ -100,6 +99,23 @@ removeNumberAndHistory = async(msisdn) => {
     }
 }
 
+getSubscribersToMark =async() => {
+    let now = moment();
+    let endOfDay = now.endOf('day').tz("Asia/Karachi");
+    console.log("endOfDay",endOfDay);
+    let results = await Subscriber.find(
+        {$or:[{subscription_status:'billed'},{subscription_status:'graced'},{subscription_status:'trial'}], 
+        next_billing_timestamp: {$lte: endOfDay}, active: true}).select('user_id');
+    let user_ids = results.map(user_id => {
+        return user_id.user_id;
+    });
+    return user_ids;
+}
+
+setAsBillableInNextCycle = async(user_ids) => {
+    let result = await Subscriber.updateMany({user_id: {$in :user_ids}},{$set:{is_billable_in_this_cycle: true}});
+}
+
 
 
 module.exports = {
@@ -112,5 +128,7 @@ module.exports = {
     setSubcriberInactive: setSubcriberInactive,
     getBilledSubscribers: getBilledSubscribers,
     unsubscribe: unsubscribe,
-    removeNumberAndHistory: removeNumberAndHistory
+    removeNumberAndHistory: removeNumberAndHistory,
+    getSubscribersToMark: getSubscribersToMark,
+    setAsBillableInNextCycle: setAsBillableInNextCycle
 }

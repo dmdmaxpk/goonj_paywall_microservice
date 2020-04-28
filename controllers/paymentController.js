@@ -321,6 +321,7 @@ exports.subscribe = async (req, res) => {
 				// Add 1 day in next billing timestamp
 				postObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + config.trial_hours);
 				postObj.subscription_status = 'trial';
+				postObj.is_allowed_to_stream = true;
 			}
 
 			let updateUserObj = {};
