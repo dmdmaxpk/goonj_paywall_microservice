@@ -18,6 +18,9 @@ router.route('/unsubscribe')
 router.route('/status')
     .post(controller.status);
 
+router.route('/recharge')
+    .post(controller.recharge);
+
 // TESTING
 router.route('/bulksms')
     .get(controller.sendBulkMessage);
