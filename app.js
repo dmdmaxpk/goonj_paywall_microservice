@@ -222,7 +222,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 let subObj = {};
                                 subObj.subscription_status = 'billed';
                                 subObj.auto_renewal = true;
-                                subObj.is_billable_in_next_cycle = false;
+                                subObj.is_billable_in_this_cycle = false;
                                 subObj.is_allowed_to_stream = true;
                                 subObj.last_billing_timestamp = new Date();
                                 subObj.next_billing_timestamp = nextBilling;
