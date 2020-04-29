@@ -486,9 +486,7 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                         subObj.is_allowed_to_stream = false;
                         // TODO Add history that this users' stream was stopped
                         if(subscriber.is_allowed_to_stream != false && subObj.is_allowed_to_stream === false ) {
-                            await addToHistory(user._id, subscriptionObj.packageObj._id, subscriptionObj.transaction_id,
-                                error.response.data, "stream_stopped_due_to_low_balance", 'telenor', subscriptionObj.packageObj.price_point_pkr, micro_charge, subscriber._id);
-                                console.log("history added for stopping stream");
+                            status = "graced_and_stream_stopped";
                         }                        
                     }
 
