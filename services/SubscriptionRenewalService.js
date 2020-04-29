@@ -7,6 +7,7 @@ const config = require('../config');
 const shortId = require('shortid');
 const chargeAttemptRepo = require('../repos/ChargingAttemptRepo');
 const winston = require('winston');
+const moment = require('moment');
 
 const winstonLogger = winston.createLogger({
     level: 'info',
@@ -166,7 +167,26 @@ renewSubscription = async(user) => {
 	}
 }
 
+markRenewableUser = async() => {
+    try {
+        let now = moment().tz("Asia/Karachi");
+        console.log("Get Hours",now.hours());
+        let hour = now.hours();
+        if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
+            console.log("running renewal cycle, hour: ", hour);
+            let subsuser_ids  = await subsriberRepo.getSubscribersToMark();
+            console.log("Number of subscribers in this cycle: ", subsuser_ids.length);
+            await subsriberRepo.setAsBillableInNextCycle(subsuser_ids);
+        } else {
+            console.log("Not running renewal cycle this hour");
+        }
+    } catch(err) {
+        console.error(err);
+    }
+}
+
 module.exports = {
     // runJob: runJob,
-    subscriptionRenewal: subscriptionRenewal
+    subscriptionRenewal: subscriptionRenewal,
+    markRenewableUser: markRenewableUser
 }
