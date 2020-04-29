@@ -33,8 +33,7 @@ var subscriptionQueryConsumer = require('./repos/queue/consumers/subscriptionQue
 var chargingAttemptRepo = require('./repos/ChargingAttemptRepo');
 var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
 var freeMbsConsumer = require('./repos/queue/consumers/FreeMbsConsumer');
-var srSErvice = require('./services/SubscriptionRenewalService');
-srSErvice.markRenewableUser();
+
 
 const app = express();
 
