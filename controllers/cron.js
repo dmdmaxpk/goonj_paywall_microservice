@@ -56,3 +56,8 @@ exports.hourlyBillingReport = async (req,res) =>  {
     await billingMonitoringService.billingInLastHour();
     res.send("hourlyBillingReport - Executed");
 }
+
+exports.markRenewableUsers = async (req,res) =>  {
+    await subscriptionService.markRenewableUser();
+    res.send("markRenewableUser - Executed");
+}
