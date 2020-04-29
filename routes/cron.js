@@ -2,7 +2,11 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/cron')
 
-// 
+//
+
+router.route('/markRenewableUsers')
+    .get(controller.markRenewableUsers);
+
 router.route('/subscriptionRenewal')
     .get(controller.subscriptionRenewal);
 
