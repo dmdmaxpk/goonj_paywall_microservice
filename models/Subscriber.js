@@ -26,6 +26,7 @@ const subscriberSchema = new Schema({
     //field for billling
     is_allowed_to_stream: { type: Boolean, default: true },
     is_billable_in_this_cycle: { type: Boolean, default: false },
+    date_on_which_user_entered_grace_period: {type: Date}
 }, { strict: true })
 
 module.exports = mongoose.model('Subscriber', subscriberSchema);
