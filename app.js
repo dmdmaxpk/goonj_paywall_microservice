@@ -425,6 +425,7 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 subObj.subscription_status = 'graced';
                 status = 'graced';
                 subObj.next_billing_timestamp = nextBillingDate;
+                subObj.date_on_which_user_entered_grace_period = new Date();
         
                 //Send acknowldement to user
                 let link = 'https://www.goonj.pk/goonjplus/open';
@@ -440,7 +441,12 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 addMicroChargingToQueue(subscriber);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
                 // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
-                if ( subscriber.time_spent_in_grace_period_in_hours > currentPackage.grace_hours){
+                var hoursSpentInGracePeriod = 0; 
+                let nowDate = moment();
+                let timeInGrace = moment.duration(nowDate.diff(subscriber.date_on_which_user_entered_grace_period));
+                let hoursSpentInGracePeriod = timeInGrace.asHours();
+                console.log("hoursSpentInGracePeriod",subscriber.user_id,hoursSpentInGracePeriod);
+                if ( hoursSpentInGracePeriod > currentPackage.grace_hours){
                     subObj.subscription_status = 'expired';
                     status = 'expired';
                     subObj.auto_renewal = false;
@@ -448,7 +454,7 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                         
                     //Send acknowldement to user
                     let link = 'https://www.goonj.pk/goonjplus/subscribe';
-                    let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
+                    let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link;
                     await billingRepo.sendMessage(message, user.msisdn);
                     
                     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
@@ -467,7 +473,6 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                     //TODO set is_allowed_to_stream to false if 24 hours have passed in grace period
                     let last_billing_timestamp = moment(subscriber.last_billing_timestamp);
                     var hours;
-                    console.log("last_billing_timestamp",subscriber.last_billing_timestamp);
                     if (subscriber.last_billing_timestamp) {
                         let now = moment()
                         let difference = moment.duration(now.diff(last_billing_timestamp));
@@ -475,8 +480,8 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                         console.log("last_billing_timestamp",last_billing_timestamp);
                         console.log("now",now);
                     } else {
-                        hours = subscriber.time_spent_in_grace_period_in_hours;
-                        console.log("hours in grace period",subscriber.time_spent_in_grace_period_in_hours);
+                        hours = hoursSpentInGracePeriod;
+                        console.log("hours in grace period",hours);
                     }
                     console.log("Hours since last payment",hours);
                     if (hours > 24) {
