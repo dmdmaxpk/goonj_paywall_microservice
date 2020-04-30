@@ -462,7 +462,6 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                     let nextBillingDate = new Date();
                     nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
                     
-                    subObj.time_spent_in_grace_period_in_hours = (subscriber.time_spent_in_grace_period_in_hours + config.time_between_billing_attempts_hours);
                     subObj.subscription_status = 'graced';
                     status = 'graced';
                     //TODO set is_allowed_to_stream to false if 24 hours have passed in grace period
@@ -494,6 +493,7 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                         addMicroChargingToQueue(subscriber);
                     }else{
                         subObj.next_billing_timestamp = nextBillingDate;
+                        subObj.time_spent_in_grace_period_in_hours = (subscriber.time_spent_in_grace_period_in_hours + config.time_between_billing_attempts_hours);
                     }
                 }
             } else {
