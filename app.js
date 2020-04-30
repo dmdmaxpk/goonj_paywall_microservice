@@ -440,11 +440,10 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 }
                 addMicroChargingToQueue(subscriber);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
-                // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
-                var hoursSpentInGracePeriod = 0; 
+                // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement. 
                 let nowDate = moment();
                 let timeInGrace = moment.duration(nowDate.diff(subscriber.date_on_which_user_entered_grace_period));
-                let hoursSpentInGracePeriod = timeInGrace.asHours();
+                var hoursSpentInGracePeriod = timeInGrace.asHours();
                 console.log("hoursSpentInGracePeriod",subscriber.user_id,hoursSpentInGracePeriod);
                 if ( hoursSpentInGracePeriod > currentPackage.grace_hours){
                     subObj.subscription_status = 'expired';
