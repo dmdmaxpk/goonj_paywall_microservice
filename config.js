@@ -72,7 +72,7 @@ let config = {
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
         unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
-        hours_on_which_to_run_renewal_cycle: [16,21,5]
+        hours_on_which_to_run_renewal_cycle: [12,21,5]
     },
     staging: {
         port: '5000',
@@ -95,7 +95,7 @@ let config = {
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
         unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
-        hours_on_which_to_run_renewal_cycle: [16,21,5]
+        hours_on_which_to_run_renewal_cycle: [12,21,5]
     },
     production: {
         port: process.env.PW_PORT,
@@ -118,7 +118,7 @@ let config = {
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
         unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
-        hours_on_which_to_run_renewal_cycle: [16,21,5]
+        hours_on_which_to_run_renewal_cycle: [12,21,5]
     }
 };
 
