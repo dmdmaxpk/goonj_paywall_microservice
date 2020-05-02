@@ -476,8 +476,6 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                         let now = moment()
                         let difference = moment.duration(now.diff(last_billing_timestamp));
                         hours = difference.asHours();
-                        console.log("last_billing_timestamp",last_billing_timestamp);
-                        console.log("now",now);
                     } else {
                         hours = hoursSpentInGracePeriod;
                         console.log("hours in grace period",hours);
