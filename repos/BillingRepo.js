@@ -57,7 +57,8 @@ subscribePackage = async(subscriptionObj) => {
     form.ProductID = "GoonjDCB-Charge";
 
     console.log("Form Data: ", form);
-    console.time("TPSubscriberAPICall");
+    console.time("TPSubscriberAPICallSucc");
+    console.time("TPSubscriberAPICallErr");
     return new Promise(function(resolve, reject) {
         axios({
             method: 'post',
@@ -66,10 +67,10 @@ subscribePackage = async(subscriptionObj) => {
             data: form
         }).then(function(response){
             subscriptionObj.api_response = response;
-            console.timeEnd("TPSubscriberAPICall");
+            console.timeEnd("TPSubscriberAPICallSucc");
             resolve(subscriptionObj);
         }).catch(function(err){
-            console.timeEnd("TPSubscriberAPICall");
+            console.timeEnd("TPSubscriberAPICallErr");
             reject(err);
         });
     })
