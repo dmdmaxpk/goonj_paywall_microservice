@@ -318,7 +318,7 @@ consumeSusbcriptionQueue = async(res) => {
 
                                await assignGracePeriodToSubscriber(subscriber);
                             }
-                            console.time("FullMessageConsumedSucc");
+                            console.timeEnd("FullMessageConsumedSucc");
                             rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
@@ -349,7 +349,7 @@ consumeSusbcriptionQueue = async(res) => {
 
                             // TODO set queued to false everytime we Ack a message
                             await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
-                            console.time("FullMessageConsumedErr");
+                            console.timeEnd("FullMessageConsumedErr");
                             rabbitMq.acknowledge(res);
                         }
                     });
