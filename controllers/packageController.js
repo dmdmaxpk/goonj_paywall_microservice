@@ -29,7 +29,9 @@ exports.get = async (req, res) => {
 
 // GET
 exports.getAll = async (req, res) => {
+	console.time("getAllPackages");
 	result = await repo.getAllPackages({});
+	console.timeEnd("getAllPackages");
 	res.send(result);
 }
 

@@ -155,7 +155,9 @@ consumeSusbcriptionQueue = async(res) => {
     });
 
     try {
+        console.time("GetTPSFromDB");
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
+        console.timeEnd("GetTPSFromDB");
         let amount_billed = subscriptionObj.packageObj.price_point_pkr;
 
         if (subscriber.active === true) {
@@ -182,6 +184,8 @@ consumeSusbcriptionQueue = async(res) => {
             } else {
                 if (countThisSec < config.telenor_subscription_api_tps) {
                     console.log("Sending subscription request to telenor");
+                    console.time("FullMessageConsumed");
+
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     
                     billingRepo.subscribePackage(subscriptionObj)
@@ -313,6 +317,7 @@ consumeSusbcriptionQueue = async(res) => {
 
                                await assignGracePeriodToSubscriber(subscriber);
                             }
+                            console.timeEnd("FullMessageConsumed")
                             rabbitMq.acknowledge(res);
                         }
                     }).catch(async (error) => {
@@ -343,6 +348,7 @@ consumeSusbcriptionQueue = async(res) => {
 
                             // TODO set queued to false everytime we Ack a message
                             await subscriberRepo.updateSubscriber(subscriber.user_id, {queued: false});
+                            console.timeEnd("FullMessageConsumed")
                             rabbitMq.acknowledge(res);
                         }
                     });
