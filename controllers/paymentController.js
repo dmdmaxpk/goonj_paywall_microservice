@@ -468,6 +468,8 @@ exports.recharge = async (req, res) => {
 					// try charge attempt
 					let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
 					if(packageObj){
+						await subscriberRepo.updateSubscriber(user._id, {consecutive_successive_bill_counts: 0});
+						//await subscriberRepo.updateSubscriber(user._id, {queued: true, auto_renewal: true});
 						subscribePackage(user, packageObj)
 						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 					}else{
