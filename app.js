@@ -344,7 +344,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 
                                 await assignGracePeriodToSubscriber(subscriber, subscriptionObj, error, micro_charge);
                             } catch(err) {
-                                // console.log("Error: in assin ");
+                                console.log("Error: in assin ");
                             }
 
                             // TODO set queued to false everytime we Ack a message
