@@ -675,9 +675,11 @@ dailyTrialToBilledUsers = async() => {
                         billingDate.setHours(0, 0, 0, 0);
 
                         var trialNextDay = trialDate;
-                        trialNextDay.setDate(trialDate.getDate()+1);
+                        trialNextDay.setDate(trialNextDay.getDate()+1);
 
-                        if(billingDate.getTime() === trialNextDay.getTime()){
+                        console.log('trialToBilledUsers', trialDate, ' --- ', trialNextDay, ' --- ', billingDate);
+
+                        if(trialNextDay.getTime() === billingDate.getTime()){
                             // Means user is billed right after next day of trial
                             let currentObj = isMultipleDatePresent(trialToBilledUsers, trialDate);
                             if(currentObj){
