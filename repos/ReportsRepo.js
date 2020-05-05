@@ -649,7 +649,6 @@ function isDatePresent(array, dateToFind) {
 function isMultipleDatePresent(array, date1ToFind) {
     let newDate1ToFind = new Date(date1ToFind);
 
-    newDate1ToFind.setHours(0, 0, 0, 0);
     const result = array.find(o =>
          new Date(o.trial_date).getTime() === newDate1ToFind.getTime()
          );
@@ -669,34 +668,30 @@ dailyTrialToBilledUsers = async() => {
                 element.usershistory.forEach(subElement => {
                     if(subElement.billing_status === 'trial'){
                         trialDate = new Date(subElement.billing_dtm);
-                    
+                        trialDate.setHours(0, 0, 0, 0);
+
                     }else if(subElement.billing_status === 'Success' && (!subElement.micro_charge || (subElement.micro_charge && subElement.micro_charge === false))){
                         let billingDate = new Date(subElement.billing_dtm);
-                        
-                        if(trialDate){
-                            let diff = parseInt(Math.abs(trialDate.getTime() - billingDate.getTime()) / 36e5);
-                            if(diff === 24){
-                                let currentObj = isMultipleDatePresent(trialToBilledUsers, trialDate);
-                                if(currentObj){
-                                    currentObj.msisdn.push({"msisdn":element.msisdn});
-                                    currentObj.total = (currentObj.total + 1);
-                                }else{
-                                    trialDate.setHours(0, 0, 0, 0);
-                                    billingDate.setHours(0, 0, 0, 0);
+                        billingDate.setHours(0, 0, 0, 0);
 
-                                    let dateDiff = billingDate.getDate() - trialDate.getDate();
-                                    if(dateDiff == 2)
-                                        billingDate.setDate(billingDate.getDate() - 1);
+                        var trialNextDay = trialDate;
+                        trialNextDay.setDate(trialDate.getDate()+1);
 
-                                    let object = {};
-                                    object.trial_date = trialDate;
-                                    object.billed_date = billingDate;
-                                    object.msisdn = [{"msisdn":element.msisdn}];
-                                    object.total = 1;
-                                    trialToBilledUsers.push(object);
-                                }
-                                throw BreakException;
+                        if(billingDate.getTime() === trialNextDay.getTime()){
+                            // Means user is billed right after next day of trial
+                            let currentObj = isMultipleDatePresent(trialToBilledUsers, trialDate);
+                            if(currentObj){
+                                currentObj.msisdn.push({"msisdn":element.msisdn});
+                                currentObj.total = (currentObj.total + 1);
+                            }else{
+                                let object = {};
+                                object.trial_date = trialDate;
+                                object.billed_date = billingDate;
+                                object.msisdn = [{"msisdn":element.msisdn}];
+                                object.total = 1;
+                                trialToBilledUsers.push(object);
                             }
+                            throw BreakException;
                         }
                     }
                 });
@@ -721,8 +716,8 @@ dailyTrialToBilledUsers = async() => {
         await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            to:  ["farhan.ali@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Trial To Billed Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date data.`, // plain text bodyday
             attachments:[
