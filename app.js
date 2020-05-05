@@ -639,7 +639,7 @@ let { port } = config;
 app.listen(port, () => {
     console.log(`APP running on port ${port}`);
 
-    let service = require('./services/ReportsService');
-    service.generateDailyReport();
+    //let service = require('./services/ReportsService');
+    //service.generateDailyReport();
 });
 
