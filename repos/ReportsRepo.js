@@ -674,10 +674,8 @@ dailyTrialToBilledUsers = async() => {
                         let billingDate = new Date(subElement.billing_dtm);
                         billingDate.setHours(0, 0, 0, 0);
 
-                        var trialNextDay = trialDate;
-                        trialNextDay.setDate(trialNextDay.getDate()+1);
-
-                        console.log('trialToBilledUsers', trialDate, ' --- ', trialNextDay, ' --- ', billingDate);
+                        var trialNextDay = new Date(trialDate);
+                        trialNextDay.setDate(trialNextDay.getDate() + 1);
 
                         if(trialNextDay.getTime() === billingDate.getTime()){
                             // Means user is billed right after next day of trial
@@ -686,6 +684,7 @@ dailyTrialToBilledUsers = async() => {
                                 currentObj.msisdn.push({"msisdn":element.msisdn});
                                 currentObj.total = (currentObj.total + 1);
                             }else{
+                                console.log('trialToBilledUsers', trialDate, ' --- ', trialNextDay, ' --- ', billingDate);
                                 let object = {};
                                 object.trial_date = trialDate;
                                 object.billed_date = billingDate;
