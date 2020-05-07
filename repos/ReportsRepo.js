@@ -14,6 +14,12 @@ var pageViews = require('../controllers/PageViews');
 let currentDate = null;
 currentDate = getCurrentDate();
 
+let paywallTotalBase = currentDate+"_PaywallTotalBase.csv";
+let paywallTotalBaseFilePath = `./${paywallTotalBase}`;
+
+let paywallExpiredBase = currentDate+"_PaywallExpiredBase.csv";
+let paywallExpiredBaseFilePath = `./${paywallExpiredBase}`;
+
 let paywallRevFileName = currentDate+"_PaywallRevReport.csv";
 let paywallRevFilePath = `./${paywallRevFileName}`;
 
@@ -73,6 +79,20 @@ const csvReportWriter = createCsvWriter({
         {id: "isCallbAckSent",title: "IS CallBack Sent" },
         {id: 'added_dtm', title: 'User TIMESTAMP'},
         {id: 'callBackSentTime', title: 'TIMESTAMP'}
+    ]
+});
+
+const csvTotalBase = createCsvWriter({
+    path: paywallTotalBaseFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+    ]
+});
+
+const csvExpiredBase = createCsvWriter({
+    path: paywallExpiredBaseFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
     ]
 });
 
@@ -818,6 +838,58 @@ dailyPageViews = async() => {
         });
 }
 
+getTotalUserBaseTillDate = async() => {
+    let result = await usersRepo.getTotalUserBaseTillDate();
+    await csvTotalBase.writeRecords(result);
+
+    var info = await transporter.sendMail({
+        from: 'paywall@dmdmax.com.pk', // sender address
+        to:  ["farhan.ali@dmdmax.com"],
+        //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+        subject: `Paywalll Total Base`, // Subject line
+        text: `This report (generated at ${(new Date()).toDateString()}) contains count of total user base till date.`,
+        attachments:[
+            {
+                filename: paywallTotalBase,
+                path: paywallTotalBaseFilePath
+            }
+        ]
+    });
+    console.log("[totalBase][emailSent]",info);
+    fs.unlink(paywallTotalBaseFilePath,function(err,data) {
+        if (err) {
+            console.log("File not deleted[totalBase]");
+        }
+        console.log("File deleted [totalBase]");
+    });
+}
+
+getExpiredBase = async() => {
+    let result = await usersRepo.getExpiredBase();
+    await csvExpiredBase.writeRecords(result);
+
+    var info = await transporter.sendMail({
+        from: 'paywall@dmdmax.com.pk', // sender address
+        to:  ["farhan.ali@dmdmax.com"],
+        //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+        subject: `Paywalll Expired Base`, // Subject line
+        text: `This report (generated at ${(new Date()).toDateString()}) contains count of total expired base till date.`,
+        attachments:[
+            {
+                filename: paywallExpiredBase,
+                path: paywallExpiredBaseFilePath
+            }
+        ]
+    });
+    console.log("[expiredBase][emailSent]",info);
+    fs.unlink(paywallExpiredBaseFilePath,function(err,data) {
+        if (err) {
+            console.log("File not deleted[expiredBase]");
+        }
+        console.log("File deleted [expiredBase]");
+    });
+}
+
 function getCurrentDate(){
     var dateObj = new Date();
     var month = dateObj.getMonth() + 1; //months from 1-12
@@ -836,5 +908,7 @@ module.exports = {
     dailyTrialToBilledUsers: dailyTrialToBilledUsers,
     dailyChannelWiseUnsub: dailyChannelWiseUnsub,
     dailyChannelWiseTrialActivated: dailyChannelWiseTrialActivated,
-    dailyPageViews: dailyPageViews
+    dailyPageViews: dailyPageViews,
+    getTotalUserBaseTillDate: getTotalUserBaseTillDate,
+    getExpiredBase: getExpiredBase
 }

@@ -95,6 +95,16 @@ dailyTrialToBilledUsers = async() => {
      return result;
 }
 
+getTotalUserBaseTillDate = async() => {
+    const result = await User.find({$or:[{"subscription_status" : "billed"}, {"subscription_status" : "graced"}, {"subscription_status" : "trial"}], operator:"telenor", subscribed_package_id: {$ne: "none"}}, {msisdn:1});
+    return result;
+}
+
+getExpiredBase = async() => {
+    const result = await User.find({"subscription_status" : "expired", operator:"telenor"}, {msisdn:1});
+    return result;
+}
+
 
 module.exports = {
     createUser: createUser,
@@ -106,5 +116,7 @@ module.exports = {
     deleteUser: deleteUser,
     getPslPackageUsers: getPslPackageUsers,
     getPslOnlyPackageUsers: getPslOnlyPackageUsers,
-    dailyTrialToBilledUsers: dailyTrialToBilledUsers
+    dailyTrialToBilledUsers: dailyTrialToBilledUsers,
+    getTotalUserBaseTillDate: getTotalUserBaseTillDate,
+    getExpiredBase: getExpiredBase
 }
