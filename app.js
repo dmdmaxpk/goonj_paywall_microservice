@@ -302,7 +302,7 @@ consumeSusbcriptionQueue = async(res) => {
                                             // Every week
                                             //Send acknowldement to user
                                             if (subscriptionObj.isManuaRecharge){
-                                                messageRepo.sendSmsToUser(`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels again on Goonj TV. Stay Safe`,
+                                                messageRepo.sendSmsToUser(`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels on Goonj TV. Stay Safe`,
                                                 msisdn);
                                             } else {
                                                 let link = 'https://www.goonj.pk/live';
@@ -454,7 +454,7 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 console.log("hoursSpentInGracePeriod",subscriber.user_id,hoursSpentInGracePeriod);
                 console.log("subscriptionObj.isManuaRecharge",subscriptionObj.isManuaRecharge);
                 if (subscriptionObj.isManuaRecharge){
-                    messageRepo.sendSmsToUser(`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels again on Goonj TV. Stay Safe`,user.msisdn);
+                    messageRepo.sendSmsToUser(`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels on Goonj TV. Stay Safe`,user.msisdn);
                 }
                 if ( hoursSpentInGracePeriod > currentPackage.grace_hours){
                     subObj.subscription_status = 'expired';
