@@ -44,7 +44,7 @@ function subscribeFreeMbs(subscriber){
 	rabbitMq.addInQueue(config.queueNames.freeMbsDispatcher, subscriber);
 }
 
-subscribePackage = async(user, packageObj) => {
+subscribePackage = async(user, packageObj,manual = false) => {
 
 	// Fetch user if not already available
 	if(!packageObj){
@@ -61,6 +61,7 @@ subscribePackage = async(user, packageObj) => {
 	subscriptionObj.msisdn = msisdn;
 	subscriptionObj.packageObj = packageObj;
 	subscriptionObj.transactionId = transactionId;
+	subscriptionObj.isManuaRecharge = manual;
 
 	// Add object in queueing server
 	if (subscriber.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
@@ -470,7 +471,7 @@ exports.recharge = async (req, res) => {
 					if(packageObj){
 						await subscriberRepo.updateSubscriber(user._id, {consecutive_successive_bill_counts: 0});
 						//await subscriberRepo.updateSubscriber(user._id, {queued: true, auto_renewal: true});
-						subscribePackage(user, packageObj)
+						subscribePackage(user, packageObj,true)
 						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 					}else{
 						res.send({code: config.codes.code_error, message: 'No subscribed package found!', gw_transaction_id: gw_transaction_id});

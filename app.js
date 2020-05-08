@@ -31,6 +31,7 @@ var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
 var subscriptionQueryConsumer = require('./repos/queue/consumers/subscriptionQuery');
 var chargingAttemptRepo = require('./repos/ChargingAttemptRepo');
+var messageRepo = require('./repos/MessageRepo');
 var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
 var freeMbsConsumer = require('./repos/queue/consumers/FreeMbsConsumer');
 
@@ -300,9 +301,13 @@ consumeSusbcriptionQueue = async(res) => {
                                         }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
                                             // Every week
                                             //Send acknowldement to user
-                                            let link = 'https://www.goonj.pk/live';
-                                            let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+". Goonj TV Deikhnay k liay click karein.\n"+link
-                                            await billingRepo.sendMessage(message, msisdn);
+                                            if (subscriptionObj.isManuaRecharge){
+                                                messageRepo.sendSmsToUser(user.msisdn,`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels again on Goonj TV. Stay Safe`)
+                                            } else {
+                                                let link = 'https://www.goonj.pk/live';
+                                                let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+". Goonj TV Deikhnay k liay click karein.\n"+link
+                                                await billingRepo.sendMessage(message, msisdn);
+                                            }
                                         }
                                     }
                                 }
@@ -446,6 +451,9 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 let timeInGrace = moment.duration(nowDate.diff(subscriber.date_on_which_user_entered_grace_period));
                 var hoursSpentInGracePeriod = timeInGrace.asHours();
                 console.log("hoursSpentInGracePeriod",subscriber.user_id,hoursSpentInGracePeriod);
+                if (subscriptionObj.isManuaRecharge){
+                    messageRepo.sendSmsToUser(user.msisdn,`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels again on Goonj TV. Stay Safe`)
+                }
                 if ( hoursSpentInGracePeriod > currentPackage.grace_hours){
                     subObj.subscription_status = 'expired';
                     status = 'expired';
