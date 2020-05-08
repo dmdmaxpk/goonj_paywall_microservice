@@ -4,9 +4,11 @@ const subscriberRepo = require('../repos/SubscriberRepo');
 generateDailyReport = async() => {
     console.log("generateDailyReports");
 
-    reportsRepo.getTotalUserBaseTillDate();
+    /*reportsRepo.getTotalUserBaseTillDate();
     await sleep(120*1000);
     reportsRepo.getExpiredBase();
+    await sleep(120*1000);*/
+    reportsRepo.getInactiveBaseHavingViewLogsLessThan3();
 
     /*reportsRepo.dailyReport();
 

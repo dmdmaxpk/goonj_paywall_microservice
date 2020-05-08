@@ -7,6 +7,7 @@ const fs = require('fs');
 const billinghistoryRepo = require("../repos/BillingHistoryRepo");
 var nodemailer = require('nodemailer');
 var usersRepo = require('./UserRepo');
+var viewLogsRepo = require('../repos/ViewLogRepo');
 
 var pageViews = require('../controllers/PageViews');
 
@@ -19,6 +20,9 @@ let paywallTotalBaseFilePath = `./${paywallTotalBase}`;
 
 let paywallExpiredBase = currentDate+"_PaywallExpiredBase.csv";
 let paywallExpiredBaseFilePath = `./${paywallExpiredBase}`;
+
+let paywallInActiveBase = currentDate+"_PaywallInActiveBase.csv";
+let paywallInActiveBaseFilePath = `./${paywallInActiveBase}`;
 
 let paywallRevFileName = currentDate+"_PaywallRevReport.csv";
 let paywallRevFilePath = `./${paywallRevFileName}`;
@@ -91,6 +95,13 @@ const csvTotalBase = createCsvWriter({
 
 const csvExpiredBase = createCsvWriter({
     path: paywallExpiredBaseFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+    ]
+});
+
+const csvInActiveBase = createCsvWriter({
+    path: paywallInActiveBaseFilePath,
     header: [
         {id: 'msisdn', title: 'Msisdn'},
     ]
@@ -846,8 +857,8 @@ getTotalUserBaseTillDate = async() => {
         from: 'paywall@dmdmax.com.pk', // sender address
         to:  ["farhan.ali@dmdmax.com"],
         //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
-        subject: `Paywalll Total Base`, // Subject line
-        text: `This report (generated at ${(new Date()).toDateString()}) contains count of total user base till date.`,
+        subject: `Paywall Total Base`, // Subject line
+        text: `This report (generated at ${(new Date()).toDateString()}) contains total user base till date.`,
         attachments:[
             {
                 filename: paywallTotalBase,
@@ -872,8 +883,8 @@ getExpiredBase = async() => {
         from: 'paywall@dmdmax.com.pk', // sender address
         to:  ["farhan.ali@dmdmax.com"],
         //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
-        subject: `Paywalll Expired Base`, // Subject line
-        text: `This report (generated at ${(new Date()).toDateString()}) contains count of total expired base till date.`,
+        subject: `Paywall Expired Base`, // Subject line
+        text: `This report (generated at ${(new Date()).toDateString()}) contains total expired base till date.`,
         attachments:[
             {
                 filename: paywallExpiredBase,
@@ -887,6 +898,155 @@ getExpiredBase = async() => {
             console.log("File not deleted[expiredBase]");
         }
         console.log("File deleted [expiredBase]");
+    });
+}
+
+getInactiveBase = async() => {
+    let result = await usersRepo.getActiveUsers();
+    //result = result.slice(1, 10);
+
+    let totalLength = result.length;
+    let count = 0;
+    console.log("*** Length: "+totalLength);
+
+    let finalResult = [];
+    let fiveDaysBack = new Date();
+    fiveDaysBack.setDate(fiveDaysBack.getDate() - 5);
+
+    let promise = new Promise((resolve, reject) => {
+        result.forEach((user) => {
+            getViewLogs(user._id).then((viewLog) => {
+                console.log("*** Got result for ", user.msisdn);
+    
+                let latestLogTime = new Date(viewLog.added_dtm);
+                if(fiveDaysBack.getTime() > latestLogTime.getTime()){
+                    // Means 5 days passed user last visited app/web
+                    finalResult.push({"msisdn": user.msisdn});
+                }
+            }).catch((err) => {
+                //console.log("error ", err);
+            }).finally(() => {
+                console.log("*** Finally");
+                count+=1;
+
+                if (count === totalLength){
+                    console.log("*** Resolved"); 
+                    resolve();
+                }
+            });
+        });
+    });
+    
+    promise.then(async() => {
+        console.log("*** ALL DONE");
+        await csvInActiveBase.writeRecords(finalResult);
+
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["farhan.ali@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            subject: `Paywall InActive Base`, // Subject line
+            text: `This report (generated at ${(new Date()).toDateString()}) contains inactive base till date.\nInActive: Have not opened App/Web in last 5 days but are subscribed users`,
+            attachments:[
+                {
+                    filename: paywallInActiveBase,
+                    path: paywallInActiveBaseFilePath
+                }
+            ]
+        });
+        console.log("*** [paywallInActiveBase][emailSent]",info);
+        fs.unlink(paywallInActiveBaseFilePath,function(err,data) {
+            if (err) {
+                console.log("*** File not deleted[paywallInActiveBase]");
+            }
+            console.log("*** File deleted [paywallInActiveBase]");
+        });
+    })
+}
+
+getInactiveBaseHavingViewLogsLessThan3 = async() => {
+    let result = await usersRepo.getActiveUsers();
+    let finalResult = [];
+    let totalLength = result.length;
+    let count = 0;
+    console.log("*** Length: "+totalLength);
+
+    let promise = new Promise((resolve, reject) => {
+        result.forEach((user) => {
+            getNumberOfViewLogs(user._id).then((count) => {
+                console.log("*** Got result for ", user.msisdn, ' - ', count);
+    
+                if(count < 3){
+                    // Means user visited app/web for once/twice
+                    finalResult.push({"msisdn": user.msisdn});
+                }
+            }).catch((err) => {
+                //console.log("error ", err);
+            }).finally(() => {
+                count+=1;
+
+                if (count === totalLength){
+                    console.log("*** Resolved"); 
+                    resolve();
+                }
+            });
+        });
+    });
+    
+    promise.then(async() => {
+        console.log("*** ALL DONE");
+        await csvInActiveBase.writeRecords(finalResult);
+
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["farhan.ali@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            subject: `Paywall InActive Base`, // Subject line
+            text: `This report (generated at ${(new Date()).toDateString()}) contains inactive base till date.\nInActive: Users who only opened app once/twice since subscribing.`,
+            attachments:[
+                {
+                    filename: paywallInActiveBase,
+                    path: paywallInActiveBaseFilePath
+                }
+            ]
+        });
+        console.log("*** [paywallInActiveBase][emailSent]",info);
+        fs.unlink(paywallInActiveBaseFilePath,function(err,data) {
+            if (err) {
+                console.log("*** File not deleted[paywallInActiveBase]");
+            }
+            console.log("*** File deleted [paywallInActiveBase]");
+        });
+    })
+}
+
+function getViewLogs(user_id){
+    return new Promise(async(resolve, reject) => {
+        try{
+            let viewLog = await viewLogsRepo.getLatestViewLog(user_id);
+            if(viewLog){
+                resolve(viewLog);
+            }else{
+                reject("Not found");
+            }
+        }catch(err){
+            reject(err);
+        }
+    });
+}
+
+function getNumberOfViewLogs(user_id){
+    return new Promise(async(resolve, reject) => {
+        try{
+            let viewLog = await viewLogsRepo.getNumberOfViewLogs(user_id);
+            if(viewLog){
+                resolve(viewLog);
+            }else{
+                reject("Not found");
+            }
+        }catch(err){
+            reject(err);
+        }
     });
 }
 
@@ -910,5 +1070,7 @@ module.exports = {
     dailyChannelWiseTrialActivated: dailyChannelWiseTrialActivated,
     dailyPageViews: dailyPageViews,
     getTotalUserBaseTillDate: getTotalUserBaseTillDate,
-    getExpiredBase: getExpiredBase
+    getExpiredBase: getExpiredBase,
+    getInactiveBase: getInactiveBase,
+    getInactiveBaseHavingViewLogsLessThan3: getInactiveBaseHavingViewLogsLessThan3
 }
