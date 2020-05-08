@@ -302,7 +302,7 @@ consumeSusbcriptionQueue = async(res) => {
                                             // Every week
                                             //Send acknowldement to user
                                             if (subscriptionObj.isManuaRecharge){
-                                                messageRepo.sendSmsToUser(`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels on Goonj TV. Stay Safe`,
+                                                messageRepo.sendSmsToUser(`You have been successfully subscribed for Goonj TV.Rs.5 has been deducted from your credit. Stay safe and keep watching Goonj TV`,
                                                 msisdn);
                                             } else {
                                                 let link = 'https://www.goonj.pk/live';
