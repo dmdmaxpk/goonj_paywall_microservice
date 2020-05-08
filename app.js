@@ -302,7 +302,7 @@ consumeSusbcriptionQueue = async(res) => {
                                             // Every week
                                             //Send acknowldement to user
                                             if (subscriptionObj.isManuaRecharge){
-                                                messageRepo.sendSmsToUser(user.msisdn,`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels again on Goonj TV. Stay Safe`)
+                                                messageRepo.sendSmsToUser(`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels again on Goonj TV. Stay Safe`,sendSmsToUser);
                                             } else {
                                                 let link = 'https://www.goonj.pk/live';
                                                 let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+". Goonj TV Deikhnay k liay click karein.\n"+link
@@ -451,8 +451,9 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 let timeInGrace = moment.duration(nowDate.diff(subscriber.date_on_which_user_entered_grace_period));
                 var hoursSpentInGracePeriod = timeInGrace.asHours();
                 console.log("hoursSpentInGracePeriod",subscriber.user_id,hoursSpentInGracePeriod);
+                console.log("subscriptionObj.isManuaRecharge",subscriptionObj.isManuaRecharge);
                 if (subscriptionObj.isManuaRecharge){
-                    messageRepo.sendSmsToUser(user.msisdn,`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels again on Goonj TV. Stay Safe`)
+                    messageRepo.sendSmsToUser(`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels again on Goonj TV. Stay Safe`,subscriptionObj.isManuaRecharge)
                 }
                 if ( hoursSpentInGracePeriod > currentPackage.grace_hours){
                     subObj.subscription_status = 'expired';
