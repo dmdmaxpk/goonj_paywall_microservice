@@ -849,16 +849,16 @@ dailyPageViews = async() => {
         });
 }
 
-getTotalUserBaseTillDate = async() => {
-    let result = await usersRepo.getTotalUserBaseTillDate();
+getTotalUserBaseTillDate = async(from, to) => {
+    let result = await usersRepo.getTotalUserBaseTillDate(from, to);
     await csvTotalBase.writeRecords(result);
 
     var info = await transporter.sendMail({
         from: 'paywall@dmdmax.com.pk', // sender address
-        to:  ["farhan.ali@dmdmax.com"],
+        to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
         //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
         subject: `Paywall Total Base`, // Subject line
-        text: `This report (generated at ${(new Date()).toDateString()}) contains total user base till date.`,
+        text: `This report contains total user base from ${new Date(from)} to ${new Date(to)}.`,
         attachments:[
             {
                 filename: paywallTotalBase,
@@ -875,16 +875,16 @@ getTotalUserBaseTillDate = async() => {
     });
 }
 
-getExpiredBase = async() => {
-    let result = await usersRepo.getExpiredBase();
+getExpiredBase = async(from, to) => {
+    let result = await usersRepo.getExpiredBase(from, to);
     await csvExpiredBase.writeRecords(result);
 
     var info = await transporter.sendMail({
         from: 'paywall@dmdmax.com.pk', // sender address
-        to:  ["farhan.ali@dmdmax.com"],
+        to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
         //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
         subject: `Paywall Expired Base`, // Subject line
-        text: `This report (generated at ${(new Date()).toDateString()}) contains total expired base till date.`,
+        text: `This report contains total expired base from ${new Date(from)} to ${new Date(to)}.`,
         attachments:[
             {
                 filename: paywallExpiredBase,
@@ -901,9 +901,8 @@ getExpiredBase = async() => {
     });
 }
 
-getInactiveBase = async() => {
-    let result = await usersRepo.getActiveUsers();
-    //result = result.slice(1, 10);
+getInactiveBase = async(from, to) => {
+    let result = await usersRepo.getActiveUsers(from, to);
 
     let totalLength = result.length;
     let count = 0;
@@ -943,10 +942,10 @@ getInactiveBase = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["farhan.ali@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
             //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Paywall InActive Base`, // Subject line
-            text: `This report (generated at ${(new Date()).toDateString()}) contains inactive base till date.\nInActive: Have not opened App/Web in last 5 days but are subscribed users`,
+            text: `This report contains inactive base from ${new Date(from)} to ${new Date(to)}.\nInActive: Have not opened App/Web in last 5 days but are subscribed users`,
             attachments:[
                 {
                     filename: paywallInActiveBase,
@@ -964,8 +963,8 @@ getInactiveBase = async() => {
     })
 }
 
-getInactiveBaseHavingViewLogsLessThan3 = async() => {
-    let result = await usersRepo.getActiveUsers();
+getInactiveBaseHavingViewLogsLessThan3 = async(from, to) => {
+    let result = await usersRepo.getActiveUsers(from, to);
     let finalResult = [];
     let totalLength = result.length;
     let count = 0;
@@ -999,10 +998,10 @@ getInactiveBaseHavingViewLogsLessThan3 = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["farhan.ali@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
             //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Paywall InActive Base`, // Subject line
-            text: `This report (generated at ${(new Date()).toDateString()}) contains inactive base till date.\nInActive: Users who only opened app once/twice since subscribing.`,
+            text: `This report  contains inactive base from ${new Date(from)} to ${new Date(to)}.\nInActive: Users who only opened app once/twice since subscribing.`,
             attachments:[
                 {
                     filename: paywallInActiveBase,

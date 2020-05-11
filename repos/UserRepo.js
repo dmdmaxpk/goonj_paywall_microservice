@@ -95,18 +95,35 @@ dailyTrialToBilledUsers = async() => {
      return result;
 }
 
-getTotalUserBaseTillDate = async() => {
-    const result = await User.find({$or:[{"subscription_status" : "billed"}, {"subscription_status" : "graced"}, {"subscription_status" : "trial"}], operator:"telenor", subscribed_package_id: {$ne: "none"}}, {msisdn:1});
+getTotalUserBaseTillDate = async(from, to) => {
+    const result = await User.find(
+    {
+        $or:[{"subscription_status" : "billed"}, {"subscription_status" : "graced"}, {"subscription_status" : "trial"}], 
+        operator:"telenor", 
+        subscribed_package_id: {$ne: "none"},
+        $and:[{added_dtm:{$gte:new Date(from)}}, {added_dtm:{$lte:new Date(to)}}]
+    }, 
+        {msisdn:1});
     return result;
 }
 
-getActiveUsers = async() => {
-    const result = await User.find({$or:[{"subscription_status" : "billed"}, {"subscription_status" : "graced"}], operator:"telenor", subscribed_package_id: {$ne: "none"}});
+getActiveUsers = async(from, to) => {
+    const result = await User.find(
+    {
+        $or:[{"subscription_status" : "billed"}, {"subscription_status" : "graced"}], 
+        operator:"telenor", subscribed_package_id: {$ne: "none"},
+        $and:[{added_dtm:{$gte:new Date(from)}}, {added_dtm:{$lte:new Date(to)}}]
+    });
     return result;
 }
 
-getExpiredBase = async() => {
-    const result = await User.find({"subscription_status" : "expired", operator:"telenor"}, {msisdn:1});
+getExpiredBase = async(from, to) => {
+    const result = await User.find(
+        {
+            "subscription_status" : "expired", 
+            operator:"telenor",
+            $and:[{added_dtm:{$gte:new Date(from)}}, {added_dtm:{$lte:new Date(to)}}]
+        }, {msisdn:1});
     return result;
 }
 
