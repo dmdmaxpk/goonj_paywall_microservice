@@ -95,6 +95,38 @@ dailyTrialToBilledUsers = async() => {
      return result;
 }
 
+getTotalUserBaseTillDate = async(from, to) => {
+    const result = await User.find(
+    {
+        $or:[{"subscription_status" : "billed"}, {"subscription_status" : "graced"}, {"subscription_status" : "trial"}], 
+        operator:"telenor", 
+        subscribed_package_id: {$ne: "none"},
+        $and:[{added_dtm:{$gte:new Date(from)}}, {added_dtm:{$lte:new Date(to)}}]
+    }, 
+        {msisdn:1});
+    return result;
+}
+
+getActiveUsers = async(from, to) => {
+    const result = await User.find(
+    {
+        $or:[{"subscription_status" : "billed"}, {"subscription_status" : "graced"}], 
+        operator:"telenor", subscribed_package_id: {$ne: "none"},
+        $and:[{added_dtm:{$gte:new Date(from)}}, {added_dtm:{$lte:new Date(to)}}]
+    });
+    return result;
+}
+
+getExpiredBase = async(from, to) => {
+    const result = await User.find(
+        {
+            "subscription_status" : "expired", 
+            operator:"telenor",
+            $and:[{added_dtm:{$gte:new Date(from)}}, {added_dtm:{$lte:new Date(to)}}]
+        }, {msisdn:1});
+    return result;
+}
+
 
 module.exports = {
     createUser: createUser,
@@ -106,5 +138,8 @@ module.exports = {
     deleteUser: deleteUser,
     getPslPackageUsers: getPslPackageUsers,
     getPslOnlyPackageUsers: getPslOnlyPackageUsers,
-    dailyTrialToBilledUsers: dailyTrialToBilledUsers
+    dailyTrialToBilledUsers: dailyTrialToBilledUsers,
+    getTotalUserBaseTillDate: getTotalUserBaseTillDate,
+    getExpiredBase: getExpiredBase,
+    getActiveUsers: getActiveUsers
 }

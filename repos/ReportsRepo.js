@@ -7,12 +7,22 @@ const fs = require('fs');
 const billinghistoryRepo = require("../repos/BillingHistoryRepo");
 var nodemailer = require('nodemailer');
 var usersRepo = require('./UserRepo');
+var viewLogsRepo = require('../repos/ViewLogRepo');
 
 var pageViews = require('../controllers/PageViews');
 
 
 let currentDate = null;
 currentDate = getCurrentDate();
+
+let paywallTotalBase = currentDate+"_PaywallTotalBase.csv";
+let paywallTotalBaseFilePath = `./${paywallTotalBase}`;
+
+let paywallExpiredBase = currentDate+"_PaywallExpiredBase.csv";
+let paywallExpiredBaseFilePath = `./${paywallExpiredBase}`;
+
+let paywallInActiveBase = currentDate+"_PaywallInActiveBase.csv";
+let paywallInActiveBaseFilePath = `./${paywallInActiveBase}`;
 
 let paywallRevFileName = currentDate+"_PaywallRevReport.csv";
 let paywallRevFilePath = `./${paywallRevFileName}`;
@@ -73,6 +83,27 @@ const csvReportWriter = createCsvWriter({
         {id: "isCallbAckSent",title: "IS CallBack Sent" },
         {id: 'added_dtm', title: 'User TIMESTAMP'},
         {id: 'callBackSentTime', title: 'TIMESTAMP'}
+    ]
+});
+
+const csvTotalBase = createCsvWriter({
+    path: paywallTotalBaseFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+    ]
+});
+
+const csvExpiredBase = createCsvWriter({
+    path: paywallExpiredBaseFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+    ]
+});
+
+const csvInActiveBase = createCsvWriter({
+    path: paywallInActiveBaseFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
     ]
 });
 
@@ -818,6 +849,206 @@ dailyPageViews = async() => {
         });
 }
 
+getTotalUserBaseTillDate = async(from, to) => {
+    let result = await usersRepo.getTotalUserBaseTillDate(from, to);
+    await csvTotalBase.writeRecords(result);
+
+    var info = await transporter.sendMail({
+        from: 'paywall@dmdmax.com.pk', // sender address
+        to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
+        //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+        subject: `Paywall Total Base`, // Subject line
+        text: `This report contains total user base from ${new Date(from)} to ${new Date(to)}.`,
+        attachments:[
+            {
+                filename: paywallTotalBase,
+                path: paywallTotalBaseFilePath
+            }
+        ]
+    });
+    console.log("[totalBase][emailSent]",info);
+    fs.unlink(paywallTotalBaseFilePath,function(err,data) {
+        if (err) {
+            console.log("File not deleted[totalBase]");
+        }
+        console.log("File deleted [totalBase]");
+    });
+}
+
+getExpiredBase = async(from, to) => {
+    let result = await usersRepo.getExpiredBase(from, to);
+    await csvExpiredBase.writeRecords(result);
+
+    var info = await transporter.sendMail({
+        from: 'paywall@dmdmax.com.pk', // sender address
+        to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
+        //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+        subject: `Paywall Expired Base`, // Subject line
+        text: `This report contains total expired base from ${new Date(from)} to ${new Date(to)}.`,
+        attachments:[
+            {
+                filename: paywallExpiredBase,
+                path: paywallExpiredBaseFilePath
+            }
+        ]
+    });
+    console.log("[expiredBase][emailSent]",info);
+    fs.unlink(paywallExpiredBaseFilePath,function(err,data) {
+        if (err) {
+            console.log("File not deleted[expiredBase]");
+        }
+        console.log("File deleted [expiredBase]");
+    });
+}
+
+getInactiveBase = async(from, to) => {
+    let result = await usersRepo.getActiveUsers(from, to);
+
+    let totalLength = result.length;
+    let count = 0;
+    console.log("*** Length: "+totalLength);
+
+    let finalResult = [];
+    let fiveDaysBack = new Date();
+    fiveDaysBack.setDate(fiveDaysBack.getDate() - 5);
+
+    let promise = new Promise((resolve, reject) => {
+        result.forEach((user) => {
+            getViewLogs(user._id).then((viewLog) => {
+                console.log("*** Got result for ", user.msisdn);
+    
+                let latestLogTime = new Date(viewLog.added_dtm);
+                if(fiveDaysBack.getTime() > latestLogTime.getTime()){
+                    // Means 5 days passed user last visited app/web
+                    finalResult.push({"msisdn": user.msisdn});
+                }
+            }).catch((err) => {
+                //console.log("error ", err);
+            }).finally(() => {
+                console.log("*** Finally");
+                count+=1;
+
+                if (count === totalLength){
+                    console.log("*** Resolved"); 
+                    resolve();
+                }
+            });
+        });
+    });
+    
+    promise.then(async() => {
+        console.log("*** ALL DONE");
+        await csvInActiveBase.writeRecords(finalResult);
+
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            subject: `Paywall InActive Base`, // Subject line
+            text: `This report contains inactive base from ${new Date(from)} to ${new Date(to)}.\nInActive: Have not opened App/Web in last 5 days but are subscribed users`,
+            attachments:[
+                {
+                    filename: paywallInActiveBase,
+                    path: paywallInActiveBaseFilePath
+                }
+            ]
+        });
+        console.log("*** [paywallInActiveBase][emailSent]",info);
+        fs.unlink(paywallInActiveBaseFilePath,function(err,data) {
+            if (err) {
+                console.log("*** File not deleted[paywallInActiveBase]");
+            }
+            console.log("*** File deleted [paywallInActiveBase]");
+        });
+    })
+}
+
+getInactiveBaseHavingViewLogsLessThan3 = async(from, to) => {
+    let result = await usersRepo.getActiveUsers(from, to);
+    let finalResult = [];
+    let totalLength = result.length;
+    let count = 0;
+    console.log("*** Length: "+totalLength);
+
+    let promise = new Promise((resolve, reject) => {
+        result.forEach((user) => {
+            getNumberOfViewLogs(user._id).then((count) => {
+                console.log("*** Got result for ", user.msisdn, ' - ', count);
+    
+                if(count < 3){
+                    // Means user visited app/web for once/twice
+                    finalResult.push({"msisdn": user.msisdn});
+                }
+            }).catch((err) => {
+                //console.log("error ", err);
+            }).finally(() => {
+                count+=1;
+
+                if (count === totalLength){
+                    console.log("*** Resolved"); 
+                    resolve();
+                }
+            });
+        });
+    });
+    
+    promise.then(async() => {
+        console.log("*** ALL DONE");
+        await csvInActiveBase.writeRecords(finalResult);
+
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            subject: `Paywall InActive Base`, // Subject line
+            text: `This report  contains inactive base from ${new Date(from)} to ${new Date(to)}.\nInActive: Users who only opened app once/twice since subscribing.`,
+            attachments:[
+                {
+                    filename: paywallInActiveBase,
+                    path: paywallInActiveBaseFilePath
+                }
+            ]
+        });
+        console.log("*** [paywallInActiveBase][emailSent]",info);
+        fs.unlink(paywallInActiveBaseFilePath,function(err,data) {
+            if (err) {
+                console.log("*** File not deleted[paywallInActiveBase]");
+            }
+            console.log("*** File deleted [paywallInActiveBase]");
+        });
+    })
+}
+
+function getViewLogs(user_id){
+    return new Promise(async(resolve, reject) => {
+        try{
+            let viewLog = await viewLogsRepo.getLatestViewLog(user_id);
+            if(viewLog){
+                resolve(viewLog);
+            }else{
+                reject("Not found");
+            }
+        }catch(err){
+            reject(err);
+        }
+    });
+}
+
+function getNumberOfViewLogs(user_id){
+    return new Promise(async(resolve, reject) => {
+        try{
+            let viewLog = await viewLogsRepo.getNumberOfViewLogs(user_id);
+            if(viewLog){
+                resolve(viewLog);
+            }else{
+                reject("Not found");
+            }
+        }catch(err){
+            reject(err);
+        }
+    });
+}
+
 function getCurrentDate(){
     var dateObj = new Date();
     var month = dateObj.getMonth() + 1; //months from 1-12
@@ -836,5 +1067,9 @@ module.exports = {
     dailyTrialToBilledUsers: dailyTrialToBilledUsers,
     dailyChannelWiseUnsub: dailyChannelWiseUnsub,
     dailyChannelWiseTrialActivated: dailyChannelWiseTrialActivated,
-    dailyPageViews: dailyPageViews
+    dailyPageViews: dailyPageViews,
+    getTotalUserBaseTillDate: getTotalUserBaseTillDate,
+    getExpiredBase: getExpiredBase,
+    getInactiveBase: getInactiveBase,
+    getInactiveBaseHavingViewLogsLessThan3: getInactiveBaseHavingViewLogsLessThan3
 }
