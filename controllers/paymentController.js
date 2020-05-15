@@ -270,7 +270,7 @@ exports.subscribe = async (req, res) => {
 			   try {
 				   user = await userRepo.createUser(userObj);
 				   console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
-				   doSubscribe(res, msisdn, user, gw_transaction_id);
+				   doSubscribe(req, res, msisdn, user, gw_transaction_id);
 				} catch(er) {
 				   res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
 			   }
@@ -293,11 +293,11 @@ exports.subscribe = async (req, res) => {
 			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
 		});
 	}else{
-		doSubscribe(res, msisdn, user, gw_transaction_id);
+		doSubscribe(req, res, msisdn, user, gw_transaction_id);
 	}
 }
 
-doSubscribe = async(res, msisdn, user, gw_transaction_id) => {
+doSubscribe = async(req, res, msisdn, user, gw_transaction_id) => {
 	if(user && user.active === true){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriber(user._id);
