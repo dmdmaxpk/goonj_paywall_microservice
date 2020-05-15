@@ -26,8 +26,18 @@ getLatestViewLog =async(userId) => {
     }
 }
 
+getNumberOfViewLogs =async(userId) => {
+    try {
+        result = await ViewLog.countDocuments({user_id: userId});
+        return result;
+    } catch(erro) {
+        throw new Error(error.message); 
+    }
+}
+
 
 module.exports = {
     createViewLog: createViewLog,
-    getLatestViewLog: getLatestViewLog
+    getLatestViewLog: getLatestViewLog,
+    getNumberOfViewLogs: getNumberOfViewLogs
 }

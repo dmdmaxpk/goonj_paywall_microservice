@@ -7,6 +7,7 @@ const config = require('./config');
 const swStats = require('swagger-stats');
 const axios = require('axios');
 const winston = require('winston');
+const moment = require('moment');
 
 // const apiSpec = require('./swagger.json');
 
@@ -30,8 +31,10 @@ var billingRepo = require('./repos/BillingRepo');
 var tpsCountRepo = require('./repos/tpsCountRepo');
 var subscriptionQueryConsumer = require('./repos/queue/consumers/subscriptionQuery');
 var chargingAttemptRepo = require('./repos/ChargingAttemptRepo');
+var messageRepo = require('./repos/MessageRepo');
 var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
 var freeMbsConsumer = require('./repos/queue/consumers/FreeMbsConsumer');
+
 
 const app = express();
 
@@ -180,12 +183,13 @@ consumeSusbcriptionQueue = async(res) => {
             } else {
                 if (countThisSec < config.telenor_subscription_api_tps) {
                     console.log("Sending subscription request to telenor");
+
                     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     
                     billingRepo.subscribePackage(subscriptionObj)
                     .then(async (response) => {
                         let operator_response = response.api_response;
-                        console.log("Response from telenor ", operator_response.data);
+                        // console.log("Response from telenor ", operator_response.data);
                         
                         let message = operator_response.data.Message;
                         let user_id = response.user_id;
@@ -220,6 +224,8 @@ consumeSusbcriptionQueue = async(res) => {
                                 let subObj = {};
                                 subObj.subscription_status = 'billed';
                                 subObj.auto_renewal = true;
+                                subObj.is_billable_in_this_cycle = false;
+                                subObj.is_allowed_to_stream = true;
                                 subObj.last_billing_timestamp = new Date();
                                 subObj.next_billing_timestamp = nextBilling;
                                 subObj.time_spent_in_grace_period_in_hours = 0;
@@ -295,9 +301,14 @@ consumeSusbcriptionQueue = async(res) => {
                                         }else if(subObj.consecutive_successive_bill_counts % 7 === 0){
                                             // Every week
                                             //Send acknowldement to user
-                                            let link = 'https://www.goonj.pk/live';
-                                            let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+". Goonj TV Deikhnay k liay click karein.\n"+link
-                                            await billingRepo.sendMessage(message, msisdn);
+                                            if (subscriptionObj.isManuaRecharge){
+                                                messageRepo.sendSmsToUser(`You have been successfully subscribed for Goonj TV.Rs.5 has been deducted from your credit. Stay safe and keep watching Goonj TV`,
+                                                msisdn);
+                                            } else {
+                                                let link = 'https://www.goonj.pk/live';
+                                                let message = "Thank you for using Goonj TV with "+response.packageObj.package_name+" at Rs. "+response.packageObj.display_price_point+". Goonj TV Deikhnay k liay click karein.\n"+link
+                                                await billingRepo.sendMessage(message, msisdn);
+                                            }
                                         }
                                     }
                                 }
@@ -334,7 +345,7 @@ consumeSusbcriptionQueue = async(res) => {
                                 
                                 await assignGracePeriodToSubscriber(subscriber, subscriptionObj, error, micro_charge);
                             } catch(err) {
-                                console.log("Error: could not assign Grace period", err);
+                                console.log("Error: in assigning grace period ");
                             }
 
                             // TODO set queued to false everytime we Ack a message
@@ -404,6 +415,7 @@ async function sendCallBackToIdeation(mid, tid){
 async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error, micro_charge){
     return new Promise (async (resolve,reject) => {
         try {
+            console.log("[assignGracePeriodToSubscriber]")
             let status = "";
             let subObj = {};
             subObj.queued = false;
@@ -420,6 +432,7 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 subObj.subscription_status = 'graced';
                 status = 'graced';
                 subObj.next_billing_timestamp = nextBillingDate;
+                subObj.date_on_which_user_entered_grace_period = new Date();
         
                 //Send acknowldement to user
                 let link = 'https://www.goonj.pk/goonjplus/open';
@@ -434,14 +447,24 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 }
                 addMicroChargingToQueue(subscriber);
             } else if(subscriber.subscription_status === 'graced' && subscriber.auto_renewal === true){
-                // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement.
-                if ( subscriber.time_spent_in_grace_period_in_hours > currentPackage.grace_hours){
+                // Already had enjoyed grace time, set the subscription of this user as expire and send acknowledgement. 
+                let nowDate = moment();
+                let timeInGrace = moment.duration(nowDate.diff(subscriber.date_on_which_user_entered_grace_period));
+                var hoursSpentInGracePeriod = timeInGrace.asHours();
+                console.log("hoursSpentInGracePeriod",subscriber.user_id,hoursSpentInGracePeriod);
+                console.log("subscriptionObj.isManuaRecharge",subscriptionObj.isManuaRecharge);
+                if (subscriptionObj.isManuaRecharge){
+                    messageRepo.sendSmsToUser(`You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels on Goonj TV. Stay Safe`,user.msisdn);
+                }
+                if ( hoursSpentInGracePeriod > currentPackage.grace_hours){
                     subObj.subscription_status = 'expired';
                     status = 'expired';
-                    subObj.auto_renewal = false;    
+                    subObj.auto_renewal = false;
+                    subObj.is_allowed_to_stream = false; // expire stream for user
+                        
                     //Send acknowldement to user
                     let link = 'https://www.goonj.pk/goonjplus/subscribe';
-                    let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link
+                    let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link;
                     await billingRepo.sendMessage(message, user.msisdn);
                     
                     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
@@ -451,18 +474,39 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                         console.log('MicroCharging - InActiveAfterExpiration - Subscriber ', subscriber._id, ' - ', (new Date()));
                     }
                 } else {
+                    
                     let nextBillingDate = new Date();
                     nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
                     
-                    subObj.time_spent_in_grace_period_in_hours = (subscriber.time_spent_in_grace_period_in_hours + config.time_between_billing_attempts_hours);
                     subObj.subscription_status = 'graced';
                     status = 'graced';
+                    //TODO set is_allowed_to_stream to false if 24 hours have passed in grace period
+                    let last_billing_timestamp = moment(subscriber.last_billing_timestamp);
+                    var hours;
+                    if (subscriber.last_billing_timestamp) {
+                        let now = moment()
+                        let difference = moment.duration(now.diff(last_billing_timestamp));
+                        hours = difference.asHours();
+                    } else {
+                        hours = hoursSpentInGracePeriod;
+                        console.log("hours in grace period",hours);
+                    }
+                    console.log("Hours since last payment",hours);
+                    if (hours > 24) {
+                        console.log("stop the stream");
+                        subObj.is_allowed_to_stream = false;
+                        // TODO Add history that this users' stream was stopped
+                        if(subscriber.is_allowed_to_stream != false && subObj.is_allowed_to_stream === false ) {
+                            status = "graced_and_stream_stopped";
+                        }                        
+                    }
 
                     let attempt = await chargingAttemptRepo.getAttempt(subscriber._id);
                     if(attempt && attempt.active === true){
                         addMicroChargingToQueue(subscriber);
                     }else{
                         subObj.next_billing_timestamp = nextBillingDate;
+                        subObj.time_spent_in_grace_period_in_hours = (subscriber.time_spent_in_grace_period_in_hours + config.time_between_billing_attempts_hours);
                     }
                 }
             } else {
@@ -476,10 +520,11 @@ async function assignGracePeriodToSubscriber(subscriber, subscriptionObj, error,
                 await billingRepo.sendMessage(message, user.msisdn);
             }
             subObj.consecutive_successive_bill_counts = 0;
-            
+            subObj.is_billable_in_this_cycle = false;
             await userRepo.updateUser(user.msisdn, {subscription_status: subObj.subscription_status});
             await subscriberRepo.updateSubscriber(subscriber.user_id, subObj);
             await addToHistory(user._id, subscriptionObj.packageObj._id, subscriptionObj.transaction_id, error.response.data, status, 'telenor', subscriptionObj.packageObj.price_point_pkr, micro_charge, subscriber._id);
+            console.log("[assignGracePeriodToSubscriber][end]");
             resolve(status);
         } catch(err) {
             //Todo: Point-1
@@ -605,6 +650,6 @@ app.listen(port, () => {
     console.log(`APP running on port ${port}`);
 
     //let service = require('./services/ReportsService');
-    //service.generateDailyReport();
+    //service.generateWeeklyReports();
 });
 

@@ -22,7 +22,11 @@ const subscriberSchema = new Schema({
     active: { type: Boolean, default: true, index: true },
     time_spent_in_grace_period_in_hours: { type: Number, default: 0 },
     is_discounted: { type: Boolean, default: false },
-    discounted_price: { type: Number }
+    discounted_price: { type: Number },
+    //field for billling
+    is_allowed_to_stream: { type: Boolean, default: true },
+    is_billable_in_this_cycle: { type: Boolean, default: false },
+    date_on_which_user_entered_grace_period: {type: Date}
 }, { strict: true })
 
 module.exports = mongoose.model('Subscriber', subscriberSchema);

@@ -69,6 +69,12 @@ microChargingAttempt = async (subscriber) => {
                                 console.log('MicroChargingAttempt - AgainScheduled For Price - ',price_to_charge, ' - Subscriber ', subscriber._id, ' - ', (new Date()));
                             }
                         }
+                        let subscriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {is_billable_in_this_cycle:true});
+                        if(subscriberUpdated){
+                            console.log('MicroCharging - InActive - Subscriber Updated ', subscriber._id, ' - ', (new Date()));
+                        }else{
+                            console.log('MicroCharging - InActive - Subscriber Not Updated', subscriber._id, ' - ', (new Date()));
+                        }
                         
                     }else{
                         // Less than flooring value or as soon as it becomes zero
@@ -78,7 +84,7 @@ microChargingAttempt = async (subscriber) => {
                         let nextBillingDate = new Date();
                         nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
                     
-                        let subscriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {next_billing_timestamp: nextBillingDate});
+                        let subscriberUpdated = await subscriberRepo.updateSubscriber(subscriber.user_id, {next_billing_timestamp: nextBillingDate,is_billable_in_this_cycle:false});
                         if(subscriberUpdated){
                             console.log('MicroCharging - InActive - Subscriber Updated ', subscriber._id, ' - ', (new Date()));
                         }else{

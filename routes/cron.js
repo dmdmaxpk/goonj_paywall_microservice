@@ -2,7 +2,11 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/cron')
 
-// 
+//
+
+router.route('/markRenewableUsers')
+    .get(controller.markRenewableUsers);
+
 router.route('/subscriptionRenewal')
     .get(controller.subscriptionRenewal);
 
@@ -32,5 +36,9 @@ router.route('/generateDailyReport')
 
 router.route('/hourlyBillingReport')
     .get(controller.hourlyBillingReport);
+
+
+router.route('/markRenewableUsers')
+    .get(controller.markRenewableUsers);
 
 module.exports = router;

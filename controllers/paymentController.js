@@ -44,7 +44,7 @@ function subscribeFreeMbs(subscriber){
 	rabbitMq.addInQueue(config.queueNames.freeMbsDispatcher, subscriber);
 }
 
-subscribePackage = async(user, packageObj) => {
+subscribePackage = async(user, packageObj,manual = false) => {
 
 	// Fetch user if not already available
 	if(!packageObj){
@@ -61,6 +61,7 @@ subscribePackage = async(user, packageObj) => {
 	subscriptionObj.msisdn = msisdn;
 	subscriptionObj.packageObj = packageObj;
 	subscriptionObj.transactionId = transactionId;
+	subscriptionObj.isManuaRecharge = manual;
 
 	// Add object in queueing server
 	if (subscriber.queued === false && subscriptionObj.msisdn && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
@@ -177,7 +178,13 @@ exports.verifyOtp = async (req, res) => {
 						let subscriber = await subscriberRepo.getSubscriber(user._id);
 						if(subscriber){
 							// Subscriber is available and having active subscription
-							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', subscriber: subscriber.subscription_status, user_id: subscriber.user_id, subscribed_package_id: user.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+							res.send({
+								code: config.codes.code_otp_validated, data: 'OTP Validated!', 
+								subscriber: subscriber.subscription_status, 
+								is_allowed_to_stream: subscriber.is_allowed_to_stream, 
+								user_id: subscriber.user_id, 
+								subscribed_package_id: user.subscribed_package_id, 
+								gw_transaction_id: gw_transaction_id});
 						}else{
 							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', gw_transaction_id: gw_transaction_id});
 						}
@@ -321,6 +328,7 @@ exports.subscribe = async (req, res) => {
 				// Add 1 day in next billing timestamp
 				postObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + config.trial_hours);
 				postObj.subscription_status = 'trial';
+				postObj.is_allowed_to_stream = true;
 			}
 
 			let updateUserObj = {};
@@ -455,13 +463,19 @@ exports.recharge = async (req, res) => {
 			// Supposing, this is verified user
 			let subscriber = await subscriberRepo.getSubscriber(user._id);
 			if(subscriber && subscriber.subscription_status === 'graced'){
-				// try charge attempt
-				let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
-				if(packageObj){
-					subscribePackage(user, packageObj)
-					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+				if(subscriber.is_billable_in_this_cycle === true){
+					res.send({code: config.codes.code_in_billing_queue, message: 'Already in billing process!', gw_transaction_id: gw_transaction_id});
 				}else{
-					res.send({code: config.codes.code_error, message: 'No subscribed package found!', gw_transaction_id: gw_transaction_id});
+					// try charge attempt
+					let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
+					if(packageObj){
+						await subscriberRepo.updateSubscriber(user._id, {consecutive_successive_bill_counts: 0});
+						//await subscriberRepo.updateSubscriber(user._id, {queued: true, auto_renewal: true});
+						subscribePackage(user, packageObj,true)
+						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+					}else{
+						res.send({code: config.codes.code_error, message: 'No subscribed package found!', gw_transaction_id: gw_transaction_id});
+					}
 				}
 			}else{
 				res.send({code: config.codes.code_error, message: 'Something went wrong!', gw_transaction_id: gw_transaction_id});

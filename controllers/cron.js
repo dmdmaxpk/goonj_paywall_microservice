@@ -56,3 +56,27 @@ exports.hourlyBillingReport = async (req,res) =>  {
     await billingMonitoringService.billingInLastHour();
     res.send("hourlyBillingReport - Executed");
 }
+
+exports.markRenewableUsers = async (req,res) =>  {
+    console.log("Reached Marked Renewable users cron")
+    await subscriptionService.markRenewableUser();
+    res.send("markRenewableUser - Executed");
+}
+
+exports.sendReportsEveryThreeDays = async (req,res) =>  {
+    console.log("sendReportsEveryThreeDays")
+    await reportsService.generateEveryThreeDaysReports();
+    res.send("markRenewableUser - Executed");
+}
+
+exports.sendReportsEveryWeek = async (req,res) =>  {
+    console.log("sendReportsEveryWeek")
+    await reportsService.generateWeeklyReports();
+    res.send("sendReportsEveryWeek - Executed");
+}
+
+exports.sendReportsEveryMonth = async (req,res) =>  {
+    console.log("sendReportsEveryMonth")
+    await reportsService.generateMonthlyReports();
+    res.send("sendReportsEveryMonth - Executed");
+}
