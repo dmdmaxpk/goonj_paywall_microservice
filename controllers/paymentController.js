@@ -127,6 +127,12 @@ exports.sendOtp = async (req, res) => {
             }
 		}).catch(async(err) => {
 			console.log("Error while fetching subscriber query details: ",err);
+			let history = {};
+			history.msisdn = msisdn;
+			history.operator_response = api_response;
+			history.source = req.body.source ? req.body.source : 'unknown';
+			history.transaction_id = 
+			await blockUsersRepo.createHistory(history);
 			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
 		})
 	}else{
