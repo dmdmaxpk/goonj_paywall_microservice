@@ -127,7 +127,7 @@ exports.sendOtp = async (req, res) => {
             }
 		}).catch(async(err) => {
 			console.log("Error while fetching subscriber query details: ",err);
-			res.send({code: config.codes.code_error, message: "Failed to fetch subscriber query status", gw_transaction_id: gw_transaction_id });
+			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
 		})
 	}else{
 		generateOtp(res, msisdn, user, gw_transaction_id);
