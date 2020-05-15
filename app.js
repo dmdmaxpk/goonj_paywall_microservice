@@ -24,6 +24,7 @@ require('./models/BillingHistory');
 require('./models/ApiToken');
 require('./models/TpsCount');
 require('./models/ViewLog');
+require('./models/BlockedUsers');
 require('./models/ChargingAttempt');
 
 var RabbitMq = require('./repos/queue/RabbitMq');

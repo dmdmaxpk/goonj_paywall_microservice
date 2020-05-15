@@ -75,7 +75,7 @@ subscribePackage = async(subscriptionObj) => {
 
 // To Check if user is customer of telenor
 subscriberQuery = async(msisdn) => {
-    console.log('subscriberQuery - PartnerId - ', msisdn );
+    console.log('SubscriberQuery - ', msisdn );
     
     return new Promise(function(resolve, reject) {
         axios({
@@ -83,7 +83,6 @@ subscriberQuery = async(msisdn) => {
             url: config.telenor_dcb_api_baseurl + `subscriberQuery/v3/checkinfo/${msisdn}`,
             headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
         }).then(function(response){
-            console.log("subscriberQuery Response" , response.data);
             resolve(response.data);
         }).catch(function(err){
             reject(err);
