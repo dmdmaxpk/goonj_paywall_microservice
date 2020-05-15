@@ -132,7 +132,7 @@ exports.sendOtp = async (req, res) => {
 			history.source = req.body.source ? req.body.source : 'unknown';
 			await blockUsersRepo.createHistory(history);
 			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
-		})
+		});
 	}else{
 		generateOtp(res, msisdn, user, gw_transaction_id);
 	}
@@ -247,28 +247,57 @@ exports.subscribe = async (req, res) => {
 	
 	if(!user){
 		// Means no user in DB, let's create one
-		let userObj = {};
-		userObj.msisdn = msisdn;
-		userObj.subscribed_package_id = req.body.package_id;
-		userObj.source = req.body.source ?  req.body.source : 'unknown';
-		userObj.subscription_status = 'none';
-		userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
-		userObj.affiliate_mid = req.body.affiliate_mid;
-
-		if(req.body.marketing_source){
-			userObj.marketing_source = req.body.marketing_source;
-		}
-
-		try {
-			user = await userRepo.createUser(userObj);
-		} catch(er) {
-			res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
-		}
-		if(user){
-			console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
-		}
+		await tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
+		billingRepo.subscriberQuery(msisdn)
+		.then(async(api_response) => {
+			console.log("Response: ", api_response);
+            // set fields on User model "active", "autorenewal" appropriately
+            if (api_response.Message === "Success" && api_response.AssetStatus === "Active") {
+			   // Telenor valid customer
+			   
+			   let userObj = {};
+			   userObj.msisdn = msisdn;
+			   userObj.subscribed_package_id = req.body.package_id;
+			   userObj.source = req.body.source ?  req.body.source : 'unknown';
+			   userObj.subscription_status = 'none';
+			   userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
+			   userObj.affiliate_mid = req.body.affiliate_mid;
+	   
+			   if(req.body.marketing_source){
+				   userObj.marketing_source = req.body.marketing_source;
+			   }
+	   
+			   try {
+				   user = await userRepo.createUser(userObj);
+				   console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
+				   doSubscribe(res, msisdn, user, gw_transaction_id);
+				} catch(er) {
+				   res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
+			   }
+            } else {
+				// not valid telenor customer, let save record and send acknowledgement accordingly
+				let history = {};
+				history.msisdn = msisdn;
+				history.operator_response = api_response;
+				history.source = req.body.source ? req.body.source : 'unknown';
+				await blockUsersRepo.createHistory(history);
+				res.send({code: config.codes.code_error, message: 'This is not valid Telenor number', gw_transaction_id: gw_transaction_id });
+            }
+		}).catch(async(err) => {
+			console.log("Error while fetching subscriber query details: ",err);
+			let history = {};
+			history.msisdn = msisdn;
+			history.operator_response = err.response.data;
+			history.source = req.body.source ? req.body.source : 'unknown';
+			await blockUsersRepo.createHistory(history);
+			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
+		});
+	}else{
+		doSubscribe(res, msisdn, user, gw_transaction_id);
 	}
+}
 
+doSubscribe = async(res, msisdn, user, gw_transaction_id) => {
 	if(user && user.active === true){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriber(user._id);
