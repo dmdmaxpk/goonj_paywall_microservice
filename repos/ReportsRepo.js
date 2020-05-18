@@ -845,7 +845,7 @@ dailyPageViews = async() => {
             console.log(err);
         });
         }).then(err => {
-
+            console.log(err);
         });
 }
 
