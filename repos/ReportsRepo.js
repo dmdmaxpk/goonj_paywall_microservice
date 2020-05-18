@@ -818,8 +818,10 @@ dailyFullAndPartialChargedUsers = async() => {
 }
 
 dailyPageViews = async() => {
+    console.log("***=> sending email")
     pageViews.connect().then(async(db) => {
         pageViews.getPageViews(db).then(async(pvs) => {
+            console.log("***=>", pvs);
             await csvAffiliatePvs.writeRecords(pvs);
                 var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk',
@@ -834,15 +836,15 @@ dailyPageViews = async() => {
                     }
                 ]
             });
-            console.log("[csvAffiliatePvs][emailSent]", info);
+            console.log("***=> [csvAffiliatePvs][emailSent]", info);
             fs.unlink(affiliatePvsFilePath,function(err,data) {
                 if (err) {
-                    console.log("File not deleted");
+                    console.log("***=>File not deleted");
                 }
-                console.log("data");
+                console.log("***=>", data);
             });
         }).catch(err => {
-            console.log(err);
+            console.log("***=>", err);
         });
         }).then(err => {
             console.log(err);
