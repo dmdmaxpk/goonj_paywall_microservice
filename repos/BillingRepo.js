@@ -1,5 +1,6 @@
 const axios = require('axios')
 const config = require('./../config');
+const tpsCountRepo = require('../repos/tpsCountRepo');
 
 // To generate token to consume telenor dcb apis
 generateToken = async () => {
@@ -75,6 +76,7 @@ subscribePackage = async(subscriptionObj) => {
 
 // To Check if user is customer of telenor
 subscriberQuery = async(msisdn) => {
+    await tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
     console.log('SubscriberQuery - ', msisdn );
     let object = {};
     let api_response;

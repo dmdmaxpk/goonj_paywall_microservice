@@ -90,8 +90,13 @@ exports.sendOtp = async (req, res) => {
 
 	// Means no user in DB, let's create one but first check if the coming user has valid active telenor number
 	if(!user){
-		await tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
-		let response = await billingRepo.subscriberQuery(msisdn);
+		let response;
+		try{
+			response = await billingRepo.subscriberQuery(msisdn);
+		}catch(err){
+			response = err;
+		}
+		
 		if(response.operator === "telenor"){
 			// valid customer
 			let userObj = {};
@@ -245,8 +250,13 @@ exports.subscribe = async (req, res) => {
 	
 	if(!user){
 		// Means no user in DB, let's create one
-		await tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
-		let response = await billingRepo.subscriberQuery(msisdn);
+		let response;
+		try{
+			response = await billingRepo.subscriberQuery(msisdn);
+		}catch(err){
+			response = err;
+		}
+
 		if(response.operator === "telenor"){
 			// valid telenor customer
 			let userObj = {};
