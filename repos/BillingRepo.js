@@ -76,16 +76,29 @@ subscribePackage = async(subscriptionObj) => {
 // To Check if user is customer of telenor
 subscriberQuery = async(msisdn) => {
     console.log('SubscriberQuery - ', msisdn );
-    
+    let object = {};
+    let api_response;
+    let op;
+
     return new Promise(function(resolve, reject) {
         axios({
             method: 'get',
             url: config.telenor_dcb_api_baseurl + `subscriberQuery/v3/checkinfo/${msisdn}`,
             headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
         }).then(function(response){
-            resolve(response.data);
+            api_response = response.data;
+            object.api_response = api_response;
+            if (api_response.Message === "Success" && api_response.AssetStatus === "Active") {
+                op = "telenor";
+            }else{
+                op = "not_telenor";
+            }
+            object.operator = op;
+            resolve(object);
         }).catch(function(err){
-            reject(err);
+            object.operator = "not_telenor";
+            object.api_response = err.response.data;
+            reject(object);
         });
     });
 }

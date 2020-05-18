@@ -10,6 +10,8 @@ const blockedUsersSchema = new Schema({
         required: true
     },
     transaction_id: String,
+    tid: String, // transaction id fot affiliate
+    mid: String, // mid fot affiliate
     operator_response: {
         type: {}
     },
