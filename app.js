@@ -395,7 +395,7 @@ async function sendCallBackToIdeation(mid, tid){
         url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
     } else if (mid === "goonj"){
         url = config.ideation_callback_url2 + `?txid=${tid}`;
-    } else if (mid === "1"){
+    } else if (mid === "1" || mid === "gdn" ){
         return new Promise((resolve,reject) => { reject(null)})
     }
     console.log("url",url)
@@ -650,6 +650,6 @@ app.listen(port, () => {
     console.log(`APP running on port ${port}`);
 
     //let service = require('./services/ReportsService');
-    //service.generateWeeklyReports();
+    //service.generateDailyReport();
 });
 

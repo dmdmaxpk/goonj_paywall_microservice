@@ -41,7 +41,7 @@ getPageViews = async(db) => {
                 }
                 
                 ,{$sort: {_id: -1}}
-                ]).toArray(function(err, items) {
+                ], { allowDiskUse: true }).toArray(function(err, items) {
                     if(err){
                         reject(err);
                     }
