@@ -77,32 +77,41 @@ subscribePackage = async(subscriptionObj) => {
 // To Check if user is customer of telenor
 subscriberQuery = async(msisdn) => {
     await tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
-    console.log('SubscriberQuery - ', msisdn );
-    let object = {};
-    let api_response;
-    let op;
+    let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriberQueryDispatcher);
+    if(countThisSec < config.telenor_subscriber_query_api_tps){
+        console.log('SubscriberQuery - ', msisdn );
+        let object = {};
+        let api_response;
+        let op;
 
-    return new Promise(function(resolve, reject) {
-        axios({
-            method: 'get',
-            url: config.telenor_dcb_api_baseurl + `subscriberQuery/v3/checkinfo/${msisdn}`,
-            headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
-        }).then(function(response){
-            api_response = response.data;
-            object.api_response = api_response;
-            if (api_response.Message === "Success" && api_response.AssetStatus === "Active") {
-                op = "telenor";
-            }else{
-                op = "not_telenor";
-            }
-            object.operator = op;
-            resolve(object);
-        }).catch(function(err){
-            object.operator = "not_telenor";
-            object.api_response = err.response.data;
-            reject(object);
+        return new Promise(function(resolve, reject) {
+            axios({
+                method: 'get',
+                url: config.telenor_dcb_api_baseurl + `subscriberQuery/v3/checkinfo/${msisdn}`,
+                headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
+            }).then(function(response){
+                api_response = response.data;
+                object.api_response = api_response;
+                if (api_response.Message === "Success" && api_response.AssetStatus === "Active") {
+                    op = "telenor";
+                }else{
+                    op = "not_telenor";
+                }
+                object.operator = op;
+                resolve(object);
+            }).catch(function(err){
+                object.operator = "not_telenor";
+                object.api_response = err.response.data;
+                reject(object);
+            });
         });
-    });
+    }else{
+        console.log("TPS quota full for subscriber query, waiting for second to elapse - ", new Date());
+        setTimeout(() => {
+            console.log("calling subscriberQuery after 200 mili-seconds");
+            subscriberQuery(msisdn);
+        }, 200);
+    }
 }
 
 // To Subscribe free mbs to Goonj users
