@@ -9,6 +9,8 @@ const billingRepo = require('../repos/BillingRepo');
 const shortId = require('shortid');
 const axios = require('axios');
 const messageRepo = require('../repos/MessageRepo');
+const blockUsersRepo = require('../repos/BlockedUsersRepo');
+const tpsCountRepo = require('../repos/tpsCountRepo');
 
 function sendMessage(otp, msisdn){
 	let message = `Use code ${otp} for Goonj TV`;
@@ -85,71 +87,106 @@ exports.sendOtp = async (req, res) => {
 
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
-	
+
+	// Means no user in DB, let's create one but first check if the coming user has valid active telenor number
 	if(!user){
-		// Means no user in DB, let's create one
-		let userObj = {};
-		userObj.msisdn = msisdn;
-		userObj.subscribed_package_id = 'none';
-		userObj.source = req.body.source ? req.body.source : 'unknown';
-		userObj.subscription_status = 'none';
+		let response;
+		try{
+			response = await billingRepo.subscriberQuery(msisdn);
+		}catch(err){
+			response = err;
+		}
+		
+		if(response.operator === "telenor"){
+			// valid customer
+			let userObj = {};
+			userObj.msisdn = msisdn;
+			userObj.subscribed_package_id = 'none';
+			userObj.source = req.body.source ? req.body.source : 'unknown';
+			userObj.subscription_status = 'none';
+			userObj.operator = "telenor";
 
-		if(req.body.marketing_source){
-			userObj.marketing_source = req.body.marketing_source;
+			if(req.body.marketing_source){
+				userObj.marketing_source = req.body.marketing_source;
+			}
+	
+			try {
+				user = await userRepo.createUser(userObj);
+				console.log('Payment - OTP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
+				generateOtp(res, msisdn, user, gw_transaction_id);
+			} catch (err) {
+				res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
+			}
+		}else{
+			// invalid customer
+			createBlockUserHistory(msisdn, null, null, response.api_response, req.body.source);
+			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
 		}
+	}else{
+		generateOtp(res, msisdn, user, gw_transaction_id);
+	}
+}
 
-		try {
-			user = await userRepo.createUser(userObj);
-		} catch (err) {
-			res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
-		}
-		if(user){
-			console.log('Payment - OTP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
-		}
+createBlockUserHistory = async(msisdn, tid, mid, api_response, source) => {
+	let history = {};
+	history.msisdn = msisdn;
+	history.operator_response = api_response;
+	history.source = source ? source : 'unknown';
+
+	if(tid){
+		history.tid = tid;
+		history.mid = mid;
 	}
 
-	// Generate OTP
-	let otp = Math.floor(Math.random() * 90000) + 10000;
+	await blockUsersRepo.createHistory(history);
+};
 
-	let postBody = {otp: otp};
-	postBody.msisdn = msisdn;
-	let otpUser = await otpRepo.getOtp(msisdn);
-
-	if(otpUser){
-		// Record already present in collection, lets check it further.
-		if(otpUser.verified === true){
-			/* Means, this user is already verified by otp, probably he/she just wanted to 
-			signin to another device from the same login, so let's update the record and 
-			send newly created otp to user to verify. */
-			
-			postBody.verified = false;
-			let record = await otpRepo.updateOtp(msisdn, postBody);
-			
+generateOtp = async(res, msisdn, user, gw_transaction_id) => {
+	if(user){
+	
+		// Generate OTP
+		let otp = Math.floor(Math.random() * 90000) + 10000;
+	
+		let postBody = {otp: otp};
+		postBody.msisdn = msisdn;
+		let otpUser = await otpRepo.getOtp(msisdn);
+	
+		if(otpUser){
+			// Record already present in collection, lets check it further.
+			if(otpUser.verified === true){
+				/* Means, this user is already verified by otp, probably he/she just wanted to 
+				signin to another device from the same login, so let's update the record and 
+				send newly created otp to user to verify. */
+				
+				postBody.verified = false;
+				let record = await otpRepo.updateOtp(msisdn, postBody);
+				
+				if(record){
+					// OTP updated successfuly in collection, let's send this otp to user by adding this otp in messaging queue
+					sendMessage(record.otp, record.msisdn);
+					res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
+				}else{
+					// Failed to update
+					res.send({'code': config.codes.code_error, 'message': 'Failed to update OTP', gw_transaction_id: gw_transaction_id});
+				}
+			}else{
+				// Record already present in collection without verification, send this already generated otp to user so he can verify
+				sendMessage(otpUser.otp, otpUser.msisdn);
+				res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
+			}
+		}else{
+			// Means no user present in collection, let's create one.
+			postBody.msisdn = msisdn;
+			let record = await otpRepo.createOtp(postBody);
+	
 			if(record){
-				// OTP updated successfuly in collection, let's send this otp to user by adding this otp in messaging queue
+				// OTP created successfuly in collection, let's send this otp to user and acknowldge him/her
 				sendMessage(record.otp, record.msisdn);
 				res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
 			}else{
-				// Failed to update
-				res.send({'code': config.codes.code_error, 'message': 'Failed to update OTP', gw_transaction_id: gw_transaction_id});
+				// Failed to create
+				res.send({'code': config.codes.code_error, 'message': 'Failed to create OTP', gw_transaction_id: gw_transaction_id});
 			}
-		}else{
-			// Record already present in collection without verification, send this already generated otp to user so he can verify
-			sendMessage(otpUser.otp, otpUser.msisdn);
-			res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
-		}
-	}else{
-		// Means no user present in collection, let's create one.
-		postBody.msisdn = msisdn;
-		let record = await otpRepo.createOtp(postBody);
-
-		if(record){
-			// OTP created successfuly in collection, let's send this otp to user and acknowldge him/her
-			sendMessage(record.otp, record.msisdn);
-			res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
-		}else{
-			// Failed to create
-			res.send({'code': config.codes.code_error, 'message': 'Failed to create OTP', gw_transaction_id: gw_transaction_id});
 		}
 	}
 }
@@ -213,28 +250,45 @@ exports.subscribe = async (req, res) => {
 	
 	if(!user){
 		// Means no user in DB, let's create one
-		let userObj = {};
-		userObj.msisdn = msisdn;
-		userObj.subscribed_package_id = req.body.package_id;
-		userObj.source = req.body.source ?  req.body.source : 'unknown';
-		userObj.subscription_status = 'none';
-		userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
-		userObj.affiliate_mid = req.body.affiliate_mid;
-
-		if(req.body.marketing_source){
-			userObj.marketing_source = req.body.marketing_source;
+		let response;
+		try{
+			response = await billingRepo.subscriberQuery(msisdn);
+		}catch(err){
+			response = err;
 		}
 
-		try {
-			user = await userRepo.createUser(userObj);
-		} catch(er) {
-			res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
+		if(response.operator === "telenor"){
+			// valid telenor customer
+			let userObj = {};
+			userObj.msisdn = msisdn;
+			userObj.subscribed_package_id = req.body.package_id;
+			userObj.source = req.body.source ?  req.body.source : 'unknown';
+			userObj.operator = "telenor";
+			userObj.subscription_status = 'none';
+			userObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
+			userObj.affiliate_mid = req.body.affiliate_mid;
+	
+			if(req.body.marketing_source){
+				userObj.marketing_source = req.body.marketing_source;
+			}
+	
+			try {
+				user = await userRepo.createUser(userObj);
+				console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
+				doSubscribe(req, res, msisdn, user, gw_transaction_id);
+			} catch(er) {
+				res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
+			}
+		}else{
+			createBlockUserHistory(msisdn, req.body.affiliate_unique_transaction_id, req.body.affiliate_mid, response.api_response, req.body.source);
+			res.send({code: config.codes.code_error, message: "Not a valid Telenor number.", gw_transaction_id: gw_transaction_id });
 		}
-		if(user){
-			console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
-		}
+	}else{
+		doSubscribe(req, res, msisdn, user, gw_transaction_id);
 	}
+}
 
+doSubscribe = async(req, res, msisdn, user, gw_transaction_id) => {
 	if(user && user.active === true){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriber(user._id);

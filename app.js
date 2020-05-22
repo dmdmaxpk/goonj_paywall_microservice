@@ -24,6 +24,7 @@ require('./models/BillingHistory');
 require('./models/ApiToken');
 require('./models/TpsCount');
 require('./models/ViewLog');
+require('./models/BlockedUsers');
 require('./models/ChargingAttempt');
 
 var RabbitMq = require('./repos/queue/RabbitMq');
@@ -601,9 +602,7 @@ billingRepo.generateToken().then(async(token) => {
                 // Let's create queues
                 rabbitMq.createQueue(config.queueNames.messageDispathcer); // to dispatch messages like otp/subscription message/un-sub message etc
                 rabbitMq.createQueue(config.queueNames.subscriptionDispatcher); // to process subscription requests
-                rabbitMq.createQueue(config.queueNames.subscriberQueryDispatcher);
                 rabbitMq.createQueue(config.queueNames.balanceCheckDispatcher); // to process balance check requests
-                rabbitMq.createQueue(config.queueNames.freeMbsDispatcher); // to process free mbs requests to subscribers
 
                 //Let's start queue consumption
                 // Messaging Queue
@@ -616,19 +615,9 @@ billingRepo.generateToken().then(async(token) => {
                     consumeSusbcriptionQueue(response);
                 });
 
-                // Subscriptin Queue
-                rabbitMq.consumeQueue(config.queueNames.subscriberQueryDispatcher, (response) => {
-                    subscriptionQueryConsumer.consume(response);
-                });
-
                  // Balance Check Queue
                  rabbitMq.consumeQueue(config.queueNames.balanceCheckDispatcher, (response) => {
                     consumeBalanceCheckQueue(response);
-                });
-
-                // Free Mbs Subscription Queue
-                rabbitMq.consumeQueue(config.queueNames.freeMbsDispatcher, (response) => {
-                    freeMbsConsumer.subscribeFreeMbs(response);
                 });
             }
         });
@@ -650,6 +639,6 @@ app.listen(port, () => {
     console.log(`APP running on port ${port}`);
 
     //let service = require('./services/ReportsService');
-    //service.generateWeeklyReports();
+    //service.generateDailyReport();
 });
 
