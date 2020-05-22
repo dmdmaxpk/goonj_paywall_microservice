@@ -55,10 +55,11 @@ gdnReport = async(isManual = false) => {
         let trials = await usersRepo.gdnTrial();
         let paidUsers = await usersRepo.gdnPaidUsers();
         trials.forEach(element => {
-            response[element['dateFormat']]['trialsActivated'] = element['count'];
+		console.log("prod debug",element);
+            response['result'][element['dateFormat']]['trialsActivated'] = element['count'];
         });
         paidUsers.forEach(element => {
-            response[element['dateFormat']]['usersBilled'] = element['count'];
+            response['result'][element['dateFormat']]['usersBilled'] = element['count'];
         });
         let toWrite = [];
         Object.keys(response['result']).forEach(element => {
