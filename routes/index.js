@@ -11,6 +11,8 @@ router.use('/otp',    require('./otpRoutes'));
 // Payment routes
 router.use('/payment',    require('./paymentRoute'));
 
+router.use('/report',    require('./reports'));
+
 router.use('/cron',    require('./cron'));
 
 module.exports = router;
