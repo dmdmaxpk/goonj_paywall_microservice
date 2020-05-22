@@ -1,4 +1,5 @@
 const reportsRepo = require('../repos/ReportsRepo');
+const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
 
 generateDailyReport = async() => {
@@ -32,6 +33,9 @@ generateDailyReport = async() => {
 
     await sleep(120*1000);
     reportsRepo.dailyPageViews();
+
+    await sleep(120*1000);
+    affiliateReportsRepo.gdnReport(false);
 }
 
 generateEveryThreeDaysReports =  async() => {

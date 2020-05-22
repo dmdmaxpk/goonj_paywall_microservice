@@ -127,6 +127,49 @@ getExpiredBase = async(from, to) => {
     return result;
 }
 
+gdnTrial = async() => {
+    try {
+        let promise = User.aggregate([
+            { $match: { added_dtm: {$gte:  new Date("2020-05-21T00:00:00.072Z")}, affiliate_mid: "gdn"}},
+            {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm" }, "month": { "$month" : "$added_dtm" },
+                        "year":{ $year: "$added_dtm" },msisdn:"$msisdn" }, count:{ $sum: 1 } }   },
+		    {$group: {_id: {"day": "$_id.day", "month": "$_id.month","year": "$_id.year" } , count:{ $sum: 1 } } },
+            {$project: { _id: 0,date: { $dateFromParts: { year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, count:"$count" }   },
+            {$project: { count:"$count",dateFormat: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }}}
+        ]);
+        let result = await promise;
+        return result;
+    } catch(err) {
+        throw err;
+        console.error(err);
+    }
+}
+
+gdnPaidUsers = async() => {
+    try {
+        let promise = User.aggregate([
+            {$match: {affiliate_mid: "gdn",added_dtm: {$gte:  new  Date("2020-05-21T00:00:00.072Z")}}},
+            {$lookup:{from: "billinghistories",localField: "_id",foreignField: "user_id",as: "histories"}},
+            { $project: {added_dtm:"$added_dtm", succeses: { $filter: {
+                input: "$histories",
+                as: "history",
+                cond: { 
+                   $eq: [ "$$history.billing_status", "Success" ] 
+               }}} }},
+               {$project: { added_dtm:"$added_dtm", numOfSucc: { $size:"$succeses" } }},
+               {$match: { numOfSucc: {$gte: 1}  }},
+               {$group: { _id: {"day": {"$dayOfMonth" : "$added_dtm" }, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" } },
+                        count:{$sum: 1} }},{$project: { _id: 0,date: { $dateFromParts: { year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, count:"$count" }   },
+                {$project: { count:"$count",dateFormat: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }}}
+        ]);
+        let result = await promise;
+        return result;
+    } catch(err) {
+        throw err;
+        console.error(err);
+    }
+}
+
 
 module.exports = {
     createUser: createUser,
@@ -141,5 +184,7 @@ module.exports = {
     dailyTrialToBilledUsers: dailyTrialToBilledUsers,
     getTotalUserBaseTillDate: getTotalUserBaseTillDate,
     getExpiredBase: getExpiredBase,
-    getActiveUsers: getActiveUsers
+    getActiveUsers: getActiveUsers,
+    gdnTrial: gdnTrial,
+    gdnPaidUsers: gdnPaidUsers
 }
