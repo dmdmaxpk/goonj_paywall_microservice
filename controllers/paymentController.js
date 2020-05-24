@@ -602,7 +602,7 @@ exports.unsubscribe = async (req, res) => {
 	}
 	
 	if(user){
-		let result = await subscriberRepo.updateSubscriber(user._id, {auto_renewal: false});
+		let result = await subscriberRepo.updateSubscriber(user._id, {auto_renewal: false,consecutive_successive_bill_counts:0});
 		
 		let billingHistory = {};
 		billingHistory.user_id = user._id;
