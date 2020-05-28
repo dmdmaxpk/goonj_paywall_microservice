@@ -12,16 +12,6 @@ exports.subscriptionRenewal = async (req,res) =>  {
     res.send("Subscription renewal - Executed");
 }
 
-exports.postPSLUserMigration = async (req,res) =>  {
-    //await messageService.changePackageOfUsers();
-    res.send("POST PSL User Migration - Executed");
-}
-
-exports.postPSLOnlyUserMigration = async (req,res) =>  {
-    await messageService.changePackageOfPSLOnlyUsers();
-    res.send("POST PSL Only User Migration - Executed");
-}
-
 exports.refreshToken = async (req,res) =>  {
     await tokenRefreshService.refreshToken();
     res.send("Token Refresh - Executed");

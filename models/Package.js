@@ -4,19 +4,25 @@ const {Schema} = mongoose;
 
 
 const packageSchema = new Schema({
-    //Generating shortid instead of uuid also neglecting special symbols
+    
+    //Generating shortIds instead of uuid also neglecting special symbols
     _id: { type: ShortId, len: 4, retries: 4 },
     package_name: {type: String, required: true},
     package_desc: {type: String, required: true},
     package_duration: {type: Number, required: true}, // Hours of package 
     price_point_pkr: {type: Number, required: true},
     display_price_point: Number,
-    grace_hours: {type: Number, default: 0 },
     partner_id: String,
+
+    grace_hours: {type: Number, default: 0 },
+    trial_hours: {type: Number, default: 0 },
+    
     added_dtm: { type: Date, default: Date.now },
     last_modified: Date,
-    logos: [],
-    default: Boolean,
-    active: { type: Boolean, default: true }
+    default: { type: Boolean, default: false },
+    active: { type: Boolean, default: true },
+    
+    paywall_id: {type: ShortId, required: true}
+
 }, { strict: true })
 module.exports = mongoose.model('Package', packageSchema);
