@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const config = require('./config');
 const swStats = require('swagger-stats');
 const axios = require('axios');
-const winston = require('winston');
+// const winston = require('winston');
 const moment = require('moment');
 
 // const apiSpec = require('./swagger.json');
@@ -77,13 +77,13 @@ var transporter = nodemailer.createTransport({
 });
 
 
-const winstonLogger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    defaultMeta: { service: 'paywall_service' },
-    transports: [
-      new winston.transports.File({ filename: '/home/winston_logs/consumer.log', level: 'info' })    ]
-});
+// const winstonLogger = winston.createLogger({
+//     level: 'info',
+//     format: winston.format.json(),
+//     defaultMeta: { service: 'paywall_service' },
+//     transports: [
+//       new winston.transports.File({ filename: '/home/winston_logs/consumer.log', level: 'info' })    ]
+// });
 
 consumeMessageQueue = async(response) => {
     try {
@@ -149,12 +149,12 @@ consumeSusbcriptionQueue = async(res) => {
     let micro_price_to_charge = subscriptionObj.price_to_charge;
     let subscriber = await subscriberRepo.getSubscriber(subscriptionObj.user_id);
 
-    winstonLogger.info('Subscription object received in consumer', { 
-        user_id: subscriptionObj.user_id,
-        subscriber: subscriber,
-        micro_charge: micro_charge,
-        micro_price_to_charge: micro_price_to_charge
-    });
+    // winstonLogger.info('Subscription object received in consumer', { 
+    //     user_id: subscriptionObj.user_id,
+    //     subscriber: subscriber,
+    //     micro_charge: micro_charge,
+    //     micro_price_to_charge: micro_price_to_charge
+    // });
 
     try {
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);

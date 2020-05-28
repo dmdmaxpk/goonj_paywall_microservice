@@ -6,16 +6,16 @@ const userRepo = require('../repos/UserRepo');
 const config = require('../config');
 const shortId = require('shortid');
 const chargeAttemptRepo = require('../repos/ChargingAttemptRepo');
-const winston = require('winston');
+// const winston = require('winston');
 const moment = require('moment');
 
-const winstonLogger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    defaultMeta: { service: 'paywall_service' },
-    transports: [
-      new winston.transports.File({ filename: '/home/winston_logs/queue.log', level: 'info' })    ]
-});
+// const winstonLogger = winston.createLogger({
+//     level: 'info',
+//     format: winston.format.json(),
+//     defaultMeta: { service: 'paywall_service' },
+//     transports: [
+//       new winston.transports.File({ filename: '/home/winston_logs/queue.log', level: 'info' })    ]
+// });
 
 subscriptionRenewal = async() => {
     try {
@@ -121,28 +121,28 @@ renewSubscription = async(user) => {
     }
     // Add object in queueing server
     if (subscriptionObj.msisdn && (subscriptionObj.packageObj || subscriptionObj.micro_charge) && subscriptionObj.transactionId ) {
-        winstonLogger.info('Preparing to add in queue', { 
-            user_id: subscriptionObj.user_id,
-            micro_charge: subscriptionObj.micro_charge,
-            micro_price_to_charge: subscriptionObj.price_to_charge,
-            time: new Date()
-        });
+        // winstonLogger.info('Preparing to add in queue', { 
+        //     user_id: subscriptionObj.user_id,
+        //     micro_charge: subscriptionObj.micro_charge,
+        //     micro_price_to_charge: subscriptionObj.price_to_charge,
+        //     time: new Date()
+        // });
 
         if(subscriber.queued === false){
             let updated = await subsriberRepo.updateSubscriber(user._id, {queued: true});
-            winstonLogger.info('Subscriber queued true - before if', { 
-                user_id: subscriptionObj.user_id,
-                time: new Date()
-            });
+            // winstonLogger.info('Subscriber queued true - before if', { 
+            //     user_id: subscriptionObj.user_id,
+            //     time: new Date()
+            // });
             if(updated){
-                winstonLogger.info('Subscriber queued true - after if', { 
-                    user_id: subscriptionObj.user_id,
-                    time: new Date()
-                });
+                // winstonLogger.info('Subscriber queued true - after if', { 
+                //     user_id: subscriptionObj.user_id,
+                //     time: new Date()
+                // });
                 rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-                winstonLogger.info('Added in queue', { 
-                    user_id: subscriptionObj.user_id
-                });
+                // winstonLogger.info('Added in queue', { 
+                //     user_id: subscriptionObj.user_id
+                // });
 
                 if(subscriptionObj.micro_charge){
                     console.log('RenewSubscriptionMiniCharge - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));    
@@ -150,15 +150,15 @@ renewSubscription = async(user) => {
                     console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
                 }
             }else{
-                winstonLogger.info('Failed to add subscriber in queue', { 
-                    subscriber: subscriber
-                });
+                // winstonLogger.info('Failed to add subscriber in queue', { 
+                //     subscriber: subscriber
+                // });
                 console.log('Failed to updated subscriber after adding in queue.');
             }
         }else{
-            winstonLogger.info('Failed to add in renewal queue', { 
-                user_id: subscriptionObj.user_id
-            });
+            // winstonLogger.info('Failed to add in renewal queue', { 
+            //     user_id: subscriptionObj.user_id
+            // });
             console.log('Failed to add in renewal queue, current queuing status: ', subscriptionObj.msisdn, ' - ', subscriber.queued);  
         }
 	} else {
