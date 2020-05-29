@@ -10,11 +10,11 @@ router.route('/markRenewableUsers')
 router.route('/subscriptionRenewal')
     .get(controller.subscriptionRenewal);
 
-router.route('/postPSLUserMigration')
-    .get(controller.postPSLUserMigration);
+// router.route('/postPSLUserMigration')
+//     .get(controller.postPSLUserMigration);
 
-router.route('/postPSLPOnlyUserMigration')
-    .get(controller.postPSLOnlyUserMigration);
+// router.route('/postPSLPOnlyUserMigration')
+//     .get(controller.postPSLOnlyUserMigration);
 
 router.route('/tokenRefresh')
     .get(controller.refreshToken);
