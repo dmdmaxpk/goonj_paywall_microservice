@@ -243,7 +243,7 @@ exports.verifyOtp = async (req, res) => {
 		}
 	}else{
 		// Means no user present in collection, let's throw an error to user.
-		res.send({code: config.codes.code_error, message: 'No OTP found to validate',token:token, gw_transaction_id: gw_transaction_id});
+		res.send({code: config.codes.code_error, message: 'No OTP found to validate', gw_transaction_id: gw_transaction_id});
 	}
 }
 
