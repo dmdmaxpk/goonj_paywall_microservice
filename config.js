@@ -73,7 +73,8 @@ let config = {
         unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
         hours_on_which_to_run_renewal_cycle: [1,5,9,13,18,21],
-        logger_url: "http://127.0.0.1:8000/"
+        logger_url: "http://127.0.0.1:8000/",
+        secret: "MVPUBRY2IV"
     },
     staging: {
         port: '5000',
@@ -97,7 +98,8 @@ let config = {
         unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
         hours_on_which_to_run_renewal_cycle: [1,5,9,13,18,21],
-        logger_url: "http://127.0.0.1:8000/"
+        logger_url: "http://127.0.0.1:8000/",
+        secret: "MVPUBRY2IV"
     },
     production: {
         port: process.env.PW_PORT,
@@ -121,7 +123,8 @@ let config = {
         unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
         hours_on_which_to_run_renewal_cycle: [1,5,9,13,18,21],
-        logger_url: "http://127.0.0.1:8000/"
+        logger_url: "http://127.0.0.1:8000/",
+        secret: "MVPUBRY2IV"
     }
 };
 

@@ -11,6 +11,9 @@ const axios = require('axios');
 const messageRepo = require('../repos/MessageRepo');
 const blockUsersRepo = require('../repos/BlockedUsersRepo');
 const tpsCountRepo = require('../repos/tpsCountRepo');
+let jwt = require('jsonwebtoken');
+
+
 
 function sendMessage(otp, msisdn){
 	let message = `Use code ${otp} for Goonj TV`;
@@ -213,6 +216,8 @@ exports.verifyOtp = async (req, res) => {
 					let user = await userRepo.getUserByMsisdn(msisdn);
 					if(user){
 						let subscriber = await subscriberRepo.getSubscriber(user._id);
+						let token = jwt.sign({user_id: subscriber.user_id,msisdn:msisdn},config.secret,
+							{expiresIn: '3 days'});
 						if(subscriber){
 							// Subscriber is available and having active subscription
 							res.send({
@@ -220,7 +225,8 @@ exports.verifyOtp = async (req, res) => {
 								subscriber: subscriber.subscription_status, 
 								is_allowed_to_stream: subscriber.is_allowed_to_stream, 
 								user_id: subscriber.user_id, 
-								subscribed_package_id: user.subscribed_package_id, 
+								subscribed_package_id: user.subscribed_package_id,
+								access_token: token, 
 								gw_transaction_id: gw_transaction_id});
 						}else{
 							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', gw_transaction_id: gw_transaction_id});

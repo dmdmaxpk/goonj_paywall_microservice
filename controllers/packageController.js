@@ -30,6 +30,7 @@ exports.get = async (req, res) => {
 // GET
 exports.getAll = async (req, res) => {
 	console.time("getAllPackages");
+	console.log("req.decoded",req.decoded);
 	result = await repo.getAllPackages({});
 	console.timeEnd("getAllPackages");
 	res.send(result);
