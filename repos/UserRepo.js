@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const QueueRepo = require("./QueueRepo");
 
+const subscriptionRepo = require('../repos/SubscriptionRepo');
+const subscriberRepo = require('../repos/SubscriberRepo');
+
 createUser = async(postData) => {
     let user = new User(postData);
     let result = await user.save();
@@ -29,7 +32,14 @@ getUserByMsisdn =async(msisdn) => {
     return result;
 }
 
-getUserById =async(id) => {
+getUserBySubscriptionId = async(subscription_id) => {
+    let subscription = await subscriptionRepo.getSubscription(subscription_id);
+    let subscriber = await subscriberRepo.getSubscriber(subscription.subscriber_id);
+    let user = this.getUserById(subscriber.user_id);
+    return user;
+}
+
+getUserById = async(id) => {
     let result = await User.findOne({_id: id});
     return result;
 }
@@ -186,5 +196,6 @@ module.exports = {
     getExpiredBase: getExpiredBase,
     getActiveUsers: getActiveUsers,
     gdnTrial: gdnTrial,
-    gdnPaidUsers: gdnPaidUsers
+    gdnPaidUsers: gdnPaidUsers,
+    getUserBySubscriptionId: getUserBySubscriptionId
 }

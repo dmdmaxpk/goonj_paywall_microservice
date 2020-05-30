@@ -8,8 +8,13 @@ createSubscriber = async(postData) => {
     return result;
 }
 
-getSubscriber =async(user_id) => {
-    result = await Subscriber.findOne({user_id: user_id});
+getSubscriber =async(id) => {
+    let result = await Subscriber.findOne({_id: id});
+    return result;
+}
+
+getSubscriberByUserId =async(user_id) => {
+    let result = await Subscriber.findOne({user_id: user_id});
     return result;
 }
 
@@ -130,5 +135,6 @@ module.exports = {
     unsubscribe: unsubscribe,
     removeNumberAndHistory: removeNumberAndHistory,
     getSubscribersToMark: getSubscribersToMark,
+    getSubscriberByUserId: getSubscriberByUserId,
     setAsBillableInNextCycle: setAsBillableInNextCycle
 }
