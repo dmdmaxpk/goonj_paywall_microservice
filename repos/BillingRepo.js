@@ -38,26 +38,49 @@ sendMessage = async(message, msisdn) => {
 };
 
 
-// To subscribe package
-subscribePackage = async(subscriptionObj) => {
-    let {msisdn, packageObj, transactionId, micro_charge, price_to_charge} = subscriptionObj;
+// Full charge request
+fullChargeAttempt = async(msisdn, packageObj, transactionId) => {
+    
     let form = {
         "correlationID": transactionId,
         "msisdn": msisdn
     }
 
-    if(micro_charge){
-        console.log('MiniChargeTelenorBilling - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', ' - Price - ', price_to_charge, ' - TransectionId - ', transactionId, ' - ', (new Date()));
-        form.chargableAmount = price_to_charge;
-    }else{
-        console.log('TelenorBilling - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', packageObj.package_name, ' - Price - ', packageObj.price_point_pkr, ' - TransectionId - ', transactionId, ' - ', (new Date()));
-        form.chargableAmount = packageObj.price_point_pkr;
-    }
+    console.log('Telenor Billing - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', packageObj.package_name, ' - Price - ', packageObj.price_point_pkr, ' - TransectionId - ', transactionId, ' - ', (new Date()));
+    form.chargableAmount = packageObj.price_point_pkr;
     
     form.PartnerID = packageObj.partner_id;
     form.ProductID = "GoonjDCB-Charge";
 
-    console.log("Form Data: ", form);
+    return new Promise(function(resolve, reject) {
+        axios({
+            method: 'post',
+            url: config.telenor_dcb_api_baseurl + 'payment/v1/charge',
+            headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
+            data: form
+        }).then(function(response){
+            subscriptionObj.api_response = response;
+            resolve(subscriptionObj);
+        }).catch(function(err){
+            reject(err);
+        });
+    })
+};
+
+// Micro charge request
+microChargeAttempt = async(msisdn, packageObj, transactionId, price) => {
+    
+    let form = {
+        "correlationID": transactionId,
+        "msisdn": msisdn
+    }
+
+    console.log('Micro Charge Telenor Billing - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', ' - Price - ', price, ' - TransectionId - ', transactionId, ' - ', (new Date()));
+    form.chargableAmount = price;
+    
+    form.PartnerID = packageObj.partner_id;
+    form.ProductID = "GoonjDCB-Charge";
+
     return new Promise(function(resolve, reject) {
         axios({
             method: 'post',
@@ -167,7 +190,8 @@ checkBalance = async(msisdn) => {
 module.exports = {
     generateToken: generateToken,
     sendMessage: sendMessage,
-    subscribePackage: subscribePackage,
+    fullChargeAttempt: fullChargeAttempt,
+    microChargeAttempt: microChargeAttempt,
     sendMessage: sendMessage,
     subscriberQuery: subscriberQuery,
     checkBalance: checkBalance,

@@ -2,7 +2,7 @@ const axios = require('axios')
 const config = require('../config');
 
 // To generate token to consume telenor dcb apis
-sendSmsToUser =  (text,msisdn) => {
+sendSmsToUser = (text, msisdn) => {
     sendTextMessage(text,msisdn);
 }
 

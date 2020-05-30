@@ -63,7 +63,7 @@ resetAmountBilledToday = async() => {
     return result;
 }
 
-setSubscriptionInactive = async(subscription_id) => {
+markSubscriptionInactive = async(subscription_id) => {
     if (subscription_id) { 
         const query = { _id: subscription_id };
         const result = await Subscription.updateOne(query, { $set: { active: false } });
@@ -144,7 +144,7 @@ module.exports = {
     deleteSubscription: deleteSubscription,
     deleteAllSubscriptions: deleteAllSubscriptions,
     resetAmountBilledToday: resetAmountBilledToday,
-    setSubscriptionInactive: setSubscriptionInactive,
+    markSubscriptionInactive: markSubscriptionInactive,
     unsubscribe: unsubscribe,
     removeNumberAndHistory: removeNumberAndHistory,
     getSubscriptionsToMark: getSubscriptionsToMark,
