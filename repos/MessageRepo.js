@@ -1,25 +1,26 @@
 const axios = require('axios')
 const config = require('../config');
 
-// To generate token to consume telenor dcb apis
-sendSmsToUser = (text, msisdn) => {
-    sendTextMessage(text,msisdn);
-}
+class MessageRepository {
 
-module.exports = {
-    sendSmsToUser: sendSmsToUser
-}
+	sendSmsToUser  (text, msisdn)  {
+		this.sendTextMessage(text,msisdn);
+	}
 
-function sendTextMessage(text, msisdn){
-	let message = text;
-	let messageObj = {};
-	messageObj.message =  message;
-    messageObj.msisdn = msisdn;
-    
-	if (messageObj.msisdn && messageObj.message) {
-		console.log('Message Added in queue',messageObj);
-		rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
-	} else {
-		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
+	sendTextMessage(text, msisdn){
+		let message = text;
+		let messageObj = {};
+		messageObj.message =  message;
+		messageObj.msisdn = msisdn;
+		
+		if (messageObj.msisdn && messageObj.message) {
+			console.log('Message Added in queue',messageObj);
+			rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+		} else {
+			console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
+		}
 	}
 }
+
+
+module.exports = MessageRepository;

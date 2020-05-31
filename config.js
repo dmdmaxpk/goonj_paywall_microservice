@@ -74,7 +74,12 @@ let config = {
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
         hours_on_which_to_run_renewal_cycle: [1,5,9,13,18,21],
         logger_url: "http://127.0.0.1:8000/",
-        secret: "MVPUBRY2IV"
+        secret: "MVPUBRY2IV",
+        emailhost:"email-smtp.eu-central-1.amazonaws.com",
+        emailUsername: "AKIAZQA2XAWP7CYJEJXS",
+        emailPassword: "BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs",
+        emailPort: 465,
+        emailSecure: true
     },
     staging: {
         port: '5000',
@@ -99,7 +104,12 @@ let config = {
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
         hours_on_which_to_run_renewal_cycle: [1,5,9,13,18,21],
         logger_url: "http://127.0.0.1:8000/",
-        secret: "MVPUBRY2IV"
+        secret: "MVPUBRY2IV",
+        emailhost:"email-smtp.eu-central-1.amazonaws.com",
+        emailUsername: "AKIAZQA2XAWP7CYJEJXS",
+        emailPassword: "BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs",
+        emailPort: 465,
+        emailSecure: true
     },
     production: {
         port: process.env.PW_PORT,
@@ -124,7 +134,12 @@ let config = {
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
         hours_on_which_to_run_renewal_cycle: [1,5,9,13,18,21],
         logger_url: "http://127.0.0.1:8000/",
-        secret: "MVPUBRY2IV"
+        secret: "MVPUBRY2IV",
+        emailhost:"email-smtp.eu-central-1.amazonaws.com",
+        emailUsername: "AKIAZQA2XAWP7CYJEJXS",
+        emailPassword: "BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs",
+        emailPort: 465,
+        emailSecure: true
     }
 };
 

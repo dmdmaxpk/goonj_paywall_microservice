@@ -1,16 +1,16 @@
 const config = require('../config');
+const container = require("../configurations/container")
 const otpRepo = require('../repos/OTPRepo');
-const userRepo = require('../repos/UserRepo');
-const subscriberRepo = require('../repos/SubscriberRepo');
-const packageRepo = require('../repos/PackageRepo');
-const billingHistoryRepo = require('../repos/BillingHistoryRepo');
+const userRepo = container.resolve("userRepository");
+const subscriberRepo = container.resolve("subscriberRepository");
+const packageRepo = container.resolve("packageRepository");
+const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const viewLogRepo = require('../repos/ViewLogRepo');
-const billingRepo = require('../repos/BillingRepo');
+const billingRepo = container.resolve("billingHistoryRepository");
 const shortId = require('shortid');
 const axios = require('axios');
-const messageRepo = require('../repos/MessageRepo');
+const messageRepo = container.resolve("messageRepository");
 const blockUsersRepo = require('../repos/BlockedUsersRepo');
-const tpsCountRepo = require('../repos/tpsCountRepo');
 let jwt = require('jsonwebtoken');
 
 

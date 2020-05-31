@@ -1,6 +1,7 @@
+const container = require('../configurations/container');
 const CronJob = require('cron').CronJob;
-const TpsCountRepo = require('../repos/tpsCountRepo');
-const SubscriberRepo = require('../repos/SubscriberRepo');
+const TpsCountRepo = container.resolve("tpsCountRepository");
+const SubscriberRepo = container.resolve("tpsCountRepository");
 
 tpsCountReset = async() => {
     try {

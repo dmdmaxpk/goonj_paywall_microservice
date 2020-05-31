@@ -7,6 +7,8 @@
 	},
 	"dependencies": {
 		"amqplib": "^0.5.5",
+		"awilix": "^4.2.6",
+		"awilix-express": "^3.0.0",
 		"axios": "^0.18.1",
 		"body-parser": "~1.18.2",
 		"cron": "~1.7.2",

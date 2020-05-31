@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
+const container = require("../configurations/container");
 const Subscriber = mongoose.model('Subscriber');
 const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
-const billinghistoryRepo = require("../repos/BillingHistoryRepo");
+const billinghistoryRepo = container.resolve('billingHistoryRepository');
 var nodemailer = require('nodemailer');
-var usersRepo = require('./UserRepo');
+var usersRepo = container.resolve('userRepository');
 var viewLogsRepo = require('../repos/ViewLogRepo');
 
 var pageViews = require('../controllers/PageViews');

@@ -1,5 +1,6 @@
 const CronJob = require('cron').CronJob;
-const BillingRepo = require('../repos/BillingRepo');
+const container = require('../configurations/container');
+const BillingRepo =container.resolve("billingRepository");
 const ApiTokenRepo = require('../repos/ApiTokenRepo');
 const config = require('../config');
 

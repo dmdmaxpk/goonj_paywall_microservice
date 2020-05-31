@@ -1,5 +1,6 @@
 const config = require('../config');
-const repo = require('../repos/PackageRepo');
+const container = require('../configurations/container');
+const repo = container.resolve("packageRepository");
 
 
 // CREATE

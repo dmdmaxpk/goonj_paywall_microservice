@@ -1,14 +1,15 @@
+const container = require("../configurations/container");
 const CronJob = require('cron').CronJob;
-const subsriberRepo = require('../repos/SubscriberRepo');
-const packageRepo = require('../repos/PackageRepo');
-const billingHistoryRepo = require('../repos/BillingHistoryRepo');
-const userRepo = require('../repos/UserRepo');
+const subsriberRepo = container.resolve("subscriberRepository");
+const packageRepo = container.resolve("packageRepository");
+const billingHistoryRepo = container.resolve("billingHistoryRepository");
+const userRepo = container.resolve("userRepository");
 const config = require('../config');
 const shortId = require('shortid');
-const chargeAttemptRepo = require('../repos/ChargingAttemptRepo');
+const chargeAttemptRepo = container.resolve("chargingAttemptRepository");
 const moment = require('moment');
 
-const subscriptionRepo = require('../repos/SubscriptionRepo');
+const subscriptionRepo = container.resolve("subscriptionRepository");
 
 
 subscriptionRenewal = async() => {

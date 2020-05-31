@@ -1,5 +1,6 @@
 const config = require('../config');
-const repo = require('../repos/BillingHistoryRepo');
+const container = require("../configurations/container");
+const repo = container.resolve("billingHistoryRepository");
 
 // CREATE
 exports.post = async (req, res) => {

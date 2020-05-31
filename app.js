@@ -3,13 +3,6 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const mongoose = require('mongoose');
-const config = require('./config');
-const swStats = require('swagger-stats');
-
-// Connection to Database
-mongoose.connect(config.mongoDB);
-mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
-
 // Import database models
 require('./models/User');
 require('./models/Package');
@@ -23,11 +16,20 @@ require('./models/BlockedUsers');
 require('./models/ChargingAttempt');
 require('./models/Paywall');
 require('./models/Subscription');
+const config = require('./config');
+const swStats = require('swagger-stats');
+const container = require('./configurations/container');
+const subscriptionConsumer = container.resolve("subscriptionConsumer");
+  
+
+
+// Connection to Database
+mongoose.connect(config.mongoDB);
+mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
 
 var RabbitMq = require('./repos/queue/RabbitMq');
-var billingRepo = require('./repos/BillingRepo');
-var tpsCountRepo = require('./repos/tpsCountRepo');
-const subscriptionConsumer = require('./repos/queue/consumers/SubscriptionConsumer');
+var billingRepo = container.resolve("billingRepository");
+var tpsCountRepo = container.resolve("tpsCountRepository");
 var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
 let tokenRepo = require('./repos/ApiTokenRepo');
 

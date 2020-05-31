@@ -1,9 +1,10 @@
-let billingRepo = require("../../BillingRepo");
-let tpsCountRepo = require("../../tpsCountRepo");
-let billingHistoryRepo = require("../../BillingHistoryRepo");
-let userRepo = require("../../UserRepo");
-let subscriberRepo = require("../../SubscriberRepo");
-let messageRepo = require("../../MessageRepo");
+const container = require("../../../configurations/container");
+let billingRepo = container.resolve("billingRepository");
+let tpsCountRepo = container.resolve("tpsCountRepository");
+let billingHistoryRepo = container.resolve("billingHistoryRepository");
+let userRepo = container.resolve("userRepository");
+let subscriberRepo = container.resolve("subscriberRepository");
+let messageRepo = container.resolve("messageRepository");
 let config = require("../../../config");
 
 consume = async(message) => {

@@ -1,7 +1,8 @@
 const ViewLogRepo = require('../repos/ViewLogRepo');
-const subsriberRepo = require('../repos/SubscriberRepo');
-const billingHistoryRepo = require('../repos/BillingHistoryRepo');
-const userRepo = require('../repos/UserRepo');
+const container = require('../configurations/container');
+const subsriberRepo = container.resolve("subscriberRepository");
+const billingHistoryRepo = container.resolve("billingHistoryRepository");
+const userRepo = container.resolve("subscriberRepository");
 const config = require('../config')
 
 checkLastSeenOfUsers = async() => {

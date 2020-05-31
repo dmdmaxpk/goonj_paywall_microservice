@@ -1,4 +1,5 @@
-const billingHistoryRepo = require('../repos/BillingHistoryRepo');
+const container = require('../configurations/container');
+const billingHistoryRepo = container.resolve("billingHistoryRepository");
 var nodemailer = require('nodemailer');
 
 var transporter = nodemailer.createTransport({

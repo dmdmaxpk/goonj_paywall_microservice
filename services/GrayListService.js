@@ -1,5 +1,6 @@
-const billingHistoryRepo = require('../repos/BillingHistoryRepo');
-const userRepo = require('../repos/UserRepo');
+const container = require("../configurations/container");
+const billingHistoryRepo = container.resolve("billingHistoryRepository");
+const userRepo = container.resolve("userRepository");
 
 checkForUngrayListUsers = async() => {
     try {
