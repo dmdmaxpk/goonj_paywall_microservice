@@ -282,7 +282,9 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 
 	if(user && user.active === true){
 		// User available in DB
-		let subscriber = await subscriberRepo.getSubscriber(user._id);
+		let subscriber = await subscriberRepo.getSubscriberByUserId (user._id);
+		console.log("subscriber", subscriber);
+
 		if(!subscriber){
 			// Subscriber is entering into the system for the first time
 			// No subscriber found in DB, lets create new one
