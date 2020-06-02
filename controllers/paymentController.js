@@ -6,12 +6,13 @@ const subscriberRepo = container.resolve("subscriberRepository");
 const packageRepo = container.resolve("packageRepository");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const viewLogRepo = require('../repos/ViewLogRepo');
-const billingRepo = container.resolve("billingHistoryRepository");
+
 const shortId = require('shortid');
 const axios = require('axios');
 const messageRepo = container.resolve("messageRepository");
 const blockUsersRepo = require('../repos/BlockedUsersRepo');
 
+const billingRepo = container.resolve("billingRepository");
 const subscriptionRepo = container.resolve("subscriptionRepository")
 let jwt = require('jsonwebtoken');
 
