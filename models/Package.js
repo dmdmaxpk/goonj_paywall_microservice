@@ -14,7 +14,10 @@ const packageSchema = new Schema({
     display_price_point: Number,
     partner_id: String,
 
+    is_grace_allowed: {type: Boolean, default: true },
     grace_hours: {type: Number, default: 0 },
+
+    is_trial_allowed: {type: Boolean, default: true },
     trial_hours: {type: Number, default: 0 },
     
     added_dtm: { type: Date, default: Date.now },

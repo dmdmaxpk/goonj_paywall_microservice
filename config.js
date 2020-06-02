@@ -25,7 +25,9 @@ const codes = {
     code_in_billing_queue: 10,
     code_trial_activated: 11,
     code_user_gralisted: 12,
-    code_user_blacklisted: 13
+    code_user_blacklisted: 13,
+    code_auth_failed: 14,
+    code_auth_token_not_supplied: 15
 }
 
 const max_graylist_time_in_hrs = 336; // 2 weeks

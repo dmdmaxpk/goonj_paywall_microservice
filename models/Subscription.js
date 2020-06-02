@@ -29,7 +29,7 @@ const subscriptionSchema = new Schema({
     last_modified: Date,
     queued: { type: Boolean, default: false },
     is_discounted: { type: Boolean, default: false },
-    discounted_price: { type: Number },
+    discounted_price: { type: Number, default: 0 },
     
     //field for billing
     is_allowed_to_stream: { type: Boolean, default: true },
@@ -38,6 +38,7 @@ const subscriptionSchema = new Schema({
 
     subscribed_package_id: {type: ShortId, required: true},
     amount_billed_today: {type: Number, default: 0},
+    is_manual_recharge: { type: Boolean, default: false },
     active: { type: Boolean, default: true, index: true }
 }, { strict: true })
 

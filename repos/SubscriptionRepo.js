@@ -21,6 +21,11 @@ class SubscriptionRepository {
         result = await Subscription.find({subscriber_id: subscriber_id});
         return result;
     }
+
+    async getSubscriptionByPackageId(subscriber_id, package_id)  {
+        result = await Subscription.findOne({subscriber_id: subscriber_id, subscribed_package_id: package_id});
+        return result;
+    }
     
     async getRenewableSubscriptions  ()  {
         let results = await Subscription.find({is_billable_in_this_cycle: true}).limit(4000);

@@ -55,6 +55,7 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
+        form.packageObj = packageObj;
     
         return new Promise(function(resolve, reject) {
             axios({
@@ -84,7 +85,8 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
-    
+        form.packageObj = packageObj;
+        
         return new Promise(function(resolve, reject) {
             axios({
                 method: 'post',
