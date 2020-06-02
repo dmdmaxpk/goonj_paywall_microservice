@@ -393,12 +393,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				subscribePackage(subscription, packageObj)
 				res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 			}
-
-
-
-
-			subscribePackage(subscription, packageObj);
-			res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 		}
 	}
 	else {
