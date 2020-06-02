@@ -64,7 +64,7 @@ subscribePackage = async(subscription, packageObj) => {
 		let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true, auto_renewal: true});
 		if(updated){
 			rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-			console.log('Payment - Subscription - AddInQueue - ', subscription, ' - ', (new Date()));
+			console.log('Payment - Subscription - AddInQueue - ', subscription._id, ' - ', (new Date()));
 		}else{
 			console.log('Failed to updated subscriber after adding in queue.');
 		}

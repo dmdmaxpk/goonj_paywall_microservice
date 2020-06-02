@@ -93,7 +93,7 @@ class SubscriptionConsumer {
             if(message === 'Success'){
                 
                 // Save tp billing response
-                this.createBillingHistory(subscription, api_response, message, transaction_id, false, false, packageObj.price_point_pkr);
+                this.createBillingHistory(subscription, api_response, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
                 
                 // Success billing
                 let nextBilling = new Date();
@@ -133,7 +133,7 @@ class SubscriptionConsumer {
                 this.sendMessage(subscription, user.msisdn, packageObj.packageName, packageObj.price_point_pkr, is_manual_recharge);
             }else{
                 // Unsuccess billing. Save tp billing response
-                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, false, packageObj.price_point_pkr);
+                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
                 await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
             }
         }catch(error){
@@ -150,7 +150,7 @@ class SubscriptionConsumer {
                 rabbitMq.noAcknowledge(queueMessage);
             }
     
-            this.createBillingHistory(subscription, error.response.data, "Failed", transaction_id, false, false, packageObj.price_point_pkr);
+            this.createBillingHistory(subscription, error.response.data, "Failed", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
             await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
         }
     }
@@ -171,7 +171,7 @@ class SubscriptionConsumer {
             if(message === 'Success'){
                 
                 // Save tp billing response
-                this.createBillingHistory(subscription, api_response, message, transaction_id, false, true, discounted_price);
+                this.createBillingHistory(subscription, api_response, message, transaction_id, false, true, discounted_price, packageObj);
                 
                 // Success billing
                 let nextBilling = new Date();
@@ -214,7 +214,7 @@ class SubscriptionConsumer {
                 this.sendMessage(subscription, user.msisdn, packageObj.packageName, discounted_price, false);
             }else{
                 // Unsuccess billing. Save tp billing response
-                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, true, discounted_price);
+                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, true, discounted_price, packageObj);
                 await this.assignGracePeriod(subscription, user, packageObj, false);
             }
         }catch(error){
@@ -233,7 +233,7 @@ class SubscriptionConsumer {
                 await this.unQueue(subscription._id);
             }
     
-            this.createBillingHistory(subscription, error.response.data, "Failed", transaction_id, false, true, discounted_price);
+            this.createBillingHistory(subscription, error.response.data, "Failed", transaction_id, false, true, discounted_price, packageObj);
             await this.assignGracePeriod(subscription, user, packageObj, false);
         }
     }
@@ -250,7 +250,7 @@ class SubscriptionConsumer {
             if(message === 'Success'){
                 
                 // Save tp billing response
-                this.createBillingHistory(subscription, api_response, message, transaction_id, true, false, micro_price);
+                this.createBillingHistory(subscription, api_response, message, transaction_id, true, false, micro_price, packageObj);
                 
                 // Success billing
                 let nextBilling = new Date();
@@ -293,7 +293,7 @@ class SubscriptionConsumer {
                 sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.packageName);
             }else{
                 // Unsuccess billing. Save tp billing response
-                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, true, false, micro_price);
+                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, true, false, micro_price, packageObj);
                 await this.assignGracePeriod(subscription, user, packageObj, false);
             }
         }catch(error){
@@ -312,7 +312,7 @@ class SubscriptionConsumer {
                 await this.unQueue(subscription._id);
             }
     
-            this.createBillingHistory(subscription, error.response.data, "Failed", transaction_id, true, false, micro_charge);
+            this.createBillingHistory(subscription, error.response.data, "Failed", transaction_id, true, false, micro_charge, packageObj);
             await this.assignGracePeriod(subscription, user, packageObj, false);
         }
     }
@@ -437,7 +437,7 @@ class SubscriptionConsumer {
     // ADD BILLING HISTORY
     async createBillingHistory(
         subscription, response, billingStatus, 
-        transaction_id, micro_charge, discount, price) {
+        transaction_id, micro_charge, discount, price, packageObj) {
         
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
         
