@@ -85,7 +85,7 @@ class SubscriptionConsumer {
         try{
             let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-            let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id);
+            let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
             
             let api_response = response.api_response;
             let message = api_response.data.message;
@@ -163,7 +163,7 @@ class SubscriptionConsumer {
             }
     
             let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-            let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id);
+            let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
         
             let api_response = response.api_response;
             let message = api_response.data.message;
@@ -242,7 +242,7 @@ class SubscriptionConsumer {
         try{
             let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-            let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price);
+            let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
         
             let api_response = response.api_response;
             let message = api_response.data.message;

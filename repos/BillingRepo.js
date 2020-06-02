@@ -43,8 +43,14 @@ class BillingRepository {
     
     
     // Full charge request
-    async fullChargeAttempt (msisdn, packageObj, transactionId)  {
+    async fullChargeAttempt (msisdn, packageObj, transactionId, subscription)  {
         
+        let subscriptionObj = {};
+        subscriptionObj.packageObj = packageObj;
+        subscriptionObj.msisdn = msisdn;
+        subscriptionObj.transactionId = transactionId;
+        subscriptionObj.subscription = subscription;
+
         let form = {
             "correlationID": transactionId,
             "msisdn": msisdn
@@ -55,7 +61,6 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
-        form.packageObj = packageObj;
     
         return new Promise(function(resolve, reject) {
             axios({
@@ -73,8 +78,14 @@ class BillingRepository {
     };
     
     // Micro charge request
-    async microChargeAttempt (msisdn, packageObj, transactionId, price) {
-        
+    async microChargeAttempt (msisdn, packageObj, transactionId, price, subscription) {
+
+        let subscriptionObj = {};
+        subscriptionObj.packageObj = packageObj;
+        subscriptionObj.msisdn = msisdn;
+        subscriptionObj.transactionId = transactionId;
+        subscriptionObj.subscription = subscription;
+
         let form = {
             "correlationID": transactionId,
             "msisdn": msisdn
@@ -85,7 +96,6 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
-        form.packageObj = packageObj;
         
         return new Promise(function(resolve, reject) {
             axios({
