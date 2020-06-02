@@ -88,12 +88,12 @@ class SubscriptionConsumer {
             let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
             
             let api_response = response.api_response;
-            let message = api_response.data.message;
+            let message = api_response.data.Message;
     
             if(message === 'Success'){
                 
                 // Save tp billing response
-                this.createBillingHistory(subscription, api_response, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
+                this.createBillingHistory(subscription, api_response.data, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
                 
                 // Success billing
                 let nextBilling = new Date();
@@ -133,8 +133,7 @@ class SubscriptionConsumer {
                 this.sendMessage(subscription, user.msisdn, packageObj.packageName, packageObj.price_point_pkr, is_manual_recharge);
             }else{
                 // Unsuccess billing. Save tp billing response
-                console.log("1, ", api_response);
-                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
+                this.createBillingHistory(subscription, api_response.data, message ? message : "Failed", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
                 await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
             }
         }catch(error){
