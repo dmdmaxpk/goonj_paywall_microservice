@@ -283,7 +283,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 	if(user && user.active === true){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriberByUserId (user._id);
-		console.log("subscriber", subscriber);
 
 		if(!subscriber){
 			// Subscriber is entering into the system for the first time
@@ -303,11 +302,10 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 		let packageObj = await packageRepo.getPackage({_id: newPackageId});
 
 		let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, newPackageId);
-		console.log("subscription", subscription);
-
-		let subscriptionObj = {};
+		
 		if(!subscription){
 			// No subscription available, let's create one
+			let subscriptionObj = {};
 			subscriptionObj.subscriber_id = subscriber._id;
 			subscriptionObj.subscribed_package_id = newPackageId;
 			subscriptionObj.source = req.body.source ?  req.body.source : 'unknown';
@@ -349,8 +347,56 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				subscribePackage(subscription, packageObj);
 				res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 			}
-		}
-		else {
+		}else {
+			// Pass subscription through following checks before pushing into queue
+			await viewLogRepo.createViewLog(user._id);
+
+			let history = {};
+			history.user_id = user._id;
+			history.subscriber_id = subscriber._id;
+			history.subscription_id = subscription._id;
+
+			if(subscription.subscription_status === 'billed' || subscription.subscription_status === 'trial'){
+				let currentPackageId = subscription.subscribed_package_id;
+				let autoRenewal = subscription.auto_renewal;
+
+				if(currentPackageId === newPackageId){
+					
+					history.source = req.body.source;
+					history.package_id = newPackageId;
+					history.paywall_id = packageObj.paywall_id;
+
+					if(autoRenewal === true){
+						// Already subscribed, no need to subsribed package again
+						history.billing_status = "subscription-request-received-for-the-same-package";
+						await billingHistoryRepo.createBillingHistory(history);
+						res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed', gw_transaction_id: gw_transaction_id});
+					}else{
+						// Same package - just switch on auto renewal so that the user can get charge automatically.
+						let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true});
+						if(updated){
+							history.billing_status = "subscription-request-received-after-unsub";
+							
+							await billingHistoryRepo.createBillingHistory(history);
+							res.send({code: config.codes.code_already_subscribed, message: 'Subscribed', gw_transaction_id: gw_transaction_id});
+						}else{
+							res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
+						}
+					}
+				}
+			} else {
+				/* 
+				* Not already billed
+				* Let's send this item in queue and update package, auto_renewal and 
+				* billing date times once user successfully billed
+				*/
+				subscribePackage(subscription, packageObj)
+				res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+			}
+
+
+
+
 			subscribePackage(subscription, packageObj);
 			res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 		}
