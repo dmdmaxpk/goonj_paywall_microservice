@@ -130,7 +130,7 @@ class SubscriptionConsumer {
                 }
     
                 // Send acknowledgement message
-                this.sendMessage(subscription, user.msisdn, packageObj.packageName, packageObj.price_point_pkr, is_manual_recharge);
+                this.sendMessage(subscription, user.msisdn, packageObj.package_name, packageObj.price_point_pkr, is_manual_recharge);
             }else{
                 // Unsuccess billing. Save tp billing response
                 console.log("Billing failed for subscription id ", subscription._id);
@@ -214,7 +214,7 @@ class SubscriptionConsumer {
                 await this.chargingAttemptRepo.resetAttempts(subscription._id);
                 await this.chargingAttemptRepo.markInActive(subscription._id);
                 await this.chargingAttemptRepo.unqueue(subscription._id);
-                this.sendMessage(subscription, user.msisdn, packageObj.packageName, discounted_price, false);
+                this.sendMessage(subscription, user.msisdn, packageObj.package_name, discounted_price, false);
             }else{
                 // Unsuccess billing. Save tp billing response
                 this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, true, discounted_price, packageObj);
@@ -293,7 +293,7 @@ class SubscriptionConsumer {
                 await this.chargingAttemptRepo.resetAttempts(subscription._id);
                 await this.chargingAttemptRepo.markInActive(subscription._id);
                 await this.chargingAttemptRepo.unqueue(subscription._id);
-                sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.packageName);
+                sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.package_name);
             }else{
                 // Unsuccess billing. Save tp billing response
                 this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, true, false, micro_price, packageObj);
