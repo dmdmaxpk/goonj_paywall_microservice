@@ -48,7 +48,7 @@ class SubscriptionRepository {
             if (result.nModified === 0) {
                 return undefined;
             } else {
-                let subscription = await getSubscription(subscription_id);
+                let subscription = await this.getSubscription(subscription_id);
                 return subscription;
             }
         } catch(error) {
@@ -79,7 +79,7 @@ class SubscriptionRepository {
             if (result.nModified === 0) {
                 return undefined;
             }else{
-                let subscription = await getSubscription(subscription_id);
+                let subscription = await this.getSubscription(subscription_id);
                 return subscription;
             }
         } else {
@@ -94,7 +94,7 @@ class SubscriptionRepository {
             if (result.nModified === 0) {
                 return undefined;
             }else{
-                let subscription = await getSubscription(subscription_id);
+                let subscription = await this.getSubscription(subscription_id);
                 return subscription;
             }
         } else {
