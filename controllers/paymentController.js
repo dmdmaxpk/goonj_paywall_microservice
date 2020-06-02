@@ -321,7 +321,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 			// Check if trial is allowed by the system
 			if (packageObj.is_trial_allowed) {
 				let nexBilling = new Date();
-				subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + packageObj.is_trial_allowed);
+				subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + packageObj.trial_hours);
 				subscriptionObj.subscription_status = 'trial';
 				subscriptionObj.is_allowed_to_stream = true;
 				subscription = await subscriptionRepo.createSubscription(subscriptionObj);
@@ -342,8 +342,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				let text = `Apko Goonj TV 24 hour free trial dey dia gaya ha. Jub chahien jaib se Mobile nikalien aur TOP LIVE TV channels deikhen siraf Rs. ${packageObj.display_price_point}/d main`;
 				sendTextMessage(text, user.msisdn);
 				res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
-			}
-			else{
+			}else{
 				subscribePackage(subscription, packageObj);
 				res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 			}
