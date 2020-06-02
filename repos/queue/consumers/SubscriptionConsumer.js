@@ -38,7 +38,6 @@ class SubscriptionConsumer {
                     let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
                     if (countThisSec < config.telenor_subscription_api_tps) {
     
-                        console.log("Sending subscription request to telenor");
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                         
                         if(micro_charge){
@@ -91,6 +90,7 @@ class SubscriptionConsumer {
             let message = api_response.data.Message;
     
             if(message === 'Success'){
+                console.log("Billing success for subscription id ", subscription._id);
                 
                 // Save tp billing response
                 this.createBillingHistory(subscription, api_response.data, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
@@ -133,10 +133,12 @@ class SubscriptionConsumer {
                 this.sendMessage(subscription, user.msisdn, packageObj.packageName, packageObj.price_point_pkr, is_manual_recharge);
             }else{
                 // Unsuccess billing. Save tp billing response
+                console.log("Billing failed for subscription id ", subscription._id);
                 this.createBillingHistory(subscription, api_response.data, message ? message : "Failed", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
                 await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
             }
         }catch(error){
+            console.log("Billing failed for subscription id ", subscription._id);
             console.log("2, ", api_response);
             if (error.response && error.response.data){
                 console.log('Error ',error.response.data);
@@ -467,7 +469,8 @@ class SubscriptionConsumer {
             history.discount = false;
             history.price = price;
         }
-        //TODO MUST save history as it is not being saved right now
+        
+        this.addHistory(history);
     }
     
     async addHistory(history) {

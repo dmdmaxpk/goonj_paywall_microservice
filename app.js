@@ -60,7 +60,6 @@ consumeMessageQueue = async(response) => {
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.messageDispathcer);
 
         if (countThisSec < config.telenor_message_api_tps) {
-            console.log("Sending message request telenor");
             billingRepo.sendMessage(messageObj.message, messageObj.msisdn)
             .then(async (data) => {
                 console.log('Success: ', data);
