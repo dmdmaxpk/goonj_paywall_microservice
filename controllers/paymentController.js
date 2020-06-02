@@ -89,6 +89,8 @@ exports.sendOtp = async (req, res) => {
 		}catch(err){
 			response = err;
 		}
+
+		console.log(response);
 		
 		if(response.operator === "telenor"){
 			// valid customer
