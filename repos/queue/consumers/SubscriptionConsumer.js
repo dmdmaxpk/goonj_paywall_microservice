@@ -133,10 +133,12 @@ class SubscriptionConsumer {
                 this.sendMessage(subscription, user.msisdn, packageObj.packageName, packageObj.price_point_pkr, is_manual_recharge);
             }else{
                 // Unsuccess billing. Save tp billing response
+                console.log("1, ", api_response);
                 this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
                 await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
             }
         }catch(error){
+            console.log("2, ", api_response);
             if (error.response && error.response.data){
                 console.log('Error ',error.response.data);
             }else {
