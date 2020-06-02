@@ -42,24 +42,24 @@ class SubscriptionConsumer {
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                         
                         if(micro_charge){
-                            tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
+                            this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
                         }else if(discount){
-                            tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
+                            this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
                         }else{
-                            tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
+                            this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
                         }
                     }  else{
                         console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                         setTimeout(() => {
                             console.log("Calling consume subscription queue after 200 seconds");
-                            consume(message);
+                            this.consume(message);
                         }, 200);
                     }  
                 }else{
                     console.log("Excessive charging");
                     await this.subscriptionRepo.markSubscriptionInactive(subscription._id);
-                    unQueue(subscription._id);
-                    shootExcessiveBillingEmail(subscription._id);
+                    this.unQueue(subscription._id);
+                    this.shootExcessiveBillingEmail(subscription._id);
     
                     // Add history
                     let history = {};
@@ -69,7 +69,7 @@ class SubscriptionConsumer {
                     history.operator_response = {"message": `User ${subscriptionObj.user_id} has exceeded their billing limit. Email sent.`};
                     history.billing_status = subscription.subscription_status;
                     history.operator = 'telenor';
-                    addHistory(history);
+                    this.addHistory(history);
                 }
             }
             rabbitMq.acknowledge(message);
@@ -93,7 +93,7 @@ class SubscriptionConsumer {
             if(message === 'Success'){
                 
                 // Save tp billing response
-                createBillingHistory(subscription, api_response, message, transaction_id, false, false, packageObj.price_point_pkr);
+                this.createBillingHistory(subscription, api_response, message, transaction_id, false, false, packageObj.price_point_pkr);
                 
                 // Success billing
                 let nextBilling = new Date();
@@ -118,7 +118,7 @@ class SubscriptionConsumer {
                 if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid && updatedSubscription.is_affiliation_callback_executed === false){
                     if((updatedSubscription.source === "HE" || updatedSubscription.source === "affiliate_web") && updatedSubscription.affiliate_mid != "1") {
                         // Send affiliation callback
-                        sendAffiliationCallback(
+                        this.sendAffiliationCallback(
                             updatedSubscription.affiliate_unique_transaction_id, 
                             updatedSubscription.affiliate_mid,
                             user._id,
@@ -130,11 +130,11 @@ class SubscriptionConsumer {
                 }
     
                 // Send acknowledgement message
-                sendMessage(subscription, user.msisdn, packageObj.packageName, packageObj.price_point_pkr, is_manual_recharge);
+                this.sendMessage(subscription, user.msisdn, packageObj.packageName, packageObj.price_point_pkr, is_manual_recharge);
             }else{
                 // Unsuccess billing. Save tp billing response
-                createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, false, packageObj.price_point_pkr);
-                await assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
+                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, false, packageObj.price_point_pkr);
+                await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
             }
         }catch(error){
             if (error.response && error.response.data){
@@ -150,8 +150,8 @@ class SubscriptionConsumer {
                 rabbitMq.noAcknowledge(queueMessage);
             }
     
-            createBillingHistory(subscription, error.response.data, "Failed", transaction_id, false, false, packageObj.price_point_pkr);
-            await assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
+            this.createBillingHistory(subscription, error.response.data, "Failed", transaction_id, false, false, packageObj.price_point_pkr);
+            await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
         }
     }
     
@@ -171,7 +171,7 @@ class SubscriptionConsumer {
             if(message === 'Success'){
                 
                 // Save tp billing response
-                createBillingHistory(subscription, api_response, message, transaction_id, false, true, discounted_price);
+                this.createBillingHistory(subscription, api_response, message, transaction_id, false, true, discounted_price);
                 
                 // Success billing
                 let nextBilling = new Date();
@@ -196,7 +196,7 @@ class SubscriptionConsumer {
                 if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid && updatedSubscription.is_affiliation_callback_executed === false){
                     if((updatedSubscription.source === "HE" || updatedSubscription.source === "affiliate_web") && updatedSubscription.affiliate_mid != "1") {
                         // Send affiliation callback
-                        sendAffiliationCallback(
+                        this.sendAffiliationCallback(
                             updatedSubscription.affiliate_unique_transaction_id, 
                             updatedSubscription.affiliate_mid,
                             user._id,
@@ -211,11 +211,11 @@ class SubscriptionConsumer {
                 await this.chargingAttemptRepo.resetAttempts(subscription._id);
                 await this.chargingAttemptRepo.markInActive(subscription._id);
                 await this.chargingAttemptRepo.unqueue(subscription._id);
-                sendMessage(subscription, user.msisdn, packageObj.packageName, discounted_price, false);
+                this.sendMessage(subscription, user.msisdn, packageObj.packageName, discounted_price, false);
             }else{
                 // Unsuccess billing. Save tp billing response
-                createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, true, discounted_price);
-                await assignGracePeriod(subscription, user, packageObj, false);
+                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, true, discounted_price);
+                await this.assignGracePeriod(subscription, user, packageObj, false);
             }
         }catch(error){
             if (error.response && error.response.data){
@@ -230,11 +230,11 @@ class SubscriptionConsumer {
                 rabbitMq.noAcknowledge(queueMessage);
             }else {
                 // Consider, payment failed for any reason. e.g no credit, number suspended etc
-                await unQueue(subscription._id);
+                await this.unQueue(subscription._id);
             }
     
-            createBillingHistory(subscription, error.response.data, "Failed", transaction_id, false, true, discounted_price);
-            await assignGracePeriod(subscription, user, packageObj, false);
+            this.createBillingHistory(subscription, error.response.data, "Failed", transaction_id, false, true, discounted_price);
+            await this.assignGracePeriod(subscription, user, packageObj, false);
         }
     }
     
@@ -250,7 +250,7 @@ class SubscriptionConsumer {
             if(message === 'Success'){
                 
                 // Save tp billing response
-                createBillingHistory(subscription, api_response, message, transaction_id, true, false, micro_price);
+                this.createBillingHistory(subscription, api_response, message, transaction_id, true, false, micro_price);
                 
                 // Success billing
                 let nextBilling = new Date();
@@ -275,7 +275,7 @@ class SubscriptionConsumer {
                 if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid && updatedSubscription.is_affiliation_callback_executed === false){
                     if((updatedSubscription.source === "HE" || updatedSubscription.source === "affiliate_web") && updatedSubscription.affiliate_mid != "1") {
                         // Send affiliation callback
-                        sendAffiliationCallback(
+                        this.sendAffiliationCallback(
                             updatedSubscription.affiliate_unique_transaction_id, 
                             updatedSubscription.affiliate_mid,
                             user._id,
@@ -293,8 +293,8 @@ class SubscriptionConsumer {
                 sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.packageName);
             }else{
                 // Unsuccess billing. Save tp billing response
-                createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, true, false, micro_price);
-                await assignGracePeriod(subscription, user, packageObj, false);
+                this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, true, false, micro_price);
+                await this.assignGracePeriod(subscription, user, packageObj, false);
             }
         }catch(error){
             if (error.response && error.response.data){
@@ -309,11 +309,11 @@ class SubscriptionConsumer {
                 rabbitMq.noAcknowledge(queueMessage);
             }else {
                 // Consider, payment failed for any reason. e.g no credit, number suspended etc
-                await unQueue(subscription._id);
+                await this.unQueue(subscription._id);
             }
     
-            createBillingHistory(subscription, error.response.data, "Failed", transaction_id, true, false, micro_charge);
-            await assignGracePeriod(subscription, user, packageObj, false);
+            this.createBillingHistory(subscription, error.response.data, "Failed", transaction_id, true, false, micro_charge);
+            await this.assignGracePeriod(subscription, user, packageObj, false);
         }
     }
     
@@ -346,7 +346,7 @@ class SubscriptionConsumer {
                 await this.chargingAttemptRepo.resetAttempts(subscription._id);
                 console.log('MicroCharging - Activated and Reset - Subscription ', subscription._id, ' - ', (new Date()));
             }
-            await addMicroChargingToQueue(subscriber);
+            await this.addMicroChargingToQueue(subscriber);
         }else if(subscription.subscription_status === 'graced' && subscription.auto_renewal === true){
             // Already in grace, check if given time has been passed in grace, stop streaming
     
@@ -406,7 +406,7 @@ class SubscriptionConsumer {
     
                 let attempt = await this.chargingAttemptRepo.getAttempt(subscription._id);
                 if(attempt && attempt.active === true){
-                    addMicroChargingToQueue(subscription);
+                    this.addMicroChargingToQueue(subscription);
                 }
             }
         }else{
@@ -431,7 +431,7 @@ class SubscriptionConsumer {
         history.paywall_id = packageObj.paywall_id;
         history.package_id = subscription.subscribed_package_id;
         history.operator = 'telenor';
-        await addHistory(history);
+        await this.addHistory(history);
     }
     
     // ADD BILLING HISTORY
@@ -484,7 +484,7 @@ class SubscriptionConsumer {
             await this.chargingAttemptRepo.incrementAttempt(subscription._id);
             rabbitMq.addInQueue(config.queueNames.balanceCheckDispatcher, subscription);
             console.log('MicroCharging Added In Queue - Subscription ', subscription._id);
-        }else{
+        }else {
             await this.chargingAttemptRepo.createAttempt({subscription_id: subscription._id, number_of_attempts_today: 1});    
             console.log('Created Charging Attempt Record - Subscription ', subscription._id);
         }
@@ -522,20 +522,20 @@ class SubscriptionConsumer {
         history.operator = 'telenor';
     
         console.log(`Sending Affiliate Marketing Callback Having TID - ${tid} - MID ${mid}`);
-        sendCallBackToIdeation(mid, tid).then(async function(fulfilled) {
+        this.sendCallBackToIdeation(mid, tid).then(async function(fulfilled) {
             let updated = await this.subscriptionRepo.updateSubscription(subscription_id, {is_affiliation_callback_executed: true});
             if(updated){
                 console.log(`Successfully Sent Affiliate Marketing Callback Having TID - ${tid} - MID ${mid} - Ideation Response - ${fulfilled}`);
                 history.operator_response = fulfilled;
                 history.billing_status = "Affiliate callback sent";
-                await addHistory(history);
+                await this.addHistory(history);
             }
         })
         .catch(async function (error) {
             console.log(`Affiliate - Marketing - Callback - Error - Having TID - ${tid} - MID ${mid}`, error);
             history.operator_response = error;
             history.billing_status = "Affiliate callback error";
-            await addHistory(history);
+            await this.addHistory(history);
         });
     }
     
@@ -591,7 +591,7 @@ class SubscriptionConsumer {
     
         //Send acknowldement to user
         let message = "You've got "+percentage+"% discount on "+packageName;
-        messageRepo.sendSmsToUser(message, msisdn);
+        this.messageRepo.sendSmsToUser(message, msisdn);
     }
 }
 
