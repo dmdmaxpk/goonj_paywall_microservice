@@ -13,17 +13,17 @@ class SubscriptionRepository {
     }
     
     async getSubscription (subscription_id)  {
-        result = await Subscription.findOne({_id: subscription_id});
+        let result = await Subscription.findOne({_id: subscription_id});
         return result;
     }
     
-    async getAllSubscriptions (subscriber_id)  {
-        result = await Subscription.find({subscriber_id: subscriber_id});
+    async getAllSubscriptions(subscriber_id)  {
+        let result = await Subscription.find({subscriber_id: subscriber_id});
         return result;
     }
 
     async getSubscriptionByPackageId(subscriber_id, package_id)  {
-        result = await Subscription.findOne({subscriber_id: subscriber_id, subscribed_package_id: package_id});
+        let result = await Subscription.findOne({subscriber_id: subscriber_id, subscribed_package_id: package_id});
         return result;
     }
     
