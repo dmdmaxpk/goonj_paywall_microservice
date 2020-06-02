@@ -351,7 +351,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 			// Pass subscription through following checks before pushing into queue
 			await viewLogRepo.createViewLog(user._id);
 
-			if(subscription.queued === true){
+			if(subscription.queued === false){
 				let history = {};
 				history.user_id = user._id;
 				history.subscriber_id = subscriber._id;
