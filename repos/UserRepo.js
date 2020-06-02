@@ -31,7 +31,7 @@ class UserRepository {
     }
 
     async getUserByMsisdn (msisdn) {
-        result = await User.findOne({msisdn: msisdn});
+        let result = await User.findOne({msisdn: msisdn});
         return result;
     }
 
