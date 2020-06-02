@@ -301,6 +301,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 		let packageObj = await packageRepo.getPackage({_id: newPackageId});
 
 		let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, newPackageId);
+		console.log("subscription", subscription);
 
 		let subscriptionObj = {};
 		if(!subscription){
