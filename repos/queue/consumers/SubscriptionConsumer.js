@@ -83,7 +83,7 @@ class SubscriptionConsumer {
     // CHARGING ATTEMPTS
     async tryFullChargeAttempt(queueMessage, subscription, transaction_id, is_manual_recharge) {
         try{
-            let packageObj = await this.packageRepo.getPackage(subscription.subscribed_package_id);
+            let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
             let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id);
             
@@ -157,7 +157,7 @@ class SubscriptionConsumer {
     
     async tryDiscountedChargeAttempt (queueMessage, subscription, transaction_id, discounted_price) {
         try{
-            let packageObj = await this.packageRepo.getPackage(subscription.subscribed_package_id);
+            let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             if(packageObj.price_point_pkr > discounted_price){
                 packageObj.price_point_pkr = discounted_price;
             }
@@ -240,7 +240,7 @@ class SubscriptionConsumer {
     
     async tryMicroChargeAttempt(queueMessage, subscription, transaction_id, micro_price) {
         try{
-            let packageObj = await this.packageRepo.getPackage(subscription.subscribed_package_id);
+            let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
             let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price);
         
