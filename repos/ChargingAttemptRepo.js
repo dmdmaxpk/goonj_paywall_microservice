@@ -36,7 +36,7 @@ class ChargingAttemptRepository {
     }
     
     async getAttempt (subscription_id)  {
-        result = await ChargingAttempt.findOne({subscription_id: subscription_id});
+        let result = await ChargingAttempt.findOne({subscription_id: subscription_id});
         return result;
     }
     
