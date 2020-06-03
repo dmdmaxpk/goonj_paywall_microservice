@@ -20,7 +20,8 @@ class SubscriptionConsumer {
 
      async consume(message) {
         let subscriptionObj = JSON.parse(message.content);
-    
+
+        let source = subscriptionObj.source;
         let transaction_id = subscriptionObj.transactionId;
         let subscription = subscriptionObj.subscription;
         let micro_charge = subscriptionObj.micro_charge;
@@ -64,7 +65,15 @@ class SubscriptionConsumer {
                     let history = {};
                     history.user_id = subscriptionObj.user_id;
                     history.package_id = subscriptionObj.packageObj._id;
+                    history.paywall_id = subscriptionObj.packageObj.paywall_id;
+                    history.subscription_id = subscription._id;
+                    history.subscriber_id = subscription.subscriber_id;
                     history.transaction_id = subscriptionObj.transaction_id;
+                    
+                    if(source){
+                        history.source = source;
+                    }
+
                     history.operator_response = {"message": `User ${subscriptionObj.user_id} has exceeded their billing limit. Email sent.`};
                     history.billing_status = subscription.subscription_status;
                     history.operator = 'telenor';
@@ -90,7 +99,7 @@ class SubscriptionConsumer {
             let message = api_response.data.Message;
     
             if(message === 'Success'){
-                console.log("Billing success for subscription id ", subscription._id);
+                console.log("Billing success for subscription id:", subscription._id);
                 
                 // Save tp billing response
                 this.createBillingHistory(subscription, api_response.data, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
@@ -133,7 +142,7 @@ class SubscriptionConsumer {
                 this.sendMessage(subscription, user.msisdn, packageObj.package_name, packageObj.price_point_pkr, is_manual_recharge);
             }else{
                 // Unsuccess billing. Save tp billing response
-                console.log("Billing failed for subscription id ", subscription._id);
+                console.log("Billing failed for subscription id:", subscription._id);
                 this.createBillingHistory(subscription, api_response.data, message ? message : "Failed", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
                 await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
             }
@@ -452,7 +461,7 @@ class SubscriptionConsumer {
         history.package_id = subscription.subscribed_package_id;
         history.transaction_id = transaction_id;
     
-        history.operator_response = response.data;
+        history.operator_response = response;
         history.billing_status = billingStatus;
         history.operator = 'telenor';
     
