@@ -147,8 +147,7 @@ class SubscriptionConsumer {
                 await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
             }
         }catch(error){
-            console.log("Billing failed for subscription id ", subscription._id);
-            console.log("2, ", api_response);
+            console.log("Billing failed for subscription id:", subscription._id);
             if (error.response && error.response.data){
                 console.log('Error ',error.response.data);
             }else {
