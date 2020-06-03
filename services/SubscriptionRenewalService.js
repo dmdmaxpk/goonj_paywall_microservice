@@ -99,7 +99,7 @@ renewSubscription = async(subscription) => {
             transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
         }
     }
-    subscriptionObj.transaction_id = transactionId;
+    subscriptionObj.transactionId = transactionId;
 
     // Add object in queueing server
     if(subscription.queued === false){
@@ -129,13 +129,13 @@ markRenewableUser = async() => {
         let hour = now.hours();
         
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
-            console.log("Running renewal cycle: ", hour);
+            console.log("Checking to run renewable cycle at - ", hour);
 
             let subscription_ids  = await subscriptionRepo.getSubscriptionsToMark();
             console.log("Number of subscription in this cycle: ", subscription_ids.length);
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
         } else {
-            console.log("Not running renewal cycle this hour: ", hour);
+            console.log("Not listed renewable cycle this hour - ", hour);
         }
     } catch(err) {
         console.error(err);

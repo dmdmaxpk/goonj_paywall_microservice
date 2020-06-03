@@ -15,10 +15,10 @@ const packageSchema = new Schema({
     partner_id: String,
 
     is_grace_allowed: {type: Boolean, default: true },
-    grace_hours: {type: Number, default: 0 },
+    grace_hours: {type: Number, default: 24 },
 
     is_trial_allowed: {type: Boolean, default: true },
-    trial_hours: {type: Number, default: 0 },
+    trial_hours: {type: Number, default: 24 },
     
     added_dtm: { type: Date, default: Date.now },
     last_modified: Date,
