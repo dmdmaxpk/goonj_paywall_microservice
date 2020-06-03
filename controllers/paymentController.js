@@ -206,17 +206,17 @@ exports.verifyOtp = async (req, res) => {
 			if(otpUser.otp === otp){
 				// Otp verified, lets check the user's subscription
 
-				let token = jwt.sign({user_id: subscriber.user_id,msisdn:msisdn}, config.secret, {expiresIn: '3 days'});
-				
 				let data = {};
 				data.code = config.codes.code_otp_validated;
 				data.data = 'OTP Validated!';
-				data.access_token = token;
 
 				await otpRepo.updateOtp(msisdn, {verified: true});
 				let user = await userRepo.getUserByMsisdn(msisdn);
-
+				
 				if(user){
+					let token = jwt.sign({user_id: user._id, msisdn: msisdn}, config.secret, {expiresIn: '3 days'});
+					data.access_token = token;
+					
 					let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 					if(subscriber && subscribed_package_id){
 						let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, subscribed_package_id);
