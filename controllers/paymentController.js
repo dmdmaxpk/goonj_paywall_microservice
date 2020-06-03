@@ -340,7 +340,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				billingHistory.operator = "telenor";
 				await billingHistoryRepo.createBillingHistory(billingHistory);
 				
-				let text = `Apko Goonj TV 24 hour free trial dey dia gaya ha. Jub chahien jaib se Mobile nikalien aur TOP LIVE TV channels deikhen siraf Rs. ${packageObj.display_price_point}/d main`;
+				let text = `Apko Goonj TV ${packageObj.trial_hours} hour free trial dey dia gaya ha. Jub chahien jaib se mobile nikalien aur ${packageObj.package_name} deikhen siraf Rs. ${packageObj.display_price_point}/d main`;
 				sendTextMessage(text, user.msisdn);
 				res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 			}else{
