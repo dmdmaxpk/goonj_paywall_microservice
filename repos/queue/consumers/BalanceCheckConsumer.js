@@ -50,7 +50,7 @@ microChargingAttempt = async (subscriber) => {
                 }else{
                     let price_to_charge = attemptPrice;
                     if(ceilingValue < attemptPrice){
-                        price_to_charge = ceilingValue;    
+                        price_to_charge = ceilingValue;
                     }else{
                         price_to_charge-=1;
                     }
