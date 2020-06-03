@@ -216,7 +216,7 @@ exports.verifyOtp = async (req, res) => {
 				if(user){
 					let token = jwt.sign({user_id: user._id, msisdn: msisdn}, config.secret, {expiresIn: '3 days'});
 					data.access_token = token;
-					
+
 					let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 					if(subscriber && subscribed_package_id){
 						let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, subscribed_package_id);
@@ -406,37 +406,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 }
 
 
-exports.sendBulkMessage = async(req, res) => {
-	for(i = 0; i < req.query.limit; i++){
-		sendMessage(`${Math.random()}-${i}`, '03476733767');
-	}
-	res.send('Done');
-}
-
-exports.sendBulkSub = async(req, res) => {
-	let user = {};
-	console.log("Reached",'sendBulkSub',req.query.limit);
-	let packgeObj = {
-		grace_hours: 24,
-		active: true,
-		_id: "QDfC",
-		package_name: "Daily Package",
-		package_desc: "Subscribe daily pakage at price Rs. 8/day",
-		package_duration: 24,
-		price_point_pkr: 1,
-		added_dtm: "2020-01-14T10:12:43.003Z"
-		}
-
-	for(i = 0; i < req.query.limit; i++){
-		user.msisdn = req.query.number;
-		user._id = req.query.user_id;
-		user.subscribed_package_id = packgeObj._id;
-		subscribePackage(user, packgeObj);
-	}
-	res.send('Done');
-}
-
-
 exports.subscribeDirectly = async(req, res) => {
 	let packgeObj = {
 		grace_hours: 336,
@@ -476,22 +445,24 @@ exports.recharge = async (req, res) => {
 
 	let user_id = req.body.uid;
 	let msisdn = req.body.msisdn;
+	let package_id = req.body.package_id;
+	let source = req.body.source;
 	
 	let user = await userRepo.getUserById(user_id);
 	if(user){
 		if(user.msisdn === msisdn){
 			// Supposing, this is verified user
-			let subscriber = await subscriberRepo.getSubscriber(user._id);
-			if(subscriber && subscriber.subscription_status === 'graced'){
-				if(subscriber.is_billable_in_this_cycle === true){
+			let subscriber = await subscriber.getSubscriberByUserId(user._id);
+			let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+			if(subscription && subscription.subscription_status === 'graced'){
+				if(subscription.is_billable_in_this_cycle === true){
 					res.send({code: config.codes.code_in_billing_queue, message: 'Already in billing process!', gw_transaction_id: gw_transaction_id});
 				}else{
 					// try charge attempt
-					let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
+					let packageObj = await packageRepo.getPackage({_id: package_id});
 					if(packageObj){
-						await subscriberRepo.updateSubscriber(user._id, {consecutive_successive_bill_counts: 0});
-						//await subscriberRepo.updateSubscriber(user._id, {queued: true, auto_renewal: true});
-						subscribePackage(user, packageObj,true)
+						await subscriptionRepo.updateSubscription(subscription._id, {consecutive_successive_bill_counts: 0, is_manual_recharge: true});
+						subscribePackage(subscription, packageObj);
 						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 					}else{
 						res.send({code: config.codes.code_error, message: 'No subscribed package found!', gw_transaction_id: gw_transaction_id});
@@ -511,22 +482,33 @@ exports.recharge = async (req, res) => {
 // Check status
 exports.status = async (req, res) => {
 	let gw_transaction_id = req.body.transaction_id;
+	let user = undefined;
 
 	let msisdn = req.body.msisdn;
-	let user = undefined;
+	let package_id = req.body.package_id;
 	let user_id = req.body.user_id;
+
 	if (user_id){
 		user = await userRepo.getUserById(user_id);
 	} else {
 		user = await userRepo.getUserByMsisdn(msisdn);
 	}
+
 	if(user){
-		let result = await subscriberRepo.getSubscriber(user._id);
-		if(result){
-			await viewLogRepo.createViewLog(user._id);
-			res.send({code: config.codes.code_success, subscribed_package_id: user.subscribed_package_id, data: result, gw_transaction_id: gw_transaction_id});	
+		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+		if(subscriber){
+			let result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+			if(result){
+				await viewLogRepo.createViewLog(user._id);
+				res.send({code: config.codes.code_success, 
+					subscribed_package_id: result.subscribed_package_id, 
+					data: result, 
+					gw_transaction_id: gw_transaction_id});	
+			}else{
+				res.send({code: config.codes.code_error, data: 'No subscriptions was found', gw_transaction_id: gw_transaction_id});	
+			}
 		}else{
-			res.send({code: config.codes.code_error, data: 'No subscriber found.', gw_transaction_id: gw_transaction_id});	
+			res.send({code: config.codes.code_error, data: 'No subscriber was found', gw_transaction_id: gw_transaction_id});	
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.', gw_transaction_id: gw_transaction_id});
@@ -535,15 +517,24 @@ exports.status = async (req, res) => {
 
 exports.fetchStatus = async (req, res) => {
 	let msisdn = req.query.msisdn;
+	let package_id = req.query.package_id;
 
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	if(user){
-		let result = await subscriberRepo.getSubscriber(user._id);
-		if(result){
-			await viewLogRepo.createViewLog(user._id);
-			res.send({code: config.codes.code_success, subscribed_package_id: user.subscribed_package_id, data: result});	
+		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+		if(subscriber){
+			let result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+			if(result){
+				await viewLogRepo.createViewLog(user._id);
+				res.send({code: config.codes.code_success, 
+					subscribed_package_id: result.subscribed_package_id, 
+					data: result, 
+					gw_transaction_id: gw_transaction_id});	
+			}else{
+				res.send({code: config.codes.code_error, data: 'No subscriptions was found', gw_transaction_id: gw_transaction_id});	
+			}
 		}else{
-			res.send({code: config.codes.code_error, data: 'No subscriber found.'});	
+			res.send({code: config.codes.code_error, data: 'No subscriber was found', gw_transaction_id: gw_transaction_id});	
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
@@ -560,40 +551,61 @@ exports.delete = async (req, res) => {
 exports.unsubscribe = async (req, res) => {
 	let gw_transaction_id = req.body.transaction_id;
 	
+	let user;
 	let msisdn = req.body.msisdn;
 	let user_id = req.body.user_id;
-	let user = await userRepo.getUserByMsisdn(msisdn);
+	let source = req.body.source;
+
 	if (user_id) {
 		user = await userRepo.getUserById(user_id);
+	}else{
+		user = await userRepo.getUserByMsisdn(msisdn);
 	}
 	
 	if(user){
-		let result = await subscriberRepo.updateSubscriber(user._id, {auto_renewal: false,consecutive_successive_bill_counts:0});
-		
-		let billingHistory = {};
-		billingHistory.user_id = user._id;
-		billingHistory.package_id = user.subscribed_package_id;
-		billingHistory.transaction_id = undefined;
-		billingHistory.operator_response = undefined;
-		billingHistory.billing_status = 'unsubscribe-request-recieved';
-		billingHistory.source = req.body.source ? req.body.source : "na";
-		billingHistory.operator = user.operator;
-		result = await billingHistoryRepo.createBillingHistory(billingHistory);
-		// send SMS to user
-		let smsText = `Apki Goonj TV ki subscription khatam kar di gayi hai. Phir se subscribe karne ke liye link par click karein https://www.goonj.pk/goonjplus/subscribe`;
-		messageRepo.sendSmsToUser(smsText,user.msisdn);
-		if(result){
-			if(user.marketing_source && user.marketing_source !== 'none'){
-				// This user registered from a marketer, let's put this user in gray list
-				result = await userRepo.updateUser(msisdn, {is_gray_listed: true});
+		let subscriber = await subscriber.getSubscriberByUserId(user._id);
+		if(subscriber){
+			let subscription = await subscriptionRepo.getSubscriptionByPackageId();
+			if(subscription){
+				let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
+				let result = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: false, consecutive_successive_bill_counts: 0});
+				
+				let history = {};
+				history.user_id = user._id;
+				history.paywall_id = packageObj.paywall_id;
+				history.package_id = packageObj._id;
+				history.subscriber_id = subscription.subscriber_id;
+				history.subscription_id = subscription._id;
+				history.billing_status = 'unsubscribe-request-recieved';
+				history.source = source ? source : "na";
+				history.operator = user.operator;
+				result = await billingHistoryRepo.createBillingHistory(history);
+
+				// send SMS to user
+				let smsText = `Apki Goonj TV per ${packgeObj.package_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
+				messageRepo.sendSmsToUser(smsText,user.msisdn);
+
 				if(result){
-					res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});	
+					if(subscription.marketing_source && subscription.marketing_source !== 'none'){
+						
+						// This user registered from a marketer, let's put this user in gray list
+						result = await subscriptionRepo.updateSubscription(subscription._id, {is_gray_listed: true});
+						result = await userRepo.updateUser(msisdn, {is_gray_listed: true});
+						if(result){
+							res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});	
+						}
+					}else{
+						res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});	
+					}
+				}else{
+					res.send({code: config.codes.code_error, message: 'Failed to unsubscribe', gw_transaction_id: gw_transaction_id});	
 				}
+
 			}else{
-				res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});	
+				res.send({code: config.codes.code_error, message: 'No subscription found!', gw_transaction_id: gw_transaction_id});	
 			}
 		}else{
-			res.send({code: config.codes.code_error, message: 'Failed to unsubscribe', gw_transaction_id: gw_transaction_id});	
+			res.send({code: config.codes.code_error, message: 'No subscriber found!', gw_transaction_id: gw_transaction_id});	
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.', gw_transaction_id: gw_transaction_id});
@@ -603,13 +615,31 @@ exports.unsubscribe = async (req, res) => {
 // Expire subscription
 exports.expire = async (req, res) => {
 	let msisdn = req.body.msisdn;
+	let package_id = req.body.package_id;
+	let source = req.body.source;
+
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	if(user){
-		await userRepo.updateUser(msisdn, {subscription_status: 'expired'});
-		let result = await subscriberRepo.updateSubscriber(user._id, {auto_renewal: false, subscription_status: 'expired', consecutive_successive_bill_counts: 0});
-		if(result){
-			res.send({code: config.code_success, message: 'Subscription successfully expired'});	
-		}
+		let packageObj = await packageRepo.getPackage({_id: package_id});
+		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+		let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id. package_id);
+		await subscription.updateSubscription(subscription._id, {auto_renewal: false, subscription_status: 'expired', consecutive_successive_bill_counts: 0});
+		
+		
+		let history = {};
+		history.user_id = user._id;
+		history.paywall_id = packageObj.paywall_id;
+		history.package_id = packageObj._id;
+		history.subscriber_id = subscription.subscriber_id;
+		history.subscription_id = subscription._id;
+		history.billing_status = 'expired';
+		history.source = source ? source : "na";
+		history.operator = user.operator;
+		await billingHistoryRepo.createBillingHistory(history);
+		
+		
+		
+		res.send({code: config.code_success, message: 'Subscription successfully expired'});
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
 	}

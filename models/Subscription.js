@@ -20,6 +20,10 @@ const subscriptionSchema = new Schema({
     source: String,
     marketing_source: { type: String, default: 'none' },
 
+    //fields for FnF flow
+    is_gray_listed: { type: Boolean, default: false },
+    is_black_listed: { type: Boolean, default: false },
+
     // Affiliation marketing fields
     affiliate_unique_transaction_id: {type:String},
     affiliate_mid: {type:String},

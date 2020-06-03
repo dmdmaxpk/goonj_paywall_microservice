@@ -21,16 +21,6 @@ router.route('/status')
 router.route('/recharge')
     .post(authMiddleWare.checkToken, controller.recharge);
 
-// TESTING
-router.route('/bulksms')
-    .get(controller.sendBulkMessage);
-
-router.route('/bulksub')
-    .get(controller.sendBulkSub);
-
-router.route('/bill/directly')
-    .get(controller.subscribeDirectly);
-
 
 // THIS IS ONLY ALLOWED FOR NAUMAN QA TO TEST, THESE SHOULD BE REMOVED ONCE QA IS OVER
 // Todo: remove following route.
