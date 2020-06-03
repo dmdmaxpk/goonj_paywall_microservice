@@ -193,6 +193,7 @@ exports.verifyOtp = async (req, res) => {
 
 	let msisdn = req.body.msisdn;
 	let otp = req.body.otp;
+	let subscribed_package_id = req.body.package_id;
 	let otpUser = await otpRepo.getOtp(msisdn);
 	
 	if(otpUser){
@@ -204,32 +205,32 @@ exports.verifyOtp = async (req, res) => {
 			// Let's validate this otp
 			if(otpUser.otp === otp){
 				// Otp verified, lets check the user's subscription
-				let verified = await otpRepo.updateOtp(msisdn, {verified: true});
-				if(verified){
-					let user = await userRepo.getUserByMsisdn(msisdn);
-					if(user){
-						let subscriber = await subscriberRepo.getSubscriber(user._id);
-						let token = jwt.sign({user_id: subscriber.user_id,msisdn:msisdn},config.secret,
-							{expiresIn: '3 days'});
-						if(subscriber){
-							// Subscriber is available and having active subscription
-							res.send({
-								code: config.codes.code_otp_validated, data: 'OTP Validated!', 
-								subscriber: subscriber.subscription_status, 
-								is_allowed_to_stream: subscriber.is_allowed_to_stream, 
-								user_id: subscriber.user_id, 
-								subscribed_package_id: user.subscribed_package_id,
-								access_token: token, 
-								gw_transaction_id: gw_transaction_id});
-						}else{
-							res.send({code: config.codes.code_otp_validated, data: 'OTP Validated!', gw_transaction_id: gw_transaction_id});
+
+				let token = jwt.sign({user_id: subscriber.user_id,msisdn:msisdn}, config.secret, {expiresIn: '3 days'});
+				
+				let data = {};
+				data.code = config.codes.code_otp_validated;
+				data.data = 'OTP Validated!';
+				data.access_token = token;
+
+				await otpRepo.updateOtp(msisdn, {verified: true});
+				let user = await userRepo.getUserByMsisdn(msisdn);
+
+				if(user){
+					let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+					if(subscriber && subscribed_package_id){
+						let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, subscribed_package_id);
+						if(subscription){
+							data.subscription_status = subscription.subscription_status;
+							data.is_allowed_to_stream = subscription.is_allowed_to_stream; 
+							data.user_id = user._id;
+							data.subscribed_package_id = subscribed_package_id;
+							data.gw_transaction_id = gw_transaction_id;
+						
 						}
-					}else{
-						res.send({code: config.codes.code_error, data: 'User not found!', gw_transaction_id: gw_transaction_id});
 					}
-				}else{
-					res.send({code: config.codes.code_error, data: 'Failed to validate!', gw_transaction_id: gw_transaction_id});
 				}
+				res.send(data);
 			}else{
 				res.send({code: config.codes.code_otp_not_validated, message: 'OTP mismatch error', gw_transaction_id: gw_transaction_id});
 			}
