@@ -380,7 +380,11 @@ doSubscribe = async(req, res, msisdn, user, gw_transaction_id) => {
 			if (config.is_trial_active) {
 				let nexBilling = new Date();
 				// Add 1 day in next billing timestamp
-				postObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + config.trial_hours);
+				var trial_hours = config.trial_hours;
+				if (req.body.source === "daraz"){
+					trial_hours = 30;
+				}
+				postObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours);
 				postObj.subscription_status = 'trial';
 				postObj.is_allowed_to_stream = true;
 			}
