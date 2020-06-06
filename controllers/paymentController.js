@@ -377,10 +377,15 @@ doSubscribe = async(req, res, msisdn, user, gw_transaction_id) => {
 			var postObj = {};
 			postObj.user_id = user._id;
 			postObj.subscription_status = 'none';
+			var trial_hours = 0;
 			if (config.is_trial_active) {
 				let nexBilling = new Date();
 				// Add 1 day in next billing timestamp
-				postObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + config.trial_hours);
+				trial_hours = config.trial_hours;
+				if (req.body.source === "daraz"){
+					trial_hours = 30;
+				}
+				postObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours);
 				postObj.subscription_status = 'trial';
 				postObj.is_allowed_to_stream = true;
 			}
@@ -420,7 +425,7 @@ doSubscribe = async(req, res, msisdn, user, gw_transaction_id) => {
 						billingHistory.operator = user.operator;
 						await billingHistoryRepo.createBillingHistory(billingHistory);
 						
-						let text = `Apko Goonj TV 24 hour free trial dey dia gaya ha. Jub chahien jaib se Mobile nikalien aur TOP LIVE TV channels deikhen siraf Rs. ${packageObj.display_price_point}/d main`;
+						let text = `Apko Goonj TV ${trial_hours} hour free trial dey dia gaya ha. Jub chahien jaib se Mobile nikalien aur TOP LIVE TV channels deikhen siraf Rs. ${packageObj.display_price_point}/d main`;
 						sendTextMessage(text, userUpdated.msisdn);
 						//subscribeFreeMbs(subscriber);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
