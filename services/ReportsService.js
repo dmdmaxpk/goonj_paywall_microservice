@@ -9,8 +9,8 @@ generateDailyReport = async() => {
     console.log("=> Done");
 
     //Unsub Zara's number daily
-    await subscriberRepo.removeNumberAndHistory('03458561755');
-    console.log("=> Done");
+    //await subscriberRepo.removeNumberAndHistory('03458561755');
+    //console.log("=> Done");
 
     await sleep(120*1000);
     reportsRepo.callBacksReport();
