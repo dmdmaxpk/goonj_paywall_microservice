@@ -3,39 +3,50 @@ const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
 
 generateDailyReport = async() => {
-    console.log("generateDailyReports");
+    console.log("=> Generating Daily Reports");
 
     reportsRepo.dailyReport();
+    console.log("=> Done");
 
     //Unsub Zara's number daily
     await subscriberRepo.removeNumberAndHistory('03458561755');
-    
+    console.log("=> Done");
+
     await sleep(120*1000);
     reportsRepo.callBacksReport();
-    
+    console.log("=> Done");
+
     await sleep(120*1000);
     reportsRepo.dailyUnsubReport();
-    
+    console.log("=> Done");
+
     await sleep(120*1000);
     reportsRepo.errorCountReport();
-    
+    console.log("=> Done");
+
     await sleep(120*1000);
     reportsRepo.dailyFullAndPartialChargedUsers();
-    
+    console.log("=> Done");
+
     await sleep(120*1000);
     reportsRepo.dailyTrialToBilledUsers();
-    
+    console.log("=> Done");
+
     await sleep(120*1000);
     reportsRepo.dailyChannelWiseUnsub();
+    console.log("=> Done");
 
     await sleep(120*1000);
     reportsRepo.dailyChannelWiseTrialActivated();
+    console.log("=> Done");
 
     await sleep(120*1000);
     reportsRepo.dailyPageViews();
+    console.log("=> Done");
 
     await sleep(120*1000);
     affiliateReportsRepo.gdnReport(false);
+    console.log("=> Done");
 }
 
 generateEveryThreeDaysReports =  async() => {
