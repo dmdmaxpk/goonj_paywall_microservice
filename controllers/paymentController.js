@@ -585,7 +585,7 @@ exports.unsubscribe = async (req, res) => {
 				result = await billingHistoryRepo.createBillingHistory(history);
 
 				// send SMS to user
-				let smsText = `Apki Goonj TV per ${packgeObj.package_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
+				let smsText = `Apki Goonj TV per ${packageObj.package_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
 				messageRepo.sendSmsToUser(smsText,user.msisdn);
 
 				if(result){
