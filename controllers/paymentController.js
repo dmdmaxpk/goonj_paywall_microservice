@@ -566,7 +566,7 @@ exports.unsubscribe = async (req, res) => {
 	}
 	
 	if(user){
-		let subscriber = await subscriber.getSubscriberByUserId(user._id);
+		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 		if(subscriber && package_id){
 			let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
 			if(subscription){
