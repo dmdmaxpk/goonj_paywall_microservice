@@ -2,7 +2,6 @@ const container = require("../configurations/container");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const subscriberRepo = container.resolve("subscriberRepository");
 const subscriptionRepo = container.resolve("subscriptionRepository");
-const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const packageRepo = container.resolve("packageRepository");
 const migrationRepo = container.resolve("migrationRepository");
 
