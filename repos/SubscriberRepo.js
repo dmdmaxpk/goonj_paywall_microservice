@@ -14,8 +14,13 @@ class SubscriberRepository {
         return result;
     }
     
-     async getSubscriber(id)  {
+    async getSubscriber(id)  {
         let result = await Subscriber.findOne({_id: id});
+        return result;
+    }
+
+    async getAllSubscribers()  {
+        let result = await Subscriber.find({});
         return result;
     }
     

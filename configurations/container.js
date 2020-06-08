@@ -16,6 +16,7 @@ const PackageRepository = require('../repos/PackageRepo');
 const MessageRepository = require('../repos/MessageRepo');
 const UserRepository = require('../repos/UserRepo');
 const ChargingAttemptRepository = require('../repos/ChargingAttemptRepo');
+const MigrationRepository = require('../repos/MigrationRepository');
 
 container.register({
     // Here we are telling Awilix how to resolve a
@@ -33,6 +34,7 @@ container.register({
     messageRepository: awilix.asClass(MessageRepository).singleton(),
     userRepository: awilix.asClass(UserRepository).singleton(),
     chargingAttemptRepository: awilix.asClass(ChargingAttemptRepository).singleton(),
+    migrationRepository: awilix.asClass(MigrationRepository).singleton()
   });
 
 
