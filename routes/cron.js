@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/cron')
+const controller = require('../controllers/cron');
+const migrationService = require('../services/SubscriberToSubscriptionMigration');
 
 //
 
@@ -40,5 +41,8 @@ router.route('/hourlyBillingReport')
 
 router.route('/markRenewableUsers')
     .get(controller.markRenewableUsers);
+
+router.route('/migrate')
+    .get(migrationService.execute);
 
 module.exports = router;
