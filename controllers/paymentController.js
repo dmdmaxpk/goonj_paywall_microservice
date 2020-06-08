@@ -97,8 +97,7 @@ exports.sendOtp = async (req, res) => {
 			let userObj = {};
 			userObj.msisdn = msisdn;
 			userObj.subscribed_package_id = 'none';
-			userObj.source = req.body.source ? req.body.source : 'unknown';
-			userObj.subscription_status = 'none';
+			userObj.source = req.body.source ? req.body.source : 'na';
 			userObj.operator = "telenor";
 
 			if(req.body.marketing_source){

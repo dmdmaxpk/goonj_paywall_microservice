@@ -7,7 +7,7 @@ const ObjectId = Schema.ObjectId;
 const userSchema = new Schema({
     //Generating shortid instead of uuid
     _id: { type: ShortId, len: 8, retries: 4 },
-    msisdn: { type: String,required:true, unique: true },
+    msisdn: { type: String, required:true, unique: true },
 
     // These fields can be used later in future.
     username: String,
@@ -17,6 +17,7 @@ const userSchema = new Schema({
     preferences: { type: Array, index: true },
     avatar: String,
     dateOfBirth: {type: Date },
+    source: {type: String, default: "na", index: true},
 
     //fields for FnF flow
     is_gray_listed: { type: Boolean, default: false },
