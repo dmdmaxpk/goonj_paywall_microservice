@@ -17,7 +17,6 @@ const subscriptionRepo = container.resolve("subscriptionRepository")
 let jwt = require('jsonwebtoken');
 
 
-
 function sendMessage(otp, msisdn){
 	let message = `Use code ${otp} for Goonj TV`;
 	let messageObj = {};
@@ -497,7 +496,13 @@ exports.status = async (req, res) => {
 	if(user){
 		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 		if(subscriber){
-			let result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+			let result;
+			if(package_id){
+				result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+			}else{
+				result = await subscriptionRepo.getAllSubscriptions(subscriber._id);
+			}
+			
 			if(result){
 				await viewLogRepo.createViewLog(user._id);
 				res.send({code: config.codes.code_success, 
@@ -555,6 +560,7 @@ exports.unsubscribe = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user_id = req.body.user_id;
 	let source = req.body.source;
+	let package_id = req.body.package_id;
 
 	if (user_id) {
 		user = await userRepo.getUserById(user_id);
@@ -565,7 +571,7 @@ exports.unsubscribe = async (req, res) => {
 	if(user){
 		let subscriber = await subscriber.getSubscriberByUserId(user._id);
 		if(subscriber){
-			let subscription = await subscriptionRepo.getSubscriptionByPackageId();
+			let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
 			if(subscription){
 				let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
 				let result = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: false, consecutive_successive_bill_counts: 0});
