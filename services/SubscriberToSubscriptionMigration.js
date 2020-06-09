@@ -6,11 +6,36 @@ const packageRepo = container.resolve("packageRepository");
 const migrationRepo = container.resolve("migrationRepository");
 
 execute = async() => {
-    let subscribers = await subscriberRepo.getAllSubscribers();
+    
+    let skip = 0;
+    let limit = 10000;
+
+
+    let totalCount = await subscriberRepo.getCount();
+    let totalChunks = totalCount / limit;
+    let leftOver = totalCount % limit;
+
+    console.log("Total counts", totalCount, "Total chunks", totalChunks, "Leftover", leftOver);
+
+    for(i = 0; i < totalChunks; i++){
+        console.log("Skipping", skip);
+        let subscribers = await subscriberRepo.getAllSubscribers(limit, skip);
+        process(subscribers);
+        skip+=limit;
+        await sleep(120*1000);
+    }
+
+    console.log("Skipping", skip);
+    let subscribers = await subscriberRepo.getAllSubscribers(leftOver, skip);
+    console.log("Leftover length: ", subscribers.length);
+    process(subscribers);
+}
+
+process = (subscribers) => {
     
     let promises = [];
-    for(i = 0; i < subscribers.length; i++){
-        let promise = createSubscription(subscribers[i]);
+    for(j = 0; j < subscribers.length; j++){
+        let promise = createSubscription(subscribers[j]);
         promises.push(promise);
     }
 
@@ -25,6 +50,7 @@ execute = async() => {
     }
 
     console.log(tryData);
+    console.log("\n\n------------------------------------------------------\n\n");
     console.log(catchData);
 }
 
@@ -91,6 +117,11 @@ createSubscription = (subscriber) => {
             reject(rejectMessage);
         }
     });
+}
+
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = {
