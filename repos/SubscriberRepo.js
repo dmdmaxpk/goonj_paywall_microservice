@@ -133,6 +133,23 @@ class SubscriberRepository {
     async setAsBillableInNextCycle (user_ids)  {
         let result = await Subscriber.updateMany({user_id: {$in :user_ids}},{$set:{is_billable_in_this_cycle: true}});
     }
+
+    async removeByUserIds(userIds=[]){
+        if (userIds.length > 0) {
+            try {
+                await Subscriber.remove({user_id: {$in: userIds}});
+                // userIds.forEach( async (userId) => {
+                //     await Subscriber.remove({user_id:  userId}});
+                //     console.log(`Subscriber with user Id ${userId} removed from db`);
+                // });
+                return true;
+            } catch (err) {
+                throw err;
+            }
+        } else {
+            return null;
+        }
+    }
 }
 
 module.exports = SubscriberRepository;

@@ -181,6 +181,59 @@ class UserRepository {
             console.error(err);
         }
     }
+
+    async getDuplicatedMsisdnUsers(){
+        let users = await User.aggregate([{
+            $group: {
+              _id: "$msisdn",count:{$sum: 1}
+            }
+          }, {
+            $match:{count:{$gte: 2}}
+          },{
+            $lookup:  {
+                 from: "users",
+                 let: { msisdn: "$_id" },
+                 pipeline: [ {$match: { $expr: {$and: [ { $eq : ["$msisdn", "$$msisdn"] },{$or: [{ $eq : ["$subscription_status", "trial"] },{ $eq : ["$subscription_status", "none"] }]}  ] }  }} ],
+                 as: "users"
+               }
+          },{
+              $unwind: "$users"
+          }, {
+              $project: {
+                user_id: "$users._id"
+              }
+          },{
+              /**
+               * _id: The id of the group.
+               * fieldN: The first field name.
+               */
+              $group: {
+                _id: null,
+                count: {
+                  $sum: 1
+                },
+              ids : { "$addToSet" : "$user_id" } 
+              }
+          }]);
+        return users;
+    }
+
+    async removeByIds(Ids=[]){
+        if (Ids.length > 0) {
+            try {
+                await User.remove({_id: {$in:Ids}});
+                // Ids.forEach( async (id) => {
+                //     await User.remove({_id: id});
+                //     console.log(`user with id ${id} removed`);
+                // })
+                return true;
+            } catch (err) {
+                throw err;
+            }
+        } else {
+            return null;
+        }
+    }
 }
 
 module.exports = UserRepository;

@@ -34,6 +34,11 @@ var tpsCountRepo = container.resolve("tpsCountRepository");
 var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
 let tokenRepo = require('./repos/ApiTokenRepo');
 
+
+// let remvDupMsObj = container.resolve("removeDuplicateMsisdns");
+// remvDupMsObj.removeDuplicateMsisdns();
+
+
 const app = express();
 
 function skipLog (req, res) {
