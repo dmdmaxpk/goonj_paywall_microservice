@@ -9,6 +9,8 @@ const subscriptionSchema = new Schema({
     _id: { type: ShortId, len: 8, retries: 4 },
 
     subscriber_id: {type: ShortId, required: true},
+    subscribed_package_id: {type: ShortId, required: true},
+    
     subscription_status: String,  // => billed/not_billed/expired/graced/trial
     last_billing_timestamp: Date,
     next_billing_timestamp: Date,
@@ -40,7 +42,6 @@ const subscriptionSchema = new Schema({
     is_billable_in_this_cycle: { type: Boolean, default: false },
     date_on_which_user_entered_grace_period: {type: Date},
 
-    subscribed_package_id: {type: ShortId, required: true},
     amount_billed_today: {type: Number, default: 0},
     is_manual_recharge: { type: Boolean, default: false },
     active: { type: Boolean, default: true, index: true }
