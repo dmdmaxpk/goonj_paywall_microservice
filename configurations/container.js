@@ -18,6 +18,7 @@ const UserRepository = require('../repos/UserRepo');
 const ChargingAttemptRepository = require('../repos/ChargingAttemptRepo');
 const PaywallRepository = require('../repos/PaywallRepo');
 const PaywallService = require('../services/PaywallService');
+const MigrationRepository = require('../repos/MigrationRepository');
 
 container.register({
     // Here we are telling Awilix how to resolve a
@@ -36,7 +37,8 @@ container.register({
     paywallRepository: awilix.asClass(PaywallRepository).singleton(),
     userRepository: awilix.asClass(UserRepository).singleton(),
     chargingAttemptRepository: awilix.asClass(ChargingAttemptRepository).singleton(),
-    paywallService: awilix.asClass(PaywallService).singleton()
+    paywallService: awilix.asClass(PaywallService).singleton(),
+    migrationRepository: awilix.asClass(MigrationRepository).singleton()
   });
 
 module.exports = container;  

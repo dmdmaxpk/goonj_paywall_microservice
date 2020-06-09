@@ -17,7 +17,6 @@ const subscriptionRepo = container.resolve("subscriptionRepository")
 let jwt = require('jsonwebtoken');
 
 
-
 function sendMessage(otp, msisdn){
 	let message = `Use code ${otp} for Goonj TV`;
 	let messageObj = {};
@@ -98,14 +97,9 @@ exports.sendOtp = async (req, res) => {
 			let userObj = {};
 			userObj.msisdn = msisdn;
 			userObj.subscribed_package_id = 'none';
-			userObj.source = req.body.source ? req.body.source : 'unknown';
-			userObj.subscription_status = 'none';
+			userObj.source = req.body.source ? req.body.source : 'na';
 			userObj.operator = "telenor";
 
-			if(req.body.marketing_source){
-				userObj.marketing_source = req.body.marketing_source;
-			}
-	
 			try {
 				user = await userRepo.createUser(userObj);
 				console.log('Payment - OTP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
@@ -262,6 +256,7 @@ exports.subscribe = async (req, res) => {
 			let userObj = {};
 			userObj.msisdn = msisdn;
 			userObj.operator = "telenor";
+			userObj.source = req.body.source ? req.body.source : "na";
 
 			try {
 				user = await userRepo.createUser(userObj);
@@ -448,31 +443,32 @@ exports.recharge = async (req, res) => {
 	let package_id = req.body.package_id;
 	let source = req.body.source;
 	
-	let user = await userRepo.getUserById(user_id);
+	let user;
+	if(user_id){
+		user = await userRepo.getUserById(user_id);
+	}else if(msisdn){
+		user = await userRepo.getUserByMsisdn(msisdn);
+	}
+
 	if(user){
-		if(user.msisdn === msisdn){
-			// Supposing, this is verified user
-			let subscriber = await subscriber.getSubscriberByUserId(user._id);
-			let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
-			if(subscription && subscription.subscription_status === 'graced'){
-				if(subscription.is_billable_in_this_cycle === true){
-					res.send({code: config.codes.code_in_billing_queue, message: 'Already in billing process!', gw_transaction_id: gw_transaction_id});
-				}else{
-					// try charge attempt
-					let packageObj = await packageRepo.getPackage({_id: package_id});
-					if(packageObj){
-						await subscriptionRepo.updateSubscription(subscription._id, {consecutive_successive_bill_counts: 0, is_manual_recharge: true});
-						subscribePackage(subscription, packageObj);
-						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
-					}else{
-						res.send({code: config.codes.code_error, message: 'No subscribed package found!', gw_transaction_id: gw_transaction_id});
-					}
-				}
+		let subscriber = await subscriber.getSubscriberByUserId(user._id);
+		let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+		if(subscription && subscription.subscription_status === 'graced'){
+			if(subscription.is_billable_in_this_cycle === true){
+				res.send({code: config.codes.code_in_billing_queue, message: 'Already in billing process!', gw_transaction_id: gw_transaction_id});
 			}else{
-				res.send({code: config.codes.code_error, message: 'Something went wrong!', gw_transaction_id: gw_transaction_id});
+				// try charge attempt
+				let packageObj = await packageRepo.getPackage({_id: package_id});
+				if(packageObj){
+					await subscriptionRepo.updateSubscription(subscription._id, {consecutive_successive_bill_counts: 0, is_manual_recharge: true});
+					subscribePackage(subscription, packageObj);
+					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+				}else{
+					res.send({code: config.codes.code_error, message: 'No subscribed package found!', gw_transaction_id: gw_transaction_id});
+				}
 			}
 		}else{
-			res.send({code: config.codes.code_error, message: 'User verification failed!', gw_transaction_id: gw_transaction_id});
+			res.send({code: config.codes.code_error, message: 'Something went wrong!', gw_transaction_id: gw_transaction_id});
 		}	
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid data provided.', gw_transaction_id: gw_transaction_id});
@@ -497,7 +493,13 @@ exports.status = async (req, res) => {
 	if(user){
 		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 		if(subscriber){
-			let result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+			let result;
+			if(package_id){
+				result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+			}else{
+				result = await subscriptionRepo.getAllSubscriptions(subscriber._id);
+			}
+			
 			if(result){
 				await viewLogRepo.createViewLog(user._id);
 				res.send({code: config.codes.code_success, 
@@ -555,6 +557,7 @@ exports.unsubscribe = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user_id = req.body.user_id;
 	let source = req.body.source;
+	let package_id = req.body.package_id;
 
 	if (user_id) {
 		user = await userRepo.getUserById(user_id);
@@ -563,9 +566,9 @@ exports.unsubscribe = async (req, res) => {
 	}
 	
 	if(user){
-		let subscriber = await subscriber.getSubscriberByUserId(user._id);
-		if(subscriber){
-			let subscription = await subscriptionRepo.getSubscriptionByPackageId();
+		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+		if(subscriber && package_id){
+			let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
 			if(subscription){
 				let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
 				let result = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: false, consecutive_successive_bill_counts: 0});
@@ -582,7 +585,7 @@ exports.unsubscribe = async (req, res) => {
 				result = await billingHistoryRepo.createBillingHistory(history);
 
 				// send SMS to user
-				let smsText = `Apki Goonj TV per ${packgeObj.package_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
+				let smsText = `Apki Goonj TV per ${packageObj.package_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
 				messageRepo.sendSmsToUser(smsText,user.msisdn);
 
 				if(result){
@@ -605,7 +608,7 @@ exports.unsubscribe = async (req, res) => {
 				res.send({code: config.codes.code_error, message: 'No subscription found!', gw_transaction_id: gw_transaction_id});	
 			}
 		}else{
-			res.send({code: config.codes.code_error, message: 'No subscriber found!', gw_transaction_id: gw_transaction_id});	
+			res.send({code: config.codes.code_error, message: 'No subscriber found or package detail is missing!', gw_transaction_id: gw_transaction_id});	
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.', gw_transaction_id: gw_transaction_id});

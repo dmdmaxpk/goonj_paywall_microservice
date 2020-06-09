@@ -16,6 +16,7 @@ require('./models/BlockedUsers');
 require('./models/ChargingAttempt');
 require('./models/Paywall');
 require('./models/Subscription');
+require('./models/Migration');
 const config = require('./config');
 const swStats = require('swagger-stats');
 const container = require('./configurations/container');

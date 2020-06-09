@@ -14,9 +14,18 @@ class SubscriberRepository {
         return result;
     }
     
-     async getSubscriber(id)  {
+    async getSubscriber(id)  {
         let result = await Subscriber.findOne({_id: id});
         return result;
+    }
+
+    async getAllSubscribers(limit, skip)  {
+        let result = await Subscriber.find({}).limit(limit).skip(skip);
+        return result;
+    }
+
+    async getCount()  {
+        return await Subscriber.countDocuments({});
     }
     
     async getSubscriberByUserId (user_id) {

@@ -7,9 +7,16 @@ class SubscriptionRepository {
     }
 
     async createSubscription (postData)  {
-        let subscription = new Subscription(postData);
-        let result = await subscription.save();
-        return result;
+        let result = await this.getSubscriptionByPackageId(postData.subscriber_id, postData.subscribed_package_id);
+        if(result){
+            let data = "Already exist subscription record with subscriber id "+ postData.subscriber_id +" having package id "+ postData.subscribed_package_id;
+            console.log(data);
+            throw Error(data);
+        }else{
+            let subscription = new Subscription(postData);
+            result = await subscription.save();
+            return result;
+        }
     }
     
     async getSubscription (subscription_id)  {
