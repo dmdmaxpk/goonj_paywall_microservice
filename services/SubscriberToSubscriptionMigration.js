@@ -31,7 +31,7 @@ execute = async() => {
     process(subscribers);
 }
 
-process = (subscribers) => {
+process = async(subscribers) => {
     
     let promises = [];
     for(j = 0; j < subscribers.length; j++){
