@@ -20,7 +20,7 @@ execute = async() => {
     for(i = 0; i < totalChunks; i++){
         console.log("Skipping", skip);
         let subscribers = await subscriberRepo.getAllSubscribers(limit, skip);
-        process(subscribers);
+        processSubscribers(subscribers);
         skip+=limit;
         await sleep(120*1000);
     }
@@ -31,7 +31,7 @@ execute = async() => {
     process(subscribers);
 }
 
-process = async(subscribers) => {
+processSubscribers = async(subscribers) => {
     
     let promises = [];
     for(j = 0; j < subscribers.length; j++){
