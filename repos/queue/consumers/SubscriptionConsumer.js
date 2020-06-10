@@ -588,6 +588,7 @@ class SubscriptionConsumer {
     }
     
     sendMessage(subscription, msisdn, packageName, price, is_manual_recharge) {
+        console.log("Send Message",subscription,msisdn,packageName,price,is_manual_recharge);
         if(subscription.consecutive_successive_bill_counts === 1){
             // For the first time or every week of consecutive billing
     
