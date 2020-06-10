@@ -345,7 +345,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 			}
 		}else {
 			// Pass subscription through following checks before pushing into queue
-			await viewLogRepo.createViewLog(user._id);
+			await viewLogRepo.createViewLog(user._id, subscription._id);
 
 			if(subscription.queued === false){
 				let history = {};
@@ -501,7 +501,7 @@ exports.status = async (req, res) => {
 			}
 			
 			if(result){
-				await viewLogRepo.createViewLog(user._id);
+				await viewLogRepo.createViewLog(user._id, );
 				res.send({code: config.codes.code_success, 
 					subscribed_package_id: result.subscribed_package_id, 
 					data: result, 
