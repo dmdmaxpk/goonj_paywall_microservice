@@ -594,13 +594,13 @@ class SubscriptionConsumer {
     
             //Send acknowldement to user
             let link = 'https://www.goonj.pk/live';
-            let message = 'Ap Pakistan ki best Live TV service istamal kar rahey hain. Service deikhnay k liye click karein.\n'+link ;
+            let message = `Ap Pakistan ki best ${packageName} service istamal kar rahey hain. Service deikhnay k liye click karein.\n`+link ;
             this.messageRepo.sendSmsToUser(message, msisdn);
         }else if(subscription.consecutive_successive_bill_counts % 7 === 0){
             // Every week
             //Send acknowledgement to user
             if (is_manual_recharge){
-                let message = "You have been successfully subscribed for Goonj TV.Rs.5 has been deducted from your credit. Stay safe and keep watching Goonj TV";
+                let message = `You have been successfully subscribed for Goonj TV.Rs.${price} has been deducted from your credit. Stay safe and keep watching Goonj TV`;
                 this.messageRepo.sendSmsToUser(message, msisdn);
             } else {
                 let link = 'https://www.goonj.pk/live';
