@@ -4,6 +4,7 @@ const userRepo = container.resolve("userRepository");
 const config = require('../config');
 const shortId = require('shortid');
 const subscriptionRepo = container.resolve("subscriptionRepository");
+const packageRepo = container.resolve("packageRepository");
 const moment = require('moment');
 
 
@@ -58,6 +59,7 @@ expire = async(subscription) => {
         micro_price_point: 0
     });
 
+    let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
     let user = await userRepo.getUserBySubscriptionId(subscription._id);
 
     let history = {};
@@ -65,6 +67,7 @@ expire = async(subscription) => {
     history.subscriber_id = subscription.subscriber_id;
     history.subscription_id = subscription._id;
     history.package_id = subscription.subscribed_package_id;
+    history.paywall_id = packageObj.paywall_id;
     history.transaction_id = undefined;
     history.operator_response = undefined;
     history.billing_status = 'expired';
