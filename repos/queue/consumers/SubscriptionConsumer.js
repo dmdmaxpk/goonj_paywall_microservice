@@ -364,6 +364,7 @@ class SubscriptionConsumer {
             let nowDate = moment();
             let timeInGrace = moment.duration(nowDate.diff(subscription.date_on_which_user_entered_grace_period));
             let hoursSpentInGracePeriod = timeInGrace.asHours();
+            console.log("hoursSpentInGracePeriod",hoursSpentInGracePeriod);
     
             if (is_manual_recharge){
                 let message = "You have insufficient amount for Goonj TV subscription. Please recharge your account for watching Live channels on Goonj TV. Stay Safe";
@@ -385,10 +386,12 @@ class SubscriptionConsumer {
                 subscriptionObj.try_micro_charge_in_next_cycle = false;
                 subscriptionObj.micro_price_point = 0;
 
-            }else if(packageObj.is_micro_charge_allowed && hoursSpentInGracePeriod > 8 && hoursSpentInGracePeriod <= 24){
+            }else if(packageObj.is_micro_charge_allowed === true && hoursSpentInGracePeriod > 8 && hoursSpentInGracePeriod <= 24){
+                console.log("Micro Charging Activated for: ",subscription._id);
                 subscriptionObj.subscription_status = 'graced';
                 historyStatus = "graced";
-                await this.activateMicroCharging(subscription, packageObj, subscriptionObj);
+                subscriptionObj = this.activateMicroCharging(subscription, packageObj, subscriptionObj);
+                console.log("Micro Charging Activated Subscription Object Returned:",subscriptionObj);
             }else{
                 let nextBillingDate = new Date();
                 nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
@@ -446,28 +449,30 @@ class SubscriptionConsumer {
     }
 
     // Activate micro charging
-    async activateMicroCharging(subscription, packageObj, subscriptionObj){
+     activateMicroCharging(subscription, packageObj, subscriptionObj){
+        console.log("activateMicroCharging",activateMicroCharging)
         let micro_price_points = packageObj.micro_price_points;
         let current_micro_price_point = subscription.micro_price_point;
-
+        let tempSubObj  = JSON.parse(JSON.stringify(subscriptionObj));
         if(current_micro_price_point > 0){
             // It means micro charging attempt had already been tried and was unsuccessful, lets hit on lower price
             let index = micro_price_points.indexOf(current_micro_price_point);
             if(index > 0){
-                subscriptionObj.try_micro_charge_in_next_cycle = true;
-                subscriptionObj.micro_price_point = micro_price_points[index--];
+                tempSubObj.try_micro_charge_in_next_cycle = true;
+                tempSubObj.micro_price_point = micro_price_points[index--];
             }else if(index === -1){
-                subscriptionObj.try_micro_charge_in_next_cycle = true;
-                subscriptionObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
+                tempSubObj.try_micro_charge_in_next_cycle = true;
+                tempSubObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
             }else{
-                subscriptionObj.try_micro_charge_in_next_cycle = false;
-                subscriptionObj.micro_price_point = 0;
+                tempSubObj.try_micro_charge_in_next_cycle = false;
+                tempSubObj.micro_price_point = 0;
             }
         }else{
             // It means micro tying first micro charge attempt
-            subscriptionObj.try_micro_charge_in_next_cycle = true;
-            subscriptionObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
+            tempSubObj.try_micro_charge_in_next_cycle = true;
+            tempSubObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
         }
+        return tempSubObj;
     }
     
     // ADD BILLING HISTORY
