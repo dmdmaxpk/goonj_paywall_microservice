@@ -356,7 +356,7 @@ class SubscriptionConsumer {
     
             //Send acknowldement to user
             let link = 'https://www.goonj.pk/goonjplus/open';
-            let message = "You've been awarded a grace period of "+currentPackage.package_duration+" hours. Click below link to open Goonj.\n"+link
+            let message = "You've been awarded a grace period of "+packageObj.streamable_grace_hours+" hours. Click below link to open Goonj.\n"+link
             this.messageRepo.sendSmsToUser(message, user.msisdn);
 
         }else if(subscription.subscription_status === 'graced' && subscription.auto_renewal === true){

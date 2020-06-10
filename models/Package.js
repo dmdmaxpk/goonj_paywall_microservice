@@ -15,6 +15,7 @@ const packageSchema = new Schema({
     partner_id: String,
 
     is_grace_allowed: {type: Boolean, default: true },
+    streamable_grace_hours: {type: Number, default: 24 },
     grace_hours: {type: Number, default: 1440 },
 
     is_trial_allowed: {type: Boolean, default: true },
