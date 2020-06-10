@@ -385,29 +385,11 @@ class SubscriptionConsumer {
                 
                 subscriptionObj.try_micro_charge_in_next_cycle = false;
                 subscriptionObj.micro_price_point = 0;
-            }else if(hoursSpentInGracePeriod > 8 && hoursSpentInGracePeriod <= 24){
-                historyStatus = "graced";
-                let micro_price_points = packageObj.micro_price_points;
-                let current_micro_price_point = subscription.micro_price_point;
 
-                if(current_micro_price_point > 0){
-                    // It means micro charging attempt had already been tried and was unsuccessful, lets hit on lower price
-                    let index = micro_price_points.indexOf(current_micro_price_point);
-                    if(index > 0){
-                        subscriptionObj.try_micro_charge_in_next_cycle = true;
-                        subscriptionObj.micro_price_point = micro_price_points[index--];
-                    }else if(index === -1){
-                        subscriptionObj.try_micro_charge_in_next_cycle = true;
-                        subscriptionObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
-                    }else{
-                        subscriptionObj.try_micro_charge_in_next_cycle = false;
-                        subscriptionObj.micro_price_point = 0;
-                    }
-                }else{
-                    // It means micro tying first micro charge attempt
-                    subscriptionObj.try_micro_charge_in_next_cycle = true;
-                    subscriptionObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
-                }
+            }else if(packageObj.is_micro_charge_allowed && hoursSpentInGracePeriod > 8 && hoursSpentInGracePeriod <= 24){
+                subscriptionObj.subscription_status = 'graced';
+                historyStatus = "graced";
+                await this.activateMicroCharging(subscription, packageObj, subscriptionObj);
             }else{
                 let nextBillingDate = new Date();
                 nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
@@ -461,6 +443,31 @@ class SubscriptionConsumer {
         history.package_id = subscription.subscribed_package_id;
         history.operator = 'telenor';
         await this.addHistory(history);
+    }
+
+    // Activate micro charging
+    async activateMicroCharging(subscription, packageObj, subscriptionObj){
+        let micro_price_points = packageObj.micro_price_points;
+        let current_micro_price_point = subscription.micro_price_point;
+
+        if(current_micro_price_point > 0){
+            // It means micro charging attempt had already been tried and was unsuccessful, lets hit on lower price
+            let index = micro_price_points.indexOf(current_micro_price_point);
+            if(index > 0){
+                subscriptionObj.try_micro_charge_in_next_cycle = true;
+                subscriptionObj.micro_price_point = micro_price_points[index--];
+            }else if(index === -1){
+                subscriptionObj.try_micro_charge_in_next_cycle = true;
+                subscriptionObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
+            }else{
+                subscriptionObj.try_micro_charge_in_next_cycle = false;
+                subscriptionObj.micro_price_point = 0;
+            }
+        }else{
+            // It means micro tying first micro charge attempt
+            subscriptionObj.try_micro_charge_in_next_cycle = true;
+            subscriptionObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
+        }
     }
     
     // ADD BILLING HISTORY
