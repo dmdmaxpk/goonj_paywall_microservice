@@ -1,15 +1,10 @@
 const container = require("../configurations/container");
-const CronJob = require('cron').CronJob;
-const subsriberRepo = container.resolve("subscriberRepository");
-const packageRepo = container.resolve("packageRepository");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const userRepo = container.resolve("userRepository");
 const config = require('../config');
 const shortId = require('shortid');
-const chargeAttemptRepo = container.resolve("chargingAttemptRepository");
-const moment = require('moment');
-
 const subscriptionRepo = container.resolve("subscriptionRepository");
+const moment = require('moment');
 
 
 subscriptionRenewal = async() => {
@@ -54,42 +49,42 @@ getPromise =  async(subscription) => {
 
 // Expire users
 expire = async(subscription) => {
-    await subscriptionRepo.updateSubscription(subscription._id, {subscription_status: 'expired', is_allowed_to_stream:false, is_billable_in_this_cycle:false, consecutive_successive_bill_counts: 0});
+    await subscriptionRepo.updateSubscription(subscription._id, {
+        subscription_status: 'expired', 
+        is_allowed_to_stream:false, 
+        is_billable_in_this_cycle:false, 
+        consecutive_successive_bill_counts: 0,
+        try_micro_charge_in_next_cycle: false,
+        micro_price_point: 0
+    });
+
     let user = await userRepo.getUserBySubscriptionId(subscription._id);
 
     let history = {};
     history.user_id = user._id;
     history.subscriber_id = subscription.subscriber_id;
     history.subscription_id = subscription._id;
-    history.package_id = user.subscribed_package_id;
+    history.package_id = subscription.subscribed_package_id;
     history.transaction_id = undefined;
     history.operator_response = undefined;
     history.billing_status = 'expired';
     history.source = 'system';
     history.operator = 'telenor';
 
-    let attempt = await chargeAttemptRepo.getAttempt(subscription._id);
-    if(attempt && attempt.active === true){
-        await chargeAttemptRepo.updateAttempt(subscription._id, {active: false});
-    }
     await billingHistoryRepo.createBillingHistory(history);
 }
 
 renewSubscription = async(subscription) => {
-    
-    let chargeAttempt = await chargeAttemptRepo.getAttempt(subscription._id);
     
     let transactionId;
     
     let subscriptionObj = {};
     subscriptionObj.subscription = subscription;
     
-    if(chargeAttempt && chargeAttempt.queued === false && chargeAttempt.active === true && chargeAttempt.number_of_attempts_today >= 2){
-        await chargeAttemptRepo.queue(subscription._id);
-        transactionId = "GoonjMicroCharge_" + subscription._id + "_Price_" + chargeAttempt.price_to_charge + "_" + shortId.generate() + "_" + getCurrentDate();
-        subscriptionObj.attemp_id = chargeAttempt._id;
+    if(subscription.try_micro_charge_in_next_cycle === true && subscription.micro_price_point > 0){
+        transactionId = "GoonjMicroCharge_" + subscription._id + "_Price_" + subscription.micro_price_point + "_" + shortId.generate() + "_" + getCurrentDate();
         subscriptionObj.micro_charge = true;
-        subscriptionObj.micro_price = chargeAttempt.price_to_charge;
+        subscriptionObj.micro_price = subscription.micro_price_point;
     }else{
         if (subscription.is_discounted === true && subscription.discounted_price){ 
             subscriptionObj.discount = true;

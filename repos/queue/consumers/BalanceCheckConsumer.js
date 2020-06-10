@@ -102,7 +102,7 @@ microChargingAttempt = async (subscriber) => {
             await historyRepo.createBillingHistory(billlHistory);
             reject(err);
         });
-    })
+    });
 	
 }
 
