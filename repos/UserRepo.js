@@ -8,7 +8,7 @@ User.on('index', function(err) {
     } else {
         console.info('User indexing complete');
     }
-}
+});
 
 class UserRepository {
     constructor({subscriberRepository,subscriptionRepository}){
