@@ -1,6 +1,6 @@
 const container = require("../configurations/container");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
-const userRepo = container.resolve("userRepository");subscriptionRepository
+const userRepo = container.resolve("userRepository");
 const subscriptionRepo = container.resolve("subscriptionRepository");
 
 checkForUngrayListUsers = async() => {
