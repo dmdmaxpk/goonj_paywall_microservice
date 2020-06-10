@@ -408,9 +408,8 @@ class SubscriptionConsumer {
                 } else {
                     hours = hoursSpentInGracePeriod;
                 }
-                hours = Math.round(hours);
                 console.log("Hours since last payment", hours);
-                if (hours > 24 && subscriptionObj.is_allowed_to_stream === true) {
+                if (hours > 24 && subscription.is_allowed_to_stream === true) {
                     // Stop the stream
                     subscriptionObj.is_allowed_to_stream = false;
                     historyStatus = "graced_and_stream_stopped";
@@ -432,7 +431,7 @@ class SubscriptionConsumer {
     
         subscriptionObj.is_billable_in_this_cycle = false;
         await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
-        
+
         if(historyStatus){
             let history = {};
             history.billing_status = historyStatus;
