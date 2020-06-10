@@ -6,6 +6,7 @@ const subscriberRepo = container.resolve("subscriberRepository");
 const packageRepo = container.resolve("packageRepository");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const viewLogRepo = require('../repos/ViewLogRepo');
+const paywallRepo = container.resolve("paywallRepository");
 
 const shortId = require('shortid');
 const axios = require('axios');
@@ -483,6 +484,7 @@ exports.status = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let package_id = req.body.package_id;
 	let user_id = req.body.user_id;
+	let paywall_id = req.body.paywall_id;
 
 	if (user_id){
 		user = await userRepo.getUserById(user_id);
@@ -496,12 +498,10 @@ exports.status = async (req, res) => {
 			let result;
 			if(package_id){
 				result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
-			}else{
-				result = await subscriptionRepo.getAllSubscriptions(subscriber._id);
 			}
 			
 			if(result){
-				await viewLogRepo.createViewLog(user._id);
+				await viewLogRepo.createViewLog(user._id,result._id);
 				res.send({code: config.codes.code_success, 
 					subscribed_package_id: result.subscribed_package_id, 
 					data: result, 

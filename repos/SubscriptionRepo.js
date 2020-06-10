@@ -144,6 +144,18 @@ class SubscriptionRepository {
     async setAsBillableInNextCycle (subscription_ids)  {
         await Subscription.updateMany({_id: {$in :subscription_ids}},{$set:{is_billable_in_this_cycle: true}});
     }
+
+    async getGrayListSubscriptions(){
+        let results = await Subscription.find({merketing_source: {$ne: 'none'}, subscription_status: 'expired',
+                     is_gray_listed: true});
+        return results;
+    }
+
+    async subscriptionToExpireNonUsage(){
+        let results = await Subscription.find({merketing_source: {$ne: 'none'}, subscription_status: 'expired',
+                     is_gray_listed: true});
+        return results;
+    }
 }
 
 

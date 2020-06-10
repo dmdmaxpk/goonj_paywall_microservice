@@ -18,11 +18,13 @@ class BillingHistoryRepository {
         return result;
     }
     
-    async getUserForUnGray  (user_id)  {
+    async getUserForUnGray  (subscription_id)  {
         let dayToCompare = new Date();
         dayToCompare = dayToCompare.setHours(dayToCompare.getHours() - config.max_graylist_time_in_hrs);
         
-        let records = await BillingHistory.findOne({user_id: user_id, "billing_status": "unsubscribe-request-recieved", "billing_dtm": {$lte: dayToCompare}}, null, {sort: {billing_dtm: -1}});
+        let records = await BillingHistory.findOne({subscription_id: subscription_id,
+            "billing_status": "unsubscribe-request-recieved", "billing_dtm": {$lte: dayToCompare}},
+             null, {sort: {billing_dtm: -1}});
         return records;
     }
     
