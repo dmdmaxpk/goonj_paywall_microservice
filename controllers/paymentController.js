@@ -6,6 +6,7 @@ const subscriberRepo = container.resolve("subscriberRepository");
 const packageRepo = container.resolve("packageRepository");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const viewLogRepo = require('../repos/ViewLogRepo');
+const paywallRepo = container.resolve("paywallRepository");
 
 const shortId = require('shortid');
 const axios = require('axios');
@@ -296,104 +297,108 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 		
 		let newPackageId = req.body.package_id;
 		let packageObj = await packageRepo.getPackage({_id: newPackageId});
-
-		let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, newPackageId);
+		if (packageObj) {
+			let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, newPackageId);
 		
-		if(!subscription){
-			// No subscription available, let's create one
-			let subscriptionObj = {};
-			subscriptionObj.subscriber_id = subscriber._id;
-			subscriptionObj.subscribed_package_id = newPackageId;
-			subscriptionObj.source = req.body.source ?  req.body.source : 'unknown';
+			if(!subscription){
+				// No subscription available, let's create one
+				let subscriptionObj = {};
+				subscriptionObj.subscriber_id = subscriber._id;
+				subscriptionObj.subscribed_package_id = newPackageId;
+				subscriptionObj.source = req.body.source ?  req.body.source : 'unknown';
+	
+				if(req.body.marketing_source){
+					subscriptionObj.marketing_source = req.body.marketing_source;
+				}
+	
+				if(req.body.affiliate_unique_transaction_id && req.body.affiliate_mid){
+					subscriptionObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
+					subscriptionObj.affiliate_mid = req.body.affiliate_mid;
+				}
+	
+				// Check if trial is allowed by the system
+				if (packageObj.is_trial_allowed) {
+					let nexBilling = new Date();
+					subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + packageObj.trial_hours);
+					subscriptionObj.subscription_status = 'trial';
+					subscriptionObj.is_allowed_to_stream = true;
+					subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+	
+					let billingHistory = {};
+					billingHistory.user_id = user._id;
+					billingHistory.subscriber_id = subscriber._id;
+					billingHistory.subscription_id = subscription._id;
+					billingHistory.paywall_id = packageObj.paywall_id;
+					billingHistory.package_id = newPackageId;
+					billingHistory.transaction_id = undefined;
+					billingHistory.operator_response = undefined;
+					billingHistory.billing_status = 'trial';
+					billingHistory.source = req.body.source;
+					billingHistory.operator = "telenor";
+					await billingHistoryRepo.createBillingHistory(billingHistory);
+					await viewLogRepo.createViewLog(user._id, subscription._id);
 
-			if(req.body.marketing_source){
-				subscriptionObj.marketing_source = req.body.marketing_source;
-			}
-
-			if(req.body.affiliate_unique_transaction_id && req.body.affiliate_mid){
-				subscriptionObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
-				subscriptionObj.affiliate_mid = req.body.affiliate_mid;
-			}
-
-			// Check if trial is allowed by the system
-			if (packageObj.is_trial_allowed) {
-				let nexBilling = new Date();
-				subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + packageObj.trial_hours);
-				subscriptionObj.subscription_status = 'trial';
-				subscriptionObj.is_allowed_to_stream = true;
-				subscription = await subscriptionRepo.createSubscription(subscriptionObj);
-
-				let billingHistory = {};
-				billingHistory.user_id = user._id;
-				billingHistory.subscriber_id = subscriber._id;
-				billingHistory.subscription_id = subscription._id;
-				billingHistory.paywall_id = packageObj.paywall_id;
-				billingHistory.package_id = newPackageId;
-				billingHistory.transaction_id = undefined;
-				billingHistory.operator_response = undefined;
-				billingHistory.billing_status = 'trial';
-				billingHistory.source = req.body.source;
-				billingHistory.operator = "telenor";
-				await billingHistoryRepo.createBillingHistory(billingHistory);
-				
-				let text = `Apko Goonj TV ${packageObj.trial_hours} hour free trial dey dia gaya ha. Jub chahien jaib se mobile nikalien aur ${packageObj.package_name} deikhen siraf Rs. ${packageObj.display_price_point}/d main`;
-				sendTextMessage(text, user.msisdn);
-				res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
-			}else{
-				subscribePackage(subscription, packageObj);
-				res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
-			}
-		}else {
-			// Pass subscription through following checks before pushing into queue
-			await viewLogRepo.createViewLog(user._id, subscription._id);
-
-			if(subscription.queued === false){
-				let history = {};
-				history.user_id = user._id;
-				history.subscriber_id = subscriber._id;
-				history.subscription_id = subscription._id;
-
-				if(subscription.subscription_status === 'billed' || subscription.subscription_status === 'trial'){
-					let currentPackageId = subscription.subscribed_package_id;
-					let autoRenewal = subscription.auto_renewal;
-
-					if(currentPackageId === newPackageId){
-						
-						history.source = req.body.source;
-						history.package_id = newPackageId;
-						history.paywall_id = packageObj.paywall_id;
-
-						if(autoRenewal === true){
-							// Already subscribed, no need to subsribed package again
-							history.billing_status = "subscription-request-received-for-the-same-package";
-							await billingHistoryRepo.createBillingHistory(history);
-							res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed', gw_transaction_id: gw_transaction_id});
-						}else{
-							// Same package - just switch on auto renewal so that the user can get charge automatically.
-							let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true});
-							if(updated){
-								history.billing_status = "subscription-request-received-after-unsub";
-								
-								await billingHistoryRepo.createBillingHistory(history);
-								res.send({code: config.codes.code_already_subscribed, message: 'Subscribed', gw_transaction_id: gw_transaction_id});
-							}else{
-								res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
-							}
-						}
-					}
-				} else {
-					/* 
-					* Not already billed
-					* Let's send this item in queue and update package, auto_renewal and 
-					* billing date times once user successfully billed
-					*/
-					subscribePackage(subscription, packageObj)
+					let text = `Apko Goonj TV ${packageObj.trial_hours} hour free trial dey dia gaya ha. Jub chahien jaib se mobile nikalien aur ${packageObj.package_name} deikhen siraf Rs. ${packageObj.display_price_point}/d main`;
+					sendTextMessage(text, user.msisdn);
+					res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+				}else{
+					subscribePackage(subscription, packageObj);
 					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 				}
-			}else{
-				res.send({code: config.codes.code_already_in_queue, message: 'The user is already in queue for processing.', gw_transaction_id: gw_transaction_id});
+			}else {
+				// Pass subscription through following checks before pushing into queue
+				await viewLogRepo.createViewLog(user._id, subscription._id);
+	
+				if(subscription.queued === false){
+					let history = {};
+					history.user_id = user._id;
+					history.subscriber_id = subscriber._id;
+					history.subscription_id = subscription._id;
+	
+					if(subscription.subscription_status === 'billed' || subscription.subscription_status === 'trial'){
+						let currentPackageId = subscription.subscribed_package_id;
+						let autoRenewal = subscription.auto_renewal;
+	
+						if(currentPackageId === newPackageId){
+							
+							history.source = req.body.source;
+							history.package_id = newPackageId;
+							history.paywall_id = packageObj.paywall_id;
+	
+							if(autoRenewal === true){
+								// Already subscribed, no need to subsribed package again
+								history.billing_status = "subscription-request-received-for-the-same-package";
+								await billingHistoryRepo.createBillingHistory(history);
+								res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed', gw_transaction_id: gw_transaction_id});
+							}else{
+								// Same package - just switch on auto renewal so that the user can get charge automatically.
+								let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true});
+								if(updated){
+									history.billing_status = "subscription-request-received-after-unsub";
+									
+									await billingHistoryRepo.createBillingHistory(history);
+									res.send({code: config.codes.code_already_subscribed, message: 'Subscribed', gw_transaction_id: gw_transaction_id});
+								}else{
+									res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
+								}
+							}
+						}
+					} else {
+						/* 
+						* Not already billed
+						* Let's send this item in queue and update package, auto_renewal and 
+						* billing date times once user successfully billed
+						*/
+						subscribePackage(subscription, packageObj)
+						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+					}
+				}else{
+					res.send({code: config.codes.code_already_in_queue, message: 'The user is already in queue for processing.', gw_transaction_id: gw_transaction_id});
+				}
 			}
-		}
+		} else {
+			res.send({code: config.codes.code_error, message: 'Package does not exist', gw_transaction_id: gw_transaction_id});
+		}	
 	}
 	else {
 		res.send({code: config.codes.code_error, message: 'Blocked user', gw_transaction_id: gw_transaction_id});
@@ -483,6 +488,7 @@ exports.status = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let package_id = req.body.package_id;
 	let user_id = req.body.user_id;
+	let paywall_id = req.body.paywall_id;
 
 	if (user_id){
 		user = await userRepo.getUserById(user_id);
@@ -496,12 +502,10 @@ exports.status = async (req, res) => {
 			let result;
 			if(package_id){
 				result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
-			}else{
-				result = await subscriptionRepo.getAllSubscriptions(subscriber._id);
 			}
 			
 			if(result){
-				await viewLogRepo.createViewLog(user._id, );
+				await viewLogRepo.createViewLog(user._id, result._id);
 				res.send({code: config.codes.code_success, 
 					subscribed_package_id: result.subscribed_package_id, 
 					data: result, 
@@ -514,32 +518,6 @@ exports.status = async (req, res) => {
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.', gw_transaction_id: gw_transaction_id});
-	}
-}
-
-exports.fetchStatus = async (req, res) => {
-	let msisdn = req.query.msisdn;
-	let package_id = req.query.package_id;
-
-	let user = await userRepo.getUserByMsisdn(msisdn);
-	if(user){
-		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
-		if(subscriber){
-			let result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
-			if(result){
-				await viewLogRepo.createViewLog(user._id);
-				res.send({code: config.codes.code_success, 
-					subscribed_package_id: result.subscribed_package_id, 
-					data: result, 
-					gw_transaction_id: gw_transaction_id});	
-			}else{
-				res.send({code: config.codes.code_error, data: 'No subscriptions was found', gw_transaction_id: gw_transaction_id});	
-			}
-		}else{
-			res.send({code: config.codes.code_error, data: 'No subscriber was found', gw_transaction_id: gw_transaction_id});	
-		}
-	}else{
-		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
 	}
 }
 

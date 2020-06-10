@@ -21,12 +21,6 @@ router.route('/status')
 router.route('/recharge')
     .post(authMiddleWare.checkToken, controller.recharge);
 
-
-// THIS IS ONLY ALLOWED FOR NAUMAN QA TO TEST, THESE SHOULD BE REMOVED ONCE QA IS OVER
-// Todo: remove following route.
-router.route('/fetchStatus')
-    .get(authMiddleWare.checkToken, controller.fetchStatus);
-
 router.route('/delete')
     .get(authMiddleWare.checkToken, controller.delete);
 

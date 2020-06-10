@@ -20,6 +20,8 @@ const PaywallRepository = require('../repos/PaywallRepo');
 const PaywallService = require('../services/PaywallService');
 const MigrationRepository = require('../repos/MigrationRepository');
 
+const RemoveDuplicateMsisdsScript = require('../scripts/removeDuplicateMsisdns');
+
 container.register({
     // Here we are telling Awilix how to resolve a
     // userController: by instantiating a class.
@@ -38,7 +40,11 @@ container.register({
     userRepository: awilix.asClass(UserRepository).singleton(),
     chargingAttemptRepository: awilix.asClass(ChargingAttemptRepository).singleton(),
     paywallService: awilix.asClass(PaywallService).singleton(),
-    migrationRepository: awilix.asClass(MigrationRepository).singleton()
+    migrationRepository: awilix.asClass(MigrationRepository).singleton(),
+
+
+    //scripts
+    removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdsScript).singleton()
   });
 
 module.exports = container;  
