@@ -140,7 +140,7 @@ class SubscriptionConsumer {
                 }
     
                 // Send acknowledgement message
-                this.sendMessage(subscription, user.msisdn, packageObj.package_name, packageObj.price_point_pkr, is_manual_recharge);
+                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.price_point_pkr, is_manual_recharge);
             }else{
                 // Unsuccess billing. Save tp billing response
                 console.log("Billing failed for subscription id:", subscription._id);
@@ -588,7 +588,7 @@ class SubscriptionConsumer {
     }
     
     sendMessage(subscription, msisdn, packageName, price, is_manual_recharge) {
-        console.log("Send Message",subscription,msisdn,packageName,price,is_manual_recharge);
+        console.log("Send Message",subscription.consecutive_successive_bill_counts,msisdn,packageName,price,is_manual_recharge);
         if(subscription.consecutive_successive_bill_counts === 1){
             // For the first time or every week of consecutive billing
     
