@@ -92,10 +92,10 @@ class SubscriptionConsumer {
         
         let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-        let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
+       
         
         try{
-            
+            let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
             let api_response = response.api_response;
             let message = api_response.data.Message;
     
