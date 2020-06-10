@@ -224,7 +224,7 @@ class SubscriptionConsumer {
                 }
     
                 // Send acknowledgement message
-                this.sendMessage(subscription, user.msisdn, packageObj.package_name, discounted_price, false);
+                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, discounted_price, false);
             }else{
                 // Unsuccess billing. Save tp billing response
                 this.createBillingHistory(subscription, api_response, message ? message : "Failed", transaction_id, false, true, discounted_price, packageObj);
