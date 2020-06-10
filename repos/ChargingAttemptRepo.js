@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 const ChargingAttempt = mongoose.model('ChargingAttempt');
 
 class ChargingAttemptRepository {
-    contructor(){}
-
+    constructor(){}
     async createAttempt (postData)  {
         postData.number_of_total_attempts = 1;
         let attempt = new ChargingAttempt(postData);

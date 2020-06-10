@@ -34,8 +34,12 @@ const subscriptionSchema = new Schema({
     added_dtm: { type: Date, default: Date.now, index: true },
     last_modified: Date,
     queued: { type: Boolean, default: false },
+    
     is_discounted: { type: Boolean, default: false },
     discounted_price: { type: Number, default: 0 },
+
+    try_micro_charge_in_next_cycle: { type: Boolean, default: false },
+    micro_price_point: { type: Number, default: 0 },
     
     //field for billing
     is_allowed_to_stream: { type: Boolean, default: true },
