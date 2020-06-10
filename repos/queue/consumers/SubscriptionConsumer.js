@@ -409,7 +409,7 @@ class SubscriptionConsumer {
                     hours = hoursSpentInGracePeriod;
                 }
                 console.log("Hours since last payment", hours);
-                if (hours > 24 && subscription.is_allowed_to_stream === true) {
+                if (hours > packageObj.streamable_grace_hours && subscription.is_allowed_to_stream === true) {
                     // Stop the stream
                     subscriptionObj.is_allowed_to_stream = false;
                     historyStatus = "graced_and_stream_stopped";
