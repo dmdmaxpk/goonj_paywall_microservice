@@ -449,8 +449,8 @@ class SubscriptionConsumer {
     }
 
     // Activate micro charging
-     activateMicroCharging(subscription, packageObj, subscriptionObj){
-        console.log("activateMicroCharging",activateMicroCharging)
+    activateMicroCharging(subscription, packageObj, subscriptionObj){
+        console.log("activateMicroCharging")
         let micro_price_points = packageObj.micro_price_points;
         let current_micro_price_point = subscription.micro_price_point;
         let tempSubObj  = JSON.parse(JSON.stringify(subscriptionObj));
