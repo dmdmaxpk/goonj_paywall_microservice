@@ -16,6 +16,8 @@ const PackageRepository = require('../repos/PackageRepo');
 const MessageRepository = require('../repos/MessageRepo');
 const UserRepository = require('../repos/UserRepo');
 const ChargingAttemptRepository = require('../repos/ChargingAttemptRepo');
+const PaywallRepository = require('../repos/PaywallRepo');
+const PaywallService = require('../services/PaywallService');
 const MigrationRepository = require('../repos/MigrationRepository');
 
 container.register({
@@ -32,10 +34,11 @@ container.register({
     billingRepository: awilix.asClass(BillingRepository).singleton(),
     packageRepository: awilix.asClass(PackageRepository).singleton(),
     messageRepository: awilix.asClass(MessageRepository).singleton(),
+    paywallRepository: awilix.asClass(PaywallRepository).singleton(),
     userRepository: awilix.asClass(UserRepository).singleton(),
     chargingAttemptRepository: awilix.asClass(ChargingAttemptRepository).singleton(),
+    paywallService: awilix.asClass(PaywallService).singleton(),
     migrationRepository: awilix.asClass(MigrationRepository).singleton()
   });
-
 
 module.exports = container;  
