@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+mongoose.set('debug', true);
 const ShortId = require('mongoose-shortid-nodeps');
 const {Schema} = mongoose;
 const ObjectId = Schema.ObjectId;

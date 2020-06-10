@@ -2,6 +2,14 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const QueueRepo = require("./QueueRepo");
 
+User.on('index', function(err) {
+    if (err) {
+        console.error('User index error: %s', err);
+    } else {
+        console.info('User indexing complete');
+    }
+}
+
 class UserRepository {
     constructor({subscriberRepository,subscriptionRepository}){
         this.subscriberRepo = subscriberRepository;
