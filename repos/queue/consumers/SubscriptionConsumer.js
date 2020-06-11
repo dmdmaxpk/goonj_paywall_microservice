@@ -2,6 +2,7 @@
 const config = require('../../../config');
 const moment = require('moment');
 var nodemailer = require('nodemailer');
+const axios =require("axios");
 
 class SubscriptionConsumer {
 
@@ -579,7 +580,7 @@ class SubscriptionConsumer {
                 await this.addHistory(history);
             }
         })
-        .catch(async function (error) {
+        .catch(async  (error) => {
             console.log(`Affiliate - Marketing - Callback - Error - Having TID - ${tid} - MID ${mid}`, error);
             history.operator_response = error;
             history.billing_status = "Affiliate callback error";
