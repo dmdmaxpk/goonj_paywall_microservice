@@ -77,7 +77,7 @@ class SubscriptionConsumer {
                     }
 
                     history.operator_response = {"message": `Subscription ${subscription._id} has exceeded their billing limit. Email sent.`};
-                    history.billing_status = subscription.subscription_status;
+                    history.billing_status = "billing_exceeded";
                     history.operator = 'telenor';
                     this.addHistory(history);
                 }
