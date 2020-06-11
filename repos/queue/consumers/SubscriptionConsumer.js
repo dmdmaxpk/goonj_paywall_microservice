@@ -25,7 +25,7 @@ class SubscriptionConsumer {
         let subscription = subscriptionObj.subscription;
         let micro_charge = subscriptionObj.micro_charge;
         let discount = subscriptionObj.discount;
-    
+        console.log("micro_charge",micro_charge);
         try {
             
             // Check if the subscription is active or blocked for some reason.
@@ -89,7 +89,7 @@ class SubscriptionConsumer {
     
     // CHARGING ATTEMPTS
     async tryFullChargeAttempt(queueMessage, subscription, transaction_id, is_manual_recharge) {
-        
+        console.log("tryDiscountedChargeAttempt");
         let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
        
@@ -168,6 +168,7 @@ class SubscriptionConsumer {
     }
     
     async tryDiscountedChargeAttempt (queueMessage, subscription, transaction_id, discounted_price) {
+        console.log("tryDiscountedChargeAttempt");
         try{
             let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             if(packageObj.price_point_pkr > discounted_price){
@@ -252,6 +253,7 @@ class SubscriptionConsumer {
     }
     
     async tryMicroChargeAttempt(queueMessage, subscription, transaction_id, micro_price) {
+        console.log("tryMicroChargeAttempt");
         try{
             let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
@@ -262,7 +264,7 @@ class SubscriptionConsumer {
                 let message = api_response.data.message;
         
                 if(message === 'Success'){
-                    
+                    console.log("Micro Chargning success for ",subscription._id," for price ",micro_price);
                     // Save tp billing response
                     this.createBillingHistory(subscription, api_response, message, transaction_id, true, false, micro_price, packageObj);
                     
