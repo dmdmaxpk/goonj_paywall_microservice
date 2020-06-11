@@ -26,6 +26,7 @@ class SubscriptionConsumer {
         let micro_charge = subscriptionObj.micro_charge;
         let discount = subscriptionObj.discount;
         console.log("micro_charge",micro_charge);
+        console.log("subscription",subscription);
         try {
             
             // Check if the subscription is active or blocked for some reason.
@@ -253,7 +254,7 @@ class SubscriptionConsumer {
     }
     
     async tryMicroChargeAttempt(queueMessage, subscription, transaction_id, micro_price) {
-        console.log("tryMicroChargeAttempt");
+        console.log("tryMicroChargeAttempt",micro_price,subscription);
         try{
             let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
@@ -262,7 +263,8 @@ class SubscriptionConsumer {
                 let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
                 let api_response = response.api_response;
                 let message = api_response.data.message;
-        
+                console.log("api_response",api_response);
+                console.log("message",api_response);
                 if(message === 'Success'){
                     console.log("Micro Chargning success for ",subscription._id," for price ",micro_price);
                     // Save tp billing response
@@ -309,13 +311,15 @@ class SubscriptionConsumer {
                     // Send acknowledgement message
                     sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.package_name);
                 }else{
+                    console.log("Unsuccessful billing");
                     // Unsuccess billing. Save tp billing response
                     this.createBillingHistory(subscription, api_response, "graced", transaction_id, true, false, micro_price, packageObj);
                     await this.assignGracePeriod(subscription, user, packageObj, false);
                 }
             }else{
+                //TODO shoot an email
                 this.createBillingHistory(subscription, undefined, "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt", transaction_id, true, false, 0, packageObj);
-                await this.assignGracePeriod(subscription, user, packageObj, false);
+                // await this.assignGracePeriod(subscription, user, packageObj, false);
             }
         }catch(error){
             if (error.response && error.response.data){
