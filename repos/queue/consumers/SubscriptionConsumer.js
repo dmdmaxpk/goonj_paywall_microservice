@@ -57,13 +57,15 @@ class SubscriptionConsumer {
                 }else{
                     console.log("Excessive charging");
                     let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
+                    let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
+
                     await this.subscriptionRepo.markSubscriptionInactive(subscription._id);
-                    this.unQueue(subscription._id);
-                    this.shootExcessiveBillingEmail(subscription._id);
+                    await this.unQueue(subscription._id);
+                    await this.shootExcessiveBillingEmail(subscription._id);
     
                     // Add history
                     let history = {};
-                    history.user_id = subscriptionObj.user_id;
+                    history.user_id = user._id;
                     history.package_id = packageObj._id;
                     history.paywall_id = packageObj.paywall_id;
                     history.subscription_id = subscription._id;
