@@ -169,14 +169,13 @@ class SubscriptionConsumer {
     
     async tryDiscountedChargeAttempt (queueMessage, subscription, transaction_id, discounted_price) {
         console.log("tryDiscountedChargeAttempt");
+        let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
+        let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
         try{
-            let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             if(packageObj.price_point_pkr > discounted_price){
                 packageObj.price_point_pkr = discounted_price;
             }
-    
             let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-            let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
         
             let api_response = response.api_response;
             let message = api_response.data.message;
@@ -253,10 +252,9 @@ class SubscriptionConsumer {
     }
     
     async tryMicroChargeAttempt(queueMessage, subscription, transaction_id, micro_price) {
-        
+        let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
+        let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
         try{
-            let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
-            let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
             
             if(micro_price <= packageObj.price_point_pkr){
                 let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
