@@ -314,7 +314,7 @@ class SubscriptionConsumer {
                     }
         
                     // Send acknowledgement message
-                    sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.package_name);
+                    this.sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.package_name);
                 }else{
                     console.log("Unsuccessful billing");
                     // Unsuccess billing. Save tp billing response
@@ -335,7 +335,7 @@ class SubscriptionConsumer {
             }
     
             // Consider, tps exceeded, noAcknowledge will requeue this record.
-            if (error.response.data.errorCode === "500.007.08"){
+            if (error && error.response && error.response.data.errorCode === "500.007.08"){
                 console.log('Sending back to queue');
                 rabbitMq.noAcknowledge(queueMessage);
             }else {
