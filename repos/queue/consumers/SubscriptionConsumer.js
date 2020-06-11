@@ -447,6 +447,8 @@ class SubscriptionConsumer {
             history.subscriber_id = subscription.subscriber_id;
             history.paywall_id = packageObj.paywall_id;
             history.package_id = subscription.subscribed_package_id;
+            history.micro_charge = subscription.try_micro_charge_in_next_cycle;
+            history.price = (subscription.try_micro_charge_in_next_cycle)?subscription.micro_price_point:0;
             history.operator = 'telenor';
             history.operator_response = error;
             await this.addHistory(history);
