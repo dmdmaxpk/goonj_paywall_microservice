@@ -144,8 +144,7 @@ class SubscriptionConsumer {
             }else{
                 // Unsuccess billing. Save tp billing response
                 console.log("Billing failed for subscription id:", subscription._id);
-                this.createBillingHistory(subscription, api_response.data, "graced", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
-                await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
+                await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,api_response.data);
             }
         }catch(error){
             console.log("Billing failed for subscription id:", subscription._id);
@@ -162,8 +161,8 @@ class SubscriptionConsumer {
                 rabbitMq.noAcknowledge(queueMessage);
             }
     
-            this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
-            await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge);
+            await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error.response.data);
+            // this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, false, false, packageObj.price_point_pkr, packageObj);
         }
     }
     
@@ -227,8 +226,8 @@ class SubscriptionConsumer {
                 this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, discounted_price, false);
             }else{
                 // Unsuccess billing. Save tp billing response
-                this.createBillingHistory(subscription, api_response, "graced", transaction_id, false, true, discounted_price, packageObj);
-                await this.assignGracePeriod(subscription, user, packageObj, false);
+                await this.assignGracePeriod(subscription, user, packageObj, false,api_response.data);
+                // this.createBillingHistory(subscription, api_response.data, "graced", transaction_id, false, true, discounted_price, packageObj);
             }
         }catch(error){
             if (error.response && error.response.data){
@@ -246,8 +245,8 @@ class SubscriptionConsumer {
                 await this.unQueue(subscription._id);
             }
     
-            this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, false, true, discounted_price, packageObj);
-            await this.assignGracePeriod(subscription, user, packageObj, false);
+            await this.assignGracePeriod(subscription, user, packageObj, false,error.response.data);
+            // this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, false, true, discounted_price, packageObj);
         }
     }
     
@@ -308,8 +307,8 @@ class SubscriptionConsumer {
                     this.sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.package_name);
                 }else{
                     // Unsuccess billing. Save tp billing response
-                    this.createBillingHistory(subscription, api_response.data, "graced", transaction_id, true, false, micro_price, packageObj);
-                    await this.assignGracePeriod(subscription, user, packageObj, false);
+                    await this.assignGracePeriod(subscription, user, packageObj, false,api_response.data);
+                    // this.createBillingHistory(subscription, api_response.data, "graced", transaction_id, true, false, micro_price, packageObj);
                 }
             }else{
                 //TODO shoot an email
@@ -332,13 +331,13 @@ class SubscriptionConsumer {
                 await this.unQueue(subscription._id);
             }
     
-            this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, true, false, micro_price, packageObj);
-            await this.assignGracePeriod(subscription, user, packageObj, false);
+            // this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, true, false, micro_price, packageObj);
+            await this.assignGracePeriod(subscription, user, packageObj, false,error.response.data);
         }
     }
     
     // ASSIGN GRACE PERIOD
-    async assignGracePeriod(subscription, user, packageObj, is_manual_recharge) {
+    async assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error) {
     
         let subscriptionObj = {};
         subscriptionObj.queued = false;
@@ -354,7 +353,8 @@ class SubscriptionConsumer {
             subscriptionObj.next_billing_timestamp = nextBillingDate;
             subscriptionObj.date_on_which_user_entered_grace_period = new Date();
             subscriptionObj.is_billable_in_this_cycle = false;
-    
+            
+            historyStatus="graced";
             //Send acknowldement to user
             let link = 'https://www.goonj.pk/goonjplus/open';
             let message = "You've been awarded a grace period of "+packageObj.streamable_grace_hours+" hours. Click below link to open Goonj.\n"+link
@@ -448,6 +448,7 @@ class SubscriptionConsumer {
             history.paywall_id = packageObj.paywall_id;
             history.package_id = subscription.subscribed_package_id;
             history.operator = 'telenor';
+            history.operator_response = error;
             await this.addHistory(history);
         }
     }
