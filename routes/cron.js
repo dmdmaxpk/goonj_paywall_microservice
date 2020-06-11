@@ -38,10 +38,6 @@ router.route('/generateDailyReport')
 router.route('/hourlyBillingReport')
     .get(controller.hourlyBillingReport);
 
-
-router.route('/markRenewableUsers')
-    .get(controller.markRenewableUsers);
-
 router.route('/migrate')
     .get(migrationService.execute);
 

@@ -76,7 +76,7 @@ class SubscriptionConsumer {
                         history.source = source;
                     }
 
-                    history.operator_response = {"message": `User ${subscriptionObj.user_id} has exceeded their billing limit. Email sent.`};
+                    history.operator_response = {"message": `Subscription ${subscription._id} has exceeded their billing limit. Email sent.`};
                     history.billing_status = subscription.subscription_status;
                     history.operator = 'telenor';
                     this.addHistory(history);
