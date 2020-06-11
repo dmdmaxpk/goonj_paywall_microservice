@@ -56,6 +56,7 @@ class SubscriptionConsumer {
                     }  
                 }else{
                     console.log("Excessive charging");
+                    let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
                     await this.subscriptionRepo.markSubscriptionInactive(subscription._id);
                     this.unQueue(subscription._id);
                     this.shootExcessiveBillingEmail(subscription._id);
@@ -63,8 +64,8 @@ class SubscriptionConsumer {
                     // Add history
                     let history = {};
                     history.user_id = subscriptionObj.user_id;
-                    history.package_id = subscriptionObj.packageObj._id;
-                    history.paywall_id = subscriptionObj.packageObj.paywall_id;
+                    history.package_id = packageObj._id;
+                    history.paywall_id = packageObj.paywall_id;
                     history.subscription_id = subscription._id;
                     history.subscriber_id = subscription.subscriber_id;
                     history.transaction_id = subscriptionObj.transaction_id;
@@ -337,7 +338,7 @@ class SubscriptionConsumer {
     }
     
     // ASSIGN GRACE PERIOD
-    async assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error) {
+    async assignGracePeriod(subscription, user, packageObj, is_manual_recharge, error) {
     
         let subscriptionObj = {};
         subscriptionObj.queued = false;
@@ -438,6 +439,7 @@ class SubscriptionConsumer {
         if(!subscription.try_micro_charge_in_next_cycle) {
             subscriptionObj.is_billable_in_this_cycle = false;
         }
+
         await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         if(historyStatus){
             let history = {};
