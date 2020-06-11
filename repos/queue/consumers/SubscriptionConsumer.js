@@ -138,7 +138,8 @@ class SubscriptionConsumer {
                             user._id,
                             subscription._id,
                             subscription.subscriber_id,
-                            packageObj._id
+                            packageObj._id,
+                            packageObj.paywall_id
                             );
                     }
                 }
@@ -221,7 +222,8 @@ class SubscriptionConsumer {
                             user._id,
                             subscription._id,
                             subscription.subscriber_id,
-                            packageObj._id
+                            packageObj._id,
+                            packageObj.paywall_id
                             );
                     }
                 }
@@ -302,7 +304,8 @@ class SubscriptionConsumer {
                                 user._id,
                                 subscription._id,
                                 subscription.subscriber_id,
-                                packageObj._id
+                                packageObj._id,
+                                packageObj.paywall_id
                                 );
                         }
                     }
@@ -559,11 +562,12 @@ class SubscriptionConsumer {
         }   
     }
     
-    async sendAffiliationCallback(tid, mid, user_id, subscription_id, subscriber_id, package_id) {
+    async sendAffiliationCallback(tid, mid, user_id, subscription_id, subscriber_id, package_id, paywall_id) {
         let combinedId = tid + "*" +mid;
     
         let history = {};
         history.user_id = user_id;
+        history.paywall_id = paywall_id;
         history.subscription_id = subscription_id;
         history.subscriber_id = subscriber_id;
         history.package_id = package_id;
