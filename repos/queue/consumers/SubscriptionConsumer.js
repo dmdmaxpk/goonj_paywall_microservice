@@ -353,6 +353,7 @@ class SubscriptionConsumer {
             subscriptionObj.subscription_status = 'graced';
             subscriptionObj.next_billing_timestamp = nextBillingDate;
             subscriptionObj.date_on_which_user_entered_grace_period = new Date();
+            subscriptionObj.is_billable_in_this_cycle = false;
     
             //Send acknowldement to user
             let link = 'https://www.goonj.pk/goonjplus/open';
@@ -377,6 +378,7 @@ class SubscriptionConsumer {
                 subscriptionObj.consecutive_successive_bill_counts = 0;
                 subscriptionObj.auto_renewal = false;
                 subscriptionObj.is_allowed_to_stream = false;
+                subscriptionObj.is_billable_in_this_cycle = false;
                 historyStatus = "expired";
                     
                 //Send acknowledgement to user
@@ -433,7 +435,9 @@ class SubscriptionConsumer {
             this.messageRepo.sendSmsToUser(message, user.msisdn);
         }
 
-        subscriptionObj.is_billable_in_this_cycle = false;
+        if(!subscription.try_micro_charge_in_next_cycle) {
+            subscriptionObj.is_billable_in_this_cycle = false;
+        }
         await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         if(historyStatus){
             let history = {};
@@ -466,6 +470,7 @@ class SubscriptionConsumer {
             }else{
                 tempSubObj.try_micro_charge_in_next_cycle = false;
                 tempSubObj.micro_price_point = 0;
+                tempSubObj.is_billable_in_this_cycle = false;
             }
         }else{
             // It means micro tying first micro charge attempt
