@@ -459,7 +459,7 @@ class SubscriptionConsumer {
             let index = micro_price_points.indexOf(current_micro_price_point);
             if(index > 0){
                 tempSubObj.try_micro_charge_in_next_cycle = true;
-                tempSubObj.micro_price_point = micro_price_points[index--];
+                tempSubObj.micro_price_point = micro_price_points[--index];
             }else if(index === -1){
                 tempSubObj.try_micro_charge_in_next_cycle = true;
                 tempSubObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
