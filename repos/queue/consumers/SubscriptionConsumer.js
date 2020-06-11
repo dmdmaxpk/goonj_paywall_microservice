@@ -431,11 +431,13 @@ class SubscriptionConsumer {
             let message = 'You have insufficient balance for Goonj TV, please try again after recharge. Thanks';
             this.messageRepo.sendSmsToUser(message, user.msisdn);
         }
+        console.log("1");
     
         subscriptionObj.is_billable_in_this_cycle = false;
         await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
-
+        console.log("2");
         if(historyStatus){
+            console.log("3");
             let history = {};
             history.billing_status = historyStatus;
             history.user_id = user._id;
@@ -446,6 +448,7 @@ class SubscriptionConsumer {
             history.operator = 'telenor';
             await this.addHistory(history);
         }
+        console.log("4");
     }
 
     // Activate micro charging
