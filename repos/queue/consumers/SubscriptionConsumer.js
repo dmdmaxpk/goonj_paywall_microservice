@@ -266,7 +266,7 @@ class SubscriptionConsumer {
                 if(message === 'Success'){
                     console.log("Micro Chargning success for ",subscription._id," for price ",micro_price);
                     // Save tp billing response
-                    this.createBillingHistory(subscription, api_response, message, transaction_id, true, false, micro_price, packageObj);
+                    this.createBillingHistory(subscription, api_response.data, message, transaction_id, true, false, micro_price, packageObj);
                     
                     // Success billing
                     let nextBilling = new Date();
@@ -334,7 +334,7 @@ class SubscriptionConsumer {
                 await this.unQueue(subscription._id);
             }
     
-            this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, true, false, micro_charge, packageObj);
+            this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, true, false, micro_price, packageObj);
             await this.assignGracePeriod(subscription, user, packageObj, false);
         }
     }
