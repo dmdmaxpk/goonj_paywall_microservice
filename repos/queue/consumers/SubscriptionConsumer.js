@@ -266,9 +266,9 @@ class SubscriptionConsumer {
                 console.log("inside if - line 266");
                 let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
                 let api_response = response.api_response;
-                let message = api_response.data.message;
+                let message = api_response.data.Message;
                 console.log("api_response",api_response);
-                console.log("message",api_response);
+                console.log("message",api_response.data.Message);
 
                 if(message === 'Success'){
                     console.log("Micro Chargning success for ",subscription._id," for price ",micro_price);
@@ -318,7 +318,7 @@ class SubscriptionConsumer {
                 }else{
                     console.log("Unsuccessful billing");
                     // Unsuccess billing. Save tp billing response
-                    this.createBillingHistory(subscription, api_response, "graced", transaction_id, true, false, micro_price, packageObj);
+                    this.createBillingHistory(subscription, api_response.data, "graced", transaction_id, true, false, micro_price, packageObj);
                     await this.assignGracePeriod(subscription, user, packageObj, false);
                 }
             }else{
