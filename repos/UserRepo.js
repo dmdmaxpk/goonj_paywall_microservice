@@ -11,7 +11,6 @@ class UserRepository {
     async createUser (postData)  {
         let user = new User(postData);
         let result = await user.save();
-        QueueRepo.addToSubscriberQueryQueue(user.msisdn,user._id);
         return result;
     }
 
