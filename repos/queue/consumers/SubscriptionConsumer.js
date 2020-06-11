@@ -25,8 +25,9 @@ class SubscriptionConsumer {
         let subscription = subscriptionObj.subscription;
         let micro_charge = subscriptionObj.micro_charge;
         let discount = subscriptionObj.discount;
-        console.log("micro_charge",micro_charge);
-        console.log("subscription",subscription);
+
+        console.log("Micro-charge: ", micro_charge);
+        
         try {
             
             // Check if the subscription is active or blocked for some reason.
@@ -254,17 +255,21 @@ class SubscriptionConsumer {
     }
     
     async tryMicroChargeAttempt(queueMessage, subscription, transaction_id, micro_price) {
-        console.log("tryMicroChargeAttempt",micro_price,subscription);
+        console.log("tryMicroChargeAttempt", micro_price);
+        console.log("tryMicroChargeAttempt", subscription);
+
         try{
             let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
             let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
             
-            if(subscription.micro_price_point <= packageObj.price_point_pkr){
+            if(micro_price <= packageObj.price_point_pkr){
+                console.log("inside if - line 266");
                 let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
                 let api_response = response.api_response;
                 let message = api_response.data.message;
                 console.log("api_response",api_response);
                 console.log("message",api_response);
+
                 if(message === 'Success'){
                     console.log("Micro Chargning success for ",subscription._id," for price ",micro_price);
                     // Save tp billing response
@@ -318,6 +323,7 @@ class SubscriptionConsumer {
                 }
             }else{
                 //TODO shoot an email
+                console.log("inside else - line 326");
                 this.createBillingHistory(subscription, undefined, "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt", transaction_id, true, false, 0, packageObj);
                 // await this.assignGracePeriod(subscription, user, packageObj, false);
             }
