@@ -535,22 +535,27 @@ class SubscriptionConsumer {
     
     // SHOOT EMAIL
     async shootExcessiveBillingEmail(subscription_id)  {
-        let transporter = nodemailer.createTransport({
-            host: "email-smtp.eu-central-1.amazonaws.com",
-            port: 465,
-            secure: true, // true for 465, false for other ports
-            auth: {
-              user: 'AKIAZQA2XAWP7CYJEJXS', // generated ethereal user
-              pass: 'BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs' // generated ethereal password
-            }
-        });
-    
-        await transporter.sendMail({
-            from: 'paywall@dmdmax.com.pk',
-            to: "paywall@dmdmax.com.pk",
-            subject: "User Billing Exceeded",
-            text: `Subscription id ${subscription_id} has exceeded its billing limit. Please check on priority.`,
-        });         
+        try {
+            let transporter = nodemailer.createTransport({
+                host: "email-smtp.eu-central-1.amazonaws.com",
+                port: 465,
+                secure: true, // true for 465, false for other ports
+                auth: {
+                  user: 'AKIAZQA2XAWP7CYJEJXS', // generated ethereal user
+                  pass: 'BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs' // generated ethereal password
+                }
+            });
+        
+            let response = await transporter.sendMail({
+                from: 'paywall@dmdmax.com.pk',
+                to: "paywall@dmdmax.com.pk",
+                subject: "User Billing Exceeded",
+                text: `Subscription id ${subscription_id} has exceeded its billing limit. Please check on priority.`,
+            });
+            console.log("response",response);
+        } catch(err){
+            console.error(err);
+        }   
     }
     
     async sendAffiliationCallback(tid, mid, user_id, subscription_id, subscriber_id, package_id) {
