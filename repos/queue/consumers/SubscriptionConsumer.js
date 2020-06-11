@@ -586,7 +586,7 @@ class SubscriptionConsumer {
         })
         .catch(async  (error) => {
             console.log(`Affiliate - Marketing - Callback - Error - Having TID - ${tid} - MID ${mid}`, error);
-            history.operator_response = error;
+            history.operator_response = error.response.data;
             history.billing_status = "Affiliate callback error";
             await this.addHistory(history);
         });
