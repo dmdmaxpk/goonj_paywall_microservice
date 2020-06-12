@@ -8,11 +8,11 @@ class SubscriptionService {
         this.subscriberRepository = subscriberRepository;
     }
 
-    expire(subscription_id,source,operator_response,transaction_id){
+    async expire(subscription_id,source,operator_response,transaction_id){
         try {
             if (subscription_id){
                 let subscription = await this.subscriptionRepository.getSubscription(subscription_id);
-                let package = await this.this.packageRepository.getPackage({_id: subscription.subscribed_package_id});
+                let packageOfThisSubcription = await this.this.packageRepository.getPackage({_id: subscription.subscribed_package_id});
                 let subscriber = await this.subscriberRepository.getSubscriber(subscription.subscriber_id);
                 let expire = await this.subscriptionRepository.updateSubscription(subscription_id,{
                     subscription_status: 'expired', 
@@ -27,7 +27,7 @@ class SubscriptionService {
                 history.subscriber_id = subscription.subscriber_id;
                 history.subscription_id = subscription._id;
                 history.package_id = subscription.subscribed_package_id;
-                history.paywall_id = package.paywall_id;
+                history.paywall_id = packageOfThisSubcription.paywall_id;
 
                 history.transaction_id = undefined;
                 history.operator_response = undefined;
