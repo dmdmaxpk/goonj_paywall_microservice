@@ -48,7 +48,7 @@ class TelenorBillingService {
                             return returnObj;
                         }catch(error){
                             returnObj.message = "failed";
-                            if(error && error.response.data){
+                            if(error && error.response && error.response.data){
                                 returnObj.response = error.response.data
                             }
 
