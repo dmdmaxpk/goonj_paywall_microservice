@@ -86,6 +86,7 @@ class SubscriptionConsumer {
             rabbitMq.acknowledge(message);
         }
         catch(err){
+            console.log("[Subscription][consume][error]");
             console.log(err);
         }
        
