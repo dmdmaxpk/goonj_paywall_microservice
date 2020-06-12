@@ -33,7 +33,6 @@ class TelenorBillingService {
                         
                         try{
                             let response = await this.billingRepo.processDirectBilling(user.msisdn, packageObj, transaction_id);
-                            console.log("response",response);
                             let message = response.data.Message;
                             if(message === "Success"){
                                 //Direct billing success, update records
@@ -57,7 +56,7 @@ class TelenorBillingService {
                                 returnObj.noAck = true;
                             }else{
                                 //consider payment failed
-                                await billingFailed(user, subscription, error.response.data, packageObj, transaction_id);
+                                await this.billingFailed(user, subscription, error.response.data, packageObj, transaction_id);
                             }
                             return returnObj;
                         }       
@@ -99,7 +98,7 @@ class TelenorBillingService {
         subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
         subscriptionObj.subscribed_package_id = packageObj._id;
         subscriptionObj.queued = false;
-        await subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
+        await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
     
         // Add history record
         let history = {};
