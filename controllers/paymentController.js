@@ -401,12 +401,14 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							
 							try{
 								let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj);
+								console.log("result",result);
 								if(result.message === "success"){
 									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 								}else{
 									res.send({code: config.codes.code_success, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
 								}
 							}catch(error){
+								console.log("Error",error);
 								res.send({code: config.codes.code_success, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
 							}
 						}
