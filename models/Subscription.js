@@ -9,6 +9,7 @@ const subscriptionSchema = new Schema({
     _id: { type: ShortId, len: 8, retries: 4 },
 
     subscriber_id: {type: ShortId, required: true},
+    paywall_id: {type: ShortId, required: true},
     subscribed_package_id: {type: ShortId, required: true},
     
     subscription_status: String,  // => billed/not_billed/expired/graced/trial

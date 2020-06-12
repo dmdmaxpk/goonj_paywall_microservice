@@ -18,7 +18,7 @@ class SubscriptionConsumer {
         this.emailService = emailService;
     }
 
-     async consume(message) {
+    async consume(message) {
         let subscriptionObj = JSON.parse(message.content);
 
         let source = subscriptionObj.source;
@@ -93,7 +93,7 @@ class SubscriptionConsumer {
     
     // CHARGING ATTEMPTS
     async tryFullChargeAttempt(queueMessage, subscription, transaction_id, is_manual_recharge) {
-        console.log("tryDiscountedChargeAttempt");
+        
         let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
        

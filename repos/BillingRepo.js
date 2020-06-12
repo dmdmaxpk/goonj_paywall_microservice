@@ -41,6 +41,31 @@ class BillingRepository {
         })
     };
     
+    // This function is used to process billing without queuing the record
+    async processDirectBilling (msisdn, packageObj, transaction_id)  {
+        let transactionId = transaction_id;
+        let form = {
+            "correlationID": transactionId,
+            "msisdn": msisdn
+        }
+        form.chargableAmount = packageObj.price_point_pkr;
+        console.log('Telenor Direct Billing - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', packageObj.package_name, ' - Price - ', packageObj.price_point_pkr, ' - TransectionId - ', transactionId, ' - ', (new Date()));
+        form.PartnerID = packageObj.partner_id;
+        form.ProductID = "GoonjDCB-Charge";
+    
+        return new Promise(function(resolve, reject) {
+            axios({
+                method: 'post',
+                url: config.telenor_dcb_api_baseurl + 'payment/v1/charge',
+                headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
+                data: form
+            }).then(function(response){
+                resolve(response);
+            }).catch(function(err){
+                reject(err);
+            });
+        });
+    }
     
     // Full charge request
     async fullChargeAttempt (msisdn, packageObj, transactionId, subscription)  {

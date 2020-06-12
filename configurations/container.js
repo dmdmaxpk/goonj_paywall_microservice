@@ -19,6 +19,7 @@ const ChargingAttemptRepository = require('../repos/ChargingAttemptRepo');
 const PaywallRepository = require('../repos/PaywallRepo');
 const PaywallService = require('../services/PaywallService');
 const MigrationRepository = require('../repos/MigrationRepository');
+const TelenorBillingService = require('../services/TelenorBillingService');
 
 const RemoveDuplicateMsisdsScript = require('../scripts/removeDuplicateMsisdns');
 
@@ -41,7 +42,7 @@ container.register({
     chargingAttemptRepository: awilix.asClass(ChargingAttemptRepository).singleton(),
     paywallService: awilix.asClass(PaywallService).singleton(),
     migrationRepository: awilix.asClass(MigrationRepository).singleton(),
-
+    telenorBillingService: awilix.asClass(TelenorBillingService).singleton(),
 
     //scripts
     removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdsScript).singleton()

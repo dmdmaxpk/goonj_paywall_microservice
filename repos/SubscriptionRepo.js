@@ -7,7 +7,7 @@ class SubscriptionRepository {
     }
 
     async createSubscription (postData)  {
-        let result = await this.getSubscriptionByPackageId(postData.subscriber_id, postData.subscribed_package_id);
+        let result = await this.getSubscriptionByPaywallId(postData.subscriber_id, postData.paywall_id);
         if(result){
             let data = "Already exist subscription record with subscriber id "+ postData.subscriber_id +" having package id "+ postData.subscribed_package_id;
             console.log(data);
@@ -31,6 +31,11 @@ class SubscriptionRepository {
 
     async getSubscriptionByPackageId(subscriber_id, package_id)  {
         let result = await Subscription.findOne({subscriber_id: subscriber_id, subscribed_package_id: package_id});
+        return result;
+    }
+
+    async getSubscriptionByPaywallId(subscriber_id, paywall_id)  {
+        let result = await Subscription.findOne({subscriber_id: subscriber_id, paywall_id: paywall_id});
         return result;
     }
     

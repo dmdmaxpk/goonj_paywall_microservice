@@ -6,7 +6,8 @@ const subscriberRepo = container.resolve("subscriberRepository");
 const packageRepo = container.resolve("packageRepository");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const viewLogRepo = require('../repos/ViewLogRepo');
-const paywallRepo = container.resolve("paywallRepository");
+
+const telenorBillingService = container.resolve("telenorBillingService");
 
 const shortId = require('shortid');
 const axios = require('axios');
@@ -16,6 +17,7 @@ const blockUsersRepo = require('../repos/BlockedUsersRepo');
 const billingRepo = container.resolve("billingRepository");
 const subscriptionRepo = container.resolve("subscriptionRepository")
 let jwt = require('jsonwebtoken');
+const { response } = require('express');
 
 
 function sendMessage(otp, msisdn){
@@ -298,12 +300,13 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 		let newPackageId = req.body.package_id;
 		let packageObj = await packageRepo.getPackage({_id: newPackageId});
 		if (packageObj) {
-			let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, newPackageId);
+			let subscription = await subscriptionRepo.getSubscriptionByPaywallId(subscriber._id, packageObj.paywall_id);
 		
 			if(!subscription){
 				// No subscription available, let's create one
 				let subscriptionObj = {};
 				subscriptionObj.subscriber_id = subscriber._id;
+				subscriptionObj.paywall_id = packageObj.paywall_id;
 				subscriptionObj.subscribed_package_id = newPackageId;
 				subscriptionObj.source = req.body.source ?  req.body.source : 'unknown';
 	
@@ -342,58 +345,76 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					sendTextMessage(text, user.msisdn);
 					res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 				}else{
+					subscription = await subscriptionRepo.createSubscription(subscriptionObj);
 					subscribePackage(subscription, packageObj);
 					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 				}
 			}else {
-				// Pass subscription through following checks before pushing into queue
-				await viewLogRepo.createViewLog(user._id, subscription._id);
-	
-				if(subscription.queued === false){
-					let history = {};
-					history.user_id = user._id;
-					history.subscriber_id = subscriber._id;
-					history.subscription_id = subscription._id;
-	
-					if(subscription.subscription_status === 'billed' || subscription.subscription_status === 'trial'){
-						let currentPackageId = subscription.subscribed_package_id;
-						let autoRenewal = subscription.auto_renewal;
-	
+				if(subscription.active === true){
+					// Pass subscription through following checks before pushing into queue
+					await viewLogRepo.createViewLog(user._id, subscription._id);
+					let currentPackageId = subscription.subscribed_package_id;
+					let autoRenewal = subscription.auto_renewal;
+
+					if(subscription.queued === false){
+						let history = {};
+						history.user_id = user._id;
+						history.subscriber_id = subscriber._id;
+						history.subscription_id = subscription._id;
+		
+						// if both subscribed and upcoming packages are same
 						if(currentPackageId === newPackageId){
-							
 							history.source = req.body.source;
 							history.package_id = newPackageId;
 							history.paywall_id = packageObj.paywall_id;
-	
-							if(autoRenewal === true){
-								// Already subscribed, no need to subsribed package again
-								history.billing_status = "subscription-request-received-for-the-same-package";
-								await billingHistoryRepo.createBillingHistory(history);
-								res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed', gw_transaction_id: gw_transaction_id});
-							}else{
-								// Same package - just switch on auto renewal so that the user can get charge automatically.
-								let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true});
-								if(updated){
-									history.billing_status = "subscription-request-received-after-unsub";
-									
+
+							if(subscription.subscription_status === 'billed' || subscription.subscription_status === 'trial'){
+								if(autoRenewal === true){
+									// Already subscribed, no need to subscribed package again
+									history.billing_status = "subscription-request-received-for-the-same-package";
 									await billingHistoryRepo.createBillingHistory(history);
-									res.send({code: config.codes.code_already_subscribed, message: 'Subscribed', gw_transaction_id: gw_transaction_id});
+									res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed', gw_transaction_id: gw_transaction_id});
 								}else{
-									res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
+									// Same package - just switch on auto renewal so that the user can get charge automatically.
+									let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true});
+									if(updated){
+										history.billing_status = "subscription-request-received-after-unsub";
+										
+										await billingHistoryRepo.createBillingHistory(history);
+										res.send({code: config.codes.code_success, message: 'Subscribed', gw_transaction_id: gw_transaction_id});
+									}else{
+										res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
+									}
 								}
+							}else{
+								/* 
+								* Not already billed
+								* Let's send this item in queue and update package, auto_renewal and 
+								* billing date times once user successfully billed
+								*/
+								subscribePackage(subscription, packageObj)
+								res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+							}
+						}else{
+							// request is coming for the same paywall but different package
+							// lets amend existing subscription for the new package
+							
+							try{
+								let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj);
+								if(result.message === "success"){
+									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
+								}else{
+									res.send({code: config.codes.code_success, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
+								}
+							}catch(error){
+								res.send({code: config.codes.code_success, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
 							}
 						}
-					} else {
-						/* 
-						* Not already billed
-						* Let's send this item in queue and update package, auto_renewal and 
-						* billing date times once user successfully billed
-						*/
-						subscribePackage(subscription, packageObj)
-						res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+					}else{
+						res.send({code: config.codes.code_already_in_queue, message: 'The user is already in queue for processing.', gw_transaction_id: gw_transaction_id});
 					}
 				}else{
-					res.send({code: config.codes.code_already_in_queue, message: 'The user is already in queue for processing.', gw_transaction_id: gw_transaction_id});
+					res.send({code: config.codes.code_error, message: 'This user is is not active user.', gw_transaction_id: gw_transaction_id});
 				}
 			}
 		} else {
@@ -403,41 +424,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 	else {
 		res.send({code: config.codes.code_error, message: 'Blocked user', gw_transaction_id: gw_transaction_id});
 	}
-}
-
-
-exports.subscribeDirectly = async(req, res) => {
-	let packgeObj = {
-		grace_hours: 336,
-		logos: [
-		"https://content-dmd.s3.eu-central-1.amazonaws.com/TP-Content/static-content/others/tv.png"
-		],
-		active: true,
-		_id: "QDfC",
-		package_name: "Live TV Only",
-		package_desc: "Rs. 8/day",
-		package_duration: 24,
-		price_point_pkr: 8,
-		display_price_point: 8,
-		partner_id: "TP-GoonjDailySub",
-		added_dtm: "2020-02-19T07:03:40.413Z",
-		last_modified: "2020-02-19T07:03:40.413Z",
-		default: true
-	}
-
-	var subscriptionObj = {};
-	subscriptionObj.msisdn = req.query.msisdn;
-	subscriptionObj.packageObj = packgeObj;
-	subscriptionObj.transactionId = req.query.msisdn+"_"+new Date();
-
-	billingRepo.subscribePackage(subscriptionObj)
-	.then(async (response) => {
-		console.log('response-pay',response);
-		res.send(response.data);
-	}).catch(async (error) => {
-		console.log('error-pay',error);
-		res.send(error);
-	});
 }
 
 exports.recharge = async (req, res) => {
