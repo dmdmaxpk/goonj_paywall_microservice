@@ -61,7 +61,7 @@ class BillingRepository {
                 headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
                 data: form
             }).then(function(response){
-                c
+                console.log("response",response);
                 resolve(response);
             }).catch(function(err){
                 console.log("Error from billingRepo",err);
