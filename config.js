@@ -37,6 +37,7 @@ const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 720; // 2 weeks
 const hours_on_which_to_run_renewal_cycle = [1,5,9,13,18,21];
+const default_package_id = "QDfC";
 
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
@@ -83,7 +84,8 @@ let config = {
         emailUsername: "reports@goonj.pk",
         emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
-        emailSecure: true
+        emailSecure: true,
+        default_package_id: default_package_id
     },
     staging: {
         port: '5000',
@@ -113,7 +115,8 @@ let config = {
         emailUsername: "reports@goonj.pk",
         emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
-        emailSecure: true
+        emailSecure: true,
+        default_package_id: default_package_id
     },
     production: {
         port: process.env.PW_PORT,
@@ -143,7 +146,8 @@ let config = {
         emailUsername: "reports@goonj.pk",
         emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
-        emailSecure: true
+        emailSecure: true,
+        default_package_id: default_package_id
     }
 };
 

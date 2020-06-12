@@ -192,6 +192,11 @@ exports.verifyOtp = async (req, res) => {
 	let otp = req.body.otp;
 	let subscribed_package_id = req.body.package_id;
 	let otpUser = await otpRepo.getOtp(msisdn);
+
+	if(!subscribed_package_id){
+		subscribed_package_id = config.default_package_id;
+	}
+
 	
 	if(otpUser){
 		// Record already present in collection, lets check it further.
@@ -435,6 +440,10 @@ exports.recharge = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let package_id = req.body.package_id;
 	let source = req.body.source;
+
+	if(!package_id){
+		package_id = config.default_package_id;
+	}
 	
 	let user;
 	if(user_id){
@@ -476,7 +485,10 @@ exports.status = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let package_id = req.body.package_id;
 	let user_id = req.body.user_id;
-	let paywall_id = req.body.paywall_id;
+
+	if(!package_id){
+		package_id = config.default_package_id;
+	}
 
 	if (user_id){
 		user = await userRepo.getUserById(user_id);
@@ -496,7 +508,15 @@ exports.status = async (req, res) => {
 				await viewLogRepo.createViewLog(user._id, result._id);
 				res.send({code: config.codes.code_success, 
 					subscribed_package_id: result.subscribed_package_id, 
-					data: result, 
+					data: {
+						subscription_status: result.subscription_status,
+						auto_renewal: result.auto_renewal,
+						is_gray_listed: result.is_gray_listed,
+						is_black_listed: result.is_black_listed,
+						queued: result.queued,
+						is_allowed_to_stream: result.is_allowed_to_stream,
+						active: result.active
+					}, 
 					gw_transaction_id: gw_transaction_id});	
 			}else{
 				res.send({code: config.codes.code_error, data: 'No subscriptions was found', gw_transaction_id: gw_transaction_id});	
@@ -524,6 +544,10 @@ exports.unsubscribe = async (req, res) => {
 	let user_id = req.body.user_id;
 	let source = req.body.source;
 	let package_id = req.body.package_id;
+
+	if(!package_id){
+		package_id = config.default_package_id;
+	}
 
 	if (user_id) {
 		user = await userRepo.getUserById(user_id);
@@ -586,6 +610,10 @@ exports.expire = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let package_id = req.body.package_id;
 	let source = req.body.source;
+
+	if(!package_id){
+		package_id = config.default_package_id;
+	}
 
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	if(user){
