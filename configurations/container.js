@@ -46,8 +46,9 @@ container.register({
     migrationRepository: awilix.asClass(MigrationRepository).singleton(),
     telenorBillingService: awilix.asClass(TelenorBillingService).singleton(),
 
-    paywallService = awilix.asClass(PaywallService).singleton(),
-    subscriptionService = awilix.asClass(SubscriptionService).singleton(),
+    //SErvices
+    paywallService : awilix.asClass(PaywallService).singleton(),
+    subscriptionService : awilix.asClass(SubscriptionService).singleton(),
 
     //scripts
     removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdsScript).singleton()
