@@ -319,8 +319,13 @@ class SubscriptionConsumer {
                 }
             }else{
                 //TODO shoot an email
+                let emailSubject ="Excessive MicroCharing Email";
+                let emailToSend = "paywall@dmdmax.com.pk";
+                let emailText = `Subscription ${subscription._id} is trying to micro charge on a 
+                price greater than package price.`;
                 this.createBillingHistory(subscription, undefined, "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt", transaction_id, true, false, 0, packageObj);
-                // await this.assignGracePeriod(subscription, user, packageObj, false);
+                let reponse = await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
+                console.log("response",response);
             }
         }catch(error){
             if (error.response && error.response.data){
@@ -540,22 +545,10 @@ class SubscriptionConsumer {
     // SHOOT EMAIL
     async shootExcessiveBillingEmail(subscription_id)  {
         try {
-            let transporter = nodemailer.createTransport({
-                host: "email-smtp.eu-central-1.amazonaws.com",
-                port: 465,
-                secure: true, // true for 465, false for other ports
-                auth: {
-                  user: 'AKIAZQA2XAWP7CYJEJXS', // generated ethereal user
-                  pass: 'BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs' // generated ethereal password
-                }
-            });
-        
-            let response = await transporter.sendMail({
-                from: 'paywall@dmdmax.com.pk',
-                to: "paywall@dmdmax.com.pk",
-                subject: "User Billing Exceeded",
-                text: `Subscription id ${subscription_id} has exceeded its billing limit. Please check on priority.`,
-            });
+            let emailSubject = `User Billing Exceeded`;
+            let emailText = `Subscription id ${subscription_id} has exceeded its billing limit. Please check on priority.`;
+            let emailToSend = `paywall@dmdmax.com.pk`;
+            let response = await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
             console.log("response",response);
         } catch(err){
             console.error(err);

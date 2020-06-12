@@ -79,9 +79,9 @@ let config = {
         hours_on_which_to_run_renewal_cycle: hours_on_which_to_run_renewal_cycle,
         logger_url: "http://127.0.0.1:8000/",
         secret: "MVPUBRY2IV",
-        emailhost:"email-smtp.eu-central-1.amazonaws.com",
-        emailUsername: "AKIAZQA2XAWP7CYJEJXS",
-        emailPassword: "BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs",
+        emailhost:"mail.dmdmax.com.pk",
+        emailUsername: "reports@goonj.pk",
+        emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
         emailSecure: true
     },
@@ -109,9 +109,9 @@ let config = {
         hours_on_which_to_run_renewal_cycle: hours_on_which_to_run_renewal_cycle,
         logger_url: "http://127.0.0.1:8000/",
         secret: "MVPUBRY2IV",
-        emailhost:"email-smtp.eu-central-1.amazonaws.com",
-        emailUsername: "AKIAZQA2XAWP7CYJEJXS",
-        emailPassword: "BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs",
+        emailhost:"mail.dmdmax.com.pk",
+        emailUsername: "reports@goonj.pk",
+        emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
         emailSecure: true
     },
@@ -139,9 +139,9 @@ let config = {
         hours_on_which_to_run_renewal_cycle: hours_on_which_to_run_renewal_cycle,
         logger_url: "http://127.0.0.1:8000/",
         secret: "MVPUBRY2IV",
-        emailhost:"email-smtp.eu-central-1.amazonaws.com",
-        emailUsername: "AKIAZQA2XAWP7CYJEJXS",
-        emailPassword: "BJ/xUCabrqJTDU6PuLFHG0Rh1VDrp6AYAAmIOclEtzRs",
+        emailhost:"mail.dmdmax.com.pk",
+        emailUsername: "reports@goonj.pk",
+        emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
         emailSecure: true
     }

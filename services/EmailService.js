@@ -15,14 +15,14 @@ class EmailService {
 
     }
     
-    async sendEmail(){
+    async sendEmail(subject,text,email){
         return new Promise(async  (resolve,reject) => {
             try{
                 let response = await this.transporter.sendMail({
                     from: 'paywall@dmdmax.com.pk',
-                    to: "paywall@dmdmax.com.pk",
-                    subject: "User Billing Exceeded",
-                    text: `Subscription id ${subscription_id} has exceeded its billing limit. Please check on priority.`,
+                    to: email,
+                    subject: subject,
+                    text: text,
                 });
                 resolve(response);
             } catch(error) {
