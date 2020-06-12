@@ -160,9 +160,9 @@ class SubscriptionConsumer {
             }
     
             // TODO: Recursion not being handled.
-            if (error.response.data.errorCode === "500.007.08"){
+            if (error.response.data.errorCode === "500.007.08" || error.response.data.errorCode === "500.007.05" ){
                 // Consider, tps exceeded, noAcknowledge will requeue this record.
-                console.log('Sending back to queue');
+                console.log('Sending back to queue:errorCode:',error.response.data.errorCode,subscription._id);
                 rabbitMq.noAcknowledge(queueMessage);
             }
     

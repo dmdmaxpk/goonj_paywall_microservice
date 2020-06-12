@@ -17,8 +17,10 @@ const MessageRepository = require('../repos/MessageRepo');
 const UserRepository = require('../repos/UserRepo');
 const ChargingAttemptRepository = require('../repos/ChargingAttemptRepo');
 const PaywallRepository = require('../repos/PaywallRepo');
-const PaywallService = require('../services/PaywallService');
 const MigrationRepository = require('../repos/MigrationRepository');
+// Services
+const PaywallService = require('../services/PaywallService');
+const SubscriptionService = require('../services/SubscriptionService');
 
 const RemoveDuplicateMsisdsScript = require('../scripts/removeDuplicateMsisdns');
 
@@ -39,8 +41,10 @@ container.register({
     paywallRepository: awilix.asClass(PaywallRepository).singleton(),
     userRepository: awilix.asClass(UserRepository).singleton(),
     chargingAttemptRepository: awilix.asClass(ChargingAttemptRepository).singleton(),
-    paywallService: awilix.asClass(PaywallService).singleton(),
     migrationRepository: awilix.asClass(MigrationRepository).singleton(),
+    //services
+    paywallService: awilix.asClass(PaywallService).singleton(),
+    subscriptionService: awilix.asClass(SubscriptionService).singleton(),
 
 
     //scripts
