@@ -36,11 +36,11 @@ class TelenorBillingService {
                             let message = response.data.Message;
                             if(message === "Success"){
                                 //Direct billing success, update records
-                                await billingSuccess(user, subscription, response.data, packageObj, transaction_id);
+                                await this.billingSuccess(user, subscription, response.data, packageObj, transaction_id);
                                 returnObj.message = "success";
                                 returnObj.response = response.data;
                             }else{
-                                await billingFailed(user, subscription, response.data, packageObj, transaction_id);
+                                await this.billingFailed(user, subscription, response.data, packageObj, transaction_id);
                                 returnObj.message = "failed";
                                 returnObj.response = response.data;
                             }
@@ -78,7 +78,7 @@ class TelenorBillingService {
     }
 
 
-    billingSuccess = async(user, subscription, response, packageObj, transaction_id) => {
+    async billingSuccess (user, subscription, response, packageObj, transaction_id)  {
 	
         // Success billing
         let nextBilling = new Date();
@@ -113,7 +113,7 @@ class TelenorBillingService {
         await this.billingHistoryRepo.createBillingHistory(history);
     }
     
-    billingFailed =  async(user, subscription, response, packageObj, transaction_id) => {
+    async billingFailed   (user, subscription, response, packageObj, transaction_id)  {
         // Add history record
         let history = {};
         history.user_id = user._id;
@@ -144,3 +144,5 @@ class TelenorBillingService {
         return (num >= 0 && num < 10) ? "0" + num : num + "";
     }
 }
+
+module.exports = TelenorBillingService;
