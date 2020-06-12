@@ -52,7 +52,8 @@ class TelenorBillingService {
                                 returnObj.response = error.response.data
                             }
 
-                            if(error && error.response && error.response.data.errorCode === "500.007.08"){
+                            if(error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
+                            error.response.errorMessage === "Services of the same type cannot be processed at the same time.")){
                                 returnObj.noAck = true;
                             }else{
                                 //consider payment failed
