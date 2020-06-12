@@ -49,8 +49,10 @@ class SubscriptionConsumer {
                             acknowledge = this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
                         }
                         if (acknowledge){
+                            console.log("message Acknowleged:",subscription._id);
                             rabbitMq.acknowledge(message);
                         }else {
+                            console.log("message not Acknowleged:",subscription._id);
                             rabbitMq.noAcknowledge(message);
                         }
                     }  else{
