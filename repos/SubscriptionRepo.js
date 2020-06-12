@@ -157,11 +157,66 @@ class SubscriptionRepository {
     }
 
     async subscriptionToExpireNonUsage(){
-        let results = await Subscription.find({merketing_source: {$ne: 'none'}, subscription_status: 'expired',
-                     is_gray_listed: true});
+        let results = await Subscription.aggregate([
+            {
+             $match: {
+               subscription_status: {$in: ["billed"]}
+             }
+            }, 
+            {
+             $lookup: {
+               from: 'viewlogs',
+               let: {subscription_id: "$_id" },
+               pipeline: [
+                       { $match:
+                          { $expr:  
+                                 { $eq: [ "$subscription_id","$$subscription_id" ] }
+                          }
+                       }, 
+                       { $sort:
+                          { added_dtm: -1
+                          }
+                       },
+                       { $limit: 1
+                       }
+                    ],
+               as: 'logs'
+             }
+            },{
+            $project: {
+              latest_log: {"$arrayElemAt": ["$logs",0]},
+              subscription_status: "$subscription_status",
+              user_id: "$user_id"
+            }
+            },
+         {
+            $project: {
+              last_seen_date: "$latest_log.added_dtm",
+              subscription_status: "$subscription_status",
+              user_id: "$user_id",
+              current_date: new Date()
+            }
+         },{
+            $project: {
+               user_id: "$user_id",
+               timeSinceLastSeen: {
+               "$divide": [
+                 { "$subtract": ["$current_date","$last_seen_date"] },
+                 60 * 1000 * 60
+               ]
+             }
+            }
+         },
+         {
+            $match: {
+               timeSinceLastSeen: {$gte: 1440}
+            }
+         }]);
         return results;
     }
 }
+
+
 
 
 
