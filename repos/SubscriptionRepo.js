@@ -165,7 +165,7 @@ class SubscriptionRepository {
                pipeline: [
                        { $match:
                           { $expr:  
-                                 { $eq: [ "$subscriptionId","$$subscription_id" ] }
+                                 { $eq: [ "$subscription_id","$$subscription_id" ] }
                           }
                        }, 
                        { $sort:
