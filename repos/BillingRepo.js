@@ -43,6 +43,7 @@ class BillingRepository {
     
     // This function is used to process billing without queuing the record
     async processDirectBilling (msisdn, packageObj, transaction_id)  {
+        console.log("[processDirectBilling]:",msisdn,packageObj,transaction_id);
         let transactionId = transaction_id;
         let form = {
             "correlationID": transactionId,
@@ -60,8 +61,10 @@ class BillingRepository {
                 headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
                 data: form
             }).then(function(response){
+                c
                 resolve(response);
             }).catch(function(err){
+                console.log("Error from billingRepo",err);
                 reject(err);
             });
         });
