@@ -50,7 +50,7 @@ class SubscriptionConsumer {
                         }
                         if (acknowledge){
                             console.log("message Acknowleged:",subscription._id);
-                            rabbitMq.acknowledge(message);
+                            
                         }else {
                             console.log("message not Acknowleged:",subscription._id);
                             rabbitMq.noAcknowledge(message);
@@ -158,12 +158,12 @@ class SubscriptionConsumer {
     
                 // Send acknowledgement message
                 this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.price_point_pkr, is_manual_recharge);
-                return true;
+                rabbitMq.acknowledge(queueMessage);
             }else{
                 // Unsuccess billing. Save tp billing response
                 console.log("Billing failed for subscription id:", subscription._id);
                 await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,api_response.data,transaction_id);
-                return true;
+                rabbitMq.acknowledge(queueMessage);
             }
         }catch(error){
             console.log("Billing failed for subscription id:", subscription._id);
@@ -178,11 +178,12 @@ class SubscriptionConsumer {
                     error.response.data.errorMessage === "Services of the same type cannot be processed at the same time.") ) {
                 // Consider, tps exceeded, noAcknowledge will requeue this record.
                 console.log('Sending back to queue:errorCode:',error.response.data.errorCode,subscription._id);
-                return false;
+                rabbitMq.noAcknowledge(queueMessage);
+                return;
             }
     
             await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error.response.data,transaction_id);
-            return true;
+            rabbitMq.acknowledge(queueMessage);
         }
     }
     
@@ -245,12 +246,12 @@ class SubscriptionConsumer {
     
                 // Send acknowledgement message
                 this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, discounted_price, false);
-                return true;
+                rabbitMq.acknowledge(queueMessage);
             }else{
                 // Unsuccess billing. Save tp billing response
                 await this.assignGracePeriod(subscription, user, packageObj, false,api_response.data,transaction_id);
                 // this.createBillingHistory(subscription, api_response.data, "graced", transaction_id, false, true, discounted_price, packageObj);
-                return true;
+                rabbitMq.acknowledge(queueMessage);
             }
         }catch(error){
             if (error.response && error.response.data){
@@ -263,14 +264,14 @@ class SubscriptionConsumer {
             if ( error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
             error.response.data.errorMessage ==="Services of the same type cannot be processed at the same time.") ){
                 console.log('Sending back to queue');
-                return false;
+                rabbitMq.noAcknowledge(queueMessage);
             }else {
                 // Consider, payment failed for any reason. e.g no credit, number suspended etc
                 await this.unQueue(subscription._id);
             }
     
             await this.assignGracePeriod(subscription, user, packageObj, false,error.response.data,transaction_id);
-            return true;
+            rabbitMq.acknowledge(queueMessage);
         }
     }
     
@@ -330,11 +331,11 @@ class SubscriptionConsumer {
         
                     // Send acknowledgement message
                     this.sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.package_name);
-                    return true;
+                    rabbitMq.acknowledge(queueMessage);
                 }else{
                     // Unsuccess billing. Save tp billing response
                     await this.assignGracePeriod(subscription, user, packageObj, false,api_response.data,transaction_id);
-                    return true;
+                    rabbitMq.acknowledge(queueMessage);
                 }
             }else{
                 //TODO shoot an email
@@ -344,7 +345,7 @@ class SubscriptionConsumer {
                 price greater than package price.`;
                 this.createBillingHistory(subscription, undefined, "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt", transaction_id, true, false, 0, packageObj);
                 let reponse = await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
-                return true;
+                rabbitMq.acknowledge(queueMessage);
             }
         }catch(error){
             if (error.response && error.response.data){
@@ -357,7 +358,7 @@ class SubscriptionConsumer {
             if ( error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
             error.response.data.errorMessage ==="Services of the same type cannot be processed at the same time.") ){
                 console.log('Sending back to queue');
-                return false;
+                rabbitMq.noAcknowledge(queueMessage);
             }else {
                 // Consider, payment failed for any reason. e.g no credit, number suspended etc
                 await this.unQueue(subscription._id);
@@ -365,7 +366,7 @@ class SubscriptionConsumer {
     
             // this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, true, false, micro_price, packageObj);
             await this.assignGracePeriod(subscription, user, packageObj, false,error.response.data,transaction_id);
-            return true;
+            rabbitMq.acknowledge(queueMessage);
         }
     }
     
