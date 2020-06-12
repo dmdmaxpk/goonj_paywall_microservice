@@ -72,8 +72,6 @@ class RabbitMq {
     }
 
     noAcknowledge(message){
-        console.log("[noAcknowledge][message]",message);
-        console.log("[noAcknowledge][channel]",this.channel);
         this.channel.nack(message);
     }
 
