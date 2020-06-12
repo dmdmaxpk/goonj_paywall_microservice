@@ -83,6 +83,7 @@ class SubscriptionConsumer {
                     this.addHistory(history);
                 }
             }
+            console.log("[SubscriptionConsumer][RabbitMQ-Acknowledge]");
             rabbitMq.acknowledge(message);
         }
         catch(err){
