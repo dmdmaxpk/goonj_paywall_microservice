@@ -40,13 +40,12 @@ class SubscriptionConsumer {
                     if (countThisSec < config.telenor_subscription_api_tps) {
     
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
-                        let acknowledge = true;
                         if(micro_charge){
-                            acknowledge = this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
+                            this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
                         }else if(discount){
-                            acknowledge = this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
+                            this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
                         }else{
-                            acknowledge = this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
+                            this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
                         }
                         
                     }  else{
@@ -257,8 +256,9 @@ class SubscriptionConsumer {
             // Consider, tps exceeded, noAcknowledge will requeue this record.
             if ( error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
             error.response.data.errorMessage ==="Services of the same type cannot be processed at the same time.") ){
-                console.log('Sending back to queue');
+                console.log('Sending back to queue',error.response.data.errorCode,subscription._id);
                 rabbitMq.noAcknowledge(queueMessage);
+                return;
             }else {
                 // Consider, payment failed for any reason. e.g no credit, number suspended etc
                 await this.unQueue(subscription._id);
@@ -351,8 +351,9 @@ class SubscriptionConsumer {
             // Consider, tps exceeded, noAcknowledge will requeue this record.
             if ( error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
             error.response.data.errorMessage ==="Services of the same type cannot be processed at the same time.") ){
-                console.log('Sending back to queue');
+                console.log('Sending back to queue'.error.response.data.errorCode,subscription._id);
                 rabbitMq.noAcknowledge(queueMessage);
+                return;
             }else {
                 // Consider, payment failed for any reason. e.g no credit, number suspended etc
                 await this.unQueue(subscription._id);
@@ -625,7 +626,6 @@ class SubscriptionConsumer {
     }
     
     sendMessage(subscription, msisdn, packageName, price, is_manual_recharge) {
-        console.log("Send Message",subscription.consecutive_successive_bill_counts,msisdn,packageName,price,is_manual_recharge);
         if(subscription.consecutive_successive_bill_counts === 1){
             // For the first time or every week of consecutive billing
     
