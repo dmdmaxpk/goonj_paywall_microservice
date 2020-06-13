@@ -351,7 +351,7 @@ class SubscriptionConsumer {
             // Consider, tps exceeded, noAcknowledge will requeue this record.
             if ( error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
             error.response.data.errorMessage ==="Services of the same type cannot be processed at the same time.") ){
-                console.log('Sending back to queue'.error.response.data.errorCode,subscription._id);
+                console.log('Sending back to queue',error.response.data.errorCode,subscription._id);
                 rabbitMq.noAcknowledge(queueMessage);
                 return;
             }else {
