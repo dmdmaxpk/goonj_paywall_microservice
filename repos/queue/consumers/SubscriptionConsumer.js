@@ -335,11 +335,10 @@ class SubscriptionConsumer {
                 //TODO shoot an email
                 let emailSubject ="Excessive MicroCharing Email";
                 let emailToSend = "paywall@dmdmax.com.pk";
-                let emailText = `Subscription ${subscription._id} is trying to micro charge on a 
-                price greater than package price.`;
+                let emailText = `Subscription id ${subscription._id} is trying to micro charge on a price greater than package price. Package price is ${packageObj.price_point_pkr} and system tried to charge ${micro_price}`;
                 this.createBillingHistory(subscription, undefined, "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt", transaction_id, true, false, 0, packageObj);
-                let reponse = await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
-                console.log("response",reponse);
+                await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
+                await this.subscriptionRepo.updateSubscription(subscription._id, {active:false, queued:false});
                 rabbitMq.acknowledge(queueMessage);
             }
         }catch(error){
