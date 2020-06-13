@@ -339,6 +339,7 @@ class SubscriptionConsumer {
                 price greater than package price.`;
                 this.createBillingHistory(subscription, undefined, "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt", transaction_id, true, false, 0, packageObj);
                 let reponse = await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
+                console.log("response",reponse);
                 rabbitMq.acknowledge(queueMessage);
             }
         }catch(error){
