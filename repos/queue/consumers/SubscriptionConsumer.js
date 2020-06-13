@@ -338,7 +338,7 @@ class SubscriptionConsumer {
                 let emailText = `Subscription id ${subscription._id} is trying to micro charge on a price greater than package price. Package price is ${packageObj.price_point_pkr} and system tried to charge ${micro_price}`;
                 this.createBillingHistory(subscription, undefined, "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt", transaction_id, true, false, 0, packageObj);
                 await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
-                await this.subscriptionRepo.updateSubscription(subscription._id, {active:false, queued:false});
+                await this.subscriptionRepo.updateSubscription(subscription._id, {active:false, queued:false, is_billable_in_this_cycle: false});
                 rabbitMq.acknowledge(queueMessage);
             }
         }catch(error){
