@@ -48,13 +48,7 @@ class SubscriptionConsumer {
                         }else{
                             acknowledge = this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
                         }
-                        if (acknowledge){
-                            console.log("message Acknowleged:",subscription._id);
-                            
-                        }else {
-                            console.log("message not Acknowleged:",subscription._id);
-                            rabbitMq.noAcknowledge(message);
-                        }
+                        
                     }  else{
                         console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                         setTimeout(() => {
