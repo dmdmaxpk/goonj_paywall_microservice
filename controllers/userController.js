@@ -48,14 +48,19 @@ exports.isgraylisted = async (req, res) => {
 	let package_id = req.query.package_id;
 
 	let { msisdn  } = req.params;
+	console.log("msisdn",msisdn);
+	console.log("pacakge_id",package_id);
 	if (msisdn) {
 		user = await repo.getUserByMsisdn(msisdn);
+		console.log("user",user);
 		if(user){
 			let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+			console.log("subscriber",subscriber);
 			if (subscriber) {
 				let result;
 				if(package_id){
-					result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+					result = await subscriptionRepository.getSubscriptionByPackageId(subscriber._id, package_id);
+					console.log("result",result);
 				}
 				if (result) {
 					res.send({code: config.codes.code_success, subscription_status: result.subscription_status,
