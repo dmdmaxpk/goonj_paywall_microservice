@@ -45,8 +45,9 @@ exports.get = async (req, res) => {
 // GET
 exports.isgraylisted = async (req, res) => {
 	let gw_transaction_id = req.query.transaction_id;
+	let pacakge_id = req.query.pacakge_id;
 
-	let { msisdn , package_id } = req.params;
+	let { msisdn  } = req.params;
 	if (msisdn) {
 		user = await repo.getUserByMsisdn(msisdn);
 		if(user){
