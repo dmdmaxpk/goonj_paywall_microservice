@@ -45,7 +45,7 @@ exports.get = async (req, res) => {
 // GET
 exports.isgraylisted = async (req, res) => {
 	let gw_transaction_id = req.query.transaction_id;
-	let pacakge_id = req.query.pacakge_id;
+	let package_id = req.query.package_id;
 
 	let { msisdn  } = req.params;
 	if (msisdn) {
