@@ -39,6 +39,7 @@ exports.getAll = async (req, res) => {
 		slug = "live"		
 	}
 	paywall = await paywallRepository.getPaywallsBySlug(slug);
+	console.log("--",paywall);
 	result = await repo.getAllPackages({paywall_id : paywall._id });
 	console.timeEnd("getAllPackages");
 	res.send(result);
