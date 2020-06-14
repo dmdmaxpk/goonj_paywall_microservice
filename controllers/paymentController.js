@@ -514,6 +514,7 @@ exports.status = async (req, res) => {
 					subscribed_package_id: result.subscribed_package_id, 
 					data: {
 						subscription_status: result.subscription_status,
+						user_id: user._id,
 						auto_renewal: result.auto_renewal,
 						is_gray_listed: result.is_gray_listed,
 						is_black_listed: result.is_black_listed,
