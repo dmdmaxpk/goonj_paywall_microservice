@@ -83,6 +83,7 @@ createSubscription = (subscriber) => {
             subscriptionObj.amount_billed_today = subscriber.amount_billed_today;
             subscriptionObj.is_manual_recharge = false;
             subscriptionObj.active = subscriber.active;
+            subscriptionObj.paywall_id = ""; // TODO HArdCode this id for now
 
             let added = await subscriptionRepo.createSubscription(subscriptionObj);
             if(added){

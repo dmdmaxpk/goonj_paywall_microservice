@@ -150,7 +150,7 @@ class SubscriptionConsumer {
                 }
     
                 // Send acknowledgement message
-                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.price_point_pkr, is_manual_recharge);
+                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.price_point_pkr, is_manual_recharge,packageObj._id,user._id);
                 rabbitMq.acknowledge(queueMessage);
             }else{
                 // Unsuccess billing. Save tp billing response
@@ -238,7 +238,7 @@ class SubscriptionConsumer {
                 }
     
                 // Send acknowledgement message
-                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, discounted_price, false);
+                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, discounted_price, false,packageObj._id,user._id);
                 rabbitMq.acknowledge(queueMessage);
             }else{
                 // Unsuccess billing. Save tp billing response
@@ -625,23 +625,23 @@ class SubscriptionConsumer {
         });
     }
     
-    sendMessage(subscription, msisdn, packageName, price, is_manual_recharge) {
+    sendMessage(subscription, msisdn, packageName, price, is_manual_recharge,package_id,user_id) {
         if(subscription.consecutive_successive_bill_counts === 1){
             // For the first time or every week of consecutive billing
     
             //Send acknowldement to user
-            let link = 'https://www.goonj.pk/live';
-            let message = `Ap Pakistan ki best ${packageName} service istamal kar rahey hain. Service deikhnay k liye click karein.\n`+link ;
+            let unsubLink = `goonj.pk/unsubscribe?user_id=${user_id}&package_id=${package_id}`;
+            message = `Apka Goonj tv ka phela Rs${price}/d charge kia gya hai. Live tv dekhnay ke liye www.goonj.pk aur service khatam karnay ke liye ${unsubLink}`;
             this.messageRepo.sendSmsToUser(message, msisdn);
-        }else if(subscription.consecutive_successive_bill_counts % 7 === 0){
+        }else if(subscription.consecutive_successive_bill_counts % 3 === 0){
             // Every week
             //Send acknowledgement to user
             if (is_manual_recharge){
                 let message = `You have been successfully subscribed for Goonj TV.Rs.${price} has been deducted from your credit. Stay safe and keep watching Goonj TV`;
                 this.messageRepo.sendSmsToUser(message, msisdn);
             } else {
-                let link = 'https://www.goonj.pk/live';
-                let message = "Thank you for using Goonj TV with "+packageName+" at Rs. "+price+". Goonj TV Deikhnay k liay click karein.\n"+link
+                let unsubLink = `goonj.pk/unsubscribe?user_id=${user_id}&package_id=${package_id}`;
+                let message = `Goonj tv per top channels Rs${price}/day dekhnay ka shukriya. Service istemal ke liye www.goonj.pk aur service khatam karnay ke liye ${unsubLink}`;
                 this.messageRepo.sendSmsToUser(message, msisdn);
             }
         }

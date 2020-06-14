@@ -327,7 +327,11 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				// Check if trial is allowed by the system
 				if (packageObj.is_trial_allowed) {
 					let nexBilling = new Date();
-					subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + packageObj.trial_hours);
+					let trial_hours = packageObj.trial_hours;
+					if (subscriptionObj.source === 'daraz'){
+						trial_hours = 30;
+					}
+					subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
 					subscriptionObj.subscription_status = 'trial';
 					subscriptionObj.is_allowed_to_stream = true;
 					subscription = await subscriptionRepo.createSubscription(subscriptionObj);
@@ -345,8 +349,8 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					billingHistory.operator = "telenor";
 					await billingHistoryRepo.createBillingHistory(billingHistory);
 					await viewLogRepo.createViewLog(user._id, subscription._id);
-
-					let text = `Apko Goonj TV ${packageObj.trial_hours} hour free trial dey dia gaya ha. Jub chahien jaib se mobile nikalien aur ${packageObj.package_name} deikhen siraf Rs. ${packageObj.display_price_point}/d main`;
+					let unsubLink = `goonj.pk/unsubscribe?user_id=${user._id}&package_id=${subscriptionObj.subscribed_package_id}`;
+					let text= `Apka Goonj tv Free ${trial_hours}hrs trial activate kar dia gya hai. Phela charge mobile balance se kal hoga. Service khatam karnay ke liye ${unsubLink}`
 					sendTextMessage(text, user.msisdn);
 					res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 				}else{
