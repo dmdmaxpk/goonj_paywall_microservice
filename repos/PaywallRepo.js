@@ -21,6 +21,15 @@ class PaywallRepository {
         }
     }
 
+    async getPaywallsBySlug(slug){
+        if (slug) {
+            let paywall = await Paywall.findOne({active: true,slug: slug });
+            return paywall;
+        } else {
+            return undefined;
+        }
+    }
+
     async getPaywallsAndPackages() {
         try {
             let packages = await this.packageRepository.getAllPackages({});

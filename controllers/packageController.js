@@ -1,6 +1,7 @@
 const config = require('../config');
 const container = require('../configurations/container');
 const repo = container.resolve("packageRepository");
+const paywallRepository = container.resolve("paywallRepository");
 
 
 // CREATE
@@ -32,7 +33,13 @@ exports.get = async (req, res) => {
 exports.getAll = async (req, res) => {
 	console.time("getAllPackages");
 	console.log("req.decoded",req.decoded);
-	result = await repo.getAllPackages({});
+	let paywall_id = "";
+	let slug = req.query.slug;
+	if (!slug){
+		slug = "live"		
+	}
+	paywall = await paywallRepository.getPaywallsBySlug(slug);
+	result = await repo.getAllPackages({paywall_id : paywall._id });
 	console.timeEnd("getAllPackages");
 	res.send(result);
 }

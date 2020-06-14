@@ -9,6 +9,7 @@ const paywallSchema = new Schema({
     _id: { type: ShortId, len: 4, retries: 4 },
     paywall_name: {type: String, required: true},
     paywall_desc: {type: String},
+    slug:{type: String},
     added_dtm: { type: Date, default: Date.now },
     last_modified: Date,
     active: { type: Boolean, default: true }
