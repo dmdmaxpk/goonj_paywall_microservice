@@ -40,9 +40,13 @@ exports.getAll = async (req, res) => {
 	}
 	paywall = await paywallRepository.getPaywallsBySlug(slug);
 	console.log("--",paywall);
-	result = await repo.getAllPackages({paywall_id : paywall._id });
-	console.timeEnd("getAllPackages");
-	res.send(result);
+	if (paywall){
+		result = await repo.getAllPackages({paywall_id : paywall._id });
+		console.timeEnd("getAllPackages");
+		res.send(result);
+	} else{
+		res.status(200).send("Wrong slug");
+	}
 }
 
 // UPDATE
