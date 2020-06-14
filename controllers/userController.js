@@ -4,6 +4,7 @@ const repo = container.resolve("userRepository");
 const packageRepo = container.resolve("packageRepository");
 let billingHistoryRepo = container.resolve("billingHistoryRepository");
 let subscriberRepo = container.resolve("subscriberRepository");
+let subscriptionRepository = container.resolve("subscriptionRepository");
 
 // CREATE
 exports.post = async (req, res) => {
@@ -45,13 +46,30 @@ exports.get = async (req, res) => {
 exports.isgraylisted = async (req, res) => {
 	let gw_transaction_id = req.query.transaction_id;
 
-	let { msisdn } = req.params;
+	let { msisdn , package_id } = req.params;
 	if (msisdn) {
-		result = await repo.getUserByMsisdn(msisdn);
-		if(result){
-			res.send({code: config.codes.code_success, subscription_status: result.subscription_status, is_gray_listed: result.is_gray_listed, gw_transaction_id: gw_transaction_id});
+		user = await repo.getUserByMsisdn(msisdn);
+		if(user){
+			let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+			if (subscriber) {
+				let result;
+				if(package_id){
+					result = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+				}
+				if (result) {
+					res.send({code: config.codes.code_success, subscription_status: result.subscription_status,
+						is_gray_listed: result.is_gray_listed, gw_transaction_id: gw_transaction_id});
+				} else {
+					res.send({code: config.codes.code_data_not_found, message: 'Data not found',
+			 			gw_transaction_id: gw_transaction_id});	
+				}
+			} else {
+				res.send({code: config.codes.code_data_not_found, message: 'Data not found',
+			 		gw_transaction_id: gw_transaction_id});	
+			}
 		}else{
-			res.send({code: config.codes.code_data_not_found, message: 'Data not found', gw_transaction_id: gw_transaction_id});
+			res.send({code: config.codes.code_data_not_found, message: 'Data not found',
+			 gw_transaction_id: gw_transaction_id});
 		}
 	}
 	else{
