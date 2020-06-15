@@ -25,6 +25,7 @@ const PaywallService = require('../services/PaywallService');
 const SubscriptionService = require('../services/SubscriptionService');
 
 const RemoveDuplicateMsisdsScript = require('../scripts/removeDuplicateMsisdns');
+const Constants = require('./constants');
 
 container.register({
     // Here we are telling Awilix how to resolve a
@@ -51,7 +52,10 @@ container.register({
     subscriptionService : awilix.asClass(SubscriptionService).singleton(),
 
     //scripts
-    removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdsScript).singleton()
+    removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdsScript).singleton(),
+
+    // constants:
+    constants: awilix.asClass(Constants).singleton()
   });
 
 module.exports = container;  

@@ -15,7 +15,8 @@ const messageRepo = container.resolve("messageRepository");
 const blockUsersRepo = require('../repos/BlockedUsersRepo');
 
 const billingRepo = container.resolve("billingRepository");
-const subscriptionRepo = container.resolve("subscriptionRepository")
+const subscriptionRepo = container.resolve("subscriptionRepository");
+const constants = container.resolve("constants");
 let jwt = require('jsonwebtoken');
 const { response } = require('express');
 
@@ -319,48 +320,69 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.marketing_source = req.body.marketing_source;
 				}
 	
-				if(req.body.affiliate_unique_transaction_id && req.body.affiliate_mid){
+				if(req.body.affiliate_unique_transaction_id || req.body.affiliate_mid){
 					subscriptionObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 					subscriptionObj.affiliate_mid = req.body.affiliate_mid;
 				}
 	
 				// Check if trial is allowed by the system
-				if (packageObj.is_trial_allowed) {
-					let nexBilling = new Date();
-					let trial_hours = packageObj.trial_hours;
-					if (subscriptionObj.source === 'daraz'){
-						trial_hours = 30;
-					}
-					subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
-					subscriptionObj.subscription_status = 'trial';
-					subscriptionObj.is_allowed_to_stream = true;
-					subscription = await subscriptionRepo.createSubscription(subscriptionObj);
-	
-					let billingHistory = {};
-					billingHistory.user_id = user._id;
-					billingHistory.subscriber_id = subscriber._id;
-					billingHistory.subscription_id = subscription._id;
-					billingHistory.paywall_id = packageObj.paywall_id;
-					billingHistory.package_id = newPackageId;
-					billingHistory.transaction_id = undefined;
-					billingHistory.operator_response = undefined;
-					billingHistory.billing_status = 'trial';
-					billingHistory.source = req.body.source;
-					billingHistory.operator = "telenor";
-					await billingHistoryRepo.createBillingHistory(billingHistory);
-					await viewLogRepo.createViewLog(user._id, subscription._id);
-					let unsubLink = `goonj.pk/unsubscribe?user_id=${user._id}&package_id=${subscriptionObj.subscribed_package_id}`;
-					let text= `Apka Goonj tv Free ${trial_hours}hrs trial activate kar dia gya hai. Phela charge mobile balance se kal hoga. Service khatam karnay ke liye ${unsubLink}`;
-					if (subscriptionObj.subscribed_package_id === "QDfD" || subscriptionObj.subscribed_package_id === "QDfE" ) {
-						text = `Apka Goonj comedy Portal activate kar dia gya hai. Service khatam karnay ke liye ${unsubLink}`;
-					}
-					sendTextMessage(text, user.msisdn);
-					res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+				if (packageObj.is_trial_allowed && !( subscriptionObj.source === 'HE' && subscriptionObj.affiliate_mid ===  "gdn")) {
+						
+						let nexBilling = new Date();
+						let trial_hours = packageObj.trial_hours;
+						if (subscriptionObj.source === 'daraz'){
+							trial_hours = 30;
+						}
+						subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
+						subscriptionObj.subscription_status = 'trial';
+						subscriptionObj.is_allowed_to_stream = true;
+						subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+		
+						let billingHistory = {};
+						billingHistory.user_id = user._id;
+						billingHistory.subscriber_id = subscriber._id;
+						billingHistory.subscription_id = subscription._id;
+						billingHistory.paywall_id = packageObj.paywall_id;
+						billingHistory.package_id = newPackageId;
+						billingHistory.transaction_id = undefined;
+						billingHistory.operator_response = undefined;
+						billingHistory.billing_status = 'trial';
+						billingHistory.source = req.body.source;
+						billingHistory.operator = "telenor";
+						await billingHistoryRepo.createBillingHistory(billingHistory);
+						await viewLogRepo.createViewLog(user._id, subscription._id);
+						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+					
 				}else{
-					subscription = await subscriptionRepo.createSubscription(subscriptionObj);
-					subscribePackage(subscription, packageObj);
-					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+					// TODO process billing directly and create subscription
+					console.log("user",user);
+					console.log("subscriptionObj",subscriptionObj);
+					console.log("packageObj",packageObj.subscription_message_text);
+					subscriptionObj.active = true;
+					subscriptionObj.amount_billed_today = 0;
+					let first_time_billing = true;
+					let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,first_time_billing);
+					console.log("result",result);
+					if(result.message === "success"){
+						// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+						// subscribePackage(subscription, packageObj);
+						res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
+									gw_transaction_id: gw_transaction_id});
+					}else{
+						res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
+								gw_transaction_id: gw_transaction_id});
+					}
+					
 				}
+				let trial_hours = packageObj.trial_hours;
+				let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
+				let unsubLink = `goonj.pk/unsubscribe?user_id=${user._id}&pid=${subscriptionObj.subscribed_package_id}`;
+				text = message;
+				text = text.replace("%unsub_link%",unsubLink);
+				text = text.replace("%trial_hours%",trial_hours);
+				console.log("Text",text);
+				sendTextMessage(text, user.msisdn);
+
 			}else {
 				if(subscription.active === true){
 					// Pass subscription through following checks before pushing into queue
@@ -393,7 +415,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 										history.billing_status = "subscription-request-received-after-unsub";
 										
 										await billingHistoryRepo.createBillingHistory(history);
-										res.send({code: config.codes.code_success, message: 'Subscribed', gw_transaction_id: gw_transaction_id});
+										res.send({code: config.codes.code_already_subscribed, message: 'Subscribed again after unsub', gw_transaction_id: gw_transaction_id});
 									}else{
 										res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
 									}
@@ -412,7 +434,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							// lets amend existing subscription for the new package
 							
 							try{
-								let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj);
+								let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
 								console.log("result",result);
 								if(result.message === "success"){
 									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
