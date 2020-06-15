@@ -350,7 +350,10 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					await billingHistoryRepo.createBillingHistory(billingHistory);
 					await viewLogRepo.createViewLog(user._id, subscription._id);
 					let unsubLink = `goonj.pk/unsubscribe?user_id=${user._id}&package_id=${subscriptionObj.subscribed_package_id}`;
-					let text= `Apka Goonj tv Free ${trial_hours}hrs trial activate kar dia gya hai. Phela charge mobile balance se kal hoga. Service khatam karnay ke liye ${unsubLink}`
+					let text= `Apka Goonj tv Free ${trial_hours}hrs trial activate kar dia gya hai. Phela charge mobile balance se kal hoga. Service khatam karnay ke liye ${unsubLink}`;
+					if (subscriptionObj.subscribed_package_id === "QDfD" || subscriptionObj.subscribed_package_id === "QDfE" ) {
+						text = `Apka Goonj comedy Portal activate kar dia gya hai. Service khatam karnay ke liye ${unsubLink}`;
+					}
 					sendTextMessage(text, user.msisdn);
 					res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 				}else{
