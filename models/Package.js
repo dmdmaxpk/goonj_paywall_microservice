@@ -29,7 +29,7 @@ const packageSchema = new Schema({
     default: { type: Boolean, default: false },
     active: { type: Boolean, default: true },
     
-    paywall_id: {type: ShortId, required: true}
-
+    paywall_id: {type: ShortId, required: true},
+    subscription_message_text: {type: String}
 }, { strict: true })
 module.exports = mongoose.model('Package', packageSchema);
