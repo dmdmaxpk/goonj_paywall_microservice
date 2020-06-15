@@ -33,7 +33,7 @@ class TelenorBillingService {
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                         
                         try{
-                            let response = await this.processDirectBilling(user.msisdn, packageObj, transaction_id);
+                            let response = await this.billingRepo.processDirectBilling(user.msisdn, packageObj, transaction_id);
                             console.log("response from billingRepo",response);
                             let message = response.data.Message;
                             if(message === "Success"){
