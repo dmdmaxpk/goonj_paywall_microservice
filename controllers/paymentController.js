@@ -350,7 +350,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						billingHistory.operator = "telenor";
 						await billingHistoryRepo.createBillingHistory(billingHistory);
 						await viewLogRepo.createViewLog(user._id, subscription._id);
-						
+						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 					
 				}else{
 					// TODO process billing directly and create subscription
@@ -376,11 +376,11 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				let trial_hours = packageObj.trial_hours;
 				let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
 				let unsubLink = `goonj.pk/unsubscribe?user_id=${user._id}&pid=${subscriptionObj.subscribed_package_id}`;
-				let text = message.replace("%unsub_link%",unsubLink);
-				text = message.replace("%trial_hours%",trial_hours);
+				text = message;
+				text = text.replace("%unsub_link%",unsubLink);
+				text = text.replace("%trial_hours%",trial_hours);
 				console.log("Text",text);
 				sendTextMessage(text, user.msisdn);
-				res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 
 			}else {
 				if(subscription.active === true){
