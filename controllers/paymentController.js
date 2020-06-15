@@ -362,6 +362,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					console.log("subscriptionObj",subscriptionObj);
 					console.log("packageObj",packageObj);
 					subscriptionObj.active = true;
+					subscriptionObj.amount_billed_today = 0;
 					let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj);
 					console.log("result",result);
 					if(result.message === "success"){
@@ -370,7 +371,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						res.send({code: config.codes.code_in_billing_queue, message: 'User Successfully Subscribed!', 
 									gw_transaction_id: gw_transaction_id});
 					}else{
-						res.send({code: config.codes.code_success, message: 'Failed to switch package, insufficient balance', 
+						res.send({code: config.codes.code_success, message: 'Failed to subscribe.', 
 								gw_transaction_id: gw_transaction_id});
 					}
 					
