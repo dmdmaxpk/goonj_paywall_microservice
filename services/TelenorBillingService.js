@@ -22,6 +22,7 @@ class TelenorBillingService {
 
         try{
             // Check if the subscription is active or blocked for some reason.
+            console.log("subscription-processDirectBilling",subscription)
             if (subscription.active === true) {
 
                 if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
