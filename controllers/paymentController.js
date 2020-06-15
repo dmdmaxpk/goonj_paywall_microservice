@@ -358,7 +358,10 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 				}else{
 					// TODO process billing directly and create subscription
-					let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj);
+					console.log("user",user);
+					console.log("subscriptionObj",subscriptionObj);
+					console.log("packageObj",packageObj);
+					let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj);
 					console.log("result",result);
 					if(result.message === "success"){
 						subscription = await subscriptionRepo.createSubscription(subscriptionObj);
