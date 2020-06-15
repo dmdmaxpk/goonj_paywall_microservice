@@ -89,24 +89,35 @@ class TelenorBillingService {
         let nextBilling = new Date();
         nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
     
-        // Update subscription
-        let subscriptionObj = {};
-        subscriptionObj.subscription_status = 'billed';
-        subscriptionObj.auto_renewal = true;
-        subscriptionObj.is_billable_in_this_cycle = false;
-        subscriptionObj.is_allowed_to_stream = true;
-        subscriptionObj.last_billing_timestamp = new Date();
-        subscriptionObj.next_billing_timestamp = nextBilling;
-        subscriptionObj.amount_billed_today =  (subscription.amount_billed_today + packageObj.price_point_pkr);
-        subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
-        subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
-        subscriptionObj.subscribed_package_id = packageObj._id;
-        subscriptionObj.queued = false;
         let subscriptionCreated = undefined;
         if (!first_time_billing) {
+             // Update subscription
+            let subscriptionObj = {};
+            subscriptionObj.subscription_status = 'billed';
+            subscriptionObj.auto_renewal = true;
+            subscriptionObj.is_billable_in_this_cycle = false;
+            subscriptionObj.is_allowed_to_stream = true;
+            subscriptionObj.last_billing_timestamp = new Date();
+            subscriptionObj.next_billing_timestamp = nextBilling;
+            subscriptionObj.amount_billed_today =  (subscription.amount_billed_today + packageObj.price_point_pkr);
+            subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
+            subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
+            subscriptionObj.subscribed_package_id = packageObj._id;
+            subscriptionObj.queued = false;
             await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         } else {
-            subscriptionCreated = await this.subscriptionRepo.createSubscription(subscriptionObj);
+            subscription.subscription_status = 'billed';
+            subscription.auto_renewal = true;
+            subscription.is_billable_in_this_cycle = false;
+            subscription.is_allowed_to_stream = true;
+            subscription.last_billing_timestamp = new Date();
+            subscription.next_billing_timestamp = nextBilling;
+            subscription.amount_billed_today =  (subscription.amount_billed_today + packageObj.price_point_pkr);
+            subscription.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
+            subscription.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
+            subscription.subscribed_package_id = packageObj._id;
+            subscription.queued = false;
+            subscriptionCreated = await this.subscriptionRepo.createSubscription(subscription);
         }
         console.log("subscriptionCreated",subscriptionCreated);
         // Add history record
