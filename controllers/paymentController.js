@@ -414,7 +414,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 										history.billing_status = "subscription-request-received-after-unsub";
 										
 										await billingHistoryRepo.createBillingHistory(history);
-										res.send({code: config.codes.code_success, message: 'Subscribed', gw_transaction_id: gw_transaction_id});
+										res.send({code: config.codes.code_already_subscribed, message: 'Already subscribed', gw_transaction_id: gw_transaction_id});
 									}else{
 										res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
 									}
