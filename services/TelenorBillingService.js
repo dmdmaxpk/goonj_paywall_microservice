@@ -106,7 +106,7 @@ class TelenorBillingService {
         if (!first_time_billing) {
             await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         } else {
-            subscriptionCreated = await this.subscriptionRepo.createSubscription(createSubscription);
+            subscriptionCreated = await this.subscriptionRepo.createSubscription(subscriptionObj);
         }
         console.log("subscriptionCreated",subscriptionCreated);
         // Add history record
