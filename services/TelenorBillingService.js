@@ -22,7 +22,7 @@ class TelenorBillingService {
 
         try{
             // Check if the subscription is active or blocked for some reason.
-            console.log("subscription-processDirectBilling",subscription)
+            console.log("subscription-processDirectBilling",)
             if (subscription.active === true) {
 
                 if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
@@ -33,7 +33,7 @@ class TelenorBillingService {
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                         
                         try{
-                            let response = await this.billingRepo(user.msisdn, packageObj, transaction_id);
+                            let response = await this.processDirectBilling(user.msisdn, packageObj, transaction_id);
                             console.log("response from billingRepo",response);
                             let message = response.data.Message;
                             if(message === "Success"){
