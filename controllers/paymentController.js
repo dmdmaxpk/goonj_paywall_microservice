@@ -367,7 +367,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,first_time_billing);
 					console.log("result",result);
 					if(result.message === "success"){
-						subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+						// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
 						// subscribePackage(subscription, packageObj);
 						res.send({code: config.codes.code_in_billing_queue, message: 'User Successfully Subscribed!', 
 									gw_transaction_id: gw_transaction_id});
