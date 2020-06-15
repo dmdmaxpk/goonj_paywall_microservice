@@ -357,9 +357,19 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					sendTextMessage(text, user.msisdn);
 					res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
 				}else{
-					subscription = await subscriptionRepo.createSubscription(subscriptionObj);
-					subscribePackage(subscription, packageObj);
-					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+					// TODO process billing directly and create subscription
+					let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj);
+					console.log("result",result);
+					if(result.message === "success"){
+						subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+						// subscribePackage(subscription, packageObj);
+						res.send({code: config.codes.code_in_billing_queue, message: 'User Successfully Subscribed!', 
+									gw_transaction_id: gw_transaction_id});
+					}else{
+						res.send({code: config.codes.code_success, message: 'Failed to switch package, insufficient balance', 
+								gw_transaction_id: gw_transaction_id});
+					}
+					
 				}
 			}else {
 				if(subscription.active === true){
