@@ -326,7 +326,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				}
 	
 				// Check if trial is allowed by the system
-				if (packageObj.is_trial_allowed && (subscriptionObj.source != 'HE' && subscriptionObj.affiliate_mid != "gdn")) {
+				if (packageObj.is_trial_allowed || (subscriptionObj.source != 'HE' && subscriptionObj.affiliate_mid != "gdn")) {
 						let nexBilling = new Date();
 						let trial_hours = packageObj.trial_hours;
 						if (subscriptionObj.source === 'daraz'){
