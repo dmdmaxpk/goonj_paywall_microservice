@@ -320,7 +320,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.marketing_source = req.body.marketing_source;
 				}
 	
-				if(req.body.affiliate_unique_transaction_id && req.body.affiliate_mid){
+				if(req.body.affiliate_unique_transaction_id || req.body.affiliate_mid){
 					subscriptionObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 					subscriptionObj.affiliate_mid = req.body.affiliate_mid;
 				}
