@@ -15,7 +15,7 @@ class TelenorBillingService {
             this.userRepo = userRepository;
     }
 
-    async processDirectBilling(user, subscription, packageObj) {
+    async processDirectBilling(user, subscription, packageObj,first_time_billing) {
         let transaction_id = "GoonjDirectCharge_"+subscription._id+"_"+packageObj.price_point_pkr+"_"+this.getCurrentDate();
 
         let returnObj = {};
@@ -38,7 +38,8 @@ class TelenorBillingService {
                             let message = response.data.Message;
                             if(message === "Success"){
                                 //Direct billing success, update records
-                                await this.billingSuccess(user, subscription, response.data, packageObj, transaction_id);
+                                await this.billingSuccess(user, subscription, response.data, packageObj,
+                                      transaction_id,first_time_billing);
                                 returnObj.message = "success";
                                 returnObj.response = response.data;
                             }else{
@@ -82,7 +83,7 @@ class TelenorBillingService {
     }
 
 
-    async billingSuccess (user, subscription, response, packageObj, transaction_id)  {
+    async billingSuccess (user, subscription, response, packageObj, transaction_id,first_time_billing)  {
 	
         // Success billing
         let nextBilling = new Date();
@@ -101,12 +102,17 @@ class TelenorBillingService {
         subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
         subscriptionObj.subscribed_package_id = packageObj._id;
         subscriptionObj.queued = false;
-        await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
-    
+        let subscriptionCreated = undefined;
+        if (!first_time_billing) {
+            await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
+        } else {
+            subscriptionCreated = await this.subscriptionRepo.updateSubscription(createSubscription);
+        }
+        console.log("subscriptionCreated",subscriptionCreated);
         // Add history record
         let history = {};
         history.user_id = user._id;
-        history.subscription_id = subscription._id;
+        history.subscription_id =  subscriptionCreated?subscriptionCreated._id:subscription._id ;
         history.subscriber_id = subscription.subscriber_id;
         history.paywall_id = packageObj.paywall_id;
         history.package_id = packageObj._id;

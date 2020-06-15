@@ -363,7 +363,8 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					console.log("packageObj",packageObj);
 					subscriptionObj.active = true;
 					subscriptionObj.amount_billed_today = 0;
-					let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj);
+					let first_time_billing = true;
+					let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,first_time_billing);
 					console.log("result",result);
 					if(result.message === "success"){
 						subscription = await subscriptionRepo.createSubscription(subscriptionObj);
@@ -427,7 +428,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							// lets amend existing subscription for the new package
 							
 							try{
-								let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj);
+								let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
 								console.log("result",result);
 								if(result.message === "success"){
 									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
