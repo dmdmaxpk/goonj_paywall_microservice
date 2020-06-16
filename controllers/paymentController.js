@@ -432,18 +432,24 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						}else{
 							// request is coming for the same paywall but different package
 							// lets amend existing subscription for the new package
-							
-							try{
-								let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
-								console.log("result",result);
-								if(result.message === "success"){
-									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
-								}else{
-									res.send({code: config.codes.code_success, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
+							if (subscription.subscription_status === "billed" || subscription.subscription_status === "trial" ){
+									let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true,
+												subscribed_package_id:newPackageId});
+								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired") {
+								try {
+									let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
+									console.log("result",result);
+									if(result.message === "success"){
+										res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
+									}else{
+										res.send({code: config.codes.code_error, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
+									}
+								} catch(graceErr){
+									console.log(graceErr);
+									res.send({code: config.codes.code_error, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
 								}
-							}catch(error){
-								console.log("Error",error);
-								res.send({code: config.codes.code_success, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
+							} else {
+								res.send({code: config.codes.code_error, message: 'Failed to switch package,status not present', gw_transaction_id: gw_transaction_id});
 							}
 						}
 					}else{

@@ -129,6 +129,7 @@ class TelenorBillingService {
         history.package_id = packageObj._id;
         history.transaction_id = transaction_id;
         history.operator_response = response;
+        history.price = packageObj.price_point_pkr;
         history.billing_status = "Success";
         history.operator = 'telenor';
         await this.billingHistoryRepo.createBillingHistory(history);
