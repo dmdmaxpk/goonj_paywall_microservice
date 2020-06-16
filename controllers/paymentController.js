@@ -434,11 +434,12 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						}else{
 							// request is coming for the same paywall but different package
 							// lets amend existing subscription for the new package
-							if (subscription.subscription_status === "billed" || subscription.subscription_status === "trial" ){
+							if (subscription.subscription_status === "billed" ){
 									let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true,
 												subscribed_package_id:newPackageId});
 									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
-								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired") {
+								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired" 
+									|| subscription.subscription_status === "trial" ) {
 								try {
 									let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
 									console.log("result",result);
