@@ -384,25 +384,28 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				sendTextMessage(text, user.msisdn);
 
 			}else {
+				console.log("Active Subscription",subscription.active);
 				if(subscription.active === true){
 					// Pass subscription through following checks before pushing into queue
 					await viewLogRepo.createViewLog(user._id, subscription._id);
 					let currentPackageId = subscription.subscribed_package_id;
 					let autoRenewal = subscription.auto_renewal;
-
+					console.log("Subueued",subscription.queued);
 					if(subscription.queued === false){
 						let history = {};
 						history.user_id = user._id;
 						history.subscriber_id = subscriber._id;
 						history.subscription_id = subscription._id;
-		
+						console.log("currentPackageId",currentPackageId);
+						console.log("newPackageId",newPackageId);
 						// if both subscribed and upcoming packages are same
 						if(currentPackageId === newPackageId){
 							history.source = req.body.source;
 							history.package_id = newPackageId;
 							history.paywall_id = packageObj.paywall_id;
 
-							if(subscription.subscription_status === 'billed' || subscription.subscription_status === 'trial'){
+							if(subscription.subscription_status === 'billed' || subscription.subscription_status === 'trial'
+										|| subscription.subscription_status === 'graced'){
 								if(autoRenewal === true){
 									// Already subscribed, no need to subscribed package again
 									history.billing_status = "subscription-request-received-for-the-same-package";
@@ -432,10 +435,16 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						}else{
 							// request is coming for the same paywall but different package
 							// lets amend existing subscription for the new package
-							if (subscription.subscription_status === "billed" || subscription.subscription_status === "trial" ){
+							if (subscription.subscription_status === "billed" ){
 									let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true,
 												subscribed_package_id:newPackageId});
-								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired") {
+									history.paywall_id = packageObj.paywall_id;
+									history.package_id = newPackageId;
+									history.billing_status = "package_change_upon_user_request";
+									await billingHistoryRepo.createBillingHistory(history);
+									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
+								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired" 
+									|| subscription.subscription_status === "trial" ) {
 								try {
 									let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
 									console.log("result",result);
