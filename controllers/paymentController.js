@@ -384,18 +384,20 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				sendTextMessage(text, user.msisdn);
 
 			}else {
+				console.log("Active Subscription",subscription.active);
 				if(subscription.active === true){
 					// Pass subscription through following checks before pushing into queue
 					await viewLogRepo.createViewLog(user._id, subscription._id);
 					let currentPackageId = subscription.subscribed_package_id;
 					let autoRenewal = subscription.auto_renewal;
-
+					console.log("Subueued",subscription.queued);
 					if(subscription.queued === false){
 						let history = {};
 						history.user_id = user._id;
 						history.subscriber_id = subscriber._id;
 						history.subscription_id = subscription._id;
-		
+						console.log("currentPackageId",currentPackageId);
+						console.log("newPackageId",newPackageId);
 						// if both subscribed and upcoming packages are same
 						if(currentPackageId === newPackageId){
 							history.source = req.body.source;
@@ -435,6 +437,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							if (subscription.subscription_status === "billed" || subscription.subscription_status === "trial" ){
 									let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true,
 												subscribed_package_id:newPackageId});
+									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired") {
 								try {
 									let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
