@@ -376,7 +376,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				}
 				let trial_hours = packageObj.trial_hours;
 				let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
-				let unsubLink = `goonj.pk/unsubscribe?user_id=${user._id}&pid=${subscriptionObj.subscribed_package_id}`;
+				let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&pg=${subscriptionObj.subscribed_package_id}`;
 				text = message;
 				text = text.replace("%unsub_link%",unsubLink);
 				text = text.replace("%trial_hours%",trial_hours);
