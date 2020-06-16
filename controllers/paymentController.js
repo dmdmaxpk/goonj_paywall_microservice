@@ -404,7 +404,8 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							history.package_id = newPackageId;
 							history.paywall_id = packageObj.paywall_id;
 
-							if(subscription.subscription_status === 'billed' || subscription.subscription_status === 'trial'){
+							if(subscription.subscription_status === 'billed' || subscription.subscription_status === 'trial'
+										|| subscription.subscription_status === 'graced'){
 								if(autoRenewal === true){
 									// Already subscribed, no need to subscribed package again
 									history.billing_status = "subscription-request-received-for-the-same-package";
