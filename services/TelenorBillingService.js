@@ -16,7 +16,7 @@ class TelenorBillingService {
     }
 
     async processDirectBilling(user, subscription, packageObj,first_time_billing) {
-        let transaction_id = "GoonjDirectCharge_"+subscription._id+"_"+packageObj.price_point_pkr+"_"+this.getCurrentDate();
+        let transaction_id = "GoonjDirectCharge_"+(subscription._id)?subscription._id:user._id+"_"+packageObj.price_point_pkr+"_"+this.getCurrentDate();
 
         let returnObj = {};
 

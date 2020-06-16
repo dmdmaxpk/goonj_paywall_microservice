@@ -437,6 +437,10 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							if (subscription.subscription_status === "billed" ){
 									let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true,
 												subscribed_package_id:newPackageId});
+									history.paywall_id = packageObj.paywall_id;
+									history.package_id = newPackageId;
+									history.billing_status = "package_change_upon_user_request";
+									await billingHistoryRepo.createBillingHistory(history);
 									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired" 
 									|| subscription.subscription_status === "trial" ) {
