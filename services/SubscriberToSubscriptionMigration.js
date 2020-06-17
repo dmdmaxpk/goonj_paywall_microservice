@@ -20,7 +20,7 @@ execute = async(req,res) => {
     let query = {};
     let added_dtm_gt = undefined;
     for(i = 0; i < totalChunks; i++){
-        if (i >1) {
+        if (i >0) {
             query = {added_dtm: { $gt: added_dtm_gt  }}
         }
         console.log("Skipping", skip, "records");
