@@ -17,15 +17,11 @@ execute = async(req,res) => {
     let leftOver = totalCount % limit;
 
     console.log("Total counts", totalCount, "Total chunks", totalChunks, "Leftover", leftOver);
-    let added_dtm_gt = new Date("2020-05-01T03:56:57.941Z");
-    let query = {added_dtm: { $gt: added_dtm_gt  }};
     for(i = 0; i < totalChunks; i++){
-        if (i >0) {
-            query = {added_dtm: { $gt: added_dtm_gt  }}
-        }
         console.log("Skipping", skip, "records");
         console.time("getSubscribers");
-        let subscribers = await subscriberRepo.getAllSubscribers(query,limit, skip);
+        let subscribers = await subscriberRepo.getAllSubscribers(limit, skip);
+        console.log("added_dtm",subscribers[limit - 1]);
         console.log("added_dtm",subscribers[limit - 1].added_dtm);
         added_dtm_gt = subscribers[limit - 1].added_dtm;
         console.timeEnd("getSubscribers");
@@ -37,7 +33,7 @@ execute = async(req,res) => {
     }
 
     console.log("Skipping", skip);
-    let subscribers = await subscriberRepo.getAllSubscribers(query,leftOver, skip);
+    let subscribers = await subscriberRepo.getAllSubscribers(leftOver, skip);
     console.log("Leftover length: ", subscribers.length);
     processSubscribers(subscribers);
 }
