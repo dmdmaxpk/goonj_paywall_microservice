@@ -99,24 +99,26 @@ createSubscription = (subscriber) => {
                         console.log("user.subscribed_package_id",user.subscribed_package_id)
                     }
                     if (user.subscribed_package_id) {
-                        let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
-                        let history = {};
-                        history.user_id = user._id;
-                        history.subscriber_id = subscriber._id;
-                        history.subscription_id = added._id;
-                        history.package_id = user.subscribed_package_id;
-                        history.paywall_id = packageObj.paywall_id;
-                        history.billing_status = "subscriber-migrated-to-subscription";
-                        history.source = "system";
+                        //let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
+                        // let history = {};
+                        // history.user_id = user._id;
+                        // history.subscriber_id = subscriber._id;
+                        // history.subscription_id = added._id;
+                        // history.package_id = "QDfC";
+                        // history.paywall_id = "ghRtjhT7";
+                        // history.billing_status = "subscriber-migrated-to-subscription";
+                        // history.source = "system";
+
+                        console.log("storeHistory", user._id, added._id);
         
-                        added = await billingHistoryRepo.createBillingHistory(history);
-                        if(added){
-                            resolveMessage.history_message = "success";
-                            resolveMessage.history_id = added._id;
-                        }else{
-                            resolveMessage.history_message = "failed";
-                        }
-                        await migrationRepo.createMigration(resolveMessage);
+                        // added = await billingHistoryRepo.createBillingHistory(history);
+                        // if(added){
+                        //     resolveMessage.history_message = "success";
+                        //     resolveMessage.history_id = added._id;
+                        // }else{
+                        //     resolveMessage.history_message = "failed";
+                        // }
+                        // await migrationRepo.createMigration(resolveMessage);
                         resolve(resolveMessage);
                     } else {
                         console.log("User does not have pacakge id",user._id);
