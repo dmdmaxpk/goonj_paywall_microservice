@@ -302,8 +302,8 @@ dailyReport = async(mode = 'prod') => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                //to:  ["farhan.ali@dmdmax.com"],
-                to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
+                to:  ['farhan.ali@dmdmax.com','hamza@dmdmax.com.pk','paywall@dmdmax.com.pk'],
+                // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
                 subject: `Paywall Report`, // Subject line
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
                 attachments:[
