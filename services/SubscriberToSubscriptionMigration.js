@@ -21,9 +21,6 @@ execute = async(req,res) => {
         console.log("Skipping", skip, "records");
         console.time("getSubscribers");
         let subscribers = await subscriberRepo.getAllSubscribers(limit, skip);
-        console.log("added_dtm",subscribers[limit - 1]);
-        console.log("added_dtm",subscribers[limit - 1].added_dtm);
-        added_dtm_gt = subscribers[limit - 1].added_dtm;
         console.timeEnd("getSubscribers");
         console.time("processSubcribers");
         processSubscribers(subscribers);
