@@ -422,6 +422,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 										res.send({code: config.codes.code_error, message: 'Error updating record!', gw_transaction_id: gw_transaction_id});
 									}
 								}
+								
 							}else{
 								/* 
 								* Not already billed
