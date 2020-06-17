@@ -21,7 +21,7 @@ exports.refreshToken = async (req,res) =>  {
 
 exports.dailyAmoutReset = async (req,res) =>  {
     await tpsCountService.dailyAmountReset();
-    await checkLastSeenOfUsersService.checkLastSeenOfUsers();
+    // await checkLastSeenOfUsersService.checkLastSeenOfUsers();
     res.send("DailyAmoutReset - Executed");
 }
 
