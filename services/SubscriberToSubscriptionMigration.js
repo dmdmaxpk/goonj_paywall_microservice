@@ -17,8 +17,8 @@ execute = async(req,res) => {
     let leftOver = totalCount % limit;
 
     console.log("Total counts", totalCount, "Total chunks", totalChunks, "Leftover", leftOver);
-    let query = {};
     let added_dtm_gt = new Date("2020-05-01T03:56:57.941Z");
+    let query = {added_dtm: { $gt: added_dtm_gt  }};
     for(i = 0; i < totalChunks; i++){
         if (i >0) {
             query = {added_dtm: { $gt: added_dtm_gt  }}
