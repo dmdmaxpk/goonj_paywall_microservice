@@ -8,7 +8,7 @@ const userRepo = container.resolve("userRepository");
 
 execute = async(req,res) => {
     res.send("Executing migration script")
-    let skip = 90000;
+    let skip = 0;
     let limit = 10000;
 
 
@@ -19,19 +19,17 @@ execute = async(req,res) => {
     console.log("Total counts", totalCount, "Total chunks", totalChunks, "Leftover", leftOver);
     for(i = 0; i < totalChunks; i++){
         console.log("Skipping", skip, "records");
-        console.time("getSubscribers");
         let subscribers = await subscriberRepo.getAllSubscribers(limit, skip);
         console.timeEnd("getSubscribers");
         console.time("processSubcribers");
         processSubscribers(subscribers);
         console.timeEnd("processSubcribers");
         skip+=limit;
-        // await sleep(2*1000);
+        await sleep(2*1000);
     }
 
-    console.log("Skipping", skip);
+    console.log("Skipping leftover", skip);
     let subscribers = await subscriberRepo.getAllSubscribers(leftOver, skip);
-    console.log("Leftover length: ", subscribers.length);
     processSubscribers(subscribers);
 }
 
