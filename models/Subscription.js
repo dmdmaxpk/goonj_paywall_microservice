@@ -43,7 +43,7 @@ const subscriptionSchema = new Schema({
     micro_price_point: { type: Number, default: 0 },
     
     //field for billing
-    is_allowed_to_stream: { type: Boolean, default: true },
+    is_allowed_to_stream: { type: Boolean, default: false },
     is_billable_in_this_cycle: { type: Boolean, default: false },
     date_on_which_user_entered_grace_period: {type: Date},
 
