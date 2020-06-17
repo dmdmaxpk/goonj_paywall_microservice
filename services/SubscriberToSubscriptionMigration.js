@@ -8,11 +8,11 @@ const userRepo = container.resolve("userRepository");
 
 execute = async(req,res) => {
     res.send("Executing migration script")
-    let skip = 0;
+    let skip = 179990;
     let limit = 10000;
 
 
-    let totalCount = await subscriberRepo.getCount();
+    let totalCount = (await subscriberRepo.getCount() - skip);
     let totalChunks = Math.trunc(totalCount / limit);
     let leftOver = totalCount % limit;
 
@@ -20,10 +20,7 @@ execute = async(req,res) => {
     for(i = 0; i < totalChunks; i++){
         console.log("Skipping", skip, "records");
         let subscribers = await subscriberRepo.getAllSubscribers(limit, skip);
-        console.timeEnd("getSubscribers");
-        console.time("processSubcribers");
         processSubscribers(subscribers);
-        console.timeEnd("processSubcribers");
         skip+=limit;
         await sleep(2*1000);
     }
@@ -59,7 +56,7 @@ createSubscription = (subscriber) => {
     try {
         let user = await userRepo.getUserById(subscriber.user_id);
 
-        if(user && (user.subscribed_package_id === "QDfC" || user.subscribed_package_id === "QDfE")){
+        if(user && (user.subscribed_package_id === "QDfC")){
             let resolveMessage = {};
             let subscriptionObj = {};
             subscriptionObj.subscriber_id = subscriber._id;
@@ -94,10 +91,6 @@ createSubscription = (subscriber) => {
                     resolveMessage.migration_message = "success";
                     resolveMessage.subscriber_id = subscriber._id;
 
-                    // Lets create history
-                    if (user.subscribed_package_id !== "QDfC"){
-                        console.log("user.subscribed_package_id",user.subscribed_package_id)
-                    }
                     if (user.subscribed_package_id) {
                         //let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
                         // let history = {};
