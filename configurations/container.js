@@ -23,9 +23,9 @@ const TelenorBillingService = require('../services/TelenorBillingService');
 // Services
 const PaywallService = require('../services/PaywallService');
 const SubscriptionService = require('../services/SubscriptionService');
-
-const RemoveDuplicateMsisdsScript = require('../scripts/removeDuplicateMsisdns');
 const Constants = require('./constants');
+//scripts
+const RemoveDuplicateMsisdnsScript = require('../scripts/removeDuplicateMsisdns');
 
 container.register({
     // Here we are telling Awilix how to resolve a
@@ -52,7 +52,7 @@ container.register({
     subscriptionService : awilix.asClass(SubscriptionService).singleton(),
 
     //scripts
-    removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdsScript).singleton(),
+    removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdnsScript).singleton(),
 
     // constants:
     constants: awilix.asClass(Constants).singleton()

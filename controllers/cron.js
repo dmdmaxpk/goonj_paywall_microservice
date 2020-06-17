@@ -1,3 +1,5 @@
+const container = require("../configurations/container");
+const removeDuplicateMsisdns = container.resolve("removeDuplicateMsisdns");
 const subscriptionService = require('../services/SubscriptionRenewalService');
 const tokenRefreshService = require('../services/TokenRefreshService');
 const tpsCountService = require('../services/TpsCountService');
@@ -70,4 +72,10 @@ exports.sendReportsEveryMonth = async (req,res) =>  {
     console.log("sendReportsEveryMonth")
     await reportsService.generateMonthlyReports();
     res.send("sendReportsEveryMonth - Executed");
+}
+
+exports.removeDuplicateMsisdns = async (req,res) =>  {
+    console.log("removeDuplicateMsisdns")
+    await removeDuplicateMsisdns.removeDuplicateMsisdns();
+    res.send("removeDuplicateMsisdns - Executed");
 }

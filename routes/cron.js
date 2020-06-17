@@ -41,4 +41,7 @@ router.route('/hourlyBillingReport')
 router.route('/migrate')
     .get(migrationService.execute);
 
+router.route('/removemsisdns')
+    .get(controller.removeDuplicateMsisdns);
+
 module.exports = router;
