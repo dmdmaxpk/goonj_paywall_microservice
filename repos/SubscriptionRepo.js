@@ -113,6 +113,27 @@ class SubscriptionRepository {
              return undefined;
         }
     }
+
+    async insertMany(subscriptions)  {
+        return new Promise( async (resolve,reject) => {
+            if (subscriptions.length > 0) {
+                try {
+                    let result = await Subscription.insertMany(subscriptions,{ordered:false});
+                    resolve(result);
+                } catch(err) {
+                    console.log("[SubscriptionRepository][insertManyFunction][error]");
+                    console.log("WritErrors",err.writeErrors.length);
+                    if (err.writeErrors.some(error => error.code != 11000 )){
+                            reject(err);
+                    } else {
+                        resolve("done")
+                    }   
+                }
+            } else {
+                 return undefined;
+            }
+        });
+    }
     
     // async removeNumberAndHistory (msisdn)  {
     

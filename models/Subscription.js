@@ -6,7 +6,7 @@ const ObjectId = Schema.ObjectId;
 const subscriptionSchema = new Schema({
     
     //Generating shortid instead of uuid
-    _id: { type: ShortId, len: 8, retries: 4 },
+    _id: { type: ShortId, len: 8, retries: 4},
 
     subscriber_id: {type: ShortId, required: true},
     paywall_id: {type: ShortId, required: true},
@@ -50,6 +50,7 @@ const subscriptionSchema = new Schema({
     amount_billed_today: {type: Number, default: 0},
     is_manual_recharge: { type: Boolean, default: false },
     active: { type: Boolean, default: true, index: true }
-}, { strict: true })
+}, { strict: true });
+subscriptionSchema.index({subscriber_id:1,paywall_id:1},{unique: true});
 
 module.exports = mongoose.model('Subscription', subscriptionSchema);
