@@ -58,7 +58,7 @@ const time_between_billing_attempts_hours = 8;
 let config = {
     development: {
         port: '5000',
-        mongoDB: 'mongodb://localhost:27017/migration_test',
+        mongoDB: 'mongodb://localhost:27017/goonjpaywall',
         rabbitMq: 'amqp://localhost',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,

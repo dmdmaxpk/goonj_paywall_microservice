@@ -7,9 +7,9 @@ const migrationRepo = container.resolve("migrationRepository");
 const userRepo = container.resolve("userRepository");
 
 execute = async(req,res) => {
-    res.send("Executing migration script")
+    res.send("Executing migration script");
     let skip = 0;
-    let limit = 20000;
+    let limit = 5000;
 
 
     let totalCount = (await subscriberRepo.getCount() - skip);
@@ -19,6 +19,7 @@ execute = async(req,res) => {
     console.log("Total counts", totalCount, "Total chunks", totalChunks, "Leftover", leftOver);
     let query = {};
     let added_dtm_gt = undefined;
+
     for(i = 0; i < totalChunks; i++){
         if (i >0){
             query = {added_dtm: { $gt: added_dtm_gt  }}
@@ -36,115 +37,87 @@ execute = async(req,res) => {
 }
 
 processSubscribers = async(subscribers) => {
-    
-    let promises = [];
+    let bulkSubscriptions = [];
     for(j = 0; j < subscribers.length; j++){
-        let promise = createSubscription(subscribers[j]);
-        promises.push(promise);
+        let sub = await createSubscription(subscribers[j]);
+        bulkSubscriptions.push(sub);
     }
-
-    try{
-        console.time("executePromiseAll");
-        let response = await Promise.all(promises);
-        console.timeEnd("executePromiseAll");
-        console.log("TryData Length", response.length);
-        console.log("\n-------------------------------\n\n");
-    }catch(err){
-        console.log("CatchData", err);
-        console.log("\n-------------------------------\n\n");
-    }
+    console.log("Bulk insert length: ", bulkSubscriptions.length);
 }
 
-createSubscription = (subscriber) => {
-    return new Promise(async(resolve, reject) => {
+createSubscription = async (subscriber) => {
+    let subscriptionObj = {};
+    let user = await userRepo.getUserById(subscriber.user_id);
+    if(user && (user.subscribed_package_id === "QDfC")){
+        subscriptionObj.subscriber_id = subscriber._id;
+        subscriptionObj.subscription_status = subscriber.subscription_status;
+        subscriptionObj.last_billing_timestamp = subscriber.last_billing_timestamp;
+        subscriptionObj.next_billing_timestamp = subscriber.next_billing_timestamp;
+        subscriptionObj.auto_renewal = subscriber.auto_renewal;
+        subscriptionObj.total_successive_bill_counts = subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts: 0;
+        subscriptionObj.consecutive_successive_bill_counts = subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0;
+        subscriptionObj.source = user.source ? user.source : "na";
+        subscriptionObj.marketing_source = user.marketing_source;
+        subscriptionObj.affiliate_unique_transaction_id = user.affiliate_unique_transaction_id;
+        subscriptionObj.affiliate_mid = user.affiliate_mid;
+        subscriptionObj.is_affiliation_callback_executed = user.is_affiliation_callback_executed;
+        subscriptionObj.is_gray_listed = user.is_gray_listed;
+        subscriptionObj.is_black_listed = user.is_black_listed;
+        subscriptionObj.added_dtm = subscriber.added_dtm;
+        subscriptionObj.is_discounted = subscriber.is_discounted;
+        subscriptionObj.discounted_price = subscriber.discounted_price;
+        subscriptionObj.queued = subscriber.queued;
+        subscriptionObj.is_allowed_to_stream = subscriber.is_allowed_to_stream;
+        subscriptionObj.is_billable_in_this_cycle = subscriber.is_billable_in_this_cycle;
+        subscriptionObj.date_on_which_user_entered_grace_period = subscriber.date_on_which_user_entered_grace_period;
+        subscriptionObj.subscribed_package_id = user.subscribed_package_id;
+        subscriptionObj.amount_billed_today = subscriber.amount_billed_today;
+        subscriptionObj.is_manual_recharge = false;
+        subscriptionObj.active = subscriber.active;
+        subscriptionObj.paywall_id = "ghRtjhT7"; // TODO HArdCode this id for now
+
+        // let added = await subscriptionRepo.createSubscription(subscriptionObj);
+        // if(added){
+        //         resolveMessage.migration_message = "success";
+        //         resolveMessage.subscriber_id = subscriber._id;
+
+        //         if (user.subscribed_package_id) {
+        //             //let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
+        //             // let history = {};
+        //             // history.user_id = user._id;
+        //             // history.subscriber_id = subscriber._id;
+        //             // history.subscription_id = added._id;
+        //             // history.package_id = "QDfC";
+        //             // history.paywall_id = "ghRtjhT7";
+        //             // history.billing_status = "subscriber-migrated-to-subscription";
+        //             // history.source = "system";
+
+        //             console.log("storeHistory", user._id, added._id);
     
-    try {
-        let user = await userRepo.getUserById(subscriber.user_id);
-
-        if(user && (user.subscribed_package_id === "QDfC")){
-            let resolveMessage = {};
-            let subscriptionObj = {};
-            subscriptionObj.subscriber_id = subscriber._id;
-            subscriptionObj.subscription_status = subscriber.subscription_status;
-            subscriptionObj.last_billing_timestamp = subscriber.last_billing_timestamp;
-            subscriptionObj.next_billing_timestamp = subscriber.next_billing_timestamp;
-            subscriptionObj.auto_renewal = subscriber.auto_renewal;
-            subscriptionObj.total_successive_bill_counts = subscriber.total_successive_bill_counts ? subscriber.total_successive_bill_counts: 0;
-            subscriptionObj.consecutive_successive_bill_counts = subscriber.consecutive_successive_bill_counts ? subscriber.consecutive_successive_bill_counts : 0;
-            subscriptionObj.source = user.source ? user.source : "na";
-            subscriptionObj.marketing_source = user.marketing_source;
-            subscriptionObj.affiliate_unique_transaction_id = user.affiliate_unique_transaction_id;
-            subscriptionObj.affiliate_mid = user.affiliate_mid;
-            subscriptionObj.is_affiliation_callback_executed = user.is_affiliation_callback_executed;
-            subscriptionObj.is_gray_listed = user.is_gray_listed;
-            subscriptionObj.is_black_listed = user.is_black_listed;
-            subscriptionObj.added_dtm = subscriber.added_dtm;
-            subscriptionObj.is_discounted = subscriber.is_discounted;
-            subscriptionObj.discounted_price = subscriber.discounted_price;
-            subscriptionObj.queued = subscriber.queued;
-            subscriptionObj.is_allowed_to_stream = subscriber.is_allowed_to_stream;
-            subscriptionObj.is_billable_in_this_cycle = subscriber.is_billable_in_this_cycle;
-            subscriptionObj.date_on_which_user_entered_grace_period = subscriber.date_on_which_user_entered_grace_period;
-            subscriptionObj.subscribed_package_id = user.subscribed_package_id;
-            subscriptionObj.amount_billed_today = subscriber.amount_billed_today;
-            subscriptionObj.is_manual_recharge = false;
-            subscriptionObj.active = subscriber.active;
-            subscriptionObj.paywall_id = "ghRtjhT7"; // TODO HArdCode this id for now
-
-            let added = await subscriptionRepo.createSubscription(subscriptionObj);
-            if(added){
-                    resolveMessage.migration_message = "success";
-                    resolveMessage.subscriber_id = subscriber._id;
-
-                    if (user.subscribed_package_id) {
-                        //let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
-                        // let history = {};
-                        // history.user_id = user._id;
-                        // history.subscriber_id = subscriber._id;
-                        // history.subscription_id = added._id;
-                        // history.package_id = "QDfC";
-                        // history.paywall_id = "ghRtjhT7";
-                        // history.billing_status = "subscriber-migrated-to-subscription";
-                        // history.source = "system";
-
-                        console.log("storeHistory", user._id, added._id);
-        
-                        // added = await billingHistoryRepo.createBillingHistory(history);
-                        // if(added){
-                        //     resolveMessage.history_message = "success";
-                        //     resolveMessage.history_id = added._id;
-                        // }else{
-                        //     resolveMessage.history_message = "failed";
-                        // }
-                        // await migrationRepo.createMigration(resolveMessage);
-                        resolve(resolveMessage);
-                    } else {
-                        console.log("User does not have pacakge id",user._id);
-                        resolve(`User does not have pacakge id ${user._id}`);
-                    }
-             
-            }   else    {
-                let rejectMessage = {};
-                rejectMessage.rejection_message = "failed";
-                rejectMessage.subscriber_id = subscriber._id;
-                await migrationRepo.createMigration(rejectMessage);
-                reject(rejectMessage);
-            }
-        }else{
-            console.log("user_with_no_pacakge_id",user._id);
-            let resolveMessage = {};
-            resolveMessage.migration_message = "no_user_found";
-            resolveMessage.subscriber_id = subscriber._id;
-            await migrationRepo.createMigration(resolveMessage);
-            resolve(resolveMessage);
-        }
-    } catch(err) {
-        reject(err);
+        //             // added = await billingHistoryRepo.createBillingHistory(history);
+        //             // if(added){
+        //             //     resolveMessage.history_message = "success";
+        //             //     resolveMessage.history_id = added._id;
+        //             // }else{
+        //             //     resolveMessage.history_message = "failed";
+        //             // }
+        //             // await migrationRepo.createMigration(resolveMessage);
+        //             resolve(resolveMessage);
+        //         } else {
+        //             console.log("User does not have pacakge id",user._id);
+        //             resolve(`User does not have pacakge id ${user._id}`);
+        //         }
+            
+        // }   else    {
+        //     let rejectMessage = {};
+        //     rejectMessage.rejection_message = "failed";
+        //     rejectMessage.subscriber_id = subscriber._id;
+        //     await migrationRepo.createMigration(rejectMessage);
+        //     reject(rejectMessage);
+        // }
     }
-        
 
-        
-    });
+    return subscriptionObj;
 }
 
 
