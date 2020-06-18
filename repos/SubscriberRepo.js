@@ -20,7 +20,7 @@ class SubscriberRepository {
     }
 
     async getAllSubscribers(query,limit)  {
-        let result = await Subscriber.find(query).limit(limit);
+        let result = await Subscriber.find(query).sort({added_dtm: 1}).limit(limit);
         return result;
     }
 
