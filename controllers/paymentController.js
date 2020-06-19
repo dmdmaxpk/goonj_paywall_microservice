@@ -359,7 +359,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.amount_billed_today = 0;
 					let first_time_billing = true;
 					let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,first_time_billing);
-					console.log("result",result);
+					console.log("Direct Billing processed",result,user.msisdn);
 					if(result.message === "success"){
 						// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
 						// subscribePackage(subscription, packageObj);
