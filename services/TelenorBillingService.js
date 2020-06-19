@@ -28,7 +28,7 @@ class TelenorBillingService {
 
         try{
             // Check if the subscription is active or blocked for some reason.
-            console.log("subscription-processDirectBilling",user.msisdn)
+            console.log("subscription-processDirectBilling[firstTimeBillin]",first_time_billing,user.msisdn)
             if (subscription.active === true) {
 
                 if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
@@ -45,7 +45,7 @@ class TelenorBillingService {
                             if(message === "Success"){
                                 //Direct billing success, update records
                                 await this.billingSuccess(user, subscription, response.data, packageObj,
-                                      transaction_id,first_time_billing);
+                                                                transaction_id,first_time_billing);
                                 returnObj.message = "success";
                                 returnObj.response = response.data;
                             }else{
@@ -112,6 +112,7 @@ class TelenorBillingService {
             subscriptionObj.queued = false;
             await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         } else {
+            console.log("subscriptionCreated",user.msisdn);
             subscription.subscription_status = 'billed';
             subscription.auto_renewal = true;
             subscription.is_billable_in_this_cycle = false;
@@ -123,11 +124,11 @@ class TelenorBillingService {
             subscription.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
             subscription.subscribed_package_id = packageObj._id;
             subscription.queued = false;
-            console.log("subscriptionCreated",subscriptionCreated,user.msisdn);
             subscriptionCreated = await this.subscriptionRepo.createSubscription(subscription);
+            console.log("subscriptionCreated",subscriptionCreated,user.msisdn);
         }
-        console.log("subscriptionCreated",subscriptionCreated);
         // Add history record
+        console.log("Adding history record",user.msisdn);
         let history = {};
         history.user_id = user._id;
         history.subscription_id =  subscriptionCreated?subscriptionCreated._id:subscription._id ;
@@ -140,6 +141,7 @@ class TelenorBillingService {
         history.billing_status = "Success";
         history.operator = 'telenor';
         await this.billingHistoryRepo.createBillingHistory(history);
+        console.log("Added history record",user.msisdn);
     }
     
     async billingFailed   (user, subscription, response, packageObj, transaction_id)  {

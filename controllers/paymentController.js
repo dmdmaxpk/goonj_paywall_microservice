@@ -357,9 +357,8 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					// TODO process billing directly and create subscription
 					subscriptionObj.active = true;
 					subscriptionObj.amount_billed_today = 0;
-					let first_time_billing = true;
 					try {
-						let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,first_time_billing);
+						let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,true);
 						console.log("Direct Billing processed",result,user.msisdn);
 						if(result.message === "success"){
 							// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
