@@ -379,7 +379,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				console.log("source",subscriptionObj.source,user.msisdn);
 				console.log("subscribed_package_id",constants.subscription_messages,user.msisdn);
 				let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
-				if (subscriptionObj.source === 'gdn'){
+				if (subscriptionObj.affiliate_mid === 'gdn'){
 					message = constants.subscription_messages[subscriptionObj.source];
 				}
 				console.log("Messages",message,user.msisdn);
