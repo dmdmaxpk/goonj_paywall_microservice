@@ -355,9 +355,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					
 				}else{
 					// TODO process billing directly and create subscription
-					console.log("user",user);
-					console.log("subscriptionObj",subscriptionObj);
-					console.log("packageObj",packageObj.subscription_message_text);
 					subscriptionObj.active = true;
 					subscriptionObj.amount_billed_today = 0;
 					let first_time_billing = true;
@@ -376,11 +373,14 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				}
 				let trial_hours = packageObj.trial_hours;
 				let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
+				if (subscriptionObj.source === 'gdn'){
+					message = constants.subscription_messages[subscriptionObj.source];
+				}
 				let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&pg=${subscriptionObj.subscribed_package_id}`;
 				text = message;
 				text = text.replace("%unsub_link%",unsubLink);
 				text = text.replace("%trial_hours%",trial_hours);
-				console.log("Text",text);
+				console.log("Subscription Message Text",text);
 				sendTextMessage(text, user.msisdn);
 
 			}else {
