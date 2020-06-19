@@ -376,6 +376,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				}
 				let trial_hours = packageObj.trial_hours;
 				console.log("subscribed_package_id",subscriptionObj.subscribed_package_id,user.msisdn);
+				console.log("source",subscriptionObj.source,user.msisdn);
 				console.log("subscribed_package_id",constants.subscription_messages,user.msisdn);
 				let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
 				if (subscriptionObj.source === 'gdn'){
