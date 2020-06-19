@@ -53,7 +53,7 @@ class UserRepository {
         if (result.nModified === 0) {
             return undefined;
         }else{
-            let user = await getUserByMsisdn(msisdn);
+            let user = await this.getUserByMsisdn(msisdn);
             return user;
         }
     }
