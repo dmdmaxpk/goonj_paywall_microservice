@@ -34,13 +34,19 @@ class PaywallRepository {
 
     async getPaywallsAndPackages() {
         try {
+            let packages = await this.packageRepository.getAllPackages({});
             let paywalls = await this.getAllPaywalls();
-
-            for(let i = 0; i < paywalls.length; i++){
-                let packages = await this.packageRepository.getAllPackages({paywall_id: paywalls[i]._id});
-                paywalls[i].packages = packages;
-            }
-            return paywalls;
+            let resultsPaywall = [];
+            paywalls.forEach(element => {
+                let temp = JSON.parse(JSON.stringify(element) );
+                let filtered_packages = packages.filter(p => {
+                    return p.paywall_id === element._id;
+                });
+                temp.packages = filtered_packages;
+                console.log("temp",temp);
+                resultsPaywall.push(temp);
+            });
+            return resultsPaywall;
         } catch(err){
             throw err;
         }
