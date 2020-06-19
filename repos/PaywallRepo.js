@@ -34,16 +34,13 @@ class PaywallRepository {
 
     async getPaywallsAndPackages() {
         try {
-            let result = {};
             let paywalls = await this.getAllPaywalls();
 
             for(let i = 0; i < paywalls.length; i++){
                 let packages = await this.packageRepository.getAllPackages({paywall_id: paywalls[i]._id});
                 paywalls[i].packages = packages;
             }
-
-            result.data = paywalls;
-            return result;
+            return paywalls;
         } catch(err){
             throw err;
         }
