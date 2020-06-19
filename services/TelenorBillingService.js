@@ -53,9 +53,11 @@ class TelenorBillingService {
                                 returnObj.message = "failed";
                                 returnObj.response = response.data;
                             }
+                            console.log("return value",returnObj,user.msisdn);
                             return returnObj;
                         }catch(error){
                             console.log("Error",error,user.msisdn);
+                            console.log("Error message",error.message,user.msisdn);
                             returnObj.message = "failed";
                             if(error && error.response && error.response.data){
                                 returnObj.response = error.response.data
@@ -68,6 +70,7 @@ class TelenorBillingService {
                                 //consider payment failed
                                 await this.billingFailed(user, subscription, error.response.data, packageObj, transaction_id);
                             }
+                            console.log("return value",returnObj,user.msisdn);
                             return returnObj;
                         }       
                     } else{
