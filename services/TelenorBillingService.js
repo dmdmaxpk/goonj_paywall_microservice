@@ -41,7 +41,6 @@ class TelenorBillingService {
                         try{
                             let response = await this.billingRepo.processDirectBilling(user.msisdn, packageObj, transaction_id);
                             console.log("response from billingRepo",response,user.msisdn);
-                            console.log("response from billingRepo[message]",message,user.msisdn);
                             let message = response.data.Message;
                             if(message === "Success"){
                                 //Direct billing success, update records
