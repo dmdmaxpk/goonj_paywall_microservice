@@ -94,7 +94,7 @@ class TelenorBillingService {
         // Success billing
         let nextBilling = new Date();
         nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
-    
+        console.log("firtTimeBilling",first_time_billing,user.msisdn);
         let subscriptionCreated = undefined;
         if (!first_time_billing) {
              // Update subscription

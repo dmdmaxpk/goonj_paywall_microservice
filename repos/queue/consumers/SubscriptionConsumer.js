@@ -585,7 +585,7 @@ class SubscriptionConsumer {
         history.operator = 'telenor';
     
         console.log(`Sending Affiliate Marketing Callback Having TID - ${tid} - MID ${mid}`);
-        this.sendCallBackToIdeation(mid, tid).then(async function(fulfilled) {
+        this.sendCallBackToIdeation(mid, tid).then(async (fulfilled) => {
             let updated = await this.subscriptionRepo.updateSubscription(subscription_id, {is_affiliation_callback_executed: true});
             if(updated){
                 console.log(`Successfully Sent Affiliate Marketing Callback Having TID - ${tid} - MID ${mid} - Ideation Response - ${fulfilled}`);
