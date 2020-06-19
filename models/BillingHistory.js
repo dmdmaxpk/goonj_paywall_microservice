@@ -7,7 +7,7 @@ const billingHistorySchema = new Schema({
     _id: { type: ShortId, len: 16, retries: 4 },
     user_id: { type:ShortId, required: true, index: true },
     subscriber_id: { type:ShortId, required: true, index: true },
-    subscription_id: { type:ShortId, required: true, index: true },
+    subscription_id: { type:ShortId,  index: true },
     paywall_id: { type:ShortId, required: true, index: true },
     package_id: { type: String },
     
