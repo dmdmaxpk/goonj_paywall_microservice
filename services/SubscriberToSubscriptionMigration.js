@@ -60,7 +60,9 @@ processSubscribers = async(subscribers) => {
         console.log("Bulk insert length: ", bulkSubscriptions.length);
         console.time("insertManyasd");
         await subscriptionRepo.insertMany(bulkSubscriptions);
-        console.time("insertManyasd");
+        console.timeEnd("insertManyasd");
+        console.log("---------------------------------------");
+        
     } catch(err){
         console.error(err);
     }
