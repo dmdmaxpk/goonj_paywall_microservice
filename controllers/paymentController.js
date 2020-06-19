@@ -498,7 +498,7 @@ exports.recharge = async (req, res) => {
 	}
 
 	if(user){
-		let subscriber = await subscriber.getSubscriberByUserId(user._id);
+		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 		let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
 		if(subscription && subscription.subscription_status === 'graced'){
 			if(subscription.is_billable_in_this_cycle === true){
