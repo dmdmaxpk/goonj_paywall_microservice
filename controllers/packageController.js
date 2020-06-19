@@ -31,18 +31,20 @@ exports.get = async (req, res) => {
 
 // GET
 exports.getAll = async (req, res) => {
-	console.time("getAllPackages");
-	console.log("req.decoded",req.decoded);
 	let paywall_id = "";
 	let slug = req.query.slug;
+	let is_default = req.query.is_default ;
 	if (!slug){
 		slug = "live"		
 	}
 	paywall = await paywallRepository.getPaywallsBySlug(slug);
-	console.log("--",paywall);
 	if (paywall){
-		result = await repo.getAllPackages({paywall_id : paywall._id });
-		console.timeEnd("getAllPackages");
+		let query = {paywall_id : paywall._id,default: is_default };
+		if(!is_default || is_default==="false" ){
+			delete query.default;
+		}
+		console.log("query",query);
+		result = await repo.getAllPackages(query);
 		res.send(result);
 	} else{
 		res.status(200).send("Wrong slug");
