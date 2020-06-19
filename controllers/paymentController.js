@@ -358,16 +358,20 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.active = true;
 					subscriptionObj.amount_billed_today = 0;
 					let first_time_billing = true;
-					let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,first_time_billing);
-					console.log("Direct Billing processed",result,user.msisdn);
-					if(result.message === "success"){
-						// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
-						// subscribePackage(subscription, packageObj);
-						res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
+					try {
+						let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,first_time_billing);
+						console.log("Direct Billing processed",result,user.msisdn);
+						if(result.message === "success"){
+							// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+							// subscribePackage(subscription, packageObj);
+							res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
+										gw_transaction_id: gw_transaction_id});
+						}else{
+							res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
 									gw_transaction_id: gw_transaction_id});
-					}else{
-						res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
-								gw_transaction_id: gw_transaction_id});
+						}
+					} catch(err){
+						console.log("Error while direct billing first time",err,user.msisdn);
 					}
 					
 				}

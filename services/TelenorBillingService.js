@@ -28,7 +28,7 @@ class TelenorBillingService {
 
         try{
             // Check if the subscription is active or blocked for some reason.
-            console.log("subscription-processDirectBilling",)
+            console.log("subscription-processDirectBilling",user.msisdn)
             if (subscription.active === true) {
 
                 if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
@@ -40,7 +40,8 @@ class TelenorBillingService {
                         
                         try{
                             let response = await this.billingRepo.processDirectBilling(user.msisdn, packageObj, transaction_id);
-                            console.log("response from billingRepo",response);
+                            console.log("response from billingRepo",response,user.msisdn);
+                            console.log("response from billingRepo[message]",message,user.msisdn);
                             let message = response.data.Message;
                             if(message === "Success"){
                                 //Direct billing success, update records
@@ -55,7 +56,7 @@ class TelenorBillingService {
                             }
                             return returnObj;
                         }catch(error){
-                            console.log("Error",error);
+                            console.log("Error",error,user.msisdn);
                             returnObj.message = "failed";
                             if(error && error.response && error.response.data){
                                 returnObj.response = error.response.data
@@ -90,7 +91,7 @@ class TelenorBillingService {
 
 
     async billingSuccess (user, subscription, response, packageObj, transaction_id,first_time_billing)  {
-	
+        
         // Success billing
         let nextBilling = new Date();
         nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
@@ -123,6 +124,7 @@ class TelenorBillingService {
             subscription.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
             subscription.subscribed_package_id = packageObj._id;
             subscription.queued = false;
+            console.log("subscriptionCreated",subscriptionCreated,user.msisdn);
             subscriptionCreated = await this.subscriptionRepo.createSubscription(subscription);
         }
         console.log("subscriptionCreated",subscriptionCreated);
