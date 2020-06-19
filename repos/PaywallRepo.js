@@ -37,7 +37,7 @@ class PaywallRepository {
             let result = {data: []};
             let paywalls = await this.getAllPaywalls();
 
-            for(i = 0; i < paywalls.length; i++){
+            for(let i = 0; i < paywalls.length; i++){
                 let packages = await this.packageRepository.getAllPackages({active: true, paywall_id: paywalls[i]._id});
                 paywalls[i].packages = packages;
             }
