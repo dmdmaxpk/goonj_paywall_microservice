@@ -6,7 +6,7 @@ const ObjectId = Schema.ObjectId;
 const subscriptionSchema = new Schema({
     
     //Generating shortid instead of uuid
-    _id: { type: ShortId, len: 8, retries: 4},
+    _id: { type: ShortId, len: 12, retries: 4},
 
     subscriber_id: {type: ShortId, required: true},
     paywall_id: {type: ShortId, required: true},

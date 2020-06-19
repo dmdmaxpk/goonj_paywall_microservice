@@ -6,7 +6,7 @@ const ObjectId = Schema.ObjectId;
 const subscriberSchema = new Schema({
 
     // FOR DATA MIGRATION
-    _id: { type: ShortId, len: 8, retries: 4 },
+    /*_id: { type: ShortId, len: 12, retries: 4 },
     user_id: {type: ShortId, required: true, unique: true},
     subscription_status: String,  // => billed/un-billed/expired/graced/trial
     last_billing_timestamp: Date,
@@ -26,16 +26,16 @@ const subscriberSchema = new Schema({
     //field for billling
     is_allowed_to_stream: { type: Boolean, default: true },
     is_billable_in_this_cycle: { type: Boolean, default: false },
-    date_on_which_user_entered_grace_period: {type: Date}
+    date_on_which_user_entered_grace_period: {type: Date}*/
 
 
 
 
     // FOR PRODUCTION
-    // _id: { type: ShortId, len: 8, retries: 4 },
-    // user_id: {type: ShortId, required: true, unique: true},
-    // added_dtm: { type: Date, default: Date.now, index: true },
-    // last_modified: Date
+    _id: { type: ShortId, len: 8, retries: 4 },
+    user_id: {type: ShortId, required: true, unique: true},
+    added_dtm: { type: Date, default: Date.now, index: true },
+    last_modified: Date
 
 }, { strict: true })
 

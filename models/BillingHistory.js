@@ -4,7 +4,7 @@ const {Schema} = mongoose;
 
 const billingHistorySchema = new Schema({
     //Generating shortid instead of uuid
-    _id: { type: ShortId, len: 8, retries: 4 },
+    _id: { type: ShortId, len: 16, retries: 4 },
     user_id: { type:ShortId, required: true, index: true },
     subscriber_id: { type:ShortId, required: true, index: true },
     subscription_id: { type:ShortId, required: true, index: true },
