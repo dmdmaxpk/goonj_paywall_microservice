@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const container = require("../configurations/container");
 const Subscriber = mongoose.model('Subscriber');
+const Subscription = mongoose.model('Subscription');
 const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
@@ -152,7 +153,7 @@ dailyReport = async(mode = 'prod') => {
     let dayBeforeYesterday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
     dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
     let reportStartDate = new Date("2020-02-07T00:00:00.672Z");
-    let susbcriberStats = await Subscriber.aggregate([
+    let susbcriberStats = await Subscription.aggregate([
         {
             "$match": 
             {
@@ -165,7 +166,7 @@ dailyReport = async(mode = 'prod') => {
         { $sort: {"date": -1}}
           ]);
     
-    let subscription_status_stats = await Subscriber.aggregate([
+    let subscription_status_stats = await Subscription.aggregate([
         {
             "$match": 
             {
@@ -204,7 +205,7 @@ dailyReport = async(mode = 'prod') => {
     ]);
 
     let totalUserStats = await User.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
-    let totalSubscriberStats = await Subscriber.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
+    let totalSubscriberStats = await Subscription.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
     let totalExpiredCount = await BillingHistory.count({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
     console.log("totalExpiredCount",totalExpiredCount);
 
@@ -302,7 +303,7 @@ dailyReport = async(mode = 'prod') => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to:  ['farhan.ali@dmdmax.com','hamza@dmdmax.com.pk','paywall@dmdmax.com.pk'],
+                to:  ['paywall@dmdmax.com.pk'],
                 // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
                 subject: `Paywall Report`, // Subject line
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
@@ -332,7 +333,7 @@ dailyReport = async(mode = 'prod') => {
 callBacksReport =async() => {
     try { 
         let startDate = new Date("2020-04-01T00:00:00.000Z");
-        let report =  await User.aggregate([ 
+        let report =  await Subscription.aggregate([ 
             { 
                 $match: {
                         $or:[{source: "HE"},{source: "affiliate_web"}],
@@ -399,7 +400,8 @@ callBacksReport =async() => {
         let write = await csvReportWriter.writeRecords(report);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
             subject: `Callbacks Report`, // Subject line
             text: `Callbacks sent with their TIDs and timestamps -  ${(new Date()).toDateString()}`, // plain text bodyday
             attachments:[
@@ -520,8 +522,8 @@ dailyUnsubReport = async() => {
         await dailyUnsubReportWriter.writeRecords(dailyUnsubReport);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users.`, // plain text bodyday
             attachments:[
@@ -589,8 +591,8 @@ dailyChannelWiseUnsub = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.\n\nNote: Expired By System column indicates those users expired by the system because their grace time is over and they still have no balance.`, // plain text bodyday
             attachments:[
@@ -650,8 +652,8 @@ dailyChannelWiseTrialActivated = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Source Wise Trial Activated Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of trials activated with respect to source.`, // plain text bodyday
             attachments:[
@@ -749,8 +751,8 @@ dailyTrialToBilledUsers = async() => {
         await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Trial To Billed Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date data.`, // plain text bodyday
             attachments:[
@@ -795,8 +797,8 @@ dailyFullAndPartialChargedUsers = async() => {
         await csvFullAndPartialCharged.writeRecords(array);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Full & Partial Charged Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of full & partial charged users.`, // plain text bodyday
             attachments:[
