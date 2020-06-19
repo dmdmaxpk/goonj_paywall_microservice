@@ -380,7 +380,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				text = message;
 				text = text.replace("%unsub_link%",unsubLink);
 				text = text.replace("%trial_hours%",trial_hours);
-				console.log("Subscription Message Text",text);
+				console.log("Subscription Message Text",text,user.msisdn);
 				sendTextMessage(text, user.msisdn);
 
 			}else {

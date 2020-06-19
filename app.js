@@ -68,7 +68,7 @@ consumeMessageQueue = async(response) => {
         if (countThisSec < config.telenor_message_api_tps) {
             billingRepo.sendMessage(messageObj.message, messageObj.msisdn)
             .then(async (data) => {
-                console.log('Success: ', data);
+                console.log('Success:sms ',messageObj.msisdn, data);
                 await tpsCountRepo.incrementTPSCount(config.queueNames.messageDispathcer);
                 rabbitMq.acknowledge(response);
             }).catch(error => {
