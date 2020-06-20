@@ -455,7 +455,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 									|| subscription.subscription_status === "trial" ) {
 								try {
 									let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
-									console.log("result",result);
+									console.log("result",result,user.msisdn);
 									if(result.message === "success"){
 										res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 									}else{
