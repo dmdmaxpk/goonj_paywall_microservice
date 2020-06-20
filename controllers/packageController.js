@@ -40,8 +40,10 @@ exports.getAll = async (req, res) => {
 	paywall = await paywallRepository.getPaywallsBySlug(slug);
 	if (paywall){
 		let query = {paywall_id : paywall._id,default: is_default };
-		if(!is_default || is_default==="false" ){
+		if(!is_default || is_default==="false" || is_default===false ){
 			delete query.default;
+		} else {
+			query.default = true;
 		}
 		console.log("query",query);
 		result = await repo.getAllPackages(query);
