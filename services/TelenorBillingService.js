@@ -134,7 +134,7 @@ class TelenorBillingService {
         console.log("Adding history record",user.msisdn);
         let history = {};
         history.user_id = user._id;
-        history.subscription_id =  subscriptionCreated?subscriptionCreated._id:"not_available" ;
+        history.subscription_id =  subscriptionCreated?subscriptionCreated._id:subscription._id ;
         history.subscriber_id = subscription.subscriber_id;
         history.paywall_id = packageObj.paywall_id;
         history.package_id = packageObj._id;
