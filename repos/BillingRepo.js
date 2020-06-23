@@ -49,7 +49,8 @@ class BillingRepository {
             "msisdn": msisdn
         }
         form.chargableAmount = packageObj.price_point_pkr;
-        console.log('Telenor Direct Billing - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ', packageObj.package_name, ' - Price - ', packageObj.price_point_pkr, ' - TransectionId - ', transactionId, ' - ', (new Date()));
+        console.log('Telenor Direct Billing - PartnerId - ', packageObj.partner_id,' - ', msisdn, ' - Package - ',
+         packageObj.package_name, ' - Price - ', packageObj.price_point_pkr, ' - TransectionId - ', transactionId, ' - ', (new Date()));
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
     
