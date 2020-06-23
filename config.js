@@ -3,10 +3,10 @@ const env = process.env.NODE_ENV || 'development';
 // application gets environment from either system envs or from this file in above line.
 // Total tps is 40 for now but we need to increase this
 const telenor_message_api_tps = 5;
-const telenor_subscription_api_tps = 25;
-const telenor_subscriber_query_api_tps = 5;
+const telenor_subscription_api_tps = 15;
+const telenor_subscriber_query_api_tps = 10;
 const telenor_free_mbs_api_tps = 0;
-const balance_check_api_tps = 5;
+const balance_check_api_tps = 10;
 
 const codes = {
     code_error: -1,
@@ -36,7 +36,7 @@ const maximum_daily_payment_limit_pkr = 50;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 720; // 2 weeks
-const hours_on_which_to_run_renewal_cycle = [1,5,9,18,21];
+const hours_on_which_to_run_renewal_cycle = [1,5,13,9,18,21];
 const default_package_id = "QDfC";
 
 const queueNames = {
