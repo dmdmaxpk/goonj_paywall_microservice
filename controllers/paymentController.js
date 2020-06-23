@@ -324,7 +324,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 					subscriptionObj.affiliate_mid = req.body.affiliate_mid;
 				}
-	
+				let sendMessage = false;
 				// Check if trial is allowed by the system
 				if (packageObj.is_trial_allowed && !( subscriptionObj.source === 'HE' && subscriptionObj.affiliate_mid ===  "gdn")) {
 						
@@ -352,6 +352,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						await billingHistoryRepo.createBillingHistory(billingHistory);
 						await viewLogRepo.createViewLog(user._id, subscription._id);
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+						sendMessage= true;
 					
 				}else{
 					// TODO process billing directly and create subscription
@@ -365,32 +366,37 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							// subscribePackage(subscription, packageObj);
 							res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
 										gw_transaction_id: gw_transaction_id});
+							sendMessage = true;
 						}else{
 							res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
 									gw_transaction_id: gw_transaction_id});
+							sendMessage= false;
 						}
 					} catch(err){
 						console.log("Error while direct billing first time",err.message,user.msisdn);
-						return;
+						sendMessage= false;
 					}
 					
 				}
-				let trial_hours = packageObj.trial_hours;
-				console.log("subscribed_package_id",subscriptionObj.subscribed_package_id,user.msisdn);
-				console.log("source",subscriptionObj.affiliate_mid,user.msisdn);
-				console.log("subscribed_package_id",constants.subscription_messages,user.msisdn);
-				let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
-				if (subscriptionObj.affiliate_mid === 'gdn'){
-					message = constants.subscription_messages[subscriptionObj.affiliate_mid];
+				if (sendMessage === true) {
+					let trial_hours = packageObj.trial_hours;
+					console.log("subscribed_package_id",subscriptionObj.subscribed_package_id,user.msisdn);
+					console.log("source",subscriptionObj.affiliate_mid,user.msisdn);
+					console.log("subscribed_package_id",constants.subscription_messages,user.msisdn);
+					let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
+					if (subscriptionObj.affiliate_mid === 'gdn'){
+						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
+					}
+					console.log("Messages",message,user.msisdn);
+					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&pg=${subscriptionObj.subscribed_package_id}`;
+					text = message;
+					text = text.replace("%unsub_link%",unsubLink);
+					text = text.replace("%trial_hours%",trial_hours);
+					console.log("Subscription Message Text",text,user.msisdn);
+					sendTextMessage(text, user.msisdn);
+				} else {
+					console.log("Not sending message",user.msisdn);
 				}
-				console.log("Messages",message,user.msisdn);
-				let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&pg=${subscriptionObj.subscribed_package_id}`;
-				text = message;
-				text = text.replace("%unsub_link%",unsubLink);
-				text = text.replace("%trial_hours%",trial_hours);
-				console.log("Subscription Message Text",text,user.msisdn);
-				sendTextMessage(text, user.msisdn);
-
 			}else {
 				console.log("Active Subscription",subscription.active);
 				if(subscription.active === true){
