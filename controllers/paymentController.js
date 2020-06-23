@@ -368,9 +368,11 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						}else{
 							res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
 									gw_transaction_id: gw_transaction_id});
+									return;
 						}
 					} catch(err){
 						console.log("Error while direct billing first time",err,user.msisdn);
+						return;
 					}
 					
 				}
