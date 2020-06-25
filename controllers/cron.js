@@ -41,7 +41,7 @@ exports.grayListService = async (req,res) =>  {
 }
 
 exports.generateDailyReport = async (req,res) =>  {
-    await reportsService.generateDailyReport();
+    reportsService.generateDailyReport();
     res.send("GenerateDailyReport - Executed");
 }
 

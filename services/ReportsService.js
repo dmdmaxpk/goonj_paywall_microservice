@@ -3,9 +3,10 @@ const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
 
 generateDailyReport = async() => {
-    console.log("generateDailyReports");
+    console.log("=> Generating Daily Reports");
 
     reportsRepo.dailyReport();
+    console.log("=> Done");
 
     // //Unsub Zara's number daily
     // await subscriberRepo.removeNumberAndHistory('03458561755');
