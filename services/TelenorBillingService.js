@@ -16,7 +16,7 @@ class TelenorBillingService {
     }
 
     async processDirectBilling(user, subscription, packageObj,first_time_billing) {
-        return new Promise( (resolve,reject) => {
+        return new Promise( async (resolve,reject) => {
             let subscription_id = "";
             if (subscription._id) {
                 subscription_id = subscription._id;
