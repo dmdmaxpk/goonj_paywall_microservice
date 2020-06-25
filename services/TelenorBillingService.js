@@ -16,79 +16,82 @@ class TelenorBillingService {
     }
 
     async processDirectBilling(user, subscription, packageObj,first_time_billing) {
-        let subscription_id = "";
-        if (subscription._id) {
-            subscription_id = subscription._id;
-        } else {
-            subscription_id = user._id;
-        }
-        let transaction_id = "GoonjDirectCharge_"+subscription_id+"_"+packageObj.price_point_pkr+"_"+this.getCurrentDate();
-
-        let returnObj = {};
-
-        try{
-            // Check if the subscription is active or blocked for some reason.
-            console.log("subscription-processDirectBilling[firstTimeBillin]",first_time_billing,user.msisdn)
-            if (subscription.active === true) {
-
-                if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
-                    
-                    let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
-                    if (countThisSec < config.telenor_subscription_api_tps) {
-                        
-                        await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
-                        
-                        try{
-                            let response = await this.billingRepo.processDirectBilling(user.msisdn, packageObj, transaction_id);
-                            console.log("response from billingRepo",response,user.msisdn);
-                            let message = response.data.Message;
-                            if(message === "Success"){
-                                //Direct billing success, update records
-                                await this.billingSuccess(user, subscription, response.data, packageObj,
-                                                                transaction_id,first_time_billing);
-                                returnObj.message = "success";
-                                returnObj.response = response.data;
-                            }else{
-                                await this.billingFailed(user, subscription, response.data, packageObj, transaction_id);
-                                returnObj.message = "failed";
-                                returnObj.response = response.data;
-                            }
-                            console.log("return value",returnObj,user.msisdn);
-                            return returnObj;
-                        }catch(error){
-                            console.log("Error",error,user.msisdn);
-                            console.log("Error message",error.message,user.msisdn);
-                            returnObj.message = "failed";
-                            if(error && error.response && error.response.data){
-                                returnObj.response = error.response.data
-                            }
-
-                            if(error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
-                            error.response.data.errorMessage === "Services of the same type cannot be processed at the same time.")){
-                                returnObj.noAck = true;
-                            }else{
-                                //consider payment failed
-                                await this.billingFailed(user, subscription, error.response.data, packageObj, transaction_id);
-                            }
-                            console.log("return value",returnObj,user.msisdn);
-                            return returnObj;
-                        }       
-                    } else{
-                        console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
-                        setTimeout(() => {
-                            console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
-                            this.processDirectBilling(user, subscription, packageObj,first_time_billing);
-                        }, 300);
-                    }  
-                }else{
-                    returnObj.shootExcessiveBillingEmail = true;
-                    return returnObj;
-                }
+        return new Promise( async (resolve,reject) => {
+            let subscription_id = "";
+            if (subscription._id) {
+                subscription_id = subscription._id;
+            } else {
+                subscription_id = user._id;
             }
-        }catch(error){
-            console.log(error);
-            return returnObj;
-        }
+            let transaction_id = "GoonjDirectCharge_"+subscription_id+"_"+packageObj.price_point_pkr+"_"+this.getCurrentDate();
+
+            let returnObj = {};
+
+            try{
+                // Check if the subscription is active or blocked for some reason.
+                console.log("subscription-processDirectBilling[firstTimeBillin]",first_time_billing,user.msisdn)
+                if (subscription.active === true) {
+
+                    if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
+                        
+                        let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
+                        if (countThisSec < config.telenor_subscription_api_tps) {
+                            
+                            await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
+                            
+                            try{
+                                let response = await this.billingRepo.processDirectBilling(user.msisdn, packageObj, transaction_id);
+                                console.log("response from billingRepo",response,user.msisdn);
+                                let message = response.data.Message;
+                                if(message === "Success"){
+                                    //Direct billing success, update records
+                                    await this.billingSuccess(user, subscription, response.data, packageObj,
+                                                                    transaction_id,first_time_billing);
+                                    returnObj.message = "success";
+                                    returnObj.response = response.data;
+                                }else{
+                                    await this.billingFailed(user, subscription, response.data, packageObj, transaction_id);
+                                    returnObj.message = "failed";
+                                    returnObj.response = response.data;
+                                }
+                                console.log("return value",returnObj,user.msisdn);
+                                resolve(returnObj);
+                            }catch(error){
+                                console.log("Error",error,user.msisdn);
+                                console.log("Error message",error.message,user.msisdn);
+                                returnObj.message = "failed";
+                                if(error && error.response && error.response.data){
+                                    returnObj.response = error.response.data
+                                }
+
+                                if(error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
+                                error.response.data.errorMessage === "Services of the same type cannot be processed at the same time.")){
+                                    returnObj.noAck = true;
+                                }else{
+                                    //consider payment failed
+                                    await this.billingFailed(user, subscription, error.response.data, packageObj, transaction_id);
+                                }
+                                console.log("return value",returnObj,user.msisdn);
+                                resolve(returnObj);
+                            }       
+                        } else{
+                            console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
+                            setTimeout(async () => {
+                                console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
+                                let response = await this.processDirectBilling(user, subscription, packageObj,first_time_billing);
+                                resolve(response);
+                            }, 300);
+                        }  
+                    }else{
+                        returnObj.shootExcessiveBillingEmail = true;
+                        resolve(returnObj);
+                    }
+                }
+            }catch(error){
+                console.log(error);
+                resolve(returnObj);
+            }
+        });
     }
 
 
