@@ -179,7 +179,7 @@ dailyReport = async(mode = 'prod') => {
         { $sort: {"date": -1}}
           ]);
 
-        console.log("Subscription Stats",subscription_status_stats);
+        console.log("[dailyReport]Subscription Stats",subscription_status_stats);
         
         let totalActiveSubscribers = subscription_status_stats.reduce((accum,elem) => {
             if (elem._id.subscription_status === "trial" || elem._id.subscription_status === "graced" || elem._id.subscription_status === "billed") {
@@ -187,7 +187,7 @@ dailyReport = async(mode = 'prod') => {
             }
             return accum;
         },0);
-        console.log("Total Active Subscribers",totalActiveSubscribers);
+        console.log("[dailyReport]Total Active Subscribers",totalActiveSubscribers);
 
     let userStats = await User.aggregate([
             {
@@ -203,11 +203,12 @@ dailyReport = async(mode = 'prod') => {
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }},
         {$sort: {"date": -1}} 
     ]);
+    console.log("[dailyReport]Reached HEre 1");
 
     let totalUserStats = await User.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
     let totalSubscriberStats = await Subscription.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
     let totalExpiredCount = await BillingHistory.count({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
-    console.log("totalExpiredCount",totalExpiredCount);
+    console.log("[dailyReport]totalExpiredCount",totalExpiredCount);
 
 
     let billingStats = await BillingHistory.aggregate([
@@ -217,7 +218,7 @@ dailyReport = async(mode = 'prod') => {
             {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
                 "revenue": "$revenue","count":"$count",_id:-1 }},{$sort: {"date": -1}}
         ]);       
-    
+        console.log("[dailyReport]Reached HEre 2");
     let trialStats = await BillingHistory.aggregate([
         { $match: { "billing_status": "trial","billing_dtm": { "$gte": reportStartDate ,$lt: myToday  }  } },
         {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
@@ -225,7 +226,7 @@ dailyReport = async(mode = 'prod') => {
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, 
             "trials": "$trials",_id:-1 }},{$sort: {"date": -1}}
     ]);
-
+    console.log("[dailyReport]Reached HEre 3");
     
 
     let resultToWrite= {};
@@ -246,6 +247,7 @@ dailyReport = async(mode = 'prod') => {
 
     });
     let totalExpiredCountt = totalExpiredCount;
+    console.log("[dailyReport]Reached HEre 4");
     billingStats.forEach(billingHistor => {
         // console.log(billingHistor);
         if(resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "Success") {
@@ -263,14 +265,15 @@ dailyReport = async(mode = 'prod') => {
                 resultToWrite[billingHistor.date.toDateString()]['users-billed-pslandlive'] = billingHistor.count;
             }
         } else if (resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "expired")  {
-            console.log("expired On the day",billingHistor.count);
-            console.log("date",billingHistor.date.toDateString());
+            console.log("[dailyReport]expired On the day",billingHistor.count);
+            console.log("[dailyReport]date",billingHistor.date.toDateString());
             totalExpiredCountt = totalExpiredCountt - billingHistor.count;
-            console.log("totalExpiredCountt",totalExpiredCountt);
+            console.log("[dailyReport]totalExpiredCountt",totalExpiredCountt);
             resultToWrite[billingHistor.date.toDateString()]['users_expired'] = billingHistor.count;
             resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = totalExpiredCountt;
         }
     });
+    console.log("[dailyReport]Reached HEre 5");
 
     trialStats.forEach(trialStat => {
         if(resultToWrite[trialStat.date.toDateString()]) {
@@ -314,20 +317,21 @@ dailyReport = async(mode = 'prod') => {
                     }
                 ]
             });
+            console.log("[dailyReport]Reached HEre 6",info);
             fs.unlink(paywallRevFilePath,function(err,data) {
                 if (err) {
-                    console.log("File not deleted");
+                    console.log("[dailyReport]File not deleted");
                 }
-                console.log("data");
+                console.log("[dailyReport]data");
             });
-            console.log("info",info);
+            console.log("[dailyReport]info",info);
         }).catch(er => {
-            console.log("err",er)
+            console.log("[dailyReport]err",er)
         })
     } catch(err) {
-        console.log(err);
+        console.log("[dailyReport]",err);
     }
-    console.log("resultToWrite",resultToWriteToCsv);
+    console.log("[dailyReport]resultToWrite",resultToWriteToCsv);
 }
 
 callBacksReport =async() => {
