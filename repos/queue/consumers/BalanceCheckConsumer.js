@@ -1,10 +1,11 @@
 const config = require('../../../config');
-const repo = require('../../../repos/ChargingAttemptRepo');
-const billingRepo = require('../../../repos/BillingRepo');
-const historyRepo = require('../../../repos/BillingHistoryRepo');
-const userRepo = require('../../../repos/UserRepo');
-const packageRepo = require('../../../repos/PackageRepo');
-const subscriberRepo = require('../../../repos/SubscriberRepo');
+const container = require("../../../configurations/container");
+const repo = container.resolve("chargingAttemptRepository");
+const billingRepo = container.resolve("billingRepository");
+const historyRepo = container.resolve("billingHistoryRepository");
+const userRepo = container.resolve("userRepository");
+const packageRepo = container.resolve("packageRepository");
+const subscriberRepo = container.resolve("subscriberRepository");
 
 microChargingAttempt = async (subscriber) => {
     return new Promise(async (resolve,reject) => {
@@ -49,7 +50,7 @@ microChargingAttempt = async (subscriber) => {
                 }else{
                     let price_to_charge = attemptPrice;
                     if(ceilingValue < attemptPrice){
-                        price_to_charge = ceilingValue;    
+                        price_to_charge = ceilingValue;
                     }else{
                         price_to_charge-=1;
                     }
@@ -101,7 +102,7 @@ microChargingAttempt = async (subscriber) => {
             await historyRepo.createBillingHistory(billlHistory);
             reject(err);
         });
-    })
+    });
 	
 }
 

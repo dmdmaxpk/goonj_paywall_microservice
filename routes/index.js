@@ -15,4 +15,6 @@ router.use('/report',    require('./reports'));
 
 router.use('/cron',    require('./cron'));
 
+router.use('/paywall',    require('./paywall'));
+
 module.exports = router;

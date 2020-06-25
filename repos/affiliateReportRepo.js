@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
+const container = require("../configurations/container")
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
 var nodemailer = require('nodemailer');
-var usersRepo = require('./UserRepo');
+var usersRepo = container.resolve("userRepository");
 const config = require("../config");
 const axios = require('axios');
 

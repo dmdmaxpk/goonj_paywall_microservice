@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/cron')
+const controller = require('../controllers/cron');
+const migrationService = require('../services/SubscriberToSubscriptionMigration');
 
 //
 
@@ -10,11 +11,11 @@ router.route('/markRenewableUsers')
 router.route('/subscriptionRenewal')
     .get(controller.subscriptionRenewal);
 
-router.route('/postPSLUserMigration')
-    .get(controller.postPSLUserMigration);
+// router.route('/postPSLUserMigration')
+//     .get(controller.postPSLUserMigration);
 
-router.route('/postPSLPOnlyUserMigration')
-    .get(controller.postPSLOnlyUserMigration);
+// router.route('/postPSLPOnlyUserMigration')
+//     .get(controller.postPSLOnlyUserMigration);
 
 router.route('/tokenRefresh')
     .get(controller.refreshToken);
@@ -37,8 +38,10 @@ router.route('/generateDailyReport')
 router.route('/hourlyBillingReport')
     .get(controller.hourlyBillingReport);
 
+router.route('/migrate')
+    .get(migrationService.execute);
 
-router.route('/markRenewableUsers')
-    .get(controller.markRenewableUsers);
+router.route('/removemsisdns')
+    .get(controller.removeDuplicateMsisdns);
 
 module.exports = router;

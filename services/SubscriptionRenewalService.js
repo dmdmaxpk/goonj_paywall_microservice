@@ -1,80 +1,160 @@
-const CronJob = require('cron').CronJob;
-const subsriberRepo = require('../repos/SubscriberRepo');
-const packageRepo = require('../repos/PackageRepo');
-const billingHistoryRepo = require('../repos/BillingHistoryRepo');
-const userRepo = require('../repos/UserRepo');
+const container = require("../configurations/container");
+const billingHistoryRepo = container.resolve("billingHistoryRepository");
+const userRepo = container.resolve("userRepository");
 const config = require('../config');
 const shortId = require('shortid');
-const chargeAttemptRepo = require('../repos/ChargingAttemptRepo');
-// const winston = require('winston');
+const subscriptionRepo = container.resolve("subscriptionRepository");
+const packageRepo = container.resolve("packageRepository");
 const moment = require('moment');
 
-// const winstonLogger = winston.createLogger({
-//     level: 'info',
-//     format: winston.format.json(),
-//     defaultMeta: { service: 'paywall_service' },
-//     transports: [
-//       new winston.transports.File({ filename: '/home/winston_logs/queue.log', level: 'info' })    ]
-// });
 
 subscriptionRenewal = async() => {
     try {
-        let subscribers = await subsriberRepo.getRenewableSubscribers();
-        let subscribersToRenew = [];
-        let subscribersNotToRenew = [];
+        let subscriptions = await subscriptionRepo.getRenewableSubscriptions();
+        let subscriptionToRenew = [];
+        let subscriptionNotToRenew = [];
 
-        for(let i = 0; i < subscribers.length; i++){
-            if(subscribers[i].auto_renewal === false){
-                subscribersNotToRenew = [...subscribersNotToRenew, subscribers[i] ];
+        for(let i = 0; i < subscriptions.length; i++){
+            if(subscriptions[i].auto_renewal === false){
+                subscriptionNotToRenew = [...subscriptionNotToRenew, subscriptions[i] ];
             }else {
-                subscribersToRenew = [...subscribersToRenew,subscribers[i] ];
+                subscriptionToRenew = [...subscriptionToRenew, subscriptions[i] ];
             }
         }
         
-        for(let i = 0; i < subscribersNotToRenew.length; i++) {
-            let subscriber = subscribersNotToRenew[i];
-            await userRepo.updateUserById(subscriber.user_id, {subscription_status: 'expired'});
-            let sub = await subsriberRepo.updateSubscriber(subscriber.user_id,{subscription_status: 'expired',is_allowed_to_stream:false,is_billable_in_this_cycle:false});
-            let user = await userRepo.getUserById(subscriber.user_id);
-            let billingHistory = {};
-		    billingHistory.user_id = subscriber.user_id;
-            billingHistory.package_id = user.subscribed_package_id;
-            billingHistory.transaction_id = undefined;
-            billingHistory.operator_response = undefined;
-            billingHistory.billing_status = 'expired';
-            billingHistory.source = user.source;
-            billingHistory.operator = 'telenor';
-
-            let attempt = await chargeAttemptRepo.getAttempt(subscriber._id);
-            if(attempt && attempt.active === true){
-                await chargeAttemptRepo.updateAttempt(subscriber._id, {active: false});
-            }
-            await billingHistoryRepo.createBillingHistory(billingHistory);
+        for(let i = 0; i < subscriptionNotToRenew.length; i++) {
+            let subs = subscriptionNotToRenew[i];
+            await expire(subs);
         }
 
         let promisesArr = [];
-        console.log("Subscribers to renew -> ", subscribersToRenew.length);
-        for(let i = 0; i < subscribersToRenew.length; i++){
-            let promise = getPromise(subscribersToRenew[i].user_id);
+        console.log("Subscribers to renew -> ", subscriptionToRenew.length);
+
+        for(let i = 0; i < subscriptionToRenew.length; i++){
+            let promise = getPromise(subscriptionToRenew[i]);
             promisesArr.push(promise);
         }
-        let promises = await Promise.all(promisesArr);
+        await Promise.all(promisesArr);
     } catch(err){
         console.log(err);
     }
 }
 
-getPromise =  async(user_id) => {
+getPromise =  async(subscription) => {
     return new Promise((resolve, reject) => {
-        userRepo.getUserById(user_id)
-        .then((user) => {
-            renewSubscription(user);
-            resolve('-Done-');
-        }).catch((err) => {
-            reject('-Error!-');
-        });
+        renewSubscription(subscription);
+        resolve('-Done-');
     });
 } 
+
+
+// Expire users
+expire = async(subscription) => {
+    await subscriptionRepo.updateSubscription(subscription._id, {
+        subscription_status: 'expired', 
+        is_allowed_to_stream:false, 
+        is_billable_in_this_cycle:false, 
+        consecutive_successive_bill_counts: 0,
+        try_micro_charge_in_next_cycle: false,
+        micro_price_point: 0
+    });
+
+    let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
+    let user = await userRepo.getUserBySubscriptionId(subscription._id);
+
+    let history = {};
+    history.user_id = user._id;
+    history.subscriber_id = subscription.subscriber_id;
+    history.subscription_id = subscription._id;
+    history.package_id = subscription.subscribed_package_id;
+    history.paywall_id = packageObj.paywall_id;
+    history.transaction_id = undefined;
+    history.operator_response = undefined;
+    history.billing_status = 'expired';
+    history.source = 'system';
+    history.operator = 'telenor';
+
+    await billingHistoryRepo.createBillingHistory(history);
+}
+
+renewSubscription = async(subscription) => {
+    
+    let transactionId;
+    
+    let subscriptionObj = {};
+    subscriptionObj.subscription = subscription;
+    
+    if(subscription.try_micro_charge_in_next_cycle === true && subscription.micro_price_point > 0){
+        transactionId = "GoonjMicroCharge_" + subscription._id + "_Price_" + subscription.micro_price_point + "_" + shortId.generate() + "_" + getCurrentDate();
+        subscriptionObj.micro_charge = true;
+        subscriptionObj.micro_price = subscription.micro_price_point;
+    }else{
+        if (subscription.is_discounted === true && subscription.discounted_price){ 
+            subscriptionObj.discount = true;
+            subscriptionObj.discounted_price = subscription.discounted_price;
+            transactionId = "GoonjDiscountedCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
+        }else{
+            transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
+        }
+    }
+    subscriptionObj.transactionId = transactionId;
+
+    // Add object in queueing server
+    if(subscription.queued === false){
+        let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true});
+        if(updated){
+            rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
+            
+            if(subscriptionObj.micro_charge){
+                console.log('Renew Subscription Micro Charge - AddInQueue', ' - ', transactionId, ' - ', (new Date()));    
+            }else if(subscriptionObj.discount){
+                console.log('Discounted Subscription - AddInQueue', ' - ', transactionId, ' - ', (new Date()));
+            }else{
+                console.log('Renew Full Subscription - AddInQueue', ' - ', transactionId, ' - ', (new Date()));
+            }
+        }else{
+            console.log('Failed to updated subscription after adding in queue.');
+        }
+    }else{
+        console.log("The subscription", subscription._id, " is already queued");
+    }
+}
+
+markRenewableUser = async() => {
+    try {
+        let now = moment().tz("Asia/Karachi");
+        console.log("Get Hours",now.hours());
+        let hour = now.hours();
+        
+        if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
+            console.log("Checking to run renewable cycle at - ", hour);
+
+            let subscription_ids  = await subscriptionRepo.getSubscriptionsToMark();
+            console.log("Number of subscription in this cycle: ", subscription_ids.length);
+            await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
+        } else {
+            console.log("Not listed renewable cycle this hour - ", hour);
+        }
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Helper functions
 function getCurrentDate() {
@@ -90,99 +170,6 @@ function getCurrentDate() {
 
 function AddZero(num) {
     return (num >= 0 && num < 10) ? "0" + num : num + "";
-}
-
-renewSubscription = async(user) => {
-    let packageObj = await packageRepo.getPackage({_id: user.subscribed_package_id});
-    let subscriber = await subsriberRepo.getSubscriber(user._id);
-    let chargeAttempt = await chargeAttemptRepo.getAttempt(subscriber._id);
-
-    let msisdn = user.msisdn;
-    let transactionId;
-    
-    let subscriptionObj = {};
-    subscriptionObj.packageObj = packageObj;
-    subscriptionObj.user_id = user._id;
-    subscriptionObj.msisdn = msisdn;
-    
-    if(chargeAttempt && chargeAttempt.queued === false && chargeAttempt.active === true && chargeAttempt.number_of_attempts_today >= 2){
-        await chargeAttemptRepo.queue(subscriber._id);
-        transactionId = "GoonjMiniCharge_"+msisdn+"_"+subscriber._id+"_Price_"+chargeAttempt.price_to_charge+"_"+shortId.generate()+"_"+getCurrentDate();
-        subscriptionObj.attemp_id = chargeAttempt._id;
-        subscriptionObj.micro_charge = true;
-        subscriptionObj.price_to_charge = chargeAttempt.price_to_charge;
-    }else{
-        transactionId = "Goonj_"+msisdn+"_"+subscriber._id+"_"+packageObj._id+"_"+shortId.generate()+"_"+getCurrentDate();
-    }
-    subscriptionObj.transactionId = transactionId;
-
-    if (subscriber.is_discounted === true && subscriber.discounted_price){ 
-        subscriptionObj.packageObj.price_point_pkr = subscriber.discounted_price;
-    }
-    // Add object in queueing server
-    if (subscriptionObj.msisdn && (subscriptionObj.packageObj || subscriptionObj.micro_charge) && subscriptionObj.transactionId ) {
-        // winstonLogger.info('Preparing to add in queue', { 
-        //     user_id: subscriptionObj.user_id,
-        //     micro_charge: subscriptionObj.micro_charge,
-        //     micro_price_to_charge: subscriptionObj.price_to_charge,
-        //     time: new Date()
-        // });
-
-        if(subscriber.queued === false){
-            let updated = await subsriberRepo.updateSubscriber(user._id, {queued: true});
-            // winstonLogger.info('Subscriber queued true - before if', { 
-            //     user_id: subscriptionObj.user_id,
-            //     time: new Date()
-            // });
-            if(updated){
-                // winstonLogger.info('Subscriber queued true - after if', { 
-                //     user_id: subscriptionObj.user_id,
-                //     time: new Date()
-                // });
-                rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-                // winstonLogger.info('Added in queue', { 
-                //     user_id: subscriptionObj.user_id
-                // });
-
-                if(subscriptionObj.micro_charge){
-                    console.log('RenewSubscriptionMiniCharge - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));    
-                }else{
-                    console.log('RenewSubscription - AddInQueue - ', msisdn, ' - ', transactionId, ' - ', (new Date()));
-                }
-            }else{
-                // winstonLogger.info('Failed to add subscriber in queue', { 
-                //     subscriber: subscriber
-                // });
-                console.log('Failed to updated subscriber after adding in queue.');
-            }
-        }else{
-            // winstonLogger.info('Failed to add in renewal queue', { 
-            //     user_id: subscriptionObj.user_id
-            // });
-            console.log('Failed to add in renewal queue, current queuing status: ', subscriptionObj.msisdn, ' - ', subscriber.queued);  
-        }
-	} else {
-		console.log('Could not add in renewal queue because critical parameters are missing: ', subscriptionObj.msisdn ,
-		subscriptionObj.packageObj.price_point_pkr,subscriptionObj.transactionId, msisdn, ' - ', (new Date()) );
-	}
-}
-
-markRenewableUser = async() => {
-    try {
-        let now = moment().tz("Asia/Karachi");
-        console.log("Get Hours",now.hours());
-        let hour = now.hours();
-        if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
-            console.log("running renewal cycle, hour: ", hour);
-            let subsuser_ids  = await subsriberRepo.getSubscribersToMark();
-            console.log("Number of subscribers in this cycle: ", subsuser_ids.length);
-            await subsriberRepo.setAsBillableInNextCycle(subsuser_ids);
-        } else {
-            console.log("Not running renewal cycle this hour");
-        }
-    } catch(err) {
-        console.error(err);
-    }
 }
 
 module.exports = {

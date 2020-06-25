@@ -1,3 +1,5 @@
+const container = require("../configurations/container");
+const removeDuplicateMsisdns = container.resolve("removeDuplicateMsisdns");
 const subscriptionService = require('../services/SubscriptionRenewalService');
 const tokenRefreshService = require('../services/TokenRefreshService');
 const tpsCountService = require('../services/TpsCountService');
@@ -12,16 +14,6 @@ exports.subscriptionRenewal = async (req,res) =>  {
     res.send("Subscription renewal - Executed");
 }
 
-exports.postPSLUserMigration = async (req,res) =>  {
-    //await messageService.changePackageOfUsers();
-    res.send("POST PSL User Migration - Executed");
-}
-
-exports.postPSLOnlyUserMigration = async (req,res) =>  {
-    await messageService.changePackageOfPSLOnlyUsers();
-    res.send("POST PSL Only User Migration - Executed");
-}
-
 exports.refreshToken = async (req,res) =>  {
     await tokenRefreshService.refreshToken();
     res.send("Token Refresh - Executed");
@@ -29,6 +21,7 @@ exports.refreshToken = async (req,res) =>  {
 
 exports.dailyAmoutReset = async (req,res) =>  {
     await tpsCountService.dailyAmountReset();
+    // await checkLastSeenOfUsersService.checkLastSeenOfUsers();
     res.send("DailyAmoutReset - Executed");
 }
 
@@ -79,4 +72,10 @@ exports.sendReportsEveryMonth = async (req,res) =>  {
     console.log("sendReportsEveryMonth")
     await reportsService.generateMonthlyReports();
     res.send("sendReportsEveryMonth - Executed");
+}
+
+exports.removeDuplicateMsisdns = async (req,res) =>  {
+    console.log("removeDuplicateMsisdns")
+    await removeDuplicateMsisdns.removeDuplicateMsisdns();
+    res.send("removeDuplicateMsisdns - Executed");
 }

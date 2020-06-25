@@ -1,12 +1,14 @@
 const mongoose = require('mongoose');
+const container = require("../configurations/container");
 const Subscriber = mongoose.model('Subscriber');
+const Subscription = mongoose.model('Subscription');
 const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
-const billinghistoryRepo = require("../repos/BillingHistoryRepo");
+const billinghistoryRepo = container.resolve('billingHistoryRepository');
 var nodemailer = require('nodemailer');
-var usersRepo = require('./UserRepo');
+var usersRepo = container.resolve('userRepository');
 var viewLogsRepo = require('../repos/ViewLogRepo');
 
 var pageViews = require('../controllers/PageViews');
@@ -151,7 +153,7 @@ dailyReport = async(mode = 'prod') => {
     let dayBeforeYesterday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
     dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
     let reportStartDate = new Date("2020-02-07T00:00:00.672Z");
-    let susbcriberStats = await Subscriber.aggregate([
+    let susbcriberStats = await Subscription.aggregate([
         {
             "$match": 
             {
@@ -164,7 +166,7 @@ dailyReport = async(mode = 'prod') => {
         { $sort: {"date": -1}}
           ]);
     
-    let subscription_status_stats = await Subscriber.aggregate([
+    let subscription_status_stats = await Subscription.aggregate([
         {
             "$match": 
             {
@@ -177,7 +179,7 @@ dailyReport = async(mode = 'prod') => {
         { $sort: {"date": -1}}
           ]);
 
-        console.log("Subscription Stats",subscription_status_stats);
+        console.log("[dailyReport]Subscription Stats",subscription_status_stats);
         
         let totalActiveSubscribers = subscription_status_stats.reduce((accum,elem) => {
             if (elem._id.subscription_status === "trial" || elem._id.subscription_status === "graced" || elem._id.subscription_status === "billed") {
@@ -185,7 +187,7 @@ dailyReport = async(mode = 'prod') => {
             }
             return accum;
         },0);
-        console.log("Total Active Subscribers",totalActiveSubscribers);
+        console.log("[dailyReport]Total Active Subscribers",totalActiveSubscribers);
 
     let userStats = await User.aggregate([
             {
@@ -201,11 +203,12 @@ dailyReport = async(mode = 'prod') => {
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }},
         {$sort: {"date": -1}} 
     ]);
+    console.log("[dailyReport]Reached HEre 1");
 
     let totalUserStats = await User.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
-    let totalSubscriberStats = await Subscriber.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
+    let totalSubscriberStats = await Subscription.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
     let totalExpiredCount = await BillingHistory.count({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
-    console.log("totalExpiredCount",totalExpiredCount);
+    console.log("[dailyReport]totalExpiredCount",totalExpiredCount);
 
 
     let billingStats = await BillingHistory.aggregate([
@@ -215,7 +218,7 @@ dailyReport = async(mode = 'prod') => {
             {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
                 "revenue": "$revenue","count":"$count",_id:-1 }},{$sort: {"date": -1}}
         ]);       
-    
+        console.log("[dailyReport]Reached HEre 2");
     let trialStats = await BillingHistory.aggregate([
         { $match: { "billing_status": "trial","billing_dtm": { "$gte": reportStartDate ,$lt: myToday  }  } },
         {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
@@ -223,7 +226,7 @@ dailyReport = async(mode = 'prod') => {
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, 
             "trials": "$trials",_id:-1 }},{$sort: {"date": -1}}
     ]);
-
+    console.log("[dailyReport]Reached HEre 3");
     
 
     let resultToWrite= {};
@@ -244,6 +247,7 @@ dailyReport = async(mode = 'prod') => {
 
     });
     let totalExpiredCountt = totalExpiredCount;
+    console.log("[dailyReport]Reached HEre 4");
     billingStats.forEach(billingHistor => {
         // console.log(billingHistor);
         if(resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "Success") {
@@ -261,14 +265,15 @@ dailyReport = async(mode = 'prod') => {
                 resultToWrite[billingHistor.date.toDateString()]['users-billed-pslandlive'] = billingHistor.count;
             }
         } else if (resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "expired")  {
-            console.log("expired On the day",billingHistor.count);
-            console.log("date",billingHistor.date.toDateString());
+            console.log("[dailyReport]expired On the day",billingHistor.count);
+            console.log("[dailyReport]date",billingHistor.date.toDateString());
             totalExpiredCountt = totalExpiredCountt - billingHistor.count;
-            console.log("totalExpiredCountt",totalExpiredCountt);
+            console.log("[dailyReport]totalExpiredCountt",totalExpiredCountt);
             resultToWrite[billingHistor.date.toDateString()]['users_expired'] = billingHistor.count;
             resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = totalExpiredCountt;
         }
     });
+    console.log("[dailyReport]Reached HEre 5");
 
     trialStats.forEach(trialStat => {
         if(resultToWrite[trialStat.date.toDateString()]) {
@@ -301,8 +306,8 @@ dailyReport = async(mode = 'prod') => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                //to:  ["farhan.ali@dmdmax.com"],
-                to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
+                to:  ['paywall@dmdmax.com.pk'],
+                // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
                 subject: `Paywall Report`, // Subject line
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
                 attachments:[
@@ -312,26 +317,27 @@ dailyReport = async(mode = 'prod') => {
                     }
                 ]
             });
+            console.log("[dailyReport]Reached HEre 6",info);
             fs.unlink(paywallRevFilePath,function(err,data) {
                 if (err) {
-                    console.log("File not deleted");
+                    console.log("[dailyReport]File not deleted");
                 }
-                console.log("data");
+                console.log("[dailyReport]data");
             });
-            console.log("info",info);
+            console.log("[dailyReport]info",info);
         }).catch(er => {
-            console.log("err",er)
+            console.log("[dailyReport]err",er)
         })
     } catch(err) {
-        console.log(err);
+        console.log("[dailyReport]",err);
     }
-    console.log("resultToWrite",resultToWriteToCsv);
+    console.log("[dailyReport]resultToWrite",resultToWriteToCsv);
 }
 
 callBacksReport =async() => {
     try { 
         let startDate = new Date("2020-04-01T00:00:00.000Z");
-        let report =  await User.aggregate([ 
+        let report =  await Subscription.aggregate([ 
             { 
                 $match: {
                         $or:[{source: "HE"},{source: "affiliate_web"}],
@@ -398,7 +404,8 @@ callBacksReport =async() => {
         let write = await csvReportWriter.writeRecords(report);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
             subject: `Callbacks Report`, // Subject line
             text: `Callbacks sent with their TIDs and timestamps -  ${(new Date()).toDateString()}`, // plain text bodyday
             attachments:[
@@ -519,8 +526,8 @@ dailyUnsubReport = async() => {
         await dailyUnsubReportWriter.writeRecords(dailyUnsubReport);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users.`, // plain text bodyday
             attachments:[
@@ -588,8 +595,8 @@ dailyChannelWiseUnsub = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.\n\nNote: Expired By System column indicates those users expired by the system because their grace time is over and they still have no balance.`, // plain text bodyday
             attachments:[
@@ -649,8 +656,8 @@ dailyChannelWiseTrialActivated = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Source Wise Trial Activated Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of trials activated with respect to source.`, // plain text bodyday
             attachments:[
@@ -748,8 +755,8 @@ dailyTrialToBilledUsers = async() => {
         await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Trial To Billed Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date data.`, // plain text bodyday
             attachments:[
@@ -794,8 +801,8 @@ dailyFullAndPartialChargedUsers = async() => {
         await csvFullAndPartialCharged.writeRecords(array);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk"],
+            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Full & Partial Charged Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of full & partial charged users.`, // plain text bodyday
             attachments:[

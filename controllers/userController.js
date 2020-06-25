@@ -1,8 +1,10 @@
 const config = require('../config');
-const repo = require('../repos/UserRepo');
-const packageRepo = require('../repos/PackageRepo');
-let billingHistoryRepo = require('../repos/BillingHistoryRepo');
-let subscriberRepo = require('../repos/SubscriberRepo');
+const container = require("../configurations/container");
+const repo = container.resolve("userRepository");
+const packageRepo = container.resolve("packageRepository");
+let billingHistoryRepo = container.resolve("billingHistoryRepository");
+let subscriberRepo = container.resolve("subscriberRepository");
+let subscriptionRepository = container.resolve("subscriptionRepository");
 
 // CREATE
 exports.post = async (req, res) => {
@@ -43,14 +45,37 @@ exports.get = async (req, res) => {
 // GET
 exports.isgraylisted = async (req, res) => {
 	let gw_transaction_id = req.query.transaction_id;
+	let package_id = req.query.package_id;
 
-	let { msisdn } = req.params;
+	let { msisdn  } = req.params;
+	console.log("msisdn",msisdn);
+	console.log("pacakge_id",package_id,msisdn);
 	if (msisdn) {
-		result = await repo.getUserByMsisdn(msisdn);
-		if(result){
-			res.send({code: config.codes.code_success, subscription_status: result.subscription_status, is_gray_listed: result.is_gray_listed, gw_transaction_id: gw_transaction_id});
+		user = await repo.getUserByMsisdn(msisdn);
+		console.log("user",user,msisdn);
+		if(user){
+			let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+			console.log("subscriber",subscriber,msisdn);
+			if (subscriber) {
+				let result;
+				if(package_id){
+					result = await subscriptionRepository.getSubscriptionByPackageId(subscriber._id, package_id);
+				}
+				console.log("result",result,msisdn);
+				if (result) {
+					res.send({code: config.codes.code_success, subscription_status: result.subscription_status,
+						is_gray_listed: result.is_gray_listed, gw_transaction_id: gw_transaction_id});
+				} else {
+					res.send({code: config.codes.code_data_not_found, message: 'Data not found',
+			 			gw_transaction_id: gw_transaction_id});	
+				}
+			} else {
+				res.send({code: config.codes.code_data_not_found, message: 'Data not found',
+			 		gw_transaction_id: gw_transaction_id});	
+			}
 		}else{
-			res.send({code: config.codes.code_data_not_found, message: 'Data not found', gw_transaction_id: gw_transaction_id});
+			res.send({code: config.codes.code_data_not_found, message: 'Data not found',
+			 gw_transaction_id: gw_transaction_id});
 		}
 	}
 	else{

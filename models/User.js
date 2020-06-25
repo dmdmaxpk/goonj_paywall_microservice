@@ -5,8 +5,9 @@ const ObjectId = Schema.ObjectId;
 
 
 const userSchema = new Schema({
-    //Generating shortid instead of uuid
-    _id: { type: ShortId, len: 8, retries: 4 },
+    
+    // FOR MIGRATION
+    /*_id: { type: ShortId, len: 12, retries: 4 },
     msisdn: { type: String,required:true, index: true },
     subscription_status: String,
     subscribed_package_id: {type: ShortId, required: true},
@@ -35,6 +36,34 @@ const userSchema = new Schema({
     //fields on TP request to change package
     is_package_changed: { type: Boolean, default: false },
     is_message_sent: { type: Boolean, default: false },
+    // operator of the user (telenor/zong/ufone etc)
+    added_dtm: { type: Date, default: Date.now, index: true },
+    last_modified: Date,
+    operator: {
+        type: String
+    },
+    active: { type: Boolean, default: true, index: true }*/
+    
+    
+    
+    //FOR PRODUCTION
+    _id: { type: ShortId, len: 12, retries: 4 },
+    msisdn: { type: String, required:true, unique: true },
+
+    // These fields can be used later in future.
+    username: String,
+    fullname: String,
+    email: String,
+    description: String,
+    preferences: { type: Array, index: true },
+    avatar: String,
+    dateOfBirth: {type: Date },
+    source: {type: String, default: "na", index: true},
+
+    //fields for FnF flow
+    is_gray_listed: { type: Boolean, default: false },
+    is_black_listed: { type: Boolean, default: false },
+
     // operator of the user (telenor/zong/ufone etc)
     added_dtm: { type: Date, default: Date.now, index: true },
     last_modified: Date,

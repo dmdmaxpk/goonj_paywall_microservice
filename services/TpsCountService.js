@@ -1,6 +1,7 @@
+const container = require('../configurations/container');
 const CronJob = require('cron').CronJob;
-const TpsCountRepo = require('../repos/tpsCountRepo');
-const SubscriberRepo = require('../repos/SubscriberRepo');
+const TpsCountRepo = container.resolve("tpsCountRepository");
+const SubscriptionRepo = container.resolve("subscriptionRepository");
 
 tpsCountReset = async() => {
     try {
@@ -15,7 +16,7 @@ dailyAmountReset = async() => {
     try {
         // Logging this to see if it realy is running every day at midnight
         console.log("Daily Amount Cron job", new Date());
-        await SubscriberRepo.resetAmountBilledToday();
+        await SubscriptionRepo.resetAmountBilledToday();
     } catch(err) {
         throw err;
     }

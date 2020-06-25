@@ -25,7 +25,10 @@ const codes = {
     code_in_billing_queue: 10,
     code_trial_activated: 11,
     code_user_gralisted: 12,
-    code_user_blacklisted: 13
+    code_user_blacklisted: 13,
+    code_auth_failed: 14,
+    code_auth_token_not_supplied: 15,
+    code_already_in_queue: 16
 }
 
 const max_graylist_time_in_hrs = 336; // 2 weeks
@@ -33,6 +36,8 @@ const maximum_daily_payment_limit_pkr = 20;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 720; // 2 weeks
+const hours_on_which_to_run_renewal_cycle = [1,5,9,13,18,21];
+const default_package_id = "QDfC";
 
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
@@ -72,8 +77,15 @@ let config = {
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
         unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
-        hours_on_which_to_run_renewal_cycle: [1,5,9,13,18,21],
-        logger_url: "http://127.0.0.1:8000/"
+        hours_on_which_to_run_renewal_cycle: hours_on_which_to_run_renewal_cycle,
+        logger_url: "http://127.0.0.1:8000/",
+        secret: "MVPUBRY2IV",
+        emailhost:"mail.dmdmax.com.pk",
+        emailUsername: "reports@goonj.pk",
+        emailPassword: "YiVmeCPtzJn39Mu",
+        emailPort: 465,
+        emailSecure: true,
+        default_package_id: default_package_id
     },
     staging: {
         port: '5000',
@@ -96,8 +108,15 @@ let config = {
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
         unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
-        hours_on_which_to_run_renewal_cycle: [1,5,9,13,18,21],
-        logger_url: "http://127.0.0.1:8000/"
+        hours_on_which_to_run_renewal_cycle: hours_on_which_to_run_renewal_cycle,
+        logger_url: "http://127.0.0.1:8000/",
+        secret: "MVPUBRY2IV",
+        emailhost:"mail.dmdmax.com.pk",
+        emailUsername: "reports@goonj.pk",
+        emailPassword: "YiVmeCPtzJn39Mu",
+        emailPort: 465,
+        emailSecure: true,
+        default_package_id: default_package_id
     },
     production: {
         port: process.env.PW_PORT,
@@ -120,8 +139,15 @@ let config = {
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
         unsub_time_limit: max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe,
         max_graylist_time_in_hrs: max_graylist_time_in_hrs,
-        hours_on_which_to_run_renewal_cycle: [1,5,9,13,18,21],
-        logger_url: "http://127.0.0.1:8000/"
+        hours_on_which_to_run_renewal_cycle: hours_on_which_to_run_renewal_cycle,
+        logger_url: "http://127.0.0.1:8000/",
+        secret: "MVPUBRY2IV",
+        emailhost:"mail.dmdmax.com.pk",
+        emailUsername: "reports@goonj.pk",
+        emailPassword: "YiVmeCPtzJn39Mu",
+        emailPort: 465,
+        emailSecure: true,
+        default_package_id: default_package_id
     }
 };
 

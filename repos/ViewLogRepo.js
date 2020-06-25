@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const ViewLog = mongoose.model('ViewLog');
 
-createViewLog = async(userId) => {
+createViewLog = async(userId, subscriptionId) => {
     if (userId) {
         try {
-            let viewLog = new ViewLog({user_id: userId,added_dtm: new Date()});
+            let viewLog = new ViewLog({user_id: userId,subscription_id: subscriptionId, added_dtm: new Date()});
             let result = await viewLog.save();
             return result;
         } catch(error) {

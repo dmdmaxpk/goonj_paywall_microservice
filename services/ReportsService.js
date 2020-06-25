@@ -8,45 +8,35 @@ generateDailyReport = async() => {
     reportsRepo.dailyReport();
     console.log("=> Done");
 
-    //Unsub Zara's number daily
-    //await subscriberRepo.removeNumberAndHistory('03458561755');
-    //console.log("=> Done");
+    // //Unsub Zara's number daily
+    // await subscriberRepo.removeNumberAndHistory('03458561755');
+    
+    // await sleep(120*1000);
+    // reportsRepo.callBacksReport();
+    
+    // await sleep(120*1000);
+    // reportsRepo.dailyUnsubReport();
+    
+    // await sleep(120*1000);
+    // reportsRepo.errorCountReport();
+    
+    // await sleep(120*1000);
+    // reportsRepo.dailyFullAndPartialChargedUsers();
+    
+    // await sleep(120*1000);
+    // reportsRepo.dailyTrialToBilledUsers();
+    
+    // await sleep(120*1000);
+    // reportsRepo.dailyChannelWiseUnsub();
 
-    await sleep(120*1000);
-    reportsRepo.callBacksReport();
-    console.log("=> Done");
+    // await sleep(120*1000);
+    // reportsRepo.dailyChannelWiseTrialActivated();
 
-    await sleep(120*1000);
-    reportsRepo.dailyUnsubReport();
-    console.log("=> Done");
+    // await sleep(120*1000);
+    // reportsRepo.dailyPageViews();
 
-    await sleep(120*1000);
-    reportsRepo.errorCountReport();
-    console.log("=> Done");
-
-    await sleep(120*1000);
-    reportsRepo.dailyFullAndPartialChargedUsers();
-    console.log("=> Done");
-
-    await sleep(120*1000);
-    reportsRepo.dailyTrialToBilledUsers();
-    console.log("=> Done");
-
-    await sleep(120*1000);
-    reportsRepo.dailyChannelWiseUnsub();
-    console.log("=> Done");
-
-    await sleep(120*1000);
-    reportsRepo.dailyChannelWiseTrialActivated();
-    console.log("=> Done");
-
-    await sleep(120*1000);
-    reportsRepo.dailyPageViews();
-    console.log("=> Done");
-
-    await sleep(120*1000);
-    affiliateReportsRepo.gdnReport(false);
-    console.log("=> Done");
+    // await sleep(120*1000);
+    // affiliateReportsRepo.gdnReport(false);
 }
 
 generateEveryThreeDaysReports =  async() => {

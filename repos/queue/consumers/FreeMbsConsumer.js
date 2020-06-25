@@ -1,9 +1,10 @@
 const config = require('../../../config');
-const billingRepo = require('../../BillingRepo');
-const historyRepo = require('../../BillingHistoryRepo');
-const userRepo = require('../../UserRepo');
-const packageRepo = require('../../PackageRepo');
-const tpsCountRepo = require('../../tpsCountRepo');
+const container = require("../../../configurations/container");
+const billingRepo = container.resolve("billingRepository");
+const historyRepo = container.resolve("billingHistoryRepository");
+const userRepo = container.resolve("userRepository");
+const packageRepo = container.resolve("packageRepository");
+const tpsCountRepo = container.resolve("tpsCountRepository");
 const shortId = require('shortid');
 
 subscribeFreeMbs = async (message) => {

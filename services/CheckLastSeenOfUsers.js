@@ -1,39 +1,28 @@
 const ViewLogRepo = require('../repos/ViewLogRepo');
-const subsriberRepo = require('../repos/SubscriberRepo');
-const billingHistoryRepo = require('../repos/BillingHistoryRepo');
-const userRepo = require('../repos/UserRepo');
+const container = require('../configurations/container');
+const subscriptionRepo = container.resolve("subscriptionRepository");
+const subscriptionService = container.resolve("subscriptionService");
+const userRepo = container.resolve("userRepository");
 const config = require('../config')
 
 checkLastSeenOfUsers = async() => {
     try {
-        let renewableSubscribers = await subsriberRepo.getBilledSubscribers();
-        console.log("[checkLastSeenOfUsers][checkLastSeenOfUsers]",renewableSubscribers);
-        for (let i = 0 ; i < renewableSubscribers.length ; i++) {
-            let latestViewLog = await ViewLogRepo.getLatestViewLog(renewableSubscribers[i].user_id);
-            // if last viewed of user is
-            // console.log("renewableSubscribers",renewableSubscribers);
-            if (latestViewLog) {
-                let lastViewedPlusTimePeriod = latestViewLog.added_dtm.setHours( latestViewLog.added_dtm.getHours() + config.unsub_time_limit);
-                if (lastViewedPlusTimePeriod < new Date() ) {
-                    console.log("Unsub user and send him message",renewableSubscribers[i].user_id);
-                    let unsubscribed = await subsriberRepo.unsubscribe(renewableSubscribers[i].user_id);
-                    let user = userRepo.getUserById(renewableSubscribers[i].user_id);
-                    let message = `Your subscription to Goonj has been revoked because of inactivity. `;
-	                let messageObj = {};
-	                messageObj.message =  message;
-	                messageObj.msisdn = user.msisdn;
-                    rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
-                    let billingHistory = {};
-                    billingHistory.user_id = user._id;
-                    billingHistory.package_id = user.subscribed_package_id;
-                    billingHistory.transaction_id = undefined;
-                    billingHistory.operator_response = undefined;
-                    billingHistory.billing_status = 'expired';
-                    billingHistory.source = 'Subscribed because of inactivity by cron.';
-                    billingHistory.operator = 'telenor';
-                    await billingHistoryRepo.createBillingHistory(billingHistory);
-                }
+        let renewableSubscriptions = await subscriptionRepo.subscriptionToExpireNonUsage();
+        console.log("[UnsubscribeDueToInactivity]",renewableSubscriptions);
+        for (let i = 0 ; i < renewableSubscriptions.length ; i++) {
+            console.log("[Unsubscriber][susbscription_id]",renewableSubscriptions[i]._id);
+            
+            try {
+                // TODO Unsubcribe
+                let unsubscribed = await subscriptionService.expire(renewableSubscriptions[i]._id);
+                // send Message
+                let user = userRepo.getUserById(renewableSubscriptions[i].user_id);
+                let message = `Your subscription to Goonj has been revoked because of inactivity.`;
+                this.messageRepository.sendSmsToUser(message,user.msisdn);
+            } catch (err){
+                console.log("[UnableToUnsubscribe]:",renewableSubscriptions[i]._id)
             }
+            
         }
     } catch(err) {
         throw err;
