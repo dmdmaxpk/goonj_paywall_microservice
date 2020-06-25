@@ -65,12 +65,16 @@ const csvWriter = createCsvWriter({
         {id: 'totalSubscribers', title: 'Total Subscribers'},
         {id: 'trials', title: 'Trials Activated'},
         {id: 'tempTotalActiveSubscribers',title: 'Total Active Subscribers'},
-        {id: 'liveOnlyCount', title: 'Users Billed Live Only'},
-        {id: 'pslOnlyCount', title: 'Users Billed PSL Only'},
-        {id: 'liveAndPSLCount', title: 'Users Billed Live And PSL'},
-        {id: 'liveOnly', title: 'Live Only Revenue'},
-        {id: 'pslOnly', title: 'PSL Only Revenue'},
-        {id: 'liveAndPSL', title: 'Live And PSL Revenue'},
+
+        {id: 'liveOnlyCount', title: 'Live Daily'},
+        {id: 'liveWeeklyCount', title: 'Live Weekly'},
+        {id: 'comedyOnlyCount', title: 'Comedy Daily'},
+        {id: 'comedyWeeklyCount', title: 'Comedy Weekly'},
+
+        {id: 'liveOnlyRevenue', title: 'Live Daily Revenue'},
+        {id: 'liveWeeklyRevenue', title: 'Live Weekly Revenue'},
+        {id: 'comedyOnlyRevenue', title: 'Comedy Daily Revenue'},
+        {id: 'comedyWeeklyRevenue', title: 'Comedy Weekly Revenue'},
         {id: 'totalRevenue',title: 'Total Revenue'}
 
     ]
@@ -150,6 +154,7 @@ var transporter = nodemailer.createTransport({
 dailyReport = async(mode = 'prod') => {
     let today = new Date();
     let myToday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
+
     let dayBeforeYesterday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
     dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
     let reportStartDate = new Date("2020-02-07T00:00:00.672Z");
@@ -164,7 +169,9 @@ dailyReport = async(mode = 'prod') => {
         {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" } } , count:{ $sum: 1 } } },
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
         { $sort: {"date": -1}}
-          ]);
+    ]);
+
+    console.log("==>", susbcriberStats);
     
     let subscription_status_stats = await Subscription.aggregate([
         {
@@ -229,25 +236,33 @@ dailyReport = async(mode = 'prod') => {
     console.log("[dailyReport]Reached HEre 3");
     
 
-    let resultToWrite= {};
+    let resultToWrite = {};
     userStats.forEach(userStat => {
-        resultToWrite[userStat.date.toDateString()] =  {};
+        if(userStat.date){
+            resultToWrite[userStat.date.toDateString()] =  {};
+        }
     });
     let totalUsers = totalUserStats;
     userStats.forEach(userStat => {
-        resultToWrite[userStat.date.toDateString()]['newUser'] = userStat.count;
-        totalUsers = totalUsers - userStat.count;
-        resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
+        if(userStat.date){
+            resultToWrite[userStat.date.toDateString()]['newUser'] = userStat.count;
+            totalUsers = totalUsers - userStat.count;
+            resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
+        }
     });
     var totalSubscriber = totalSubscriberStats;
     susbcriberStats.forEach(subsc => {
-        resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
-        totalSubscriber = totalSubscriber - subsc.count;
-        resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
-
+        if(subsc.date){
+            console.log(resultToWrite);
+            console.log(subsc.date);
+            resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
+            totalSubscriber = totalSubscriber - subsc.count;
+            resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
+        }
     });
     let totalExpiredCountt = totalExpiredCount;
     console.log("[dailyReport]Reached HEre 4");
+
     billingStats.forEach(billingHistor => {
         // console.log(billingHistor);
         if(resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "Success") {
@@ -256,13 +271,17 @@ dailyReport = async(mode = 'prod') => {
                 resultToWrite[billingHistor.date.toDateString()]['revenue-liveonly'] = billingHistor.revenue;
                 resultToWrite[billingHistor.date.toDateString()]['users-billed-liveonly'] = billingHistor.count;
             }
-            if (billingHistor._id.package_id === "QDfD") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-pslonly'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-pslonly'] = billingHistor.count;
+            if (billingHistor._id.package_id === "QDfG") {
+                resultToWrite[billingHistor.date.toDateString()]['revenue-liveweekly'] = billingHistor.revenue;
+                resultToWrite[billingHistor.date.toDateString()]['users-billed-liveweekly'] = billingHistor.count;
             }
-            if (billingHistor._id.package_id === "QDfE") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-liveandPSL'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-pslandlive'] = billingHistor.count;
+            if (billingHistor._id.package_id === "QDfH") {
+                resultToWrite[billingHistor.date.toDateString()]['revenue-comedyonly'] = billingHistor.revenue;
+                resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyonly'] = billingHistor.count;
+            }
+            if (billingHistor._id.package_id === "QDfI") {
+                resultToWrite[billingHistor.date.toDateString()]['revenue-comedyweekly'] = billingHistor.revenue;
+                resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyweekly'] = billingHistor.count;
             }
         } else if (resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "expired")  {
             console.log("[dailyReport]expired On the day",billingHistor.count);
@@ -286,14 +305,26 @@ dailyReport = async(mode = 'prod') => {
 
     let resultToWriteToCsv= [];
     for (res in resultToWrite) {
-        let liveRevenue = (resultToWrite[res]["revenue-liveonly"])?resultToWrite[res]["revenue-liveonly"]:0;
-        let pslRevenue = (resultToWrite[res]["revenue-pslonly"])?resultToWrite[res]["revenue-pslonly"]:0;
-        let pslAndLiveRevenue = (resultToWrite[res]["revenue-liveandPSL"])?resultToWrite[res]["revenue-liveandPSL"]:0 ;
-        let totalRevenue = liveRevenue + pslRevenue + pslAndLiveRevenue;
+        let liveOnlyRevenue = (resultToWrite[res]["revenue-liveonly"])?resultToWrite[res]["revenue-liveonly"]:0;
+        let liveWeeklyRevenue = (resultToWrite[res]["revenue-liveweekly"])?resultToWrite[res]["revenue-liveweekly"]:0;
+        let comedyOnlyRevenue = (resultToWrite[res]["revenue-comedyonly"])?resultToWrite[res]["revenue-comedyonly"]:0 ;
+        let comedyWeeklyRevenue = (resultToWrite[res]["revenue-comedyweekly"])?resultToWrite[res]["revenue-comedyweekly"]:0 ;
+        
+        let totalRevenue = liveOnlyRevenue + liveWeeklyRevenue + comedyOnlyRevenue + comedyWeeklyRevenue;
+        
         let temp = {date: res, newUser: resultToWrite[res].newUser , newSubscriber: resultToWrite[res].newSubscriber,
-            liveOnlyCount: resultToWrite[res]["users-billed-liveonly"]  ,liveOnly: resultToWrite[res]["revenue-liveonly"],
-            pslOnlyCount: resultToWrite[res]["users-billed-pslonly"] ,pslOnly: resultToWrite[res]["revenue-pslonly"],
-            liveAndPSLCount: resultToWrite[res]["users-billed-pslandlive"],liveAndPSL: resultToWrite[res]["revenue-liveandPSL"],
+            liveOnlyCount: resultToWrite[res]["users-billed-liveonly"],
+            liveOnlyRevenue: liveOnlyRevenue,
+            
+            liveWeeklyCount: resultToWrite[res]["users-billed-liveweekly"],
+            liveWeeklyRevenue: liveWeeklyRevenue,
+            
+            comedyOnlyCount: resultToWrite[res]["users-billed-comedyonly"],
+            comedyOnlyRevenue: comedyOnlyRevenue,
+            
+            comedyWeeklyCount: resultToWrite[res]["users-billed-comedyweekly"],
+            comedyWeeklyRevenue: comedyWeeklyRevenue,
+            
             users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,tempTotalActiveSubscribers: (resultToWrite[res]["tempTotalActiveSubscribers"])?resultToWrite[res]["tempTotalActiveSubscribers"]:"",
             totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers, 
             totalActiveSubscribers : (resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today < 0)? 0 : resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today,
@@ -331,6 +362,7 @@ dailyReport = async(mode = 'prod') => {
     } catch(err) {
         console.log("[dailyReport]",err);
     }
+
     console.log("[dailyReport]resultToWrite",resultToWriteToCsv);
 }
 

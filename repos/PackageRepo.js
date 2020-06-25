@@ -3,7 +3,7 @@ const Package = mongoose.model('Package');
 
 class PackageRepository {
     constructor(){
-        console.log("package Repository");
+       
     }
 
     async createPackage (postData) {

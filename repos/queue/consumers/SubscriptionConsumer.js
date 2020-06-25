@@ -130,6 +130,7 @@ class SubscriptionConsumer {
                 subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
                 subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
                 subscriptionObj.queued = false;
+                subscriptionObj.priority = 0;
                 
                 let updatedSubscription = await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
                 
@@ -218,6 +219,7 @@ class SubscriptionConsumer {
                 // Fields for micro charging
                 subscriptionObj.try_micro_charge_in_next_cycle = false;
                 subscriptionObj.micro_price_point = 0;
+                subscriptionObj.priority = 0;
                 
                 let updatedSubscription = await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
                 
@@ -304,6 +306,7 @@ class SubscriptionConsumer {
                     // Fields for micro charging
                     subscriptionObj.try_micro_charge_in_next_cycle = false;
                     subscriptionObj.micro_price_point = 0;
+                    subscriptionObj.priority = 0;
 
                     let updatedSubscription = await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
                     
@@ -417,11 +420,13 @@ class SubscriptionConsumer {
                 
                 subscriptionObj.try_micro_charge_in_next_cycle = false;
                 subscriptionObj.micro_price_point = 0;
+                subscriptionObj.priority = 0;
 
             }else if(packageObj.is_micro_charge_allowed === true && hoursSpentInGracePeriod > 8 && hoursSpentInGracePeriod <= 24){
                 console.log("Micro Charging Activated for: ",subscription._id);
                 subscriptionObj.subscription_status = 'graced';
                 historyStatus = "graced";
+
                 subscriptionObj = this.activateMicroCharging(subscription, packageObj, subscriptionObj);
                 console.log("Micro Charging Activated Subscription Object Returned:",subscriptionObj);
             }else{
@@ -451,6 +456,7 @@ class SubscriptionConsumer {
 
                     subscriptionObj.try_micro_charge_in_next_cycle = false;
                     subscriptionObj.micro_price_point = 0;
+                    subscriptionObj.priority = 0;
                 }
             }
         }else{
@@ -468,6 +474,7 @@ class SubscriptionConsumer {
             subscriptionObj.is_billable_in_this_cycle = false;
         }
 
+        subscriptionObj.queued = false;
         await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         if(historyStatus){
             let history = {};
@@ -492,25 +499,31 @@ class SubscriptionConsumer {
         let micro_price_points = packageObj.micro_price_points;
         let current_micro_price_point = subscription.micro_price_point;
         let tempSubObj  = JSON.parse(JSON.stringify(subscriptionObj));
+
         if(current_micro_price_point > 0){
             // It means micro charging attempt had already been tried and was unsuccessful, lets hit on lower price
             let index = micro_price_points.indexOf(current_micro_price_point);
             if(index > 0){
                 tempSubObj.try_micro_charge_in_next_cycle = true;
                 tempSubObj.micro_price_point = micro_price_points[--index];
+                tempSubObj.priority = 2;
             }else if(index === -1){
                 tempSubObj.try_micro_charge_in_next_cycle = true;
                 tempSubObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
+                tempSubObj.priority = 2;
             }else{
                 tempSubObj.try_micro_charge_in_next_cycle = false;
                 tempSubObj.micro_price_point = 0;
                 tempSubObj.is_billable_in_this_cycle = false;
+                tempSubObj.priority = 0;
             }
         }else{
             // It means micro tying first micro charge attempt
             tempSubObj.try_micro_charge_in_next_cycle = true;
             tempSubObj.micro_price_point = micro_price_points[micro_price_points.length - 1];
+            tempSubObj.priority = 2;
         }
+
         return tempSubObj;
     }
     
@@ -556,7 +569,7 @@ class SubscriptionConsumer {
     
     // UN-QUEUE SUBSCRIPTION
     async unQueue (subscription_id) {
-        await this.subscriptionRepo.updateSubscription(subscription_id, {queued: false});
+        await this.subscriptionRepo.updateSubscription(subscription_id, {queued: false, priority: 0});
     }
     
     // SHOOT EMAIL

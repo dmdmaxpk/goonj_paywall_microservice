@@ -4,7 +4,6 @@ const Paywall = mongoose.model('Paywall');
 class PaywallRepository {
     constructor({packageRepository}){
         this.packageRepository = packageRepository;
-        console.log("Paywall Repository");
     }
 
     async getAllPaywalls(){

@@ -11,7 +11,12 @@ const subscriptionSchema = new Schema({
     subscriber_id: {type: ShortId, required: true},
     paywall_id: {type: ShortId, required: true},
     subscribed_package_id: {type: ShortId, required: true},
-    
+
+    // priority 0 means no priority has been set so far.
+    // priority 1 for high and
+    // priority 2 for low
+    priority: { type: Number, default: 0, index: true },
+
     subscription_status: String,  // => billed/not_billed/expired/graced/trial
     last_billing_timestamp: Date,
     next_billing_timestamp: Date,
