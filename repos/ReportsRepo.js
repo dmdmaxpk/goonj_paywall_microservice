@@ -170,8 +170,6 @@ dailyReport = async(mode = 'prod') => {
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
         { $sort: {"date": -1}}
     ]);
-
-    console.log("==>", susbcriberStats);
     
     let subscription_status_stats = await Subscription.aggregate([
         {
@@ -253,8 +251,11 @@ dailyReport = async(mode = 'prod') => {
     var totalSubscriber = totalSubscriberStats;
     susbcriberStats.forEach(subsc => {
         if(subsc.date){
+<<<<<<< HEAD
             console.log(resultToWrite);
             console.log(subsc.date);
+=======
+>>>>>>> 414d6629f0e98bb7d99c1210889ebd00bbf6d5df
             resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
             totalSubscriber = totalSubscriber - subsc.count;
             resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
