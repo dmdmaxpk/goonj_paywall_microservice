@@ -251,11 +251,6 @@ dailyReport = async(mode = 'prod') => {
     var totalSubscriber = totalSubscriberStats;
     susbcriberStats.forEach(subsc => {
         if(subsc.date){
-<<<<<<< HEAD
-            console.log(resultToWrite);
-            console.log(subsc.date);
-=======
->>>>>>> 414d6629f0e98bb7d99c1210889ebd00bbf6d5df
             resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
             totalSubscriber = totalSubscriber - subsc.count;
             resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
