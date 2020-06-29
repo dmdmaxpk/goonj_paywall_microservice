@@ -364,7 +364,7 @@ dailyReport = async(mode = 'prod') => {
 
 callBacksReport =async() => {
     try { 
-        let startDate = new Date("2020-06-01T00:00:00.000Z");
+        let startDate = new Date("2020-06-19T00:00:00.000Z");
         let report =  await Subscription.aggregate([ 
             { 
                 $match: {
