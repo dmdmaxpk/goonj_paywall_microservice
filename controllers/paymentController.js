@@ -450,7 +450,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 								if(subscription.subscription_status === 'expired' && (nextBillingTime > today)){
 									await reSubscribe(subscription, history);
 									let date = nextBillingTime.getDate()+"-"+nextBillingTime.getMonth()+"-"+nextBillingTime.getFullYear();
-									res.send({code: config.codes.code_already_subscribed, message: 'You have paid till '+date.getDate+'. Continue watching ', gw_transaction_id: gw_transaction_id});
+									res.send({code: config.codes.code_already_subscribed, message: 'You have paid till '+date+'. Continue watching ', gw_transaction_id: gw_transaction_id});
 								}else{
 									subscribePackage(subscription, packageObj)
 									res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
