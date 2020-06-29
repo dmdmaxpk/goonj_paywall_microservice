@@ -598,7 +598,8 @@ exports.status = async (req, res) => {
 						is_black_listed: result.is_black_listed,
 						queued: result.queued,
 						is_allowed_to_stream: result.is_allowed_to_stream,
-						active: result.active
+						active: result.active,
+						next_billing_timestamp: result.next_billing_timestamp
 					}, 
 					gw_transaction_id: gw_transaction_id});	
 			}else{
