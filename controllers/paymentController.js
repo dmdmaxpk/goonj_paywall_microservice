@@ -448,9 +448,24 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 								let today = new Date();
 
 								if(subscription.subscription_status === 'expired' && (nextBillingTime > today)){
-									await reSubscribe(subscription, history);
-									let date = nextBillingTime.getDate()+"-"+nextBillingTime.getMonth()+"-"+nextBillingTime.getFullYear();
-									res.send({code: config.codes.code_already_subscribed, message: 'You have paid till '+date+'. Continue watching ', gw_transaction_id: gw_transaction_id});
+									if(subscription.last_subscription_status && subscription.last_subscription_status === "trial"){
+										try {
+											let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
+											console.log("result",result,user.msisdn);
+											if(result.message === "success"){
+												res.send({code: config.codes.code_success, message: 'Subscribed Successfully', gw_transaction_id: gw_transaction_id});
+											}else{
+												res.send({code: config.codes.code_error, message: 'Failed to subscribe, insufficient balance', gw_transaction_id: gw_transaction_id});
+											}
+										} catch(err){
+											console.log(err);
+											res.send({code: config.codes.code_error, message: 'Failed to subscribe, insufficient balance', gw_transaction_id: gw_transaction_id});
+										}
+									}else{
+										await reSubscribe(subscription, history);
+										let date = nextBillingTime.getDate()+"-"+nextBillingTime.getMonth()+"-"+nextBillingTime.getFullYear();
+										res.send({code: config.codes.code_already_subscribed, message: 'You have already paid till '+date+'. Continue watching ', gw_transaction_id: gw_transaction_id});
+									}
 								}else{
 									subscribePackage(subscription, packageObj)
 									res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
@@ -646,6 +661,7 @@ exports.unsubscribe = async (req, res) => {
 				let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
 				let result = await subscriptionRepo.updateSubscription(subscription._id, 
 					{
+						last_subscription_status: subscription.subscription_status,
 						auto_renewal: false, 
 						consecutive_successive_bill_counts: 0,
 						is_allowed_to_stream: false,
