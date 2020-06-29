@@ -377,7 +377,7 @@ callBacksReport =async() => {
                     {        
                         from: "billinghistories",        
                         localField: "_id",        
-                        foreignField: "user_id",        
+                        foreignField: "subscription_id",        
                         as: "histories" 
                     } 
             },
