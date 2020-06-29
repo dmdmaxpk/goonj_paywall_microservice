@@ -364,7 +364,7 @@ dailyReport = async(mode = 'prod') => {
 
 callBacksReport =async() => {
     try { 
-        let startDate = new Date("2020-04-01T00:00:00.000Z");
+        let startDate = new Date("2020-06-01T00:00:00.000Z");
         let report =  await Subscription.aggregate([ 
             { 
                 $match: {
@@ -386,7 +386,7 @@ callBacksReport =async() => {
                     tid: "$affiliate_unique_transaction_id",
                     mid: "$affiliate_mid",
                     added_dtm: "$added_dtm",
-                    operator: "$operator",
+                    active: "$active",
                     callbackhistory: {
                             $filter: {
                                 input: "$histories",
@@ -400,7 +400,7 @@ callBacksReport =async() => {
                 $project: { 
                 tid: "$tid",
                 mid: "$mid",
-                isValidUser: {$cond: {if: {$eq:["$operator","telenor"]}, then: true, else: false } },
+                isValidUser: {$cond: {if: {$eq:["$active",true]}, then: true, else: false } },
                 added_dtm: "$added_dtm",
                 callbackhistorySize: {"$size": "$callbackhistory" },
                 callbackObj: {$arrayElemAt: ["$callbackhistory",0]},
