@@ -444,8 +444,17 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 								* Let's send this item in queue and update package, auto_renewal and 
 								* billing date times once user successfully billed
 								*/
-								subscribePackage(subscription, packageObj)
-								res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+								let nextBillingTime = new Date(subscription.next_billing_timestamp);
+								let today = new Date();
+
+								if(subscription.subscription_status === 'expired' && (nextBillingTime > today)){
+									await reSubscribe(subscription, history);
+									let date = nextBillingTime.getDate()+"-"+nextBillingTime.getMonth+"-"+nextBillingTime.getFullYear();
+									res.send({code: config.codes.code_already_subscribed, message: 'You have paid till '+date+'. Continue watching ', gw_transaction_id: gw_transaction_id});
+								}else{
+									subscribePackage(subscription, packageObj)
+									res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+								}
 							}
 						}else{
 							// request is coming for the same paywall but different package
@@ -489,6 +498,20 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 	}
 	else {
 		res.send({code: config.codes.code_error, message: 'Blocked user', gw_transaction_id: gw_transaction_id});
+	}
+}
+
+reSubscribe = async(subscription, history) => {
+
+	let dataToUpdate = {};
+	dataToUpdate.auto_renewal = true;
+	dataToUpdate.subscription_status = "billed";
+	dataToUpdate.is_allowed_to_stream = true;
+
+	let update = await subscriptionRepo.updateSubscription(subscription._id, dataToUpdate);
+	if(update){
+		history.billing_status = "subscription-request-received-for-the-same-package-after-unsub";
+		await billingHistoryRepo.createBillingHistory(history);
 	}
 }
 
@@ -621,7 +644,18 @@ exports.unsubscribe = async (req, res) => {
 			let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
 			if(subscription){
 				let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
-				let result = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: false, consecutive_successive_bill_counts: 0});
+				let result = await subscriptionRepo.updateSubscription(subscription._id, 
+					{
+						auto_renewal: false, 
+						consecutive_successive_bill_counts: 0,
+						is_allowed_to_stream: false,
+						is_billable_in_this_cycle: false,
+						queued: false,
+						try_micro_charge_in_next_cycle: false,
+						micro_price_point: 0,
+						subscription_status: "expired",
+						priority: 0
+					});
 				
 				let history = {};
 				history.user_id = user._id;
@@ -629,7 +663,7 @@ exports.unsubscribe = async (req, res) => {
 				history.package_id = packageObj._id;
 				history.subscriber_id = subscription.subscriber_id;
 				history.subscription_id = subscription._id;
-				history.billing_status = 'unsubscribe-request-recieved';
+				history.billing_status = 'unsubscribe-request-received-and-expired';
 				history.source = source ? source : "na";
 				history.operator = user.operator;
 				result = await billingHistoryRepo.createBillingHistory(history);
