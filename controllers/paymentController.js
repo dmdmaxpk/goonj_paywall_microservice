@@ -404,14 +404,13 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					await viewLogRepo.createViewLog(user._id, subscription._id);
 					let currentPackageId = subscription.subscribed_package_id;
 					let autoRenewal = subscription.auto_renewal;
-					console.log("Subueued",subscription.queued);
+
 					if(subscription.queued === false){
 						let history = {};
 						history.user_id = user._id;
 						history.subscriber_id = subscriber._id;
 						history.subscription_id = subscription._id;
-						console.log("currentPackageId",currentPackageId);
-						console.log("newPackageId",newPackageId);
+
 						// if both subscribed and upcoming packages are same
 						if(currentPackageId === newPackageId){
 							history.source = req.body.source;
@@ -472,20 +471,36 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 								}
 							}
 						}else{
-							// request is coming for the same paywall but different package
-							// lets amend existing subscription for the new package
-							if (subscription.subscription_status === "billed" ){
-									let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true, subscribed_package_id:newPackageId});
-									history.paywall_id = packageObj.paywall_id;
-									history.package_id = newPackageId;
-									history.billing_status = "package_change_upon_user_request";
-									await billingHistoryRepo.createBillingHistory(history);
-									res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
-								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired" 
-									|| subscription.subscription_status === "trial" ) {
+								// request is coming for the same paywall but different package
+								if (subscription.subscription_status === "billed"){
+									let newPackageObj = await packageRepo.getPackage({_id: newPackageId});
+									let currentPackageObj = await packageRepo.getPackage({_id: currentPackageId});
+
+									if(newPackageObj.package_duration > currentPackageObj.package_duration){
+										// It means switching from daily to weekly, process billing
+										try {
+											let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
+											if(result.message === "success"){
+												res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
+											}else{
+												res.send({code: config.codes.code_error, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
+											}
+										} catch(graceErr){
+											console.log(graceErr);
+											res.send({code: config.codes.code_error, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
+										}
+									}else{
+										// It means, package switching from weekly to daily
+										let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true, subscribed_package_id:newPackageId});
+										history.paywall_id = packageObj.paywall_id;
+										history.package_id = newPackageId;
+										history.billing_status = "package_change_upon_user_request";
+										await billingHistoryRepo.createBillingHistory(history);
+										res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
+									}
+								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired" || subscription.subscription_status === "trial" ) {
 								try {
 									let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
-									console.log("result",result,user.msisdn);
 									if(result.message === "success"){
 										res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 									}else{
