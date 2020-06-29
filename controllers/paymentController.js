@@ -449,8 +449,8 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 
 								if(subscription.subscription_status === 'expired' && (nextBillingTime > today)){
 									await reSubscribe(subscription, history);
-									let date = nextBillingTime.getDate()+"-"+nextBillingTime.getMonth+"-"+nextBillingTime.getFullYear();
-									res.send({code: config.codes.code_already_subscribed, message: 'You have paid till '+date+'. Continue watching ', gw_transaction_id: gw_transaction_id});
+									let date = nextBillingTime.getDate()+"-"+nextBillingTime.getMonth()+"-"+nextBillingTime.getFullYear();
+									res.send({code: config.codes.code_already_subscribed, message: 'You have paid till '+date.getDate+'. Continue watching ', gw_transaction_id: gw_transaction_id});
 								}else{
 									subscribePackage(subscription, packageObj)
 									res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
@@ -460,8 +460,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							// request is coming for the same paywall but different package
 							// lets amend existing subscription for the new package
 							if (subscription.subscription_status === "billed" ){
-									let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true,
-												subscribed_package_id:newPackageId});
+									let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true, subscribed_package_id:newPackageId});
 									history.paywall_id = packageObj.paywall_id;
 									history.package_id = newPackageId;
 									history.billing_status = "package_change_upon_user_request";
