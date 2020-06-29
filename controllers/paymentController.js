@@ -661,7 +661,6 @@ exports.unsubscribe = async (req, res) => {
 				let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
 				let result = await subscriptionRepo.updateSubscription(subscription._id, 
 					{
-						last_subscription_status: subscription.subscription_status,
 						auto_renewal: false, 
 						consecutive_successive_bill_counts: 0,
 						is_allowed_to_stream: false,
@@ -669,6 +668,7 @@ exports.unsubscribe = async (req, res) => {
 						queued: false,
 						try_micro_charge_in_next_cycle: false,
 						micro_price_point: 0,
+						last_subscription_status: subscription.subscription_status,
 						subscription_status: "expired",
 						priority: 0
 					});
