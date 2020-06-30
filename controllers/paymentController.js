@@ -462,7 +462,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 										}
 									}else{
 										await reSubscribe(subscription, history);
-										let date = nextBillingTime.getDate()+"-"+nextBillingTime.getMonth()+"-"+nextBillingTime.getFullYear();
+										let date = nextBillingTime.getDate()+"-"+(nextBillingTime.getMonth()+1)+"-"+nextBillingTime.getFullYear();
 										res.send({code: config.codes.code_already_subscribed, message: 'You have already paid till '+date+'. Continue watching ', gw_transaction_id: gw_transaction_id});
 									}
 								}else{
