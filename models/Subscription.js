@@ -18,6 +18,7 @@ const subscriptionSchema = new Schema({
     priority: { type: Number, default: 0, index: true },
 
     subscription_status: String,  // => billed/not_billed/expired/graced/trial
+    last_subscription_status: { type: String, default: "none", index: true },
     last_billing_timestamp: Date,
     next_billing_timestamp: Date,
     auto_renewal: { type: Boolean, default: true, index: true },
