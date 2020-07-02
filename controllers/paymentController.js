@@ -388,7 +388,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
 					console.log("Messages",message,user.msisdn);
-					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&pg=${subscriptionObj.subscribed_package_id}`;
+					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${subscriptionObj.subscribed_package_id}`;
 					text = message;
 					text = text.replace("%unsub_link%",unsubLink);
 					text = text.replace("%trial_hours%",trial_hours);
