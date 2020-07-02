@@ -29,12 +29,11 @@ class SubscriptionService {
                 history.package_id = subscription.subscribed_package_id;
                 history.paywall_id = packageOfThisSubcription.paywall_id;
 
-                history.transaction_id = transaction_id;
+                history.transaction_id = undefined;
                 history.operator_response = undefined;
                 history.billing_status = 'expired';
-                history.source = source;
+                history.source = 'system';
                 history.operator = 'telenor';
-                await this.billingHistoryRepository.createBillingHistory(history);
                 return expire;
             } else {
                 return undefined;
@@ -42,6 +41,10 @@ class SubscriptionService {
         } catch (error){
             throw error;
         }
+    }
+
+    addToHistory(user_id,subscriber_id,subscription_id,package_id,paywall_id,source,){
+        this.billingHistoryRepository.createBillingHistory()
     }
 
     
