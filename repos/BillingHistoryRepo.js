@@ -23,7 +23,11 @@ class BillingHistoryRepository {
         dayToCompare = dayToCompare.setHours(dayToCompare.getHours() - config.max_graylist_time_in_hrs);
         
         let records = await BillingHistory.findOne({subscription_id: subscription_id,
-            "billing_status": "unsubscribe-request-recieved", "billing_dtm": {$lte: dayToCompare}},
+            
+            $or: [{"billing_status": "unsubscribe-request-recieved"}, 
+            {"billing_status": "unsubscribe-request-received-and-expired"}], 
+            
+            "billing_dtm": {$lte: dayToCompare}},
              null, {sort: {billing_dtm: -1}});
         return records;
     }
@@ -160,7 +164,7 @@ class BillingHistoryRepository {
         let result = await BillingHistory.aggregate([
             {
                 $match:{
-                    "billing_status" : "unsubscribe-request-recieved",
+                    $or:[{"billing_status" : "unsubscribe-request-recieved"}, {"billing_status" : "unsubscribe-request-received-and-expired"}],
                     "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")},
                     "operator": "telenor"
                 }
@@ -256,8 +260,29 @@ class BillingHistoryRepository {
     }
     
     async dailyNonTelenorUsers ()  {
-        let result = await BillingHistory.aggregate([         {             $match:{ "billing_status":"unsubscribe-request-recieved",                 "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")}, "operator": "not_telenor"             }         },{             $group: {                     _id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },                     "year":{ $year: "$billing_dtm" }},                     count:{$sum: 1}              }         },{              $project: {             _id: 0,             date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},              count:"$count"              }          },         { $sort: { date: -1} }         ]);
+        let result = await BillingHistory.aggregate([         {             
+            $match:{ 
+                $or:[{"billing_status" : "unsubscribe-request-recieved"}, {"billing_status" : "unsubscribe-request-received-and-expired"}],                 
+            "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")}, 
+            "operator": "not_telenor"             
+        }         },
+        {             $group: {                     _id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },                     "year":{ $year: "$billing_dtm" }},                     count:{$sum: 1}              }         },{              $project: {             _id: 0,             date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},              count:"$count"              }          },         { $sort: { date: -1} }         ]);
          return result;
+    }
+
+    async getExpiryHistory (user_id, packageId) {
+        let result = await BillingHistory.aggregate([{             
+            $match:{ 
+                "user_id": user_id,
+                "package_id": packageId,
+                $or:[
+                    {"billing_status" : "expired"}, 
+                    {"billing_status" : "unsubscribe-request-recieved"}, 
+                    {"billing_status" : "unsubscribe-request-received-and-expired"}
+                ]
+            }      
+        }]);
+        return result;
     }
     
     async getDailyFullyChargedAndPartialChargedUsers ()  {
