@@ -23,6 +23,7 @@ let checkToken = (req, res, next) => {
         console.log("decoded",decoded);
         console.log("url",req.url);
         console.log("originalUrl",req.originalUrl);
+
         req.decoded = decoded;
         next();
       }

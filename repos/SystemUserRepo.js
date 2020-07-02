@@ -16,6 +16,17 @@ class SystemUserRepository {
             throw Error(data);
         }
     }
+
+    async getUserById (id)  {
+        let result = await SystemUser.findOne({_id:id});
+        if(result){
+            return result;
+        }else{
+            let data = `Unable to find User ${id}`;
+            console.log(data);
+            throw Error(data);
+        }
+    }
     
 }
 
