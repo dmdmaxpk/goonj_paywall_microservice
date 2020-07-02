@@ -20,8 +20,8 @@ exports.getSubscriptionDetails = async (req, res) => {
 				if(rawSubscriptions){
 					for(let i = 0; i < rawSubscriptions.length; i++){
 						let sub = {};
-						sub.user_id = user._id;
-						sub.subscriber_id = rawSubscriptions[i].subscriber_id;
+						//sub.user_id = user._id;
+						//sub.subscriber_id = rawSubscriptions[i].subscriber_id;
 						sub.subscription_id = rawSubscriptions[i]._id;
 						sub.paywall_id = rawSubscriptions[i].paywall_id;
 						sub.subscribed_package_id = rawSubscriptions[i].subscribed_package_id;
@@ -79,14 +79,4 @@ getExpiry = async(user_id, package_id) => {
 	}
 	return histories;
 	
-}
-
-// UPDATE
-exports.put = async (req, res) => {
-	const result = await repo.updateSubscriber(req.params.msisdn, req.body);
-	if (result) {
-		res.send({'code': config.codes.code_record_updated, data : result});
-	}else {
-		res.send({'code': config.codes.code_data_not_found, data: 'No subscriber with this msisdn found!'});
-	}
 }
