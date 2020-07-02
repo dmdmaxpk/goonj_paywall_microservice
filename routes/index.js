@@ -17,4 +17,6 @@ router.use('/cron',    require('./cron'));
 
 router.use('/paywall',    require('./paywall'));
 
+router.use('/goonj',    require('./systemUser'));
+
 module.exports = router;

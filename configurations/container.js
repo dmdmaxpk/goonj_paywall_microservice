@@ -14,11 +14,13 @@ const TPSCountRepository = require('../repos/tpsCountRepo');
 const BillingRepository = require('../repos/BillingRepo');
 const PackageRepository = require('../repos/PackageRepo');
 const MessageRepository = require('../repos/MessageRepo');
+const SystemUserRepository = require('../repos/SystemUserRepo');
 const UserRepository = require('../repos/UserRepo');
 const ChargingAttemptRepository = require('../repos/ChargingAttemptRepo');
 const PaywallRepository = require('../repos/PaywallRepo');
 const MigrationRepository = require('../repos/MigrationRepository');
 const TelenorBillingService = require('../services/TelenorBillingService');
+const SystemUserService = require('../services/SystemUserService');
 
 // Services
 const PaywallService = require('../services/PaywallService');
@@ -46,6 +48,8 @@ container.register({
     chargingAttemptRepository: awilix.asClass(ChargingAttemptRepository).singleton(),
     migrationRepository: awilix.asClass(MigrationRepository).singleton(),
     telenorBillingService: awilix.asClass(TelenorBillingService).singleton(),
+    systemUserRepository: awilix.asClass(SystemUserRepository).singleton(),
+    systemUserService: awilix.asClass(SystemUserService).singleton(),
 
     //SErvices
     paywallService : awilix.asClass(PaywallService).singleton(),

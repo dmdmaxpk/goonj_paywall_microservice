@@ -20,6 +20,9 @@ let checkToken = (req, res, next) => {
           message: 'Authentication Failed'
         });
       } else {
+        console.log("decoded",decoded);
+        console.log("url",req.url);
+        console.log("originalUrl",req.originalUrl);
         req.decoded = decoded;
         next();
       }
