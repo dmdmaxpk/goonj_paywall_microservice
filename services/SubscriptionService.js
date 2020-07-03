@@ -49,6 +49,7 @@ class SubscriptionService {
     }
 
     async expireByMsisdn(msisdn,paywall_slug,source,operator_response){
+        console.log("[systemUnsubscribe]expireByMsisdn");
         return new Promise(async (resolve,reject) => {
             try {
                 if (msisdn && paywall_slug){
@@ -58,6 +59,7 @@ class SubscriptionService {
                         let subscriber = await this.subscriberRepository.getSubscriberByUserId(user._id);
                         if (subscriber) {
                             let subscriptions = await this.subscriptionRepository.getAllSubscriptions(subscriber._id);
+                            console.log("[systemUnsubscribe]subscriptions",subscriptions);
                             if (subscriptions.length > 0) {
                                 let temp = 0;
                                 for (let i =0 ; i < subscriptions.length; i++) {
