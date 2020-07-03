@@ -76,8 +76,6 @@ class SubscriptionService {
                                         history.billing_status = 'expired';
                                         history.source = source;
                                         history.operator = 'telenor';
-                                        console.log("[systemUnsubscribe]this.expireSubscription",
-                                        subscription._id,paywall.paywall_name,user.msisdn,history);
                                         let response = await this.expireSubscription(subscription._id,paywall.paywall_name,
                                                         user.msisdn,history);
                                         console.log("[systemUnsubscribe]response",response);
@@ -126,7 +124,7 @@ class SubscriptionService {
         
                     // send sms to user
                     let text = `Apki Goonj TV per ${paywall_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
-                    this.messageRepository.sendSmsToUser(paywall_name,msisdn);
+                    this.messageRepository.sendSmsToUser(text,msisdn);
                     resolve("Succesfully unsubscribed");
                 } else {
                     resolve("Subscription id not found");

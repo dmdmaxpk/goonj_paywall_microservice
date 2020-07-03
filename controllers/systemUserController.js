@@ -11,7 +11,7 @@ exports.login = async (req, res) => {
 		let username = req.body.username;
 		let password = req.body.password;
 		let response = await systemUserService.login(username,password);
-		res.status(200).send({access_token:response})
+		res.status(200).send({access_token:response});
 	} catch(err){
 		console.error(err.message);
 		res.status(500).send(err.message)
