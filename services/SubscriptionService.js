@@ -70,7 +70,7 @@ class SubscriptionService {
                                         history.subscriber_id = subscription.subscriber_id;
                                         history.subscription_id = subscription._id;
                                         history.package_id = subscription.subscribed_package_id;
-                                        history.paywall_id = paywall.paywall_id;
+                                        history.paywall_id = paywall._id;
                                         history.transaction_id = transaction_id?transaction_id:"";
                                         history.operator_response = operator_response?operator_response:"";
                                         history.billing_status = 'expired';
