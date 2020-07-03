@@ -30,16 +30,11 @@ exports.getSubscriptionDetails = async (req, res) => {
 						sub.added_dtm = rawSubscriptions[i].added_dtm;
 						sub.is_allowed_to_stream = rawSubscriptions[i].is_allowed_to_stream;
 						sub.date_on_which_user_entered_grace_period = rawSubscriptions[i].date_on_which_user_entered_grace_period;
-						
-						let expiryArray = [];
-						if(rawSubscriptions[i].subscription_status === "expired"){
-							expiryArray = await getExpiry(user._id, rawSubscriptions[i].subscribed_package_id);
-						}
-						
-						sub.expiry = expiryArray;
 						subscriptions.push(sub);
 					}
 					obj.subscriptions = subscriptions;
+					let expiryArray = await getExpiry(user._id);
+					sub.expiry = expiryArray;
 					res.send({code: config.codes.code_success, data: obj,gw_transaction_id:transaction_id});
 				}else{
 					res.send({code: config.codes.code_data_not_found, message: 'No Subscription Found',gw_transaction_id:transaction_id});
@@ -56,8 +51,8 @@ exports.getSubscriptionDetails = async (req, res) => {
 	}
 }
 
-getExpiry = async(user_id, package_id) => {
-	let rawHistories = await billingHistoryRepo.getExpiryHistory(user_id, package_id);
+getExpiry = async(user_id) => {
+	let rawHistories = await billingHistoryRepo.getExpiryHistory(user_id);
 
 	if(rawHistories.length >= 2){
 		rawHistories.sort(function(a,b){
@@ -68,14 +63,15 @@ getExpiry = async(user_id, package_id) => {
 	let histories = [];
 	for(let i = 0; i < rawHistories.length; i++){
 		let history = {};
+		history.package_id = rawHistories[i].package_id;
 		history.source = rawHistories[i].source;
 		history.status = rawHistories[i].billing_status;
 		history.billing_dtm = rawHistories[i].billing_dtm;
 		histories.push(history);
 	}
 
-	if(histories.length > 3){
-		return histories.slice(0, 3);
+	if(histories.length > 5){
+		return histories.slice(0, 5);
 	}
 	return histories;
 	
