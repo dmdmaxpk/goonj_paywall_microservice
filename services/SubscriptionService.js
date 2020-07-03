@@ -122,7 +122,7 @@ class SubscriptionService {
                     });
                     // add to history
                     
-                    await this.billingHistoryRepository.create(history);
+                    await this.billingHistoryRepository.createBillingHistory(history);
         
                     // send sms to user
                     let text = `Apki Goonj TV per ${paywall_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
