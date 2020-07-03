@@ -11,6 +11,7 @@ const paywallSchema = new Schema({
     paywall_desc: {type: String},
     slug:{type: String},
     added_dtm: { type: Date, default: Date.now },
+    package_ids:{type:[]},
     last_modified: Date,
     active: { type: Boolean, default: true }
 
