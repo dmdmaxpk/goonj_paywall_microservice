@@ -79,6 +79,8 @@ class SubscriptionService {
                                         history.billing_status = 'expired';
                                         history.source = source;
                                         history.operator = 'telenor';
+                                        console.log("[systemUnsubscribe]this.expireSubscription",
+                                        subscription._id,paywall.paywall_name,user.msisdn,history);
                                         let response = await this.expireSubscription(subscription._id,paywall.paywall_name,
                                                         user.msisdn,history);
                                         console.log("[systemUnsubscribe]response",response);
@@ -111,26 +113,32 @@ class SubscriptionService {
 
     async expireSubscription(subscription_id,paywall_name,msisdn,history){
         return new Promise(async (resolve,reject) => {
-            if (subscription_id) {
-                let expire = await this.subscriptionRepository.updateSubscription(subscription_id,{
-                    subscription_status: 'expired', 
-                    is_allowed_to_stream:false, 
-                    is_billable_in_this_cycle:false, 
-                    consecutive_successive_bill_counts: 0,
-                    try_micro_charge_in_next_cycle: false,
-                    micro_price_point: 0
-                });
-                // add to history
-                
-                await this.billingHistoryRepository.create(history);
-    
-                // send sms to user
-                let text = `Apki Goonj TV per ${paywall_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
-                this.messageRepository.sendSmsToUser(paywall_name,msisdn);
-                resolve("Succesfully unsubscribed");
-            } else {
-                resolve("Subscription id not found");
+            try {
+                if (subscription_id) {
+                    let expire = await this.subscriptionRepository.updateSubscription(subscription_id,{
+                        subscription_status: 'expired', 
+                        is_allowed_to_stream:false, 
+                        is_billable_in_this_cycle:false, 
+                        consecutive_successive_bill_counts: 0,
+                        try_micro_charge_in_next_cycle: false,
+                        micro_price_point: 0
+                    });
+                    // add to history
+                    
+                    await this.billingHistoryRepository.create(history);
+        
+                    // send sms to user
+                    let text = `Apki Goonj TV per ${paywall_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
+                    this.messageRepository.sendSmsToUser(paywall_name,msisdn);
+                    resolve("Succesfully unsubscribed");
+                } else {
+                    resolve("Subscription id not found");
+                }
+            } catch (err) {
+                console.error(err);
+                reject(err);
             }
+            
         });
     }
     
