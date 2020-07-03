@@ -25,6 +25,7 @@ exports.unsubscribe = async (req, res) => {
 			console.log("[systemUnsubscribe]result",result);
 			res.status(200).send({result});
 		} catch(err) {
+			console.log("error",err);
 			res.send(err);
 		} 
 }
