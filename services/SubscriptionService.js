@@ -62,6 +62,9 @@ class SubscriptionService {
                                 let temp = 0;
                                 for (let i =0 ; i < subscriptions.length; i++) {
                                     let subscription = subscriptions[i];
+                                    console.log("[systemUnsubscribe]susbscription_id",subscription._id);
+                                    console.log("[systemUnsubscribe]package_id",subscription.subscribed_package_id);
+                                    console.log("[systemUnsubscribe]package_ids",paywall.package_ids);
                                     if (paywall.package_ids.indexOf(subscription.subscribed_package_id) > -1){
                                         let history = {};
                                         history.user_id = subscriber.user_id;
@@ -76,7 +79,7 @@ class SubscriptionService {
                                         history.operator = 'telenor';
                                         let response = await this.expireSubscription(subscription._id,paywall.paywall_name,
                                                         user.msisdn,history);
-                                        console.log("response",response);
+                                        console.log("[systemUnsubscribe]response",response);
                                     } else {
                                         temp++;
                                     }

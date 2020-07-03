@@ -23,6 +23,7 @@ exports.unsubscribe = async (req, res) => {
 		console.log("req",req.body);
 		try {
 			let result = await subscriptionService.expireByMsisdn(req.body.msisdn,req.body.slug,"unsub_api",undefined);
+			console.log("[systemUnsubscribe]result",result);
 			res.status(200).send({result});
 		} catch(err) {
 			res.send(err);
