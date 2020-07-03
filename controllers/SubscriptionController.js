@@ -34,7 +34,7 @@ exports.getSubscriptionDetails = async (req, res) => {
 					}
 					obj.subscriptions = subscriptions;
 					let expiryArray = await getExpiry(user._id);
-					sub.expiry = expiryArray;
+					obj.expiry = expiryArray;
 					res.send({code: config.codes.code_success, data: obj,gw_transaction_id:transaction_id});
 				}else{
 					res.send({code: config.codes.code_data_not_found, message: 'No Subscription Found',gw_transaction_id:transaction_id});
