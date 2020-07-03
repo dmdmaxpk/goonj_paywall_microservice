@@ -7,8 +7,8 @@ const subscriptionService = container.resolve("subscriptionService");
 
 // CREATE
 exports.login = async (req, res) => {
+	let gw_transaction_id = req.body.transaction_id;
 	try {
-		let gw_transaction_id = req.body.transaction_id;
 		let username = req.body.username;
 		let password = req.body.password;
 		let response = await systemUserService.login(username,password);
