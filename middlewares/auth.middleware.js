@@ -21,8 +21,6 @@ let checkToken = (req, res, next) => {
         });
       } else {
         console.log("decoded",decoded);
-        console.log("url",req.url);
-        console.log("originalUrl",req.path);
 
         req.decoded = decoded;
         next();
