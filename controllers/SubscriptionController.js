@@ -7,7 +7,7 @@ const subscriptionRepo = container.resolve("subscriptionRepository");
 const billingHistoryRepo = container.resolve('billingHistoryRepository');
 
 exports.getSubscriptionDetails = async (req, res) => {
-	let { msisdn } = req.query;
+	let { msisdn,transaction_id } = req.query;
 
 	let obj = {};
 	if (msisdn) {
@@ -40,19 +40,19 @@ exports.getSubscriptionDetails = async (req, res) => {
 						subscriptions.push(sub);
 					}
 					obj.subscriptions = subscriptions;
-					res.send({code: config.codes.code_success, data: obj});
+					res.send({code: config.codes.code_success, data: obj,gw_transaction_id:transaction_id});
 				}else{
-					res.send({code: config.codes.code_data_not_found, message: 'No Subscription Found'});
+					res.send({code: config.codes.code_data_not_found, message: 'No Subscription Found',gw_transaction_id:transaction_id});
 				}
 
 			}else{
-				res.send({code: config.codes.code_data_not_found, message: 'Subscriber not found'});
+				res.send({code: config.codes.code_data_not_found, message: 'Subscriber not found',gw_transaction_id:transaction_id});
 			}
 		}else{
-			res.send({code: config.codes.code_data_not_found, message: 'User not found'});
+			res.send({code: config.codes.code_data_not_found, message: 'User not found',gw_transaction_id:transaction_id});
 		}
 	} else {
-		res.send({code: config.codes.code_invalid_data_provided, message: 'No msisdn provided'});
+		res.send({code: config.codes.code_invalid_data_provided, message: 'No msisdn provided',gw_transaction_id:transaction_id});
 	}
 }
 
