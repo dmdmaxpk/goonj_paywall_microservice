@@ -55,7 +55,7 @@ class SubscriptionService {
                 if (msisdn && paywall_slug){
                    let user  = await this.userRepository.getUserByMsisdn(msisdn);
                    let paywall  = await this.paywallRepository.getPaywallsBySlug(paywall_slug);
-                   if (user && slug ) {
+                   if (user && paywall ) {
                         let subscriber = await this.subscriberRepository.getSubscriberByUserId(user._id);
                         if (subscriber) {
                             let subscriptions = await this.subscriptionRepository.getAllSubscriptions(subscriber._id);
