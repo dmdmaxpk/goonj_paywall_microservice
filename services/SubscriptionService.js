@@ -48,7 +48,7 @@ class SubscriptionService {
         }
     }
 
-    async expireByMsisdn(msisdn,paywall_slug,source,operator_response){
+    async expireByMsisdn(msisdn,paywall_slug,source,operator_response,transaction_id){
         console.log("[systemUnsubscribe]expireByMsisdn");
         return new Promise(async (resolve,reject) => {
             try {
@@ -70,9 +70,9 @@ class SubscriptionService {
                                         history.subscriber_id = subscription.subscriber_id;
                                         history.subscription_id = subscription._id;
                                         history.package_id = subscription.subscribed_package_id;
-                                        history.paywall_id = packageOfThisSubcription.paywall_id;
-                                        history.transaction_id = transaction_id;
-                                        history.operator_response = operator_response;
+                                        history.paywall_id = paywall.paywall_id;
+                                        history.transaction_id = transaction_id?transaction_id:"";
+                                        history.operator_response = operator_response?operator_response:"";
                                         history.billing_status = 'expired';
                                         history.source = source;
                                         history.operator = 'telenor';
