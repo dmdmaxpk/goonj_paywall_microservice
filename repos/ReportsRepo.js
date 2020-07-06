@@ -583,9 +583,8 @@ dailyUnsubReport = async() => {
 dailyNetAddition = async(from, to) => {
     try {
         let dailyUnSubscriptions = await billinghistoryRepo.unsubReport(from, to);
-        console.log("=> Daily Unsub 1 :", dailyUnSubscriptions);
+        dailyUnSubscriptionsCount = dailyUnSubscriptions[0].count;
 
-        dailyUnSubscriptionsCount = dailyUnSubscriptions.count;
         console.log("=> Daily Unsub:", dailyUnSubscriptionsCount);
 
         let dailySubscriptions = await subscriptionRepo.getAllSubscriptionsByDate(from, to);
@@ -594,6 +593,13 @@ dailyNetAddition = async(from, to) => {
         let netCount = dailySubscriptions - dailyUnSubscriptionsCount;
         console.log("=> Net Addition Count ",netCount);
 
+        await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            subject: 'Daily Net Additions',
+            text: `Daily net additions for the date of ${from} is below.\n\nAddition: ${dailyUnSubscriptionsCount}\nUnsubscriptions: ${dailyUnSubscriptionsCount}\nNet count: ${netCount}`
+        });
     } catch (error) {
         console.error("=> error ", error);
     }
