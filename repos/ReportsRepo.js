@@ -583,13 +583,17 @@ dailyUnsubReport = async() => {
 dailyNetAddition = async(from, to) => {
     try {
         let dailyUnSubscriptions = await billinghistoryRepo.unsubReport(from, to);
-        console.log("=> Daily Unsub:", dailyUnSubscriptions);
+        dailyUnSubscriptionsCount = dailyUnSubscriptions.count;
+        console.log("=> Daily Unsub:", dailyUnSubscriptionsCount);
 
         let dailySubscriptions = await subscriptionRepo.getAllSubscriptionsByDate(from, to);
         console.log("=> Daily Sub:", dailySubscriptions);
 
+        let netCount = dailySubscriptions - dailyUnSubscriptionsCount;
+        console.log("=> Net Addition Count ",netCount);
+
     } catch (error) {
-        console.error(error);
+        console.error("=> error ", error);
     }
 }
 
