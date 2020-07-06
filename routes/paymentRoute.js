@@ -19,7 +19,7 @@ router.route('/status')
     .post(authMiddleWare.checkToken, controller.status);
 
 router.route('/getAllSubs')
-    .post(authMiddleWare.checkToken, controller.getAllSubscriptions);
+    .get(authMiddleWare.checkToken, controller.getAllSubscriptions);
 
 router.route('/recharge')
     .post(authMiddleWare.checkToken, controller.recharge);

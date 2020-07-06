@@ -608,10 +608,12 @@ dailyNetAddition = async(from, to) => {
         for(let i = 0; i < dailySubscriptions.length; i++){
             let data = {};
             data.date = dailySubscriptions[i].date;
-            data.subs = dailySubscriptions[i].count;
-            data.unsubs = dailyUnSubscriptions[i].count;
-            data.net = data.subs - data.unsub;
-            csvData.push(data);
+            if(dailySubscriptions[i].date === dailyUnSubscriptions[i].date){
+                data.subs = dailySubscriptions[i].count;
+                data.unsubs = dailyUnSubscriptions[i].count;
+                data.net = (dailySubscriptions[i].count - dailyUnSubscriptions[i].count);
+                csvData.push(data);
+            }
         }
 
         await dailyNetAdditionWriter.writeRecords(csvData);
