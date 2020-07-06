@@ -6,7 +6,10 @@ const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
+
 const billinghistoryRepo = container.resolve('billingHistoryRepository');
+const subscriptionRepo = container.resolve('subscriptionRepository');
+
 var nodemailer = require('nodemailer');
 var usersRepo = container.resolve('userRepository');
 var viewLogsRepo = require('../repos/ViewLogRepo');
@@ -577,6 +580,19 @@ dailyUnsubReport = async() => {
     }
 }
 
+dailyNetAddition = async(from, to) => {
+    try {
+        let dailyUnSubscriptions = await billinghistoryRepo.unsubReport(from, to);
+        console.log("=> Daily Unsub:", dailyUnSubscriptions);
+
+        let dailySubscriptions = await subscriptionRepo.getAllSubscriptionsByDate(from, to);
+        console.log("=> Daily Sub:", dailySubscriptions);
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 dailyChannelWiseUnsub = async() => {
     try {
         let records = [];
@@ -1108,5 +1124,6 @@ module.exports = {
     getTotalUserBaseTillDate: getTotalUserBaseTillDate,
     getExpiredBase: getExpiredBase,
     getInactiveBase: getInactiveBase,
-    getInactiveBaseHavingViewLogsLessThan3: getInactiveBaseHavingViewLogsLessThan3
+    getInactiveBaseHavingViewLogsLessThan3: getInactiveBaseHavingViewLogsLessThan3,
+    dailyNetAddition: dailyNetAddition
 }

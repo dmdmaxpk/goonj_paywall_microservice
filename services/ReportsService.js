@@ -3,16 +3,27 @@ const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
 
 generateDailyReport = async() => {
-    console.log("=> Generating Daily Reports");
+    
+    let from = new Date();
+    from.setDate(from.getDate() - 1);
+    from.setHours(0);
+    from.setMinutes(0);
+    from.setSeconds(0);
 
-    reportsRepo.dailyReport();
-    console.log("=> Done");
+    var to = new Date();
+    to.setHours(00);
+    to.setMinutes(00);
+    to.setSeconds(05);
+    
+    console.log("=> Generating daily reports");
+
+    //reportsRepo.dailyReport();
 
     // //Unsub Zara's number daily
     // await subscriberRepo.removeNumberAndHistory('03458561755');
     
-    await sleep(120*1000);
-    reportsRepo.callBacksReport();
+    //await sleep(120*1000);
+    //reportsRepo.callBacksReport();
     
     // await sleep(120*1000);
     // reportsRepo.dailyUnsubReport();
@@ -37,6 +48,8 @@ generateDailyReport = async() => {
 
     // await sleep(120*1000);
     // affiliateReportsRepo.gdnReport(false);
+
+    reportsRepo.dailyNetAddition(from, to);
 }
 
 generateEveryThreeDaysReports =  async() => {

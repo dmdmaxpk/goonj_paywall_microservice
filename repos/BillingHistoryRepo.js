@@ -159,6 +159,20 @@ class BillingHistoryRepository {
             ]);
          return result;
     }
+
+    async unsubReport (from, to) {
+        console.log("=> Unsub from ", from, "to", to);
+        let result = await BillingHistory.countDocuments({
+            $or:[
+                {"billing_status": "expired"}, 
+                {"billing_status": "unsubscribe-request-received-and-expired"}
+            ], $and: [
+                {billing_dtm:{$gte:new Date(from)}},
+                {billing_dtm:{$lt:new Date(to)}}
+            ]
+        });
+        return result;
+    }
     
     async dailyChannelWiseUnsub ()  {
         let result = await BillingHistory.aggregate([

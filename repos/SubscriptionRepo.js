@@ -29,6 +29,15 @@ class SubscriptionRepository {
         return result;
     }
 
+    async getAllSubscriptionsByDate(from, to)  {
+        console.log("=> Subs from ", from, "to", to);
+        let result = await Subscription.countDocuments({$and: [
+            {added_dtm:{$gte:new Date(from)}},
+            {added_dtm:{$lt:new Date(to)}}
+        ]});
+        return result;
+    }
+
     async getSubscriptionByPackageId(subscriber_id, package_id)  {
         let result = await Subscription.findOne({subscriber_id: subscriber_id, subscribed_package_id: package_id});
         return result;
