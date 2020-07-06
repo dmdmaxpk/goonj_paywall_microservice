@@ -227,6 +227,36 @@ class BillingHistoryRepository {
             ]);
         return result;
     }
+
+    async dailyReturningUsers (from, to) {
+        console.log("=> dailyReturningUsers from ", from, "to", to);
+        let result = await BillingHistory.aggregate([
+            {
+                $match:{
+                    micro_charge: false,
+                    billing_status: "Success",
+                    $and: [
+                        {billing_dtm:{$gte:new Date(from)}},
+                        {billing_dtm:{$lte:new Date(to)}}
+                            ]
+                    }
+            },{
+                $group: {
+                    _id: "$user_id",
+                    count: {$sum: 1}
+                }
+            }, {
+                $match: {
+                    "count":{
+                        $gt: 1	
+                    }
+                }
+            }, {
+                $count: "totalcount"
+            }
+            ]);            
+        return result;
+    }
     
     async dailyChannelWiseUnsub ()  {
         let result = await BillingHistory.aggregate([

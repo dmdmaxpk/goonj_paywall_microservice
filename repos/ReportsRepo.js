@@ -670,6 +670,26 @@ avgTransactionPerCustomer = async(from, to) => {
     }
 }
 
+dailyReturningUsers = async(from, to) => {
+    try {
+        console.log("=> DailyReturningUsers from", from, "to", to);
+        let dailyReturningUsers = await billinghistoryRepo.dailyReturningUsers(from, to);
+        let dailyReturningUsersCount = dailyReturningUsers[0].totalcount;
+        console.log(`=> Daily Returning Users for ${to} are ${dailyReturningUsersCount}`);
+        
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            subject: `Daily Returning Users`,
+            text: `Daily returning users for the date ${to} are ${dailyReturningUsersCount}`,
+        });
+        console.log("=> [dailyReturningUsers][emailSent]",info);
+    } catch (error) {
+        console.error("=> dailyReturningUsers- error ", error);
+    }
+}
+
 dailyChannelWiseUnsub = async() => {
     try {
         let records = [];
@@ -1203,5 +1223,6 @@ module.exports = {
     getInactiveBase: getInactiveBase,
     getInactiveBaseHavingViewLogsLessThan3: getInactiveBaseHavingViewLogsLessThan3,
     dailyNetAddition: dailyNetAddition,
-    avgTransactionPerCustomer: avgTransactionPerCustomer
+    avgTransactionPerCustomer: avgTransactionPerCustomer,
+    dailyReturningUsers: dailyReturningUsers
 }
