@@ -643,7 +643,7 @@ exports.status = async (req, res) => {
 }
 
 exports.getAllSubscriptions = async (req, res) => {
-	let gw_transaction_id = req.body.transaction_id;
+	let gw_transaction_id = req.query.transaction_id;
 	let msisdn = req.query.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 	if(user){
