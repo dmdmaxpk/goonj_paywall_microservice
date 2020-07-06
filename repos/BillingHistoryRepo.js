@@ -189,6 +189,44 @@ class BillingHistoryRepository {
             ]);
         return result;
     }
+
+    async numberOfTransactions (from, to) {
+        console.log("=> numberOfTransactions from ", from, "to", to);
+        let result = await BillingHistory.aggregate([
+            {
+                $match:{
+                    "billing_status": "Success",
+                    $and: [
+                        {billing_dtm:{$gte:new Date(from)}}, 
+                        {billing_dtm:{$lte:new Date(to)}}
+                    ]
+                }
+            },{$count:"count"}
+            ]);
+        return result;
+    }
+
+    async totalUniqueTransactingUsers (from, to) {
+        console.log("=> totalUniqueTransactingUsers from ", from, "to", to);
+        let result = await BillingHistory.aggregate([
+            {
+                $match:{
+                    "billing_status": "Success",
+                    $and: [
+                        {billing_dtm:{$gte:new Date(from)}}, 
+                        {billing_dtm:{$lte:new Date(to)}}
+                    ]
+                    
+                }
+            },{
+                $group:{
+                    _id: "$user_id",
+                    count: {$sum: 1}	
+                }
+            },{$count:"count"}
+            ]);
+        return result;
+    }
     
     async dailyChannelWiseUnsub ()  {
         let result = await BillingHistory.aggregate([

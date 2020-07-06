@@ -644,6 +644,32 @@ dailyNetAddition = async(from, to) => {
     }
 }
 
+avgTransactionPerCustomer = async(from, to) => {
+    try {
+        console.log("=> AvgTransactionPerCustomer from", from, "to", to);
+        let totalTransactions = await billinghistoryRepo.numberOfTransactions(from, to);
+        totalTransactions = totalTransactions[0].count;
+
+        let totalUniqueUsers = await billinghistoryRepo.totalUniqueTransactingUsers(from, to);
+        totalUniqueUsers = totalUniqueUsers[0].count;
+
+        let avgTransactions = totalTransactions / totalUniqueUsers;
+
+        console.log("=> Avg. Transactions Per Customer Report");
+        from = new Date(from);
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            subject: `Avg Transactions/Customer - ${monthNames[from.getMonth()]}`,
+            text: `Avg Transactions/Customer for the month of ${monthNames[from.getMonth()]} are ${avgTransactions}`,
+        });
+        console.log("=> [avgTransactionPerCustomer][emailSent]",info);
+    } catch (error) {
+        console.error("=> avgTransactionPerCustomer- error ", error);
+    }
+}
+
 dailyChannelWiseUnsub = async() => {
     try {
         let records = [];
@@ -1176,5 +1202,6 @@ module.exports = {
     getExpiredBase: getExpiredBase,
     getInactiveBase: getInactiveBase,
     getInactiveBaseHavingViewLogsLessThan3: getInactiveBaseHavingViewLogsLessThan3,
-    dailyNetAddition: dailyNetAddition
+    dailyNetAddition: dailyNetAddition,
+    avgTransactionPerCustomer: avgTransactionPerCustomer
 }
