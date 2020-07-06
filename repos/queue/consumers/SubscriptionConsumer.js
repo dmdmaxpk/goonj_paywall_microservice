@@ -385,6 +385,9 @@ class SubscriptionConsumer {
             subscriptionObj.next_billing_timestamp = nextBillingDate;
             subscriptionObj.date_on_which_user_entered_grace_period = new Date();
             subscriptionObj.is_billable_in_this_cycle = false;
+            subscriptionObj.try_micro_charge_in_next_cycle = false;
+            subscriptionObj.micro_price_point = 0;
+            subscriptionObj.priority = 0;
             
             historyStatus="graced";
             //Send acknowldement to user
