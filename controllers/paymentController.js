@@ -650,7 +650,7 @@ exports.getAllSubscriptions = async (req, res) => {
 		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 		if(subscriber){
 			let result = await subscriptionRepo.getAllActiveSubscriptions(subscriber._id);
-			if(result){
+			if(result && result.length > 0){
 				let subscriptions = [];
 				for(let i = 0; i < result.length; i++){
 					let sub = {};
@@ -671,7 +671,7 @@ exports.getAllSubscriptions = async (req, res) => {
 					data: subscriptions,
 					gw_transaction_id: gw_transaction_id});	
 			}else{
-				res.send({code: config.codes.code_error, data: 'No subscriptions was found', gw_transaction_id: gw_transaction_id});	
+				res.send({code: config.codes.code_error, data: 'No active subscription found', gw_transaction_id: gw_transaction_id});	
 			}
 		}else{
 			res.send({code: config.codes.code_error, data: 'No subscriber was found', gw_transaction_id: gw_transaction_id});	
