@@ -31,10 +31,28 @@ class SubscriptionRepository {
 
     async getAllSubscriptionsByDate(from, to)  {
         console.log("=> Subs from ", from, "to", to);
-        let result = await Subscription.countDocuments({$and: [
-            {added_dtm:{$gte:new Date(from)}},
-            {added_dtm:{$lt:new Date(to)}}
-        ]});
+        let result = await Subscription.aggregate([
+            {
+                $match:{
+                    $and: [
+                                    {added_dtm:{$gte:new Date(from)}},
+                                    {added_dtm:{$lte:new Date(to)}}
+                           ]
+                    }
+            },{
+                    $group: {
+                                _id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" }, "year":{ $year: "$added_dtm" }},
+                        count: {$sum: 1}
+                            }
+            },{ 
+                                 $project: { 
+                                _id: 0,
+                                date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                        count: "$count"
+                                 } 
+                        },
+                        { $sort: { date: 1} }
+            ]);
         return result;
     }
 

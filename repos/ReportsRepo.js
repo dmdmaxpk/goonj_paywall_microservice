@@ -59,6 +59,9 @@ let paywallTrialToBilledUsersFilePath = `./${paywallTrialToBilledUsers}`;
 let affiliatePvs = currentDate+"_AffiliatePageViews.csv";
 let affiliatePvsFilePath = `./${affiliatePvs}`;
 
+let dailyNetAddition = currentDate+"_DailyNetAdditions.csv";
+let dailyNetAdditionFilePath = `./${dailyNetAddition}`;
+
 const csvWriter = createCsvWriter({
     path: paywallRevFilePath,
     header: [
@@ -80,6 +83,20 @@ const csvWriter = createCsvWriter({
         {id: 'comedyWeeklyRevenue', title: 'Comedy Weekly Revenue'},
         {id: 'totalRevenue',title: 'Total Revenue'}
 
+    ]
+});
+
+const monthNames = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const dailyNetAdditionWriter = createCsvWriter({
+    path: dailyNetAdditionFilePath,
+    header: [
+        {id: 'date', title: 'Date'},
+        {id: 'subs', title: 'Subscriptions'},
+        {id: "unsubs",title: "Un-Subscriptions" },
+        {id: "net",title: "Net Subscriptions" },
     ]
 });
 
@@ -582,23 +599,43 @@ dailyUnsubReport = async() => {
 
 dailyNetAddition = async(from, to) => {
     try {
-        let dailyUnSubscriptions = await billinghistoryRepo.unsubReport(from, to);
-        dailyUnSubscriptionsCount = dailyUnSubscriptions[0].count;
+        let csvData = [];
 
-        console.log("=> Daily Unsub:", dailyUnSubscriptionsCount);
-
+        console.log("=> from", from, "to", to);
         let dailySubscriptions = await subscriptionRepo.getAllSubscriptionsByDate(from, to);
-        console.log("=> Daily Sub:", dailySubscriptions);
+        let dailyUnSubscriptions = await billinghistoryRepo.unsubReport(from, to);
 
-        let netCount = dailySubscriptions - dailyUnSubscriptionsCount;
-        console.log("=> Net Addition Count ",netCount);
+        for(let i = 0; i < dailySubscriptions.length; i++){
+            let data = {};
+            data.date = dailySubscriptions[i].date;
+            data.subs = dailySubscriptions[i].count;
+            data.unsubs = dailyUnSubscriptions[i].count;
+            data.net = data.subs - data.unsub;
+            csvData.push(data);
+        }
 
-        await transporter.sendMail({
+        await dailyNetAdditionWriter.writeRecords(csvData);
+        console.log("=> Daily Addition Report");
+        from = new Date(from);
+        let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
             to:  ["farhan.ali@dmdmax.com"],
             // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
-            subject: 'Daily Net Additions',
-            text: `Daily net additions for the date of ${from} is below.\n\nAddition: ${dailyUnSubscriptionsCount}\nUnsubscriptions: ${dailyUnSubscriptionsCount}\nNet count: ${netCount}`
+            subject: `Daily Net Additions - ${monthNames[from.getMonth()]}`,
+            text: `This report contains daily net additions for the month of ${monthNames[from.getMonth()]}.`,
+            attachments:[
+                {
+                    filename: dailyNetAddition,
+                    path: dailyNetAdditionFilePath
+                }
+            ]
+        });
+        console.log("=> [dailyNetAdditionReport][emailSent]",info);
+        fs.unlink(dailyNetAdditionFilePath,function(err,data) {
+            if (err) {
+                console.log("=> File not deleted[dailyNetAdditionReport]");
+            }
+            console.log("=> File deleted [dailyNetAdditionReport]");
         });
     } catch (error) {
         console.error("=> error ", error);

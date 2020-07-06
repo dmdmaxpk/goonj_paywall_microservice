@@ -170,16 +170,22 @@ class BillingHistoryRepository {
                                     {"billing_status": "unsubscribe-request-received-and-expired"}
                            ], $and: [
                                     {billing_dtm:{$gte:new Date(from)}},
-                                    {billing_dtm:{$lt:new Date(to)}}
+                                    {billing_dtm:{$lte:new Date(to)}}
                            ]
                     }
             },{
-                    $group:{
-                        _id: "$subscription_id"
-                    }
-            },{
-                $count : "count"
-            }
+                    $group: {
+                                _id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" }, "year":{ $year: "$billing_dtm" }},
+                        count: {$sum: 1}
+                            }
+            },{ 
+                                 $project: { 
+                                _id: 0,
+                                date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                        count: "$count"
+                                 } 
+                        },
+                        { $sort: { date: 1} }
             ]);
         return result;
     }

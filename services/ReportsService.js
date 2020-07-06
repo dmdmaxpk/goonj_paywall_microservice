@@ -92,9 +92,7 @@ generateMonthlyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
-    reportsRepo.getTotalUserBaseTillDate(from, to);
-    await sleep(300 * 1000); // 5 minutes
-    reportsRepo.getInactiveBaseHavingViewLogsLessThan3(from, to);
+    reportsRepo.dailyNetAddition(from, to);
 }
 
 

@@ -35,6 +35,9 @@ router.route('/grayListService')
 router.route('/generateDailyReport')
     .get(controller.generateDailyReport);
 
+router.route('/generateMonthlyReport')
+    .get(controller.generateMonthlyReports);
+
 router.route('/hourlyBillingReport')
     .get(controller.hourlyBillingReport);
 
