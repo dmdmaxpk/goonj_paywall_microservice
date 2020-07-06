@@ -642,6 +642,45 @@ exports.status = async (req, res) => {
 	}
 }
 
+exports.getAllSubscriptions = async (req, res) => {
+	let gw_transaction_id = req.body.transaction_id;
+	let msisdn = req.query.msisdn;
+	let user = await userRepo.getUserByMsisdn(msisdn);
+	if(user){
+		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+		if(subscriber){
+			let result = await subscriptionRepo.getAllActiveSubscriptions(subscriber._id);
+			if(result){
+				let subscriptions = [];
+				for(let i = 0; i < result.length; i++){
+					let sub = {};
+					sub.subscription_status = result[i].subscription_status,
+					sub.subscribed_package_id = result[i].subscribed_package_id,
+					sub.user_id = user._id,
+					sub.auto_renewal = result[i].auto_renewal,
+					sub.is_gray_listed = result[i].is_gray_listed,
+					sub.is_black_listed = result[i].is_black_listed,
+					sub.queued = result[i].queued,
+					sub.is_allowed_to_stream = result[i].is_allowed_to_stream,
+					sub.active = result[i].active,
+					sub.next_billing_timestamp = result[i].next_billing_timestamp
+					subscriptions.push(sub);
+				}
+
+				res.send({code: config.codes.code_success, 
+					data: subscriptions,
+					gw_transaction_id: gw_transaction_id});	
+			}else{
+				res.send({code: config.codes.code_error, data: 'No subscriptions was found', gw_transaction_id: gw_transaction_id});	
+			}
+		}else{
+			res.send({code: config.codes.code_error, data: 'No subscriber was found', gw_transaction_id: gw_transaction_id});	
+		}
+	}else{
+		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.', gw_transaction_id: gw_transaction_id});
+	}
+}
+
 exports.delete = async (req, res) => {
 	let msisdn = req.query.msisdn;
 	await subscriberRepo.removeNumberAndHistory(msisdn);

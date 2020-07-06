@@ -29,6 +29,11 @@ class SubscriptionRepository {
         return result;
     }
 
+    async getAllActiveSubscriptions(subscriber_id)  {
+        let result = await Subscription.find({subscriber_id: subscriber_id, $or: [{subscription_status: "trial"}, {subscription_status: "billed"}, {subscription_status: "graced"}]});
+        return result;
+    }
+
     async getAllSubscriptionsByDate(from, to)  {
         console.log("=> Subs from ", from, "to", to);
         let result = await Subscription.aggregate([

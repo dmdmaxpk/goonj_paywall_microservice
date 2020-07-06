@@ -59,8 +59,8 @@ let paywallTrialToBilledUsersFilePath = `./${paywallTrialToBilledUsers}`;
 let affiliatePvs = currentDate+"_AffiliatePageViews.csv";
 let affiliatePvsFilePath = `./${affiliatePvs}`;
 
-let dailyNetAddition = currentDate+"_DailyNetAdditions.csv";
-let dailyNetAdditionFilePath = `./${dailyNetAddition}`;
+let dailyNetAdditionCsv = currentDate+"_DailyNetAdditions.csv";
+let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
 
 const csvWriter = createCsvWriter({
     path: paywallRevFilePath,
@@ -625,17 +625,17 @@ dailyNetAddition = async(from, to) => {
             text: `This report contains daily net additions for the month of ${monthNames[from.getMonth()]}.`,
             attachments:[
                 {
-                    filename: dailyNetAddition,
+                    filename: dailyNetAdditionCsv,
                     path: dailyNetAdditionFilePath
                 }
             ]
         });
-        console.log("=> [dailyNetAdditionReport][emailSent]",info);
+        console.log("=> [dailyNetAdditionCsv][emailSent]",info);
         fs.unlink(dailyNetAdditionFilePath,function(err,data) {
             if (err) {
-                console.log("=> File not deleted[dailyNetAdditionReport]");
+                console.log("=> File not deleted[dailyNetAdditionCsv]");
             }
-            console.log("=> File deleted [dailyNetAdditionReport]");
+            console.log("=> File deleted [dailyNetAdditionCsv]");
         });
     } catch (error) {
         console.error("=> error ", error);

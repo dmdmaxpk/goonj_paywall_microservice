@@ -4,20 +4,9 @@ const subscriberRepo = require('../repos/SubscriberRepo');
 
 generateDailyReport = async() => {
     
-    let from = new Date();
-    from.setDate(from.getDate() - 1);
-    from.setHours(0);
-    from.setMinutes(0);
-    from.setSeconds(0);
-
-    var to = new Date();
-    to.setHours(00);
-    to.setMinutes(00);
-    to.setSeconds(05);
-    
     console.log("=> Generating daily reports");
 
-    //reportsRepo.dailyReport();
+    reportsRepo.dailyReport();
 
     // //Unsub Zara's number daily
     // await subscriberRepo.removeNumberAndHistory('03458561755');
