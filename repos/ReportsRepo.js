@@ -608,7 +608,7 @@ dailyNetAddition = async(from, to) => {
         for(let i = 0; i < dailySubscriptions.length; i++){
             let data = {};
             data.date = dailySubscriptions[i].date;
-            if(dailySubscriptions[i].date === dailyUnSubscriptions[i].date){
+            if(new Date(dailySubscriptions[i].date).getTime() === new Date(dailyUnSubscriptions[i].date).getTime()){
                 data.subs = dailySubscriptions[i].count;
                 data.unsubs = dailyUnSubscriptions[i].count;
                 data.net = (dailySubscriptions[i].count - dailyUnSubscriptions[i].count);
