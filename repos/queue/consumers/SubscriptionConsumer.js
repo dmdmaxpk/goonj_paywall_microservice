@@ -411,16 +411,15 @@ class SubscriptionConsumer {
                 subscriptionObj.auto_renewal = false;
                 subscriptionObj.is_allowed_to_stream = false;
                 subscriptionObj.is_billable_in_this_cycle = false;
-                historyStatus = "expired";
-                    
+                subscriptionObj.try_micro_charge_in_next_cycle = false;
+                subscriptionObj.micro_price_point = 0;
+                subscriptionObj.priority = 0;
+
                 //Send acknowledgement to user
                 let link = 'https://www.goonj.pk/goonjplus/subscribe';
                 let message = 'You package to Goonj TV has expired, click below link to subscribe again.\n'+link;
                 this.messageRepo.sendSmsToUser(message, user.msisdn);
-                
-                subscriptionObj.try_micro_charge_in_next_cycle = false;
-                subscriptionObj.micro_price_point = 0;
-                subscriptionObj.priority = 0;
+                historyStatus = "expired";
 
             }else if(packageObj.is_micro_charge_allowed === true && hoursSpentInGracePeriod > 8 && hoursSpentInGracePeriod <= 24){
                 console.log("Micro Charging Activated for: ",subscription._id);
@@ -453,24 +452,27 @@ class SubscriptionConsumer {
                     // Stop the stream
                     subscriptionObj.is_allowed_to_stream = false;
                     historyStatus = "graced_and_stream_stopped";
-
-                    subscriptionObj.try_micro_charge_in_next_cycle = false;
-                    subscriptionObj.micro_price_point = 0;
-                    subscriptionObj.priority = 0;
                 }
+
+                subscriptionObj.try_micro_charge_in_next_cycle = false;
+                subscriptionObj.micro_price_point = 0;
+                subscriptionObj.priority = 0;
             }
         }else{
             historyStatus = "payment request tried, failed due to insufficient balance.";
             subscriptionObj.auto_renewal = false;
             subscriptionObj.is_allowed_to_stream = false;
             subscriptionObj.consecutive_successive_bill_counts = 0;
+            subscriptionObj.try_micro_charge_in_next_cycle = false;
+            subscriptionObj.micro_price_point = 0;
+            subscriptionObj.priority = 0;
             
             //Send acknowledgement to user
             let message = 'You have insufficient balance for Goonj TV, please try again after recharge. Thanks';
             this.messageRepo.sendSmsToUser(message, user.msisdn);
         }
 
-        if(!subscription.try_micro_charge_in_next_cycle) {
+        if(subscriptionObj.try_micro_charge_in_next_cycle === false) {
             subscriptionObj.is_billable_in_this_cycle = false;
         }
 
