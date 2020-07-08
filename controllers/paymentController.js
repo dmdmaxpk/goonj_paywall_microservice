@@ -567,11 +567,11 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 	let dataToReturn = {};
 
 	try {
-		console.log("Trying billing for", packageObj._id);
+		console.log("Trying direct billing for", packageObj._id);
 		subscriptionObj.subscribed_package_id = packageObj._id;
 
 		let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj, true);
-		console.log("Direct Billing processed", result,user.msisdn);
+		console.log("Direct Billing processed with status ", result);
 		if(result.message === "success"){
 			dataToReturn.status = "charged";
 			dataToReturn.subscriptionObj = subscriptionObj;
@@ -586,14 +586,11 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 					return -1;
 				}
 			});
-			console.log("Sorted packages", packages);
 			let currentIndex = packages.findIndex(x => x._id === packageObj._id);
-
 			if(currentIndex > 0){
 				// try on lower package
 				packageObj = packages[--currentIndex];
 				doSubscribeUsingSubscribingRule(source, user, subscriber, packageObj, subscriptionObj);
-				return;
 			}else{
 				// activate trial
 				console.log("activating trial");
