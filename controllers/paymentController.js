@@ -403,6 +403,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					console.log("Subscription Message Text",text,user.msisdn);
 					sendTextMessage(text, user.msisdn);
 				} else if(sendChargingMessage === true) {
+					let trial_hours = packageObj.trial_hours;
 					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${subscriptionObj.subscribed_package_id}`;
 					let message = `Apka ${packageObj.package_name} activate kr dia gya ha. Service khatm krna k liye ${unsubLink}`;
 					if(subscriptionObj.affiliate_mid === 'gdn'){
