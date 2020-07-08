@@ -3,7 +3,10 @@ const container = require("../configurations/container")
 const otpRepo = require('../repos/OTPRepo');
 const userRepo = container.resolve("userRepository");
 const subscriberRepo = container.resolve("subscriberRepository");
+
 const packageRepo = container.resolve("packageRepository");
+const paywallRepo = container.resolve("paywallRepository");
+
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const viewLogRepo = require('../repos/ViewLogRepo');
 
@@ -324,65 +327,65 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 					subscriptionObj.affiliate_mid = req.body.affiliate_mid;
 				}
-				let sendMessage = false;
+
 				// Check if trial is allowed by the system
+				let sendMessage = false;
 				if (packageObj.is_trial_allowed && !( subscriptionObj.source === 'HE' && subscriptionObj.affiliate_mid ===  "gdn")) {
-						
-						let nexBilling = new Date();
-						let trial_hours = packageObj.trial_hours;
-						if (subscriptionObj.source === 'daraz'){
-							trial_hours = 30;
+						let trial = activateTrial(req.body.source, user, subscriber, packageObj, subscriptionObj);
+						if(trial === "done"){
+							res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+							sendMessage= true;
 						}
-						subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
-						subscriptionObj.subscription_status = 'trial';
-						subscriptionObj.is_allowed_to_stream = true;
-						subscription = await subscriptionRepo.createSubscription(subscriptionObj);
-		
-						let billingHistory = {};
-						billingHistory.user_id = user._id;
-						billingHistory.subscriber_id = subscriber._id;
-						billingHistory.subscription_id = subscription._id;
-						billingHistory.paywall_id = packageObj.paywall_id;
-						billingHistory.package_id = newPackageId;
-						billingHistory.transaction_id = undefined;
-						billingHistory.operator_response = undefined;
-						billingHistory.billing_status = 'trial';
-						billingHistory.source = req.body.source;
-						billingHistory.operator = "telenor";
-						await billingHistoryRepo.createBillingHistory(billingHistory);
-						await viewLogRepo.createViewLog(user._id, subscription._id);
-						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
-						sendMessage= true;
-					
 				}else{
 					// TODO process billing directly and create subscription
 					subscriptionObj.active = true;
 					subscriptionObj.amount_billed_today = 0;
-					try {
-						let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,true);
-						console.log("Direct Billing processed",result,user.msisdn);
-						if(result.message === "success"){
-							// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
-							// subscribePackage(subscription, packageObj);
-							res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
-										gw_transaction_id: gw_transaction_id});
-							sendMessage = true;
-						}else{
-							res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
-									gw_transaction_id: gw_transaction_id});
-							sendMessage= false;
-						}
-					} catch(err){
-						console.log("Error while direct billing first time",err.message,user.msisdn);
-						sendMessage= false;
+
+					// Subscription rules started
+					let subsResponse = await doSubscribeUsingSubscribingRule(req.body.source, user, subscriber, packageObj, subscriptionObj);
+					if(subsResponse.status === "charged"){
+						res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', gw_transaction_id: gw_transaction_id});
+						sendMessage = true;
+					}else if(subsResponse.status === "trial"){
+						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+						sendMessage = true;
+					}else{
+						res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', gw_transaction_id: gw_transaction_id});
+						sendMessage = false;
 					}
+					subscriptionObj = subsResponse.subscriptionObj;
+					// Subscription rules ended
+
+
+
+					// Below code is commented for the development of subscription rules
+					// try {
+					// 	let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,true);
+					// 	console.log("Direct Billing processed",result,user.msisdn);
+					// 	if(result.message === "success"){
+					// 		// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+					// 		// subscribePackage(subscription, packageObj);
+					// 		res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
+					// 					gw_transaction_id: gw_transaction_id});
+					// 		sendMessage = true;
+					// 	}else{
+					// 		res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
+					// 				gw_transaction_id: gw_transaction_id});
+					// 		sendMessage= false;
+					// 	}
+					// } catch(err){
+					// 	console.log("Error while direct billing first time",err.message,user.msisdn);
+					// 	sendMessage= false;
+					// }
 					
 				}
+
 				if (sendMessage === true) {
 					let trial_hours = packageObj.trial_hours;
-					console.log("subscribed_package_id",subscriptionObj.subscribed_package_id,user.msisdn);
+					console.log("subscribed_package_id",subscriptionObj.subscribed_package_id, user.msisdn);
 					console.log("source",subscriptionObj.affiliate_mid,user.msisdn);
 					console.log("subscribed_package_id",constants.subscription_messages,user.msisdn);
+					
 					let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
 					if (subscriptionObj.affiliate_mid === 'gdn'){
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
@@ -527,6 +530,86 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 	}
 	else {
 		res.send({code: config.codes.code_error, message: 'Blocked user', gw_transaction_id: gw_transaction_id});
+	}
+}
+
+activateTrial = async(source, user, subscriber, packageObj, subscriptionObj) => {
+
+	let nexBilling = new Date();
+	let trial_hours = packageObj.trial_hours;
+	if (subscriptionObj.source === 'daraz'){
+		trial_hours = 30;
+	}
+	subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
+	subscriptionObj.subscription_status = 'trial';
+	subscriptionObj.is_allowed_to_stream = true;
+	let subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+
+	let billingHistory = {};
+	billingHistory.user_id = user._id;
+	billingHistory.subscriber_id = subscriber._id;
+	billingHistory.subscription_id = subscription._id;
+	billingHistory.paywall_id = packageObj.paywall_id;
+	billingHistory.package_id = packageObj._id;
+	billingHistory.transaction_id = undefined;
+	billingHistory.operator_response = undefined;
+	billingHistory.billing_status = 'trial';
+	billingHistory.source = source;
+	billingHistory.operator = "telenor";
+	await billingHistoryRepo.createBillingHistory(billingHistory);
+	await viewLogRepo.createViewLog(user._id, subscription._id);
+
+	return "done";
+}
+
+doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, subscriptionObj) => {
+	let dataToReturn = {};
+
+	try {
+		console.log("Trying billing for ", packageObj._id);
+		subscriptionObj.subscribed_package_id = packageObj._id;
+
+		let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj, true);
+		console.log("Direct Billing processed", result,user.msisdn);
+		if(result.message === "success"){
+			dataToReturn.status = "charged";
+			dataToReturn.subscriptionObj = subscriptionObj;
+		}else{
+			let packages = await packageRepo.getAllPackages({paywall_id:packageObj.paywall_id});
+			
+			// sort packages basis of their package duration
+			packages.sort((a, b) => {
+				if(a.package_duration > b.package_duration){
+					return 1;
+				}else{
+					return -1;
+				}
+			});
+			console.log("Sorted packages", packages);
+			let currentIndex = packages.findIndex(x => x._id === packageObj._id);
+
+			if(currentIndex > 0){
+				// try on lower package
+				packageObj = packages[--currentIndex];
+				doSubscribeUsingSubscribingRule(source, user, subscriber, packageObj, subscriptionObj);
+				return;
+			}else{
+				// activate trial
+				console.log("activating trial");
+				let trial = activateTrial(source, user, subscriber, packageObj, subscriptionObj);
+				if(trial === "done"){
+					dataToReturn.status = "trial";
+					dataToReturn.subscriptionObj = subscriptionObj;
+				}
+
+			}
+		}
+		return dataToReturn;
+	} catch(err){
+		console.log("Error while direct billing",err.message,user.msisdn);
+		dataToReturn.status = "error";
+		dataToReturn.subscriptionObj = subscriptionObj;
+		return dataToReturn;
 	}
 }
 
