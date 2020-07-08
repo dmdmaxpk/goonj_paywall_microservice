@@ -124,7 +124,7 @@ class TelenorBillingService {
             subscription.subscribed_package_id = packageObj._id;
             subscription.queued = false;
 
-            if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid){
+            if(subscription.affiliate_unique_transaction_id && subscription.affiliate_mid){
                 subscription.should_affiliation_callback_sent = true;
             }else{
                 subscription.should_affiliation_callback_sent = false;
