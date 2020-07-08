@@ -310,7 +310,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 		let packageObj = await packageRepo.getPackage({_id: newPackageId});
 		if (packageObj) {
 			let subscription = await subscriptionRepo.getSubscriptionByPaywallId(subscriber._id, packageObj.paywall_id);
-		
+			console.log("subscription ", subscription);
 			if(!subscription){
 				// No subscription available, let's create one
 				let subscriptionObj = {};
