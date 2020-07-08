@@ -46,7 +46,7 @@ class TelenorBillingService {
                                     returnObj.message = "success";
                                     returnObj.response = response.data;
                                 }else{
-                                    await this.billingFailed(user, subscription, response.data, packageObj, transaction_id);
+                                    await this.billingFailed(user, subscription, response.data, packageObj, transaction_id, first_time_billing);
                                     returnObj.message = "failed";
                                     returnObj.response = response.data;
                                 }
@@ -63,7 +63,7 @@ class TelenorBillingService {
                                     returnObj.noAck = true;
                                 }else{
                                     //consider payment failed
-                                    await this.billingFailed(user, subscription, error.response.data, packageObj, transaction_id);
+                                    await this.billingFailed(user, subscription, error.response.data, packageObj, transaction_id, first_time_billing);
                                 }
                                 resolve(returnObj);
                             }       
@@ -142,7 +142,7 @@ class TelenorBillingService {
         console.log("Added history record",user.msisdn);
     }
     
-    async billingFailed   (user, subscription, response, packageObj, transaction_id)  {
+    async billingFailed (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
         // Add history record
         let history = {};
         history.user_id = user._id;
@@ -152,7 +152,7 @@ class TelenorBillingService {
         history.package_id = packageObj._id;
         history.transaction_id = transaction_id;
         history.operator_response = response;
-        history.billing_status = "switch-package-request-tried-but-failed";
+        history.billing_status = first_time_billing ? "direct-billing-tried-but-failed" : "switch-package-request-tried-but-failed";
         history.operator = 'telenor';
         await this.billingHistoryRepo.createBillingHistory(history);
     }

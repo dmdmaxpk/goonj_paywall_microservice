@@ -594,7 +594,7 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 			}else{
 				// activate trial
 				console.log("activating trial");
-				let trial = activateTrial(source, user, subscriber, packageObj, subscriptionObj);
+				let trial = await activateTrial(source, user, subscriber, packageObj, subscriptionObj);
 				if(trial === "done"){
 					dataToReturn.status = "trial";
 					dataToReturn.subscriptionObj = subscriptionObj;
