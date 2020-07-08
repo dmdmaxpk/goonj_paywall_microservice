@@ -576,6 +576,7 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 		if(result.message === "success"){
 			dataToReturn.status = "charged";
 			dataToReturn.subscriptionObj = subscriptionObj;
+			return dataToReturn;
 		}else{
 			let packages = await packageRepo.getAllPackages({paywall_id:packageObj.paywall_id});
 			
@@ -591,7 +592,7 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 			if(currentIndex > 0){
 				// try on lower package
 				packageObj = packages[--currentIndex];
-				doSubscribeUsingSubscribingRule(source, user, subscriber, packageObj, subscriptionObj);
+				return await doSubscribeUsingSubscribingRule(source, user, subscriber, packageObj, subscriptionObj);
 			}else{
 				// activate trial
 				console.log("activating trial");
@@ -600,11 +601,11 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 					console.log("trial activated successfully");
 					dataToReturn.status = "trial";
 					dataToReturn.subscriptionObj = subscriptionObj;
+					return dataToReturn;
 				}
 
 			}
 		}
-		return dataToReturn;
 	} catch(err){
 		console.log("Error while direct billing",err.message,user.msisdn);
 		dataToReturn.status = "error";
