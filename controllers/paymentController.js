@@ -344,6 +344,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 
 					// Subscription rules started
 					let subsResponse = await doSubscribeUsingSubscribingRule(req.body.source, user, subscriber, packageObj, subscriptionObj);
+					console.log("subsResponse", subsResponse);
 					if(subsResponse.status === "charged"){
 						res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', gw_transaction_id: gw_transaction_id});
 						sendMessage = true;
@@ -596,6 +597,7 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 				console.log("activating trial");
 				let trial = await activateTrial(source, user, subscriber, packageObj, subscriptionObj);
 				if(trial === "done"){
+					console.log("trial activated successfully");
 					dataToReturn.status = "trial";
 					dataToReturn.subscriptionObj = subscriptionObj;
 				}
