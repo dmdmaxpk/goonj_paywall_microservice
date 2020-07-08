@@ -200,6 +200,10 @@ class TelenorBillingService {
             await this.addHistory(history);
         });
     }
+
+    async addHistory(history) {
+        await this.billingHistoryRepo.createBillingHistory(history);
+    }
     
     async sendCallBackToIdeation(mid, tid)  {
         var url; 
