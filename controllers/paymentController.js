@@ -413,7 +413,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					
 				
 					console.log("Subscription Message Text", message, user.msisdn);
-					sendTextMessage(text, user.msisdn);
+					sendTextMessage(message, user.msisdn);
 				}else {
 					console.log("Not sending message",user.msisdn);
 				}
