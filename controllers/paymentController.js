@@ -310,7 +310,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 		let packageObj = await packageRepo.getPackage({_id: newPackageId});
 		if (packageObj) {
 			let subscription = await subscriptionRepo.getSubscriptionByPaywallId(subscriber._id, packageObj.paywall_id);
-			console.log("subscription", subscription);
 			if(!subscription){
 				// No subscription available, let's create one
 				let subscriptionObj = {};
@@ -568,7 +567,7 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 	let dataToReturn = {};
 
 	try {
-		console.log("Trying billing for ", packageObj._id);
+		console.log("Trying billing for", packageObj._id);
 		subscriptionObj.subscribed_package_id = packageObj._id;
 
 		let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj, true);

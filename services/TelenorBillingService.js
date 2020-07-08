@@ -15,7 +15,7 @@ class TelenorBillingService {
             this.userRepo = userRepository;
     }
 
-    async processDirectBilling(user, subscription, packageObj,first_time_billing) {
+    async processDirectBilling(user, subscription, packageObj, first_time_billing) {
         return new Promise( async (resolve,reject) => {
             let subscription_id = "";
             if (subscription._id) {
@@ -24,19 +24,15 @@ class TelenorBillingService {
                 subscription_id = user._id;
             }
             let transaction_id = "GoonjDirectCharge_"+subscription_id+"_"+packageObj.price_point_pkr+"_"+this.getCurrentDate();
-
             let returnObj = {};
 
             try{
                 // Check if the subscription is active or blocked for some reason.
-                console.log("subscription-processDirectBilling[firstTimeBillin]",first_time_billing,user.msisdn)
+                console.log("processing direct billing - first time billing",first_time_billing,user.msisdn)
                 if (subscription.active === true) {
-
                     if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
-                        
                         let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
                         if (countThisSec < config.telenor_subscription_api_tps) {
-                            
                             await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                             
                             try{
@@ -54,11 +50,9 @@ class TelenorBillingService {
                                     returnObj.message = "failed";
                                     returnObj.response = response.data;
                                 }
-                                console.log("return value",returnObj,user.msisdn);
                                 resolve(returnObj);
                             }catch(error){
-                                console.log("Error",error,user.msisdn);
-                                console.log("Error message",error.message,user.msisdn);
+                                console.log("Error message", error.message, user.msisdn);
                                 returnObj.message = "failed";
                                 if(error && error.response && error.response.data){
                                     returnObj.response = error.response.data
@@ -71,15 +65,13 @@ class TelenorBillingService {
                                     //consider payment failed
                                     await this.billingFailed(user, subscription, error.response.data, packageObj, transaction_id);
                                 }
-                                console.log("return value",returnObj,user.msisdn);
                                 resolve(returnObj);
                             }       
                         } else{
                             console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                             setTimeout(async () => {
                                 console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
-                                let response = await this.processDirectBilling(user, subscription, packageObj,first_time_billing);
-                                resolve(response);
+                                this.processDirectBilling(user, subscription, packageObj,first_time_billing);
                             }, 300);
                         }  
                     }else{
