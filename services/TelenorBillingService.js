@@ -72,7 +72,8 @@ class TelenorBillingService {
                             console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                             setTimeout(async () => {
                                 console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
-                                return this.processDirectBilling(user, subscription, packageObj,first_time_billing);
+                                let response = await this.processDirectBilling(user, subscription, packageObj,first_time_billing);
+                                resolve(response);
                             }, 300);
                         }  
                     }else{
