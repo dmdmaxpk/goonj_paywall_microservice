@@ -409,12 +409,10 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					if(subscriptionObj.affiliate_mid === 'gdn'){
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
-					console.log("Messages",message,user.msisdn);
+					console.log("Messages",message, user.msisdn);
 					
-					text = message;
-					text = text.replace("%unsub_link%",unsubLink);
-					text = text.replace("%trial_hours%",trial_hours);
-					console.log("Subscription Message Text",text,user.msisdn);
+				
+					console.log("Subscription Message Text", message, user.msisdn);
 					sendTextMessage(text, user.msisdn);
 				}else {
 					console.log("Not sending message",user.msisdn);
