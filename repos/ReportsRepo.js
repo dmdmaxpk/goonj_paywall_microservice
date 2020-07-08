@@ -6,7 +6,10 @@ const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
+
 const billinghistoryRepo = container.resolve('billingHistoryRepository');
+const subscriptionRepo = container.resolve('subscriptionRepository');
+
 var nodemailer = require('nodemailer');
 var usersRepo = container.resolve('userRepository');
 var viewLogsRepo = require('../repos/ViewLogRepo');
@@ -56,6 +59,9 @@ let paywallTrialToBilledUsersFilePath = `./${paywallTrialToBilledUsers}`;
 let affiliatePvs = currentDate+"_AffiliatePageViews.csv";
 let affiliatePvsFilePath = `./${affiliatePvs}`;
 
+let dailyNetAdditionCsv = currentDate+"_DailyNetAdditions.csv";
+let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
+
 const csvWriter = createCsvWriter({
     path: paywallRevFilePath,
     header: [
@@ -77,6 +83,20 @@ const csvWriter = createCsvWriter({
         {id: 'comedyWeeklyRevenue', title: 'Comedy Weekly Revenue'},
         {id: 'totalRevenue',title: 'Total Revenue'}
 
+    ]
+});
+
+const monthNames = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const dailyNetAdditionWriter = createCsvWriter({
+    path: dailyNetAdditionFilePath,
+    header: [
+        {id: 'date', title: 'Date'},
+        {id: 'subs', title: 'Subscriptions'},
+        {id: "unsubs",title: "Un-Subscriptions" },
+        {id: "net",title: "Net Subscriptions" },
     ]
 });
 
@@ -333,8 +353,8 @@ dailyReport = async(mode = 'prod') => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to:  ['paywall@dmdmax.com.pk'],
-                // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com","junaid.basir@telenor.com.pk" ], // list of receivers
+                //to:  ['paywall@dmdmax.com.pk'],
+                to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
                 subject: `Paywall Report`, // Subject line
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
                 attachments:[
@@ -574,6 +594,99 @@ dailyUnsubReport = async() => {
         });
     } catch (error) {
         console.error(error);
+    }
+}
+
+dailyNetAddition = async(from, to) => {
+    try {
+        let csvData = [];
+
+        console.log("=> from", from, "to", to);
+        let dailySubscriptions = await subscriptionRepo.getAllSubscriptionsByDate(from, to);
+        let dailyUnSubscriptions = await billinghistoryRepo.unsubReport(from, to);
+
+        for(let i = 0; i < dailySubscriptions.length; i++){
+            let data = {};
+            data.date = dailySubscriptions[i].date;
+            if(new Date(dailySubscriptions[i].date).getTime() === new Date(dailyUnSubscriptions[i].date).getTime()){
+                data.subs = dailySubscriptions[i].count;
+                data.unsubs = dailyUnSubscriptions[i].count;
+                data.net = (dailySubscriptions[i].count - dailyUnSubscriptions[i].count);
+                csvData.push(data);
+            }
+        }
+
+        await dailyNetAdditionWriter.writeRecords(csvData);
+        console.log("=> Daily Addition Report");
+        from = new Date(from);
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            subject: `Daily Net Additions - ${monthNames[from.getMonth()]}`,
+            text: `This report contains daily net additions for the month of ${monthNames[from.getMonth()]}.`,
+            attachments:[
+                {
+                    filename: dailyNetAdditionCsv,
+                    path: dailyNetAdditionFilePath
+                }
+            ]
+        });
+        console.log("=> [dailyNetAdditionCsv][emailSent]",info);
+        fs.unlink(dailyNetAdditionFilePath,function(err,data) {
+            if (err) {
+                console.log("=> File not deleted[dailyNetAdditionCsv]");
+            }
+            console.log("=> File deleted [dailyNetAdditionCsv]");
+        });
+    } catch (error) {
+        console.error("=> error ", error);
+    }
+}
+
+avgTransactionPerCustomer = async(from, to) => {
+    try {
+        console.log("=> AvgTransactionPerCustomer from", from, "to", to);
+        let totalTransactions = await billinghistoryRepo.numberOfTransactions(from, to);
+        totalTransactions = totalTransactions[0].count;
+
+        let totalUniqueUsers = await billinghistoryRepo.totalUniqueTransactingUsers(from, to);
+        totalUniqueUsers = totalUniqueUsers[0].count;
+
+        let avgTransactions = totalTransactions / totalUniqueUsers;
+
+        console.log("=> Avg. Transactions Per Customer Report");
+        from = new Date(from);
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            subject: `Avg Transactions/Customer - ${monthNames[from.getMonth()]}`,
+            text: `Avg Transactions/Customer for the month of ${monthNames[from.getMonth()]} are ${avgTransactions}`,
+        });
+        console.log("=> [avgTransactionPerCustomer][emailSent]",info);
+    } catch (error) {
+        console.error("=> avgTransactionPerCustomer- error ", error);
+    }
+}
+
+dailyReturningUsers = async(from, to) => {
+    try {
+        console.log("=> DailyReturningUsers from", from, "to", to);
+        let dailyReturningUsers = await billinghistoryRepo.dailyReturningUsers(from, to);
+        let dailyReturningUsersCount = dailyReturningUsers[0].totalcount;
+        console.log(`=> Daily Returning Users for ${to} are ${dailyReturningUsersCount}`);
+        
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            //to:  ["farhan.ali@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"],
+            subject: `Daily Returning Users`,
+            text: `Daily returning users for the date ${to} are ${dailyReturningUsersCount}`,
+        });
+        console.log("=> [dailyReturningUsers][emailSent]",info);
+    } catch (error) {
+        console.error("=> dailyReturningUsers- error ", error);
     }
 }
 
@@ -1108,5 +1221,8 @@ module.exports = {
     getTotalUserBaseTillDate: getTotalUserBaseTillDate,
     getExpiredBase: getExpiredBase,
     getInactiveBase: getInactiveBase,
-    getInactiveBaseHavingViewLogsLessThan3: getInactiveBaseHavingViewLogsLessThan3
+    getInactiveBaseHavingViewLogsLessThan3: getInactiveBaseHavingViewLogsLessThan3,
+    dailyNetAddition: dailyNetAddition,
+    avgTransactionPerCustomer: avgTransactionPerCustomer,
+    dailyReturningUsers: dailyReturningUsers
 }

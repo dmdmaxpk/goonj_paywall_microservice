@@ -42,7 +42,12 @@ exports.grayListService = async (req,res) =>  {
 
 exports.generateDailyReport = async (req,res) =>  {
     reportsService.generateDailyReport();
-    res.send("GenerateDailyReport - Executed");
+    res.send("GenerateDailyReport - Executed\n");
+}
+
+exports.generateMonthlyReports = async (req,res) =>  {
+    reportsService.generateMonthlyReports();
+    res.send("GenerateMonthlyReports - Executed\n");
 }
 
 exports.hourlyBillingReport = async (req,res) =>  {

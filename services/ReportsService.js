@@ -3,16 +3,35 @@ const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
 
 generateDailyReport = async() => {
-    console.log("=> Generating Daily Reports");
+    
+    console.log("=> Generating daily reports");
 
+    //Yesterday
+    var to = new Date();
+    to.setDate(to.getDate() - 1);
+    to.setHours(23);
+    to.setMinutes(59);
+    to.setSeconds(59);
+
+    //Day before yesterday
+    var from = new Date();
+    from.setDate(to.getDate() - 1);
+    from.setHours(00);
+    from.setMinutes(00);
+    from.setSeconds(00);
+
+
+    // Revenue report
     reportsRepo.dailyReport();
-    console.log("=> Done");
 
     // //Unsub Zara's number daily
     // await subscriberRepo.removeNumberAndHistory('03458561755');
     
-    await sleep(120*1000);
+    await sleep(180*1000);
     reportsRepo.callBacksReport();
+
+    await sleep(180*1000);
+    reportsRepo.dailyReturningUsers(from, to);
     
     // await sleep(120*1000);
     // reportsRepo.dailyUnsubReport();
@@ -79,9 +98,10 @@ generateMonthlyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
-    reportsRepo.getTotalUserBaseTillDate(from, to);
-    await sleep(300 * 1000); // 5 minutes
-    reportsRepo.getInactiveBaseHavingViewLogsLessThan3(from, to);
+    //reportsRepo.dailyNetAddition(from, to);
+    
+    //await sleep(300 * 1000); // 5 minutes
+    //reportsRepo.avgTransactionPerCustomer(from, to);
 }
 
 

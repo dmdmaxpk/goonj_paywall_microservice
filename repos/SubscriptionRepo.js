@@ -29,6 +29,38 @@ class SubscriptionRepository {
         return result;
     }
 
+    async getAllActiveSubscriptions(subscriber_id)  {
+        let result = await Subscription.find({subscriber_id: subscriber_id, $or: [{subscription_status: "trial"}, {subscription_status: "billed"}, {subscription_status: "graced"}]});
+        return result;
+    }
+
+    async getAllSubscriptionsByDate(from, to)  {
+        console.log("=> Subs from ", from, "to", to);
+        let result = await Subscription.aggregate([
+            {
+                $match:{
+                    $and: [
+                                    {added_dtm:{$gte:new Date(from)}},
+                                    {added_dtm:{$lte:new Date(to)}}
+                           ]
+                    }
+            },{
+                    $group: {
+                                _id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" }, "year":{ $year: "$added_dtm" }},
+                        count: {$sum: 1}
+                            }
+            },{ 
+                                 $project: { 
+                                _id: 0,
+                                date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                        count: "$count"
+                                 } 
+                        },
+                        { $sort: { date: 1} }
+            ]);
+        return result;
+    }
+
     async getSubscriptionByPackageId(subscriber_id, package_id)  {
         let result = await Subscription.findOne({subscriber_id: subscriber_id, subscribed_package_id: package_id});
         return result;

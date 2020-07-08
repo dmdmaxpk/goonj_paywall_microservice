@@ -17,6 +17,7 @@ require('./models/ChargingAttempt');
 require('./models/Paywall');
 require('./models/Subscription');
 require('./models/Migration');
+require('./models/SystemUser');
 const config = require('./config');
 const swStats = require('swagger-stats');
 const container = require('./configurations/container');

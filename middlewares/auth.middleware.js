@@ -20,6 +20,8 @@ let checkToken = (req, res, next) => {
           message: 'Authentication Failed'
         });
       } else {
+        console.log("decoded",decoded);
+
         req.decoded = decoded;
         next();
       }
