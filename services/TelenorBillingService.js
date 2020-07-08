@@ -38,7 +38,7 @@ class TelenorBillingService {
                             
                             try{
                                 let response = await this.billingRepo.processDirectBilling(user.msisdn, packageObj, transaction_id);
-                                console.log("response from billingRepo",response,user.msisdn);
+                                console.log("response from billingRepo",response.data);
                                 let message = response.data.Message;
                                 if(message === "Success"){
                                     //Direct billing success, update records
@@ -59,8 +59,8 @@ class TelenorBillingService {
                                     returnObj.response = error.response.data
                                 }
 
-                                if(error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
-                                error.response.data.errorMessage === "Services of the same type cannot be processed at the same time.")){
+                                if(error && error.response && error.response.data && (error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
+                                error.response.data.errorMessage === "Services of the same type cannot be processed at the same time."))){
                                     returnObj.noAck = true;
                                 }else{
                                     //consider payment failed
