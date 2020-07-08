@@ -118,12 +118,17 @@ class TelenorBillingService {
             subscription.is_allowed_to_stream = true;
             subscription.last_billing_timestamp = new Date();
             subscription.next_billing_timestamp = nextBilling;
-            subscription.should_affiliation_callback_sent = true;
             subscription.amount_billed_today =  (subscription.amount_billed_today + packageObj.price_point_pkr);
             subscription.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
             subscription.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
             subscription.subscribed_package_id = packageObj._id;
             subscription.queued = false;
+
+            if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid){
+                subscription.should_affiliation_callback_sent = true;
+            }else{
+                subscription.should_affiliation_callback_sent = false;
+            }
             
             let updatedSubscription = await this.subscriptionRepo.createSubscription(subscription);
             console.log("subscription created", updatedSubscription);
