@@ -310,7 +310,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 		let packageObj = await packageRepo.getPackage({_id: newPackageId});
 		if (packageObj) {
 			let subscription = await subscriptionRepo.getSubscriptionByPaywallId(subscriber._id, packageObj.paywall_id);
-			console.log("subscription ", subscription);
+			console.log("subscription", subscription);
 			if(!subscription){
 				// No subscription available, let's create one
 				let subscriptionObj = {};
@@ -331,11 +331,13 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				// Check if trial is allowed by the system
 				let sendMessage = false;
 				if (packageObj.is_trial_allowed && !( subscriptionObj.source === 'HE' && subscriptionObj.affiliate_mid ===  "gdn")) {
-						let trial = activateTrial(req.body.source, user, subscriber, packageObj, subscriptionObj);
-						if(trial === "done"){
-							res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
-							sendMessage= true;
-						}
+					console.log("activating trial");
+					let trial = await activateTrial(req.body.source, user, subscriber, packageObj, subscriptionObj);
+					if(trial === "done"){
+						console.log("1 trial activated");
+						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+						sendMessage = true;
+					}
 				}else{
 					// TODO process billing directly and create subscription
 					subscriptionObj.active = true;
