@@ -329,7 +329,8 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				}
 
 				// Check if trial is allowed by the system
-				let sendMessage = false;
+				let sendTrialMessage = false;
+				let sendChargingMessage = false;
 				if (packageObj.is_trial_allowed && !( subscriptionObj.source === 'HE' && subscriptionObj.affiliate_mid ===  "gdn")) {
 					console.log("activating trial");
 
@@ -349,15 +350,15 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					console.log("subsResponse", subsResponse);
 					if(subsResponse.status === "charged"){
 						res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-						sendMessage = true;
+						sendChargingMessage = true;
 					}else if(subsResponse.status === "trial"){
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-						sendMessage = true;
+						sendTrialMessage = true;
 					}else{
 						res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-						sendMessage = false;
 					}
 					subscriptionObj = subsResponse.subscriptionObj;
+					let packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
 					// Subscription rules ended
 
 
@@ -384,7 +385,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					
 				}
 
-				if (sendMessage === true) {
+				if (sendTrialMessage === true) {
 					let trial_hours = packageObj.trial_hours;
 					console.log("subscribed_package_id",subscriptionObj.subscribed_package_id, user.msisdn);
 					console.log("source",subscriptionObj.affiliate_mid,user.msisdn);
@@ -401,7 +402,20 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					text = text.replace("%trial_hours%",trial_hours);
 					console.log("Subscription Message Text",text,user.msisdn);
 					sendTextMessage(text, user.msisdn);
-				} else {
+				} else if(sendChargingMessage === true) {
+					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${subscriptionObj.subscribed_package_id}`;
+					let message = `Apka ${packageObj.package_name} activate kr dia gya ha. Service khatm krna k liye ${unsubLink}`;
+					if(subscriptionObj.affiliate_mid === 'gdn'){
+						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
+					}
+					console.log("Messages",message,user.msisdn);
+					
+					text = message;
+					text = text.replace("%unsub_link%",unsubLink);
+					text = text.replace("%trial_hours%",trial_hours);
+					console.log("Subscription Message Text",text,user.msisdn);
+					sendTextMessage(text, user.msisdn);
+				}else {
 					console.log("Not sending message",user.msisdn);
 				}
 			}else {
