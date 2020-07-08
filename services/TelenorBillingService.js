@@ -1,4 +1,5 @@
 const config = require('../config');
+const axios =require("axios");
 
 class TelenorBillingService {
 
@@ -71,7 +72,7 @@ class TelenorBillingService {
                             console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                             setTimeout(async () => {
                                 console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
-                                this.processDirectBilling(user, subscription, packageObj,first_time_billing);
+                                return this.processDirectBilling(user, subscription, packageObj,first_time_billing);
                             }, 300);
                         }  
                     }else{
@@ -87,13 +88,13 @@ class TelenorBillingService {
     }
 
 
-    async billingSuccess (user, subscription, response, packageObj, transaction_id,first_time_billing)  {
+    async billingSuccess (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
         
         // Success billing
         let nextBilling = new Date();
         nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
-        console.log("firtTimeBilling",first_time_billing,user.msisdn);
-        let subscriptionCreated = undefined;
+
+        let updatedSubscription = undefined;
         if (!first_time_billing) {
              // Update subscription
             let subscriptionObj = {};
@@ -110,26 +111,48 @@ class TelenorBillingService {
             subscriptionObj.queued = false;
             await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         } else {
-            console.log("subscriptionCreated",user.msisdn);
+            console.log("subscription created",user.msisdn);
             subscription.subscription_status = 'billed';
             subscription.auto_renewal = true;
             subscription.is_billable_in_this_cycle = false;
             subscription.is_allowed_to_stream = true;
             subscription.last_billing_timestamp = new Date();
             subscription.next_billing_timestamp = nextBilling;
+            subscription.should_affiliation_callback_sent = true;
             subscription.amount_billed_today =  (subscription.amount_billed_today + packageObj.price_point_pkr);
             subscription.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
             subscription.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
             subscription.subscribed_package_id = packageObj._id;
             subscription.queued = false;
-            subscriptionCreated = await this.subscriptionRepo.createSubscription(subscription);
-            console.log("subscriptionCreated",subscriptionCreated,user.msisdn);
+            
+            let updatedSubscription = await this.subscriptionRepo.createSubscription(subscription);
+            console.log("subscription created", updatedSubscription);
+
+            // Check for the affiliation callback
+            if( updatedSubscription.affiliate_unique_transaction_id && 
+                updatedSubscription.affiliate_mid && 
+                updatedSubscription.is_affiliation_callback_executed === false &&
+                updatedSubscription.should_affiliation_callback_sent === true){
+                if((updatedSubscription.source === "HE" || updatedSubscription.source === "affiliate_web") && updatedSubscription.affiliate_mid != "1") {
+                    // Send affiliation callback
+                    this.sendAffiliationCallback(
+                        updatedSubscription.affiliate_unique_transaction_id, 
+                        updatedSubscription.affiliate_mid,
+                        user._id,
+                        updatedSubscription._id,
+                        updatedSubscription.subscriber_id,
+                        packageObj._id,
+                        packageObj.paywall_id
+                        );
+                }
+            }
+
         }
         // Add history record
         console.log("Adding history record",user.msisdn);
         let history = {};
         history.user_id = user._id;
-        history.subscription_id =  subscriptionCreated?subscriptionCreated._id:subscription._id ;
+        history.subscription_id =  updatedSubscription ? updatedSubscription._id : subscription._id ;
         history.subscriber_id = subscription.subscriber_id;
         history.paywall_id = packageObj.paywall_id;
         history.package_id = packageObj._id;
@@ -140,6 +163,59 @@ class TelenorBillingService {
         history.operator = 'telenor';
         await this.billingHistoryRepo.createBillingHistory(history);
         console.log("Added history record",user.msisdn);
+    }
+
+    async sendAffiliationCallback(tid, mid, user_id, subscription_id, subscriber_id, package_id, paywall_id) {
+        let combinedId = tid + "*" +mid;
+    
+        let history = {};
+        history.user_id = user_id;
+        history.paywall_id = paywall_id;
+        history.subscription_id = subscription_id;
+        history.subscriber_id = subscriber_id;
+        history.package_id = package_id;
+        history.transaction_id = combinedId;
+        history.operator = 'telenor';
+    
+        console.log(`Sending Affiliate Marketing Callback Having TID - ${tid} - MID ${mid}`);
+        this.sendCallBackToIdeation(mid, tid).then(async (fulfilled) => {
+            let updated = await this.subscriptionRepo.updateSubscription(subscription_id, {is_affiliation_callback_executed: true});
+            if(updated){
+                console.log(`Successfully Sent Affiliate Marketing Callback Having TID - ${tid} - MID ${mid} - Ideation Response - ${fulfilled}`);
+                history.operator_response = fulfilled;
+                history.billing_status = "Affiliate callback sent";
+                await this.addHistory(history);
+            }
+        })
+        .catch(async  (error) => {
+            console.log(`Affiliate - Marketing - Callback - Error - Having TID - ${tid} - MID ${mid}`, error);
+            history.operator_response = error.response.data;
+            history.billing_status = "Affiliate callback error";
+            await this.addHistory(history);
+        });
+    }
+    
+    async sendCallBackToIdeation(mid, tid)  {
+        var url; 
+        if (mid === "1569") {
+            url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
+        } else if (mid === "goonj"){
+            url = config.ideation_callback_url2 + `?txid=${tid}`;
+        } else if (mid === "1" || mid === "gdn" ){
+            return new Promise((resolve,reject) => { reject(null)})
+        }
+        console.log("url",url)
+        return new Promise(function(resolve, reject) {
+            axios({
+                method: 'post',
+                url: url,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded' }
+            }).then(function(response){
+                resolve(response.data);
+            }).catch(function(err){
+                reject(err);
+            });
+        });
     }
     
     async billingFailed (user, subscription, response, packageObj, transaction_id, first_time_billing)  {

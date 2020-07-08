@@ -135,7 +135,9 @@ class SubscriptionConsumer {
                 let updatedSubscription = await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
                 
                 // Check for the affiliation callback
-                if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid && updatedSubscription.is_affiliation_callback_executed === false){
+                if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid && 
+                    updatedSubscription.is_affiliation_callback_executed === false &&
+                    updatedSubscription.should_affiliation_callback_sent === true){
                     if((updatedSubscription.source === "HE" || updatedSubscription.source === "affiliate_web") && updatedSubscription.affiliate_mid != "1") {
                         // Send affiliation callback
                         this.sendAffiliationCallback(

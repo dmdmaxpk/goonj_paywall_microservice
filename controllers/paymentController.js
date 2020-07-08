@@ -325,12 +325,14 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				if(req.body.affiliate_unique_transaction_id || req.body.affiliate_mid){
 					subscriptionObj.affiliate_unique_transaction_id = req.body.affiliate_unique_transaction_id;
 					subscriptionObj.affiliate_mid = req.body.affiliate_mid;
+					subscriptionObj.should_affiliation_callback_sent = true;
 				}
 
 				// Check if trial is allowed by the system
 				let sendMessage = false;
 				if (packageObj.is_trial_allowed && !( subscriptionObj.source === 'HE' && subscriptionObj.affiliate_mid ===  "gdn")) {
 					console.log("activating trial");
+
 					let trial = await activateTrial(req.body.source, user, subscriber, packageObj, subscriptionObj);
 					if(trial === "done"){
 						console.log("1 trial activated");
@@ -346,13 +348,13 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					let subsResponse = await doSubscribeUsingSubscribingRule(req.body.source, user, subscriber, packageObj, subscriptionObj);
 					console.log("subsResponse", subsResponse);
 					if(subsResponse.status === "charged"){
-						res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', gw_transaction_id: gw_transaction_id});
+						res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 						sendMessage = true;
 					}else if(subsResponse.status === "trial"){
-						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 						sendMessage = true;
 					}else{
-						res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', gw_transaction_id: gw_transaction_id});
+						res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 						sendMessage = false;
 					}
 					subscriptionObj = subsResponse.subscriptionObj;
@@ -572,12 +574,12 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 		subscriptionObj.subscribed_package_id = packageObj._id;
 
 		let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj, true);
-		console.log("Direct Billing processed with status ", result);
+		console.log("Direct billing processed with status ", result);
 		if(result.message === "success"){
 			dataToReturn.status = "charged";
 			dataToReturn.subscriptionObj = subscriptionObj;
 			return dataToReturn;
-		}else{
+		}else {
 			let packages = await packageRepo.getAllPackages({paywall_id:packageObj.paywall_id});
 			
 			// sort packages basis of their package duration
@@ -596,6 +598,7 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 			}else{
 				// activate trial
 				console.log("activating trial");
+				subscriptionObj.should_affiliation_callback_sent = false;
 				let trial = await activateTrial(source, user, subscriber, packageObj, subscriptionObj);
 				if(trial === "done"){
 					console.log("trial activated successfully");
