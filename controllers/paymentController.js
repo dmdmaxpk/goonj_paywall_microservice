@@ -632,9 +632,8 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 						
 						setTimeout(async () => {
 							console.log("Calling setTimeout");
-							let response =  await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
-							resolve(response);
-						}, 300);
+							return await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
+						}, 500);
 					}else{
 						//activate trial
 						console.log("activating trial after micro charging attempts are done");
