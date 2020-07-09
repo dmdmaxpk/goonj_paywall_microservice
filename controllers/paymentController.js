@@ -429,7 +429,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
 					console.log("Messages",message, user.msisdn);
-					
 				
 					console.log("Subscription Message Text", message, user.msisdn);
 					sendTextMessage(message, user.msisdn);
@@ -600,9 +599,7 @@ activateTrial = async(source, user, subscriber, packageObj, subscriptionObj) => 
 
 doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subscriber, packageObj, subscriptionObj) => {
 	let dataToReturn = {};
-
 	try {
-
 		if(subscriptionObj.try_micro_charge_in_next_cycle){
 			console.log("Trying micro charging for rs. ", subscriptionObj.micro_price_point);
 		}else{
@@ -625,8 +622,6 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 					currentIndex = micro_price_points.findIndex(x => x === subscriptionObj.micro_price_point);
 					currentIndex -= 1;
 				}
-
-				console.log("Index", currentIndex);
 
 				if(currentIndex >= 0){
 					// hit and try for micro
