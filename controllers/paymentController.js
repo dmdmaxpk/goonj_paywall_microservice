@@ -602,7 +602,12 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 	let dataToReturn = {};
 
 	try {
-		console.log("Trying direct micro charging billing for", packageObj._id);
+
+		if(subscriptionObj.try_micro_charge_in_next_cycle){
+			console.log("Trying micro charging for rs. ", subscriptionObj.micro_price_point);
+		}else{
+			console.log("Trying direct micro charging billing for", packageObj._id);
+		}
 		subscriptionObj.subscribed_package_id = packageObj._id;
 
 		let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj, true);
@@ -620,6 +625,8 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 					currentIndex = micro_price_points.findIndex(x => x === subscriptionObj.micro_price_point);
 					currentIndex -= 1;
 				}
+
+				console.log("Index", currentIndex);
 
 				if(currentIndex >= 0){
 					// hit and try for micro
