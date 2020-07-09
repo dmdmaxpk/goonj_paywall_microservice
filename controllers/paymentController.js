@@ -629,11 +629,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 						packageObj.price_point_pkr = micro_price_points[currentIndex];
 						subscriptionObj.try_micro_charge_in_next_cycle = true;
 						subscriptionObj.micro_price_point = micro_price_points[currentIndex];
-						
-						setTimeout(async () => {
-							console.log("Calling setTimeout");
-							return await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
-						}, 500);
+						return await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
 					}else{
 						//activate trial
 						console.log("activating trial after micro charging attempts are done");
