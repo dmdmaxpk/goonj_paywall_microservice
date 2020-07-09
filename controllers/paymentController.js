@@ -629,7 +629,8 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 						packageObj.price_point_pkr = micro_price_points[currentIndex];
 						subscriptionObj.try_micro_charge_in_next_cycle = true;
 						subscriptionObj.micro_price_point = micro_price_points[currentIndex];
-						return await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
+						let response = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
+						resolve(response);
 					}else{
 						//activate trial
 						console.log("activating trial after micro charging attempts are done");
