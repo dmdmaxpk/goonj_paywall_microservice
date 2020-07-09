@@ -345,43 +345,62 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.active = true;
 					subscriptionObj.amount_billed_today = 0;
 
-					// Subscription rules started
-					let subsResponse = await doSubscribeUsingSubscribingRule(req.body.source, user, subscriber, packageObj, subscriptionObj);
-					console.log("subsResponse", subsResponse);
-					if(subsResponse.status === "charged"){
-						res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-						sendChargingMessage = true;
-					}else if(subsResponse.status === "trial"){
-						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-						sendTrialMessage = true;
+					if(packageObj.paywall_id === "ghRtjhT7"){
+						// Live paywall, subscription rules along with micro changing started
+						let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.source, user, subscriber, packageObj, subscriptionObj);
+						console.log("subsResponse", subsResponse);
+						if(subsResponse.status === "charged"){
+							res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+							sendChargingMessage = true;
+						}else if(subsResponse.status === "trial"){
+							res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+							sendTrialMessage = true;
+						}else{
+							res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+						}
+						subscriptionObj = subsResponse.subscriptionObj;
+						packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
+						// Subscription rules along with micro changing ended	
 					}else{
-						res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+						// comedy paywall
+						try {
+							let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,true);
+							console.log("Direct Billing processed",result,user.msisdn);
+							if(result.message === "success"){
+								// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+								// subscribePackage(subscription, packageObj);
+								res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
+											gw_transaction_id: gw_transaction_id});
+								sendMessage = true;
+							}else{
+								res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
+										gw_transaction_id: gw_transaction_id});
+								sendMessage= false;
+							}
+						} catch(err){
+							console.log("Error while direct billing first time",err.message,user.msisdn);
+							sendMessage= false;
+						}
 					}
-					subscriptionObj = subsResponse.subscriptionObj;
-					packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
-					// Subscription rules ended
 
 
 
-					// Below code is commented for the development of subscription rules
-					// try {
-					// 	let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,true);
-					// 	console.log("Direct Billing processed",result,user.msisdn);
-					// 	if(result.message === "success"){
-					// 		// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
-					// 		// subscribePackage(subscription, packageObj);
-					// 		res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
-					// 					gw_transaction_id: gw_transaction_id});
-					// 		sendMessage = true;
-					// 	}else{
-					// 		res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
-					// 				gw_transaction_id: gw_transaction_id});
-					// 		sendMessage= false;
-					// 	}
-					// } catch(err){
-					// 	console.log("Error while direct billing first time",err.message,user.msisdn);
-					// 	sendMessage= false;
+
+					// Subscription rules started
+					// let subsResponse = await doSubscribeUsingSubscribingRule(req.body.source, user, subscriber, packageObj, subscriptionObj);
+					// console.log("subsResponse", subsResponse);
+					// if(subsResponse.status === "charged"){
+					// 	res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+					// 	sendChargingMessage = true;
+					// }else if(subsResponse.status === "trial"){
+					// 	res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+					// 	sendTrialMessage = true;
+					// }else{
+					// 	res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 					// }
+					// subscriptionObj = subsResponse.subscriptionObj;
+					// packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
+					// Subscription rules ended
 					
 				}
 
@@ -578,6 +597,60 @@ activateTrial = async(source, user, subscriber, packageObj, subscriptionObj) => 
 
 	return "done";
 }
+
+doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subscriber, packageObj, subscriptionObj) => {
+	let dataToReturn = {};
+
+	try {
+		console.log("Trying direct micro charging billing for", packageObj._id);
+		subscriptionObj.subscribed_package_id = packageObj._id;
+
+		let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj, true);
+		console.log("Direct billing processed with status ", result);
+		if(result.message === "success"){
+			dataToReturn.status = "charged";
+			dataToReturn.subscriptionObj = subscriptionObj;
+			return dataToReturn;
+		}else {
+			let micro_price_points = packageObj.micro_price_points;
+			if(micro_price_points.length > 0){
+				let currentIndex = micro_price_points[micro_price_points.length - 1];
+
+				if(subscriptionObj.try_micro_charge_in_next_cycle === true){
+					currentIndex = micro_price_points.findIndex(x => x === subscriptionObj.micro_price_point);
+					currentIndex -= 1;
+				}
+
+				if(currentIndex >= 0){
+					// hit and try for micro
+					packageObj.price_point_pkr = micro_price_points[currentIndex];
+					subscriptionObj.try_micro_charge_in_next_cycle = true;
+					subscriptionObj.micro_price_point = micro_price_points[currentIndex];
+					return await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
+				}else{
+					//activate trial
+					console.log("activating trial after micro charging attempts are done");
+					subscriptionObj.try_micro_charge_in_next_cycle = false;
+					subscriptionObj.micro_price_point = 0;
+					subscriptionObj.should_affiliation_callback_sent = false;
+					let trial = await activateTrial(source, user, subscriber, packageObj, subscriptionObj);
+					if(trial === "done"){
+						console.log("trial activated successfully");
+						dataToReturn.status = "trial";
+						dataToReturn.subscriptionObj = subscriptionObj;
+						return dataToReturn;
+					}
+				}
+			}
+		}
+	} catch(err){
+		console.log("Error while direct billing",err.message,user.msisdn);
+		dataToReturn.status = "error";
+		dataToReturn.subscriptionObj = subscriptionObj;
+		return dataToReturn;
+	}
+}
+
 
 doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, subscriptionObj) => {
 	let dataToReturn = {};

@@ -88,7 +88,6 @@ class TelenorBillingService {
         });
     }
 
-
     async billingSuccess (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
         
         // Success billing
