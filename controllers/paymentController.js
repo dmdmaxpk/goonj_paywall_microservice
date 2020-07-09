@@ -287,7 +287,7 @@ exports.subscribe = async (req, res) => {
 }
 
 doSubscribe = async(req, res, user, gw_transaction_id) => {
-
+	console.log('============================');
 	if(user && user.active === true){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriberByUserId (user._id);
