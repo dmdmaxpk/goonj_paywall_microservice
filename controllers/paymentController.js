@@ -619,7 +619,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 		}else {
 			let micro_price_points = packageObj.micro_price_points;
 			if(micro_price_points.length > 0){
-				let currentIndex = micro_price_points[micro_price_points.length - 1];
+				let currentIndex = (micro_price_points.length - 1);
 
 				if(subscriptionObj.try_micro_charge_in_next_cycle === true){
 					currentIndex = micro_price_points.findIndex(x => x === subscriptionObj.micro_price_point);
