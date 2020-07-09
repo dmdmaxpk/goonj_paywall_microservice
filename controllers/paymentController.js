@@ -562,8 +562,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 		} else {
 			res.send({code: config.codes.code_error, message: 'Package does not exist', gw_transaction_id: gw_transaction_id});
 		}	
-	}
-	else {
+	} else {
 		res.send({code: config.codes.code_error, message: 'Blocked user', gw_transaction_id: gw_transaction_id});
 	}
 }
@@ -628,7 +627,9 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 					packageObj.price_point_pkr = micro_price_points[currentIndex];
 					subscriptionObj.try_micro_charge_in_next_cycle = true;
 					subscriptionObj.micro_price_point = micro_price_points[currentIndex];
-					return await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
+					setTimeout(async () => {
+						return await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
+					}, 500);
 				}else{
 					//activate trial
 					console.log("activating trial after micro charging attempts are done");
