@@ -628,7 +628,9 @@ class SubscriptionConsumer {
             url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
         } else if (mid === "goonj"){
             url = config.ideation_callback_url2 + `?txid=${tid}`;
-        } else if (mid === "1" || mid === "gdn" ){
+        } else if (mid === "aff3"){
+            url = config.ideation_callback_url3 + `${tid}`;
+        }  else if (mid === "1" || mid === "gdn" ){
             return new Promise((resolve,reject) => { reject(null)})
         }
         console.log("url",url)
