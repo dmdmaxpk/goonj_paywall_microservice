@@ -240,7 +240,7 @@ class TelenorBillingService {
         history.package_id = packageObj._id;
         history.transaction_id = transaction_id;
         history.operator_response = response;
-        history.billing_status = first_time_billing ? (subscription.try_micro_charge_in_next_cycle === true ? "direct-micro--tried-but-failed" : "direct-billing-tried-but-failed") : "switch-package-request-tried-but-failed";
+        history.billing_status = first_time_billing ? (subscription.try_micro_charge_in_next_cycle === true ? "direct-micro-charge-tried-but-failed" : "direct-billing-tried-but-failed") : "switch-package-request-tried-but-failed";
         history.operator = 'telenor';
         await this.billingHistoryRepo.createBillingHistory(history);
     }
