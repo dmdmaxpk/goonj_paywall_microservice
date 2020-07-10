@@ -23,6 +23,7 @@ const constants = container.resolve("constants");
 let jwt = require('jsonwebtoken');
 const { response } = require('express');
 const { resolve } = require('../configurations/container');
+const { use } = require('../routes');
 
 
 function sendMessage(otp, msisdn){
@@ -861,8 +862,19 @@ exports.getAllSubscriptions = async (req, res) => {
 
 exports.delete = async (req, res) => {
 	let msisdn = req.query.msisdn;
-	await subscriberRepo.removeNumberAndHistory(msisdn);
-	res.send({code: config.codes.code_success, message: 'Done'});
+	let user = await userRepo.getUserByMsisdn(msisdn);
+	if(user){
+		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+		if(subscriber){
+			await subscriptionRepo.deleteAllSubscriptions(subscriber._id); 
+			res.send({code: config.codes.code_success, message: 'Done'});
+		}else{
+			res.send({code: config.codes.code_success, message: 'No subscriber found'});
+		}
+	}else{
+		res.send({code: config.codes.code_success, message: 'No user found for this msisdn'});
+	}
+	
 }
 
 // UnSubscribe
