@@ -866,7 +866,8 @@ exports.delete = async (req, res) => {
 	if(user){
 		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 		if(subscriber){
-			await subscriptionRepo.deleteAllSubscriptions(subscriber._id); 
+			await subscriptionRepo.deleteAllSubscriptions(subscriber._id);
+			await billingHistoryRepo.deleteHistoryForSubscriber(subscriber._id);
 			res.send({code: config.codes.code_success, message: 'Done'});
 		}else{
 			res.send({code: config.codes.code_success, message: 'No subscriber found'});
