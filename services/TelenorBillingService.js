@@ -213,6 +213,8 @@ class TelenorBillingService {
             url = config.ideation_callback_url2 + `?txid=${tid}`;
         } else if (mid === "1" || mid === "gdn" ){
             return new Promise((resolve,reject) => { reject(null)})
+        }else{
+            url = config.ideation_callback_url
         }
         console.log("url",url)
         return new Promise(function(resolve, reject) {
