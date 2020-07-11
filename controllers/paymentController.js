@@ -210,7 +210,8 @@ exports.verifyOtp = async (req, res) => {
 		// Record already present in collection, lets check it further.
 		if(otpUser.verified === true){
 			// Means, this user is already verified by otp, so let's now push an error
-			res.send({code: config.codes.code_error, message: 'Already verified with this OTP', gw_transaction_id: gw_transaction_id});
+			res.send({code: config.codes.code_error, message: 'Already verified with this OTP', 
+						gw_transaction_id: gw_transaction_id});
 		}else{
 			// Let's validate this otp
 			if(otpUser.otp === otp){
@@ -230,13 +231,14 @@ exports.verifyOtp = async (req, res) => {
 					let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 					if(subscriber && subscribed_package_id){
 						let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, subscribed_package_id);
+						let subscribed_package_ids = await subscriptionRepo.getPackagesOfSubscriber(subscriber._id);
 						if(subscription){
 							data.subscription_status = subscription.subscription_status;
 							data.is_allowed_to_stream = subscription.is_allowed_to_stream; 
 							data.user_id = user._id;
 							data.subscribed_package_id = subscribed_package_id;
 							data.gw_transaction_id = gw_transaction_id;
-						
+							data.subscribed_packages = subscribed_package_ids;
 						}
 					}
 				}

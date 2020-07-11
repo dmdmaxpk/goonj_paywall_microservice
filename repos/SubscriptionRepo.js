@@ -270,6 +270,19 @@ class SubscriptionRepository {
          }]);
         return results;
     }
+
+    async getPackagesOfSubscriber(subscriber_id){
+        if (subscriber_id) {
+            try {
+                let package_ids = await Subscription.find({subscriber_id: subscriber_id }).select('subscribed_package_id');
+                return package_ids;
+            } catch (err) {
+                throw err;
+            }
+        } else {
+            return null;
+        }
+    }
 }
 
 
