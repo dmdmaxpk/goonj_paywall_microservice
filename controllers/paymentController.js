@@ -68,8 +68,10 @@ subscribePackage = async(subscription, packageObj) => {
 	subscriptionObj.transactionId = transactionId;
 
 	// Add object in queueing server
+	console.log("Add in queueing server",subscriptionObj);
 	if (subscription.queued === false && subscriptionObj.user && subscriptionObj.packageObj && subscriptionObj.packageObj.price_point_pkr && subscriptionObj.transactionId ) {
 		let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true, auto_renewal: true});
+		console.log("Add in queueing server",subscriptionObj);
 		if(updated){
 			rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
 			console.log('Payment - Subscription - AddInQueue - ', subscription._id, ' - ', (new Date()));
@@ -745,6 +747,7 @@ exports.recharge = async (req, res) => {
 	if(user){
 		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 		let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+		console.log("Subscription",subscription);
 		if(subscription && subscription.subscription_status === 'graced'){
 			if(subscription.is_billable_in_this_cycle === true){
 				res.send({code: config.codes.code_in_billing_queue, message: 'Already in billing process!', gw_transaction_id: gw_transaction_id});
@@ -753,6 +756,7 @@ exports.recharge = async (req, res) => {
 				let packageObj = await packageRepo.getPackage({_id: package_id});
 				if(packageObj){
 					await subscriptionRepo.updateSubscription(subscription._id, {consecutive_successive_bill_counts: 0, is_manual_recharge: true});
+					console.log("Subscrib Package to be called");
 					subscribePackage(subscription, packageObj);
 					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
 				}else{
