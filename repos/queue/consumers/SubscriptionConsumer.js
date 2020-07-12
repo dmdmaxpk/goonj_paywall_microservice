@@ -7,7 +7,7 @@ const axios =require("axios");
 class SubscriptionConsumer {
 
     constructor({emailService,subscriptionRepository,billingHistoryRepository,tpsCountRepository,billingRepository,
-        packageRepository,messageRepository,userRepository}) {
+        packageRepository,messageRepository,userRepository,constants}) {
         this.subscriptionRepo = subscriptionRepository;
         this.billingHistoryRepo = billingHistoryRepository;
         this.tpsCountRepo = tpsCountRepository;
@@ -16,6 +16,7 @@ class SubscriptionConsumer {
         this.messageRepo = messageRepository;
         this.userRepo = userRepository;
         this.emailService = emailService;
+        this.constants = constants;
     }
 
     async consume(message) {
@@ -663,7 +664,9 @@ class SubscriptionConsumer {
                 this.messageRepo.sendSmsToUser(message, msisdn);
             } else {
                 let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user_id}&amp;pg=${package_id}`;
-                let message = `Goonj tv per top channels Rs${price}/day dekhnay ka shukriya. Service istemal ke liye www.goonj.pk aur service khatam karnay ke liye ${unsubLink}`;
+                let message = this.constants.message_after_repeated_succes_charge[package_id];
+                message = message.replace("%unsub_link%",unsubLink);
+                message = message.replace("%price%",price);
                 this.messageRepo.sendSmsToUser(message, msisdn);
             }
         }
