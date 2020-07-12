@@ -199,6 +199,7 @@ exports.verifyOtp = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let otp = req.body.otp;
 	let subscribed_package_id = req.body.package_id;
+	let he_pass_phrase = req.body.he_pass_phrase;
 	let otpUser = await otpRepo.getOtp(msisdn);
 
 	if(!subscribed_package_id){
@@ -237,6 +238,24 @@ exports.verifyOtp = async (req, res) => {
 							data.is_allowed_to_stream = subscription.is_allowed_to_stream; 
 							data.user_id = user._id;
 							data.subscribed_package_id = subscribed_package_id;
+							data.gw_transaction_id = gw_transaction_id;
+							data.subscribed_packages = subscribed_package_ids;
+						}
+					}
+				}
+				res.send(data);
+			} else if (he_pass_phrase === config.he_service_pass_phrase){
+				let user = await userRepo.getUserByMsisdn(msisdn);
+				
+				if(user){
+					let token = jwt.sign({user_id: user._id, msisdn: msisdn}, config.secret, {expiresIn: '3 days'});
+					data.access_token = token;
+
+					let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+					if(subscriber){
+						let subscribed_package_ids = await subscriptionRepo.getPackagesOfSubscriber(subscriber._id);
+						if(subscription){ 
+							data.user_id = user._id;
 							data.gw_transaction_id = gw_transaction_id;
 							data.subscribed_packages = subscribed_package_ids;
 						}

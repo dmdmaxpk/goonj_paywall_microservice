@@ -54,6 +54,7 @@ const telenor_dcb_api_token = '';
 const Ideation_call_back_url = 'http://bpd.o18.click/';
 const Ideation_call_back_url_2 = 'http://210.56.13.190/goonj_callback.php/';
 const time_between_billing_attempts_hours = 8;
+const he_service_pass_phrase = "fdkPmW8yOX";
 
 let config = {
     development: {
@@ -85,7 +86,8 @@ let config = {
         emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
         emailSecure: true,
-        default_package_id: default_package_id
+        default_package_id: default_package_id,
+        he_service_pass_phrase: he_service_pass_phrase
     },
     staging: {
         port: '5000',
@@ -116,7 +118,8 @@ let config = {
         emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
         emailSecure: true,
-        default_package_id: default_package_id
+        default_package_id: default_package_id,
+        he_service_pass_phrase: he_service_pass_phrase
     },
     production: {
         port: process.env.PW_PORT,
@@ -147,7 +150,8 @@ let config = {
         emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
         emailSecure: true,
-        default_package_id: default_package_id
+        default_package_id: default_package_id,
+        he_service_pass_phrase: he_service_pass_phrase
     }
 };
 
