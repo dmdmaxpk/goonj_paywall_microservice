@@ -24,7 +24,8 @@ getPageViews = async(db) => {
                     }
                 },{
                     $group:{
-                        _id: {msisdn: "$req_body.msisdn", "day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" }, "year":{ $year: "$added_dtm" }},
+                        _id: {msisdn: "$req_body.msisdn", "day": {"$dayOfMonth" : "$added_dtm"}, 
+                                "month": { "$month" : "$added_dtm" }, "year":{ $year: "$added_dtm" }},
                         count: {$sum: 1}	
                     }
                 },{

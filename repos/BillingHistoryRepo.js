@@ -138,25 +138,31 @@ class BillingHistoryRepository {
     }
     
     async dailyUnsubReport () {
+        console.log("[dailyUnsubReport]");
         let result = await BillingHistory.aggregate([
             {
                 $match:{
-                    "billing_status" : "expired"
+                    $or:[
+                        {"billing_status": "expired"}, 
+                        {"billing_status": "unsubscribe-request-received-and-expired"}
+               ]
                 }
             },{
                 $group: {
                     _id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
-                    "year":{ $year: "$billing_dtm" }},
+                    "year":{ $year: "$billing_dtm" },source:"$source"},
                     count:{$sum: 1} 
                 }
             },{ 
                 $project: { 
                     date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
-                    count:"$count" 
+                    source: "$_id.source",
+                    count:"$count"
                 } 
             },
             { $sort: { date: -1} }
             ]);
+            console.log("[dailyUnsubReport][reached]",result);
          return result;
     }
 
