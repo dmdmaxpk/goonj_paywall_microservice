@@ -349,8 +349,9 @@ dailyReport = async(mode = 'prod') => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
                 //to:  ['paywall@dmdmax.com.pk'],
-                to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
-                subject: `Paywall Report`, // Subject line
+                to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com","zara.naqi@telenor.com.pk",
+                        "fahad.shabbir@ideationtec.com","ceo@ideationtec.com","asad@ideationtec.com"], // list of receivers
+                subject: `Paywall Report`, // Subject ne
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
                 attachments:[
                     {
@@ -570,8 +571,8 @@ dailyUnsubReport = async(from,to) => {
         await dailyUnsubReportWriter.writeRecords(dailyUnsubReport);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["hamza@dmdmax.com"],
-            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            // to:  ["hamza@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk"], // list of receivers
             subject: `Daily Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users.`, // plain text bodyday
             attachments:[
@@ -688,6 +689,7 @@ dailyReturningUsers = async(from, to) => {
 
 dailyChannelWiseUnsub = async() => {
     try {
+        console.log("[dailyChannelWiseUnsub]");
         let records = [];
         let dailyChannelWiseUnsub = await billinghistoryRepo.dailyChannelWiseUnsub();  
         let dailyExpiredBySystem = await billinghistoryRepo.dailyExpiredBySystem();
@@ -732,8 +734,8 @@ dailyChannelWiseUnsub = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["hamza@dmdmax.com"],
-            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            // to:  ["hamza@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk"], // list of receivers
             subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.\n\nNote: Expired By System column indicates those users expired by the system because their grace time is over and they still have no balance.`, // plain text bodyday
             attachments:[
@@ -757,6 +759,7 @@ dailyChannelWiseUnsub = async() => {
 
 dailyChannelWiseTrialActivated = async() => {
     try {
+        console.log("[dailyChannelWiseTrialActivated]");
         let records = [];
         let dailyChannelWiseTrial = await billinghistoryRepo.dailyChannelWiseTrialActivated(); 
 
@@ -793,8 +796,8 @@ dailyChannelWiseTrialActivated = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk"],
-            // to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            // to:  ["paywall@dmdmax.com.pk"],
+            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Source Wise Trial Activated Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of trials activated with respect to source.`, // plain text bodyday
             attachments:[
@@ -804,12 +807,12 @@ dailyChannelWiseTrialActivated = async() => {
                 }
             ]
         });
-        console.log("[paywallChannelWiseTrial][emailSent]",info);
+        console.log("[dailyChannelWiseTrialActivated][emailSent]",info);
         fs.unlink(paywallChannelWiseTrialFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted[paywallChannelWiseTrial]");
             }
-            console.log("File deleted [paywallChannelWiseTrial]");
+            console.log("File deleted [dailyChannelWiseTrialActivated]");
         });
     } catch (error) {
         console.error(error);
@@ -969,8 +972,8 @@ dailyPageViews = async() => {
             await csvAffiliatePvs.writeRecords(pvs);
                 var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk',
-                to:  ["hamza@dmdmax.com"],
-                // to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"], // list of receivers
+                // to:  ["hamza@dmdmax.com"],
+                to:  ["paywall@dmdmax.com.pk","nauman@dmdmax.com", "mikaeel@dmdmax.com"], // list of receivers
                 subject: 'Affiliate Page Views',
                 text: `This report (generated at ${(new Date()).toDateString()}) contains affiliate page views`, // plain text bodyday
                 attachments:[

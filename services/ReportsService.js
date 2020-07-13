@@ -21,26 +21,24 @@ generateDailyReport = async() => {
     from.setSeconds(00);
 
 
-    // uncomment later
+    
     // Revenue report
-    // reportsRepo.dailyReport();
+    reportsRepo.dailyReport();
 
     // //Unsub Zara's number daily
     // await subscriberRepo.removeNumberAndHistory('03458561755');
     
-    // uncomment later
-    // await sleep(180*1000);
-    // reportsRepo.callBacksReport();
+    await sleep(180*1000);
+    reportsRepo.callBacksReport();
 
-    // uncomment later
-    // await sleep(180*1000);
-    // reportsRepo.dailyReturningUsers(from, to);
+    await sleep(180*1000);
+    reportsRepo.dailyReturningUsers(from, to);
     
     await sleep(120*1000);
     reportsRepo.dailyUnsubReport();
     
-    await sleep(120*1000);
-    reportsRepo.errorCountReport();
+    // await sleep(120*1000);
+    // reportsRepo.errorCountReport();
     
     // await sleep(120*1000);
     // reportsRepo.dailyFullAndPartialChargedUsers();
@@ -54,8 +52,8 @@ generateDailyReport = async() => {
     await sleep(120*1000);
     reportsRepo.dailyChannelWiseTrialActivated();
 
-    // await sleep(120*1000);
-    // reportsRepo.dailyPageViews();
+    await sleep(120*1000);
+    reportsRepo.dailyPageViews();
 
     // await sleep(120*1000);
     // affiliateReportsRepo.gdnReport(false);
