@@ -39,14 +39,14 @@ generateDailyReport = async() => {
     reportsRepo.dailyUnsubReport();
     */
 
-    await sleep(120*1000);
+    //await sleep(120*1000);
     reportsRepo.errorCountReport();
     
     await sleep(120*1000);
     reportsRepo.dailyFullAndPartialChargedUsers();
     
-    await sleep(120*1000);
-    reportsRepo.dailyTrialToBilledUsers();
+    //await sleep(120*1000);
+    //reportsRepo.dailyTrialToBilledUsers();
     
     await sleep(120*1000);
     reportsRepo.dailyChannelWiseUnsub();

@@ -528,7 +528,10 @@ const dailyChannelWiseTrialWriter = createCsvWriter({
 errorCountReport = async() => {
     try {
         let errorBySourceReport = await billinghistoryRepo.errorCountReportBySource();
+        console.log("=> done 1");
         let errorReport = await billinghistoryRepo.errorCountReport();
+        console.log("=> done 2");
+        
         await errorCountReportWriter.writeRecords(errorReport);
         await errorCountReportBySource.writeRecords(errorBySourceReport);
         var info = await transporter.sendMail({
@@ -548,7 +551,7 @@ errorCountReport = async() => {
                 }
             ]
         });
-        console.log("[errorCountReport][emailSent]",info);
+        console.log("=> [errorCountReport][emailSent]",info);
         fs.unlink(paywallErrorCountFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted[errorCountReport]");
@@ -562,7 +565,7 @@ errorCountReport = async() => {
             console.log("File deleted [errorCountReportBySource]");
         });
     } catch (error) {
-        console.error(error);
+        console.error("=>", error);
     }
 }
 
@@ -690,10 +693,12 @@ dailyReturningUsers = async(from, to) => {
 
 dailyChannelWiseUnsub = async() => {
     try {
-        console.log("[dailyChannelWiseUnsub]");
+        console.log("=> [dailyChannelWiseUnsub]");
         let records = [];
-        let dailyChannelWiseUnsub = await billinghistoryRepo.dailyChannelWiseUnsub();  
+        let dailyChannelWiseUnsub = await billinghistoryRepo.dailyChannelWiseUnsub(); 
+        console.log("=> done 1"); 
         let dailyExpiredBySystem = await billinghistoryRepo.dailyExpiredBySystem();
+        console.log("=> done 2");
 
         dailyChannelWiseUnsub.forEach(element => {
             let date = element.date;
@@ -736,7 +741,7 @@ dailyChannelWiseUnsub = async() => {
         });
 
         await dailyChannelWiseUnsubWriter.writeRecords(records);
-
+        console.log("=> done 3");
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
             to:  ["farhan.ali@dmdmax.com"],
@@ -750,15 +755,15 @@ dailyChannelWiseUnsub = async() => {
                 }
             ]
         });
-        console.log("[dailyChannelWiseUnsub][emailSent]",info);
+        console.log("=> [dailyChannelWiseUnsub][emailSent]",info);
         fs.unlink(paywallChannelWiseUnsubReportFilePath,function(err,data) {
             if (err) {
-                console.log("File not deleted[dailyChannelWiseUnsub]");
+                console.log("=> File not deleted[dailyChannelWiseUnsub]");
             }
-            console.log("File deleted [dailyChannelWiseUnsub]");
+            console.log("=> File deleted [dailyChannelWiseUnsub]");
         });
     } catch (error) {
-        console.error(error);
+        console.error("=>", error);
     }
 }
 
@@ -925,7 +930,9 @@ dailyTrialToBilledUsers = async() => {
 
 dailyFullAndPartialChargedUsers = async() => {
     try {
+        console.log("=> dailyFullAndPartialChargedUsers");
         let dailyReport = await billinghistoryRepo.getDailyFullyChargedAndPartialChargedUsers();
+        console.log("=> done 1");
         let array = [];
 
         dailyReport.forEach(element => {
@@ -957,15 +964,15 @@ dailyFullAndPartialChargedUsers = async() => {
                 }
             ]
         });
-        console.log("[fullAndPartialChargedUsers][emailSent]", info);
+        console.log("=> [fullAndPartialChargedUsers][emailSent]", info);
         fs.unlink(paywallFullAndPartialChargedReportFilePath,function(err,data) {
             if (err) {
-                console.log("File not deleted");
+                console.log("=> File not deleted");
             }
-            console.log("data");
+            console.log("=> ", data);
         });
     } catch (error) {
-        console.error(error);
+        console.error("=>", error);
     }
 }
 
