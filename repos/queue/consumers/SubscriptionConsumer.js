@@ -374,6 +374,8 @@ class SubscriptionConsumer {
     // ASSIGN GRACE PERIOD
     async assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error,transaction_id) {
     
+        let expiry_source = undefined;
+
         let subscriptionObj = {};
         subscriptionObj.queued = false;
         let historyStatus;
@@ -420,6 +422,8 @@ class SubscriptionConsumer {
                 subscriptionObj.try_micro_charge_in_next_cycle = false;
                 subscriptionObj.micro_price_point = 0;
                 subscriptionObj.priority = 0;
+
+                expiry_source = "system-after-grace-end";
 
                 //Send acknowledgement to user
                 let link = 'https://www.goonj.pk/goonjplus/subscribe';
@@ -496,6 +500,11 @@ class SubscriptionConsumer {
             history.price = (subscription.try_micro_charge_in_next_cycle)?subscription.micro_price_point:0;
             history.transaction_id = transaction_id;
             history.operator = 'telenor';
+            
+            if(expiry_source !== undefined){
+                history.source = expiry_source;
+            }
+
             history.operator_response = error;
             await this.addHistory(history);
         }

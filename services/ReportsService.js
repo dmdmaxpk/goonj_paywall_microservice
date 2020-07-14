@@ -21,6 +21,7 @@ generateDailyReport = async() => {
     from.setSeconds(00);
 
 
+    /*
     
     // Revenue report
     reportsRepo.dailyReport();
@@ -36,24 +37,27 @@ generateDailyReport = async() => {
     
     await sleep(120*1000);
     reportsRepo.dailyUnsubReport();
+    */
+
+    await sleep(120*1000);
+    reportsRepo.errorCountReport();
     
-    // await sleep(120*1000);
-    // reportsRepo.errorCountReport();
+    await sleep(120*1000);
+    reportsRepo.dailyFullAndPartialChargedUsers();
     
-    // await sleep(120*1000);
-    // reportsRepo.dailyFullAndPartialChargedUsers();
-    
-    // await sleep(120*1000);
-    // reportsRepo.dailyTrialToBilledUsers();
+    await sleep(120*1000);
+    reportsRepo.dailyTrialToBilledUsers();
     
     await sleep(120*1000);
     reportsRepo.dailyChannelWiseUnsub();
 
+    /*
     await sleep(120*1000);
     reportsRepo.dailyChannelWiseTrialActivated();
 
     await sleep(120*1000);
     reportsRepo.dailyPageViews();
+    */
 
     // await sleep(120*1000);
     // affiliateReportsRepo.gdnReport(false);

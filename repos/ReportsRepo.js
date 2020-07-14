@@ -508,6 +508,7 @@ const dailyChannelWiseUnsubWriter = createCsvWriter({
         {id: 'web', title: 'Web'},
         {id: 'sms', title: 'Sms'},
         {id: 'cc', title: 'Customer Care'},
+        {id: 'cp', title: 'Customer Portal'},
         {id: 'expired', title: 'Expired By System'},
         {id: "total",title: "Total" }
     ]
@@ -532,8 +533,8 @@ errorCountReport = async() => {
         await errorCountReportBySource.writeRecords(errorBySourceReport);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            to:  ["farhan.ali@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Error Reports`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains all error count stats from 23rd February 2020 onwards.`, // plain text bodyday
             attachments:[
@@ -713,6 +714,9 @@ dailyChannelWiseUnsub = async() => {
                 }else if(source === "CC"){
                     present.cc = (present.cc + count);
                     present.total = (present.total + count);
+                }else if(source === "CP"){
+                    present.cp = (present.cp + count);
+                    present.total = (present.total + count);
                 }
             }else{
                 let expiredBySystem = isDatePresent(dailyExpiredBySystem, date);
@@ -720,11 +724,12 @@ dailyChannelWiseUnsub = async() => {
                 let web = source === "web" ? count : 0;
                 let sms = source === "sms" ? count : 0;
                 let cc = source === "CC" ? count : 0;
+                let cp = source === "CP" ? count : 0;
                 let expired = expiredBySystem !== undefined ? expiredBySystem.count : 0;
 
-                let total = (app + web + sms + cc + expired);
+                let total = (app + web + sms + cc + cp + expired);
 
-                let object = {date: date, app: app, web: web, sms: sms, cc: cc, expired: expired, total: total};
+                let object = {date: date, app: app, web: web, sms: sms, cc: cc, cp: cp, expired: expired, total: total};
                 records.push(object);
             }
             
@@ -734,7 +739,7 @@ dailyChannelWiseUnsub = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            // to:  ["hamza@dmdmax.com"],
+            to:  ["farhan.ali@dmdmax.com"],
             to:  ["paywall@dmdmax.com.pk"], // list of receivers
             subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.\n\nNote: Expired By System column indicates those users expired by the system because their grace time is over and they still have no balance.`, // plain text bodyday
@@ -835,7 +840,7 @@ function isMultipleDatePresent(array, date1ToFind) {
 
 dailyTrialToBilledUsers = async() => {
     try {
-        let trialToBilled = await usersRepo.dailyTrialToBilledUsers();
+        let trialToBilled = await subscriptionRepo.dailyTrialToBilledUsers();
         let trialToBilledUsers = [];
 
         trialToBilled.forEach(element => {
@@ -895,10 +900,10 @@ dailyTrialToBilledUsers = async() => {
         await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["paywall@dmdmax.com.pk"],
+            to:  ["farhan.ali@dmdmax.com"],
             // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Trial To Billed Users',
-            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date data.`, // plain text bodyday
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date row.`, // plain text bodyday
             attachments:[
                 {
                     filename: paywallTrialToBilledUsers,
@@ -941,7 +946,7 @@ dailyFullAndPartialChargedUsers = async() => {
         await csvFullAndPartialCharged.writeRecords(array);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["paywall@dmdmax.com.pk"],
+            to:  ["farhan.ali@dmdmax.com"],
             // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Full & Partial Charged Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of full & partial charged users.`, // plain text bodyday
