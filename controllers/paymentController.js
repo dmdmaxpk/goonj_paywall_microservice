@@ -604,6 +604,7 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 				}
 			});
 			let currentIndex = packages.findIndex(x => x._id === packageObj._id);
+			console.log("Current index: ", currentIndex);
 			if(currentIndex > 0){
 				// try on lower package
 				packageObj = packages[--currentIndex];
