@@ -2,10 +2,8 @@
 class Constants {
     constructor({}) {
         this.subscription_messages = {
-            QDfC: `Apko Goonj Tv Free %trial_hours% hour trial dey dia gaya ha. Jub chahien Jaib se Mobile nikalien aur TOP 
-                    LIVE TV Channels deikhen siraf %price% Ruppey/d main.`,
-            QDfG: `Apko Goonj TV %trial_hours% hour free trial dey dia gaya ha. Jub chahien Jaib se Mobile nikalien aur TOP LIVE TV Channels deikhen siraf %price%
-                         Ruppey/d main.`,                            
+            QDfC: `Apko Goonj Tv Free %trial_hours% hour trial dey dia gaya ha. Jub chahien Jaib se Mobile nikalien aur TOP  LIVE TV Channels deikhen siraf %price% Ruppey/d main.`,
+            QDfG: `Apko Goonj TV %trial_hours% hour free trial dey dia gaya ha. Jub chahien Jaib se Mobile nikalien aur TOP LIVE TV Channels deikhen siraf %price% Ruppey/d main.`,                            
             QDfH: `Your Goonj TV subscription for Comedy Portal has been activated at Rs.%price%/day. Thankyou for watching Goonj Comedy`,
             QDfI: `Your Goonj TV subscription for Comedy Portal has been activated at Rs.%price%/week. Thankyou for watching Goonj Comedy`,
             gdn:`Apko Goonj TV activate kr dia gaya ha. Jub chahien Jaib se Mobile nikalien aur TOP LIVE TV Channels deikhen.`
