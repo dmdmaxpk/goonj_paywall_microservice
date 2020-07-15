@@ -101,10 +101,7 @@ class SubscriptionConsumer {
     async tryFullChargeAttempt(queueMessage, subscription, transaction_id, is_manual_recharge) {
         
         let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
-        console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
-        console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-        console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
         
         try{
             let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
