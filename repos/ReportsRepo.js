@@ -173,204 +173,209 @@ var transporter = nodemailer.createTransport({
 });
 
 dailyReport = async(mode = 'prod') => {
-    console.log("=> dailyReport");
-    let today = new Date();
-    let myToday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
 
-    let dayBeforeYesterday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
-    dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
-    let reportStartDate = new Date("2020-02-07T00:00:00.672Z");
-    let susbcriberStats = await Subscription.aggregate([
-        {
-            "$match": 
-            {
-                "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
-                "active": true
-            }
-        },
-        {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" } } , count:{ $sum: 1 } } },
-        {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
-        { $sort: {"date": -1}}
-    ]);
+    try{
+        console.log("=> dailyReport");
+        let today = new Date();
+        let myToday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
 
-    console.log("=> dailyReport 1");
-    
-    let subscription_status_stats = await Subscription.aggregate([
-        {
-            "$match": 
-            {
-                "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
-                active:true
-            }
-        },
-        {$group: {_id: {subscription_status: "$subscription_status" } , count:{ $sum: 1 } } },
-        {$project: {  "count": "$count",_id: 1 }} ,
-        { $sort: {"date": -1}}
-    ]);
-
-    console.log("=> dailyReport 2");
-
-    let totalActiveSubscribers = subscription_status_stats.reduce((accum,elem) => {
-        if (elem._id.subscription_status === "trial" || elem._id.subscription_status === "graced" || elem._id.subscription_status === "billed") {
-            return accum = accum + elem.count; 
-        }
-        return accum;
-    },0);
-
-    console.log("=> dailyReport 3");
-
-    let userStats = await User.aggregate([
+        let dayBeforeYesterday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
+        dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
+        let reportStartDate = new Date("2020-02-07T00:00:00.672Z");
+        let susbcriberStats = await Subscription.aggregate([
             {
                 "$match": 
                 {
                     "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
-                    active:true,
-                    operator:"telenor"
+                    "active": true
                 }
             },
-        {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },
-        "year":{ $year: "$added_dtm" }} , count:{ $sum: 1 } } },
-        {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }},
-        {$sort: {"date": -1}} 
-    ]);
+            {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" } } , count:{ $sum: 1 } } },
+            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
+            { $sort: {"date": -1}}
+        ]);
 
-    console.log("=> dailyReport 4");
+        console.log("=> dailyReport 1");
+        
+        let subscription_status_stats = await Subscription.aggregate([
+            {
+                "$match": 
+                {
+                    "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
+                    active:true
+                }
+            },
+            {$group: {_id: {subscription_status: "$subscription_status" } , count:{ $sum: 1 } } },
+            {$project: {  "count": "$count",_id: 1 }} ,
+            { $sort: {"date": -1}}
+        ]);
 
-    let totalUserStats = await User.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
-    console.log("=> dailyReport 4.1");
-    let totalSubscriberStats = await Subscription.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
-    console.log("=> dailyReport 4.2");
-    let totalExpiredCount = await BillingHistory.count({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
-    console.log("=> dailyReport 5");
+        console.log("=> dailyReport 2");
 
-    let billingStats = await BillingHistory.aggregate([
-            { $match: { "billing_status": {$in : ["Success","expired"]}, "billing_dtm": { "$gte": reportStartDate ,$lt: myToday  } } },
+        let totalActiveSubscribers = subscription_status_stats.reduce((accum,elem) => {
+            if (elem._id.subscription_status === "trial" || elem._id.subscription_status === "graced" || elem._id.subscription_status === "billed") {
+                return accum = accum + elem.count; 
+            }
+            return accum;
+        },0);
+
+        console.log("=> dailyReport 3");
+
+        let userStats = await User.aggregate([
+                {
+                    "$match": 
+                    {
+                        "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
+                        active:true,
+                        operator:"telenor"
+                    }
+                },
+            {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },
+            "year":{ $year: "$added_dtm" }} , count:{ $sum: 1 } } },
+            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }},
+            {$sort: {"date": -1}} 
+        ]);
+
+        console.log("=> dailyReport 4");
+
+        let totalUserStats = await User.estimatedDocumentCount({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
+        console.log("=> dailyReport 4.1");
+        let totalSubscriberStats = await Subscription.estimatedDocumentCount({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
+        console.log("=> dailyReport 4.2");
+        let totalExpiredCount = await BillingHistory.estimatedDocumentCount({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
+        console.log("=> dailyReport 5");
+
+        let billingStats = await BillingHistory.aggregate([
+                { $match: { "billing_status": {$in : ["Success","expired"]}, "billing_dtm": { "$gte": reportStartDate ,$lt: myToday  } } },
+                {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
+                    "year":{ $year: "$billing_dtm" },billing_status: "$billing_status",package_id: "$package_id" } , revenue:{ $sum: "$price" },count:{$sum: 1} } },
+                {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                    "revenue": "$revenue","count":"$count",_id:-1 }},{$sort: {"date": -1}}
+        ]);
+        
+        console.log("=> dailyReport 6");
+        
+        let trialStats = await BillingHistory.aggregate([
+            { $match: { "billing_status": "trial","billing_dtm": { "$gte": reportStartDate ,$lt: myToday  }  } },
             {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
-                "year":{ $year: "$billing_dtm" },billing_status: "$billing_status",package_id: "$package_id" } , revenue:{ $sum: "$price" },count:{$sum: 1} } },
-            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
-                "revenue": "$revenue","count":"$count",_id:-1 }},{$sort: {"date": -1}}
-    ]);
-    
-    console.log("=> dailyReport 6");
-    
-    let trialStats = await BillingHistory.aggregate([
-        { $match: { "billing_status": "trial","billing_dtm": { "$gte": reportStartDate ,$lt: myToday  }  } },
-        {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
-            "year":{ $year: "$billing_dtm" } } , trials:{ $sum: 1 } } },
-        {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, 
-            "trials": "$trials",_id:-1 }},{$sort: {"date": -1}}
-    ]);
-    
-    console.log("=> dailyReport 7");
-
-    let resultToWrite = {};
-    userStats.forEach(userStat => {
-        if(userStat.date){
-            resultToWrite[userStat.date.toDateString()] =  {};
-        }
-    });
-
-    console.log("=> dailyReport 8");
-
-    let totalUsers = totalUserStats;
-    userStats.forEach(userStat => {
-        if(userStat.date){
-            resultToWrite[userStat.date.toDateString()]['newUser'] = userStat.count;
-            totalUsers = totalUsers - userStat.count;
-            resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
-        }
-    });
-
-    console.log("=> dailyReport 9");
-
-    var totalSubscriber = totalSubscriberStats;
-    susbcriberStats.forEach(subsc => {
-        if(subsc.date){
-            resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
-            totalSubscriber = totalSubscriber - subsc.count;
-            resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
-        }
-    });
-
-    console.log("=> dailyReport 10");
-
-    let totalExpiredCountt = totalExpiredCount;
-
-    billingStats.forEach(billingHistor => {
-        // console.log(billingHistor);
-        if(resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "Success") {
-            console.log("billingHistor",billingHistor);
-            if (billingHistor._id.package_id === "QDfC") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-liveonly'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-liveonly'] = billingHistor.count;
-            }
-            if (billingHistor._id.package_id === "QDfG") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-liveweekly'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-liveweekly'] = billingHistor.count;
-            }
-            if (billingHistor._id.package_id === "QDfH") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-comedyonly'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyonly'] = billingHistor.count;
-            }
-            if (billingHistor._id.package_id === "QDfI") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-comedyweekly'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyweekly'] = billingHistor.count;
-            }
-        } else if (resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "expired")  {
-            console.log("[dailyReport]expired On the day",billingHistor.count);
-            console.log("[dailyReport]date",billingHistor.date.toDateString());
-            totalExpiredCountt = totalExpiredCountt - billingHistor.count;
-            console.log("[dailyReport]totalExpiredCountt",totalExpiredCountt);
-            resultToWrite[billingHistor.date.toDateString()]['users_expired'] = billingHistor.count;
-            resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = totalExpiredCountt;
-        }
-    });
-    console.log("=> dailyReport 11");
-
-    trialStats.forEach(trialStat => {
-        if(resultToWrite[trialStat.date.toDateString()]) {
-            resultToWrite[trialStat.date.toDateString()]['trials'] = trialStat.trials;
-        }
-    });
-
-    console.log("=> dailyReport 12");
-
-    // console.log("myDate",dayBeforeYesterday.toDateString());
-    // console.log("myToday",resultToWrite[dayBeforeYesterday.toDateString()]);
-    resultToWrite[dayBeforeYesterday.toDateString()]["tempTotalActiveSubscribers"] = totalActiveSubscribers; 
-
-    let resultToWriteToCsv= [];
-    for (res in resultToWrite) {
-        let liveOnlyRevenue = (resultToWrite[res]["revenue-liveonly"])?resultToWrite[res]["revenue-liveonly"]:0;
-        let liveWeeklyRevenue = (resultToWrite[res]["revenue-liveweekly"])?resultToWrite[res]["revenue-liveweekly"]:0;
-        let comedyOnlyRevenue = (resultToWrite[res]["revenue-comedyonly"])?resultToWrite[res]["revenue-comedyonly"]:0 ;
-        let comedyWeeklyRevenue = (resultToWrite[res]["revenue-comedyweekly"])?resultToWrite[res]["revenue-comedyweekly"]:0 ;
+                "year":{ $year: "$billing_dtm" } } , trials:{ $sum: 1 } } },
+            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, 
+                "trials": "$trials",_id:-1 }},{$sort: {"date": -1}}
+        ]);
         
-        let totalRevenue = liveOnlyRevenue + liveWeeklyRevenue + comedyOnlyRevenue + comedyWeeklyRevenue;
-        
-        let temp = {date: res, newUser: resultToWrite[res].newUser , newSubscriber: resultToWrite[res].newSubscriber,
-            liveOnlyCount: resultToWrite[res]["users-billed-liveonly"],
-            liveOnlyRevenue: liveOnlyRevenue,
-            
-            liveWeeklyCount: resultToWrite[res]["users-billed-liveweekly"],
-            liveWeeklyRevenue: liveWeeklyRevenue,
-            
-            comedyOnlyCount: resultToWrite[res]["users-billed-comedyonly"],
-            comedyOnlyRevenue: comedyOnlyRevenue,
-            
-            comedyWeeklyCount: resultToWrite[res]["users-billed-comedyweekly"],
-            comedyWeeklyRevenue: comedyWeeklyRevenue,
-            
-            users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,tempTotalActiveSubscribers: (resultToWrite[res]["tempTotalActiveSubscribers"])?resultToWrite[res]["tempTotalActiveSubscribers"]:"",
-            totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers, 
-            totalActiveSubscribers : (resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today < 0)? 0 : resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today,
-            totalRevenue:  totalRevenue       
-        }
-        resultToWriteToCsv.push(temp);
-    } 
+        console.log("=> dailyReport 7");
 
-    console.log("=> dailyReport 13");
+        let resultToWrite = {};
+        userStats.forEach(userStat => {
+            if(userStat.date){
+                resultToWrite[userStat.date.toDateString()] =  {};
+            }
+        });
 
+        console.log("=> dailyReport 8");
+
+        let totalUsers = totalUserStats;
+        userStats.forEach(userStat => {
+            if(userStat.date){
+                resultToWrite[userStat.date.toDateString()]['newUser'] = userStat.count;
+                totalUsers = totalUsers - userStat.count;
+                resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
+            }
+        });
+
+        console.log("=> dailyReport 9");
+
+        var totalSubscriber = totalSubscriberStats;
+        susbcriberStats.forEach(subsc => {
+            if(subsc.date){
+                resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
+                totalSubscriber = totalSubscriber - subsc.count;
+                resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
+            }
+        });
+
+        console.log("=> dailyReport 10");
+
+        let totalExpiredCountt = totalExpiredCount;
+
+        billingStats.forEach(billingHistor => {
+            // console.log(billingHistor);
+            if(resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "Success") {
+                console.log("billingHistor",billingHistor);
+                if (billingHistor._id.package_id === "QDfC") {
+                    resultToWrite[billingHistor.date.toDateString()]['revenue-liveonly'] = billingHistor.revenue;
+                    resultToWrite[billingHistor.date.toDateString()]['users-billed-liveonly'] = billingHistor.count;
+                }
+                if (billingHistor._id.package_id === "QDfG") {
+                    resultToWrite[billingHistor.date.toDateString()]['revenue-liveweekly'] = billingHistor.revenue;
+                    resultToWrite[billingHistor.date.toDateString()]['users-billed-liveweekly'] = billingHistor.count;
+                }
+                if (billingHistor._id.package_id === "QDfH") {
+                    resultToWrite[billingHistor.date.toDateString()]['revenue-comedyonly'] = billingHistor.revenue;
+                    resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyonly'] = billingHistor.count;
+                }
+                if (billingHistor._id.package_id === "QDfI") {
+                    resultToWrite[billingHistor.date.toDateString()]['revenue-comedyweekly'] = billingHistor.revenue;
+                    resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyweekly'] = billingHistor.count;
+                }
+            } else if (resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "expired")  {
+                console.log("[dailyReport]expired On the day",billingHistor.count);
+                console.log("[dailyReport]date",billingHistor.date.toDateString());
+                totalExpiredCountt = totalExpiredCountt - billingHistor.count;
+                console.log("[dailyReport]totalExpiredCountt",totalExpiredCountt);
+                resultToWrite[billingHistor.date.toDateString()]['users_expired'] = billingHistor.count;
+                resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = totalExpiredCountt;
+            }
+        });
+        console.log("=> dailyReport 11");
+
+        trialStats.forEach(trialStat => {
+            if(resultToWrite[trialStat.date.toDateString()]) {
+                resultToWrite[trialStat.date.toDateString()]['trials'] = trialStat.trials;
+            }
+        });
+
+        console.log("=> dailyReport 12");
+
+        // console.log("myDate",dayBeforeYesterday.toDateString());
+        // console.log("myToday",resultToWrite[dayBeforeYesterday.toDateString()]);
+        resultToWrite[dayBeforeYesterday.toDateString()]["tempTotalActiveSubscribers"] = totalActiveSubscribers; 
+
+        let resultToWriteToCsv= [];
+        for (res in resultToWrite) {
+            let liveOnlyRevenue = (resultToWrite[res]["revenue-liveonly"])?resultToWrite[res]["revenue-liveonly"]:0;
+            let liveWeeklyRevenue = (resultToWrite[res]["revenue-liveweekly"])?resultToWrite[res]["revenue-liveweekly"]:0;
+            let comedyOnlyRevenue = (resultToWrite[res]["revenue-comedyonly"])?resultToWrite[res]["revenue-comedyonly"]:0 ;
+            let comedyWeeklyRevenue = (resultToWrite[res]["revenue-comedyweekly"])?resultToWrite[res]["revenue-comedyweekly"]:0 ;
+            
+            let totalRevenue = liveOnlyRevenue + liveWeeklyRevenue + comedyOnlyRevenue + comedyWeeklyRevenue;
+            
+            let temp = {date: res, newUser: resultToWrite[res].newUser , newSubscriber: resultToWrite[res].newSubscriber,
+                liveOnlyCount: resultToWrite[res]["users-billed-liveonly"],
+                liveOnlyRevenue: liveOnlyRevenue,
+                
+                liveWeeklyCount: resultToWrite[res]["users-billed-liveweekly"],
+                liveWeeklyRevenue: liveWeeklyRevenue,
+                
+                comedyOnlyCount: resultToWrite[res]["users-billed-comedyonly"],
+                comedyOnlyRevenue: comedyOnlyRevenue,
+                
+                comedyWeeklyCount: resultToWrite[res]["users-billed-comedyweekly"],
+                comedyWeeklyRevenue: comedyWeeklyRevenue,
+                
+                users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,tempTotalActiveSubscribers: (resultToWrite[res]["tempTotalActiveSubscribers"])?resultToWrite[res]["tempTotalActiveSubscribers"]:"",
+                totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers, 
+                totalActiveSubscribers : (resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today < 0)? 0 : resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today,
+                totalRevenue:  totalRevenue       
+            }
+            resultToWriteToCsv.push(temp);
+        } 
+
+        console.log("=> dailyReport 13");
+
+    }catch(err){
+        console.log("=> catch ", err);
+    }
     try {  
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
