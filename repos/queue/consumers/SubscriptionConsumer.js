@@ -662,8 +662,7 @@ class SubscriptionConsumer {
             // For the first time or every week of consecutive billing
     
             //Send acknowldement to user
-            let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user_id}&amp;pg=${package_id}`;
-            let message = `Apka Goonj tv ka phela Rs${price} charge kia gya hai. Live tv dekhnay ke liye www.goonj.pk aur service khatam karnay ke liye ${unsubLink}`;
+            let message = this.constants.message_after_first_successful_charge[package_id];
             this.messageRepo.sendSmsToUser(message, msisdn);
         }else if(subscription.consecutive_successive_bill_counts % 3 === 0){
             // Every week
@@ -687,7 +686,7 @@ class SubscriptionConsumer {
         percentage = (100 - percentage);
     
         //Send acknowldement to user
-        let message = "You've got "+percentage+"% discount on "+packageName;
+        let message = "You've got "+percentage+"% discount on "+packageName+". Thank you for watching Goonj TV.";
         this.messageRepo.sendSmsToUser(message, msisdn);
     }
 }

@@ -396,16 +396,15 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
 					console.log("Messages",message,user.msisdn);
-					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${subscriptionObj.subscribed_package_id}`;
 					text = message;
-					text = text.replace("%unsub_link%",unsubLink);
 					text = text.replace("%trial_hours%",trial_hours);
+					text = text.replace("%price%",packageObj.display_price_point_numeric);
 					console.log("Subscription Message Text",text,user.msisdn);
 					sendTextMessage(text, user.msisdn);
 				} else if(sendChargingMessage === true) {
 					let trial_hours = packageObj.trial_hours;
-					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${subscriptionObj.subscribed_package_id}`;
-					let message = `Apka ${packageObj.package_name} activate kr dia gya ha. Service khatm krna k liye ${unsubLink}`;
+					let message = constants.subscription_messages_direct[packageObj._id];
+					message= message.replace("%price%",packageObj.display_price_point_numeric)
 					if(subscriptionObj.affiliate_mid === 'gdn'){
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
@@ -840,7 +839,7 @@ exports.unsubscribe = async (req, res) => {
 				result = await billingHistoryRepo.createBillingHistory(history);
 
 				// send SMS to user
-				let smsText = `You package to Goonj TV has expired, click below link to subscribe again www.goonj.pk/goonjplus/subscribe`;
+				let smsText = `Apki Goonj TV per ${packageObj.package_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
 				messageRepo.sendSmsToUser(smsText,user.msisdn);
 
 				if(result){
