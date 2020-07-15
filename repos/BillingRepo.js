@@ -87,7 +87,7 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
-    
+        console.time("[timeLog][TPAPI][FullChargeTPCall]");
         return new Promise(function(resolve, reject) {
             axios({
                 method: 'post',
@@ -96,8 +96,10 @@ class BillingRepository {
                 data: form
             }).then(function(response){
                 subscriptionObj.api_response = response;
+                console.time("[timeLog][TPAPI][FullChargeTPCall]");
                 resolve(subscriptionObj);
             }).catch(function(err){
+                console.time("[timeLog][TPAPI][FullChargeTPCall]");
                 reject(err);
             });
         })
@@ -122,7 +124,7 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
-        
+        console.time("[timeLog][TPAPI][MicroChargeTPCall]");
         return new Promise(function(resolve, reject) {
             axios({
                 method: 'post',
@@ -131,8 +133,10 @@ class BillingRepository {
                 data: form
             }).then(function(response){
                 subscriptionObj.api_response = response;
+                console.timeEnd("[timeLog][TPAPI][MicroChargeTPCall]");
                 resolve(subscriptionObj);
             }).catch(function(err){
+                console.timeEnd("[timeLog][TPAPI][MicroChargeTPCall]");
                 reject(err);
             });
         })

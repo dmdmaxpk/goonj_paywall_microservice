@@ -102,12 +102,9 @@ class SubscriptionConsumer {
         
         let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-       
         
         try{
-            console.time("[timeLog][FullChargeTPCall]");
             let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
-            console.timeEnd("[timeLog][FullChargeTPCall]");
             let api_response = response.api_response;
             let message = api_response.data.Message;
     
@@ -282,9 +279,8 @@ class SubscriptionConsumer {
         try{
             
             if(micro_price <= packageObj.price_point_pkr){
-                console.time("[timeLog][MicroChargeTPCall]");
+                
                 let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
-                console.timeEnd("[timeLog][MicroChargeTPCall]");
                 let api_response = response.api_response;
                 let message = api_response.data.Message;
 
