@@ -16,10 +16,10 @@ class Constants {
         },
         this.message_after_repeated_succes_charge = {
             
-            QDfC: `Thank you for using Goonj TV with Live TV Only at Rs. %price%/day. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein.`,
-            QDfG: `Thank you for using Goonj TV with Live TV Only at Rs. %price%/week. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein.`,                            
-            QDfH: `Thank you for using Goonj TV Comedy Portal Only at Rs. %price%/day. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein.`,
-            QDfI: `Thank you for using Goonj TV Comedy Portal Only at Rs. %price%/week. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein.`
+            QDfC: `Thank you for using Goonj TV with Live TV Only at Rs. %price%/day. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein. http://www.goonj.pk/live`,
+            QDfG: `Thank you for using Goonj TV with Live TV Only at Rs. %price%/week. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein. http://www.goonj.pk/live`,                            
+            QDfH: `Thank you for using Goonj TV Comedy Portal Only at Rs. %price%/day. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein. http://www.goonj.pk/live`,
+            QDfI: `Thank you for using Goonj TV Comedy Portal Only at Rs. %price%/week. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein. http://www.goonj.pk/live`
         }
 
         this.message_after_first_successful_charge = {

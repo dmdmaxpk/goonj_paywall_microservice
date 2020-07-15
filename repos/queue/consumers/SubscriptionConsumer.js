@@ -153,7 +153,7 @@ class SubscriptionConsumer {
                 }
     
                 // Send acknowledgement message
-                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.price_point_pkr, is_manual_recharge,packageObj._id,user._id);
+                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.display_price_point_numeric, is_manual_recharge,packageObj._id,user._id);
                 rabbitMq.acknowledge(queueMessage);
             }else{
                 // Unsuccess billing. Save tp billing response
@@ -676,7 +676,6 @@ class SubscriptionConsumer {
             } else {
                 let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user_id}&amp;pg=${package_id}`;
                 let message = this.constants.message_after_repeated_succes_charge[package_id];
-                message = message.replace("%unsub_link%",unsubLink);
                 message = message.replace("%price%",price);
                 this.messageRepo.sendSmsToUser(message, msisdn);
             }
