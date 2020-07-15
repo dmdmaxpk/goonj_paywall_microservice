@@ -105,7 +105,9 @@ class SubscriptionConsumer {
        
         
         try{
+            console.time("[timeLog][FullChargeTPCall]");
             let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
+            console.timeEnd("[timeLog][FullChargeTPCall]");
             let api_response = response.api_response;
             let message = api_response.data.Message;
     
@@ -280,7 +282,9 @@ class SubscriptionConsumer {
         try{
             
             if(micro_price <= packageObj.price_point_pkr){
+                console.time("[timeLog][MicroChargeTPCall]");
                 let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
+                console.timeEnd("[timeLog][MicroChargeTPCall]");
                 let api_response = response.api_response;
                 let message = api_response.data.Message;
 
@@ -548,7 +552,7 @@ class SubscriptionConsumer {
     async createBillingHistory(
         subscription, response, billingStatus, 
         transaction_id, micro_charge, discount, price, packageObj) {
-        
+        console.time("[timeLog][createHistory]")
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
         
         let history = {};
@@ -578,10 +582,13 @@ class SubscriptionConsumer {
         }
         
         this.addHistory(history);
+        console.timeEnd("[timeLog][createHistory]")
     }
     
     async addHistory(history) {
+        console.time("[timeLog][addHistory]")
         await this.billingHistoryRepo.createBillingHistory(history);
+        console.timeEnd("[timeLog][addHistory]")
     }
     
     // UN-QUEUE SUBSCRIPTION
