@@ -97,7 +97,7 @@ class BillingRepository {
                 data: form
             }).then(function(response){
                 subscriptionObj.api_response = response;
-                console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
+                console.timeEnd("[timeLog][TPAPI][FullChargeTPCall]" + label);
                 resolve(subscriptionObj);
             }).catch(function(err){
                 // console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
