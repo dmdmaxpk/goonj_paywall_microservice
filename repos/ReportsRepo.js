@@ -173,6 +173,7 @@ var transporter = nodemailer.createTransport({
 });
 
 dailyReport = async(mode = 'prod') => {
+    console.log("=> dailyReport");
     let today = new Date();
     let myToday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
 
@@ -191,6 +192,8 @@ dailyReport = async(mode = 'prod') => {
         {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
         { $sort: {"date": -1}}
     ]);
+
+    console.log("=> dailyReport 1");
     
     let subscription_status_stats = await Subscription.aggregate([
         {
@@ -203,15 +206,18 @@ dailyReport = async(mode = 'prod') => {
         {$group: {_id: {subscription_status: "$subscription_status" } , count:{ $sum: 1 } } },
         {$project: {  "count": "$count",_id: 1 }} ,
         { $sort: {"date": -1}}
-          ]);
+    ]);
 
-        
-        let totalActiveSubscribers = subscription_status_stats.reduce((accum,elem) => {
-            if (elem._id.subscription_status === "trial" || elem._id.subscription_status === "graced" || elem._id.subscription_status === "billed") {
-                return accum = accum + elem.count; 
-            }
-            return accum;
-        },0);
+    console.log("=> dailyReport 2");
+
+    let totalActiveSubscribers = subscription_status_stats.reduce((accum,elem) => {
+        if (elem._id.subscription_status === "trial" || elem._id.subscription_status === "graced" || elem._id.subscription_status === "billed") {
+            return accum = accum + elem.count; 
+        }
+        return accum;
+    },0);
+
+    console.log("=> dailyReport 3");
 
     let userStats = await User.aggregate([
             {
@@ -228,10 +234,13 @@ dailyReport = async(mode = 'prod') => {
         {$sort: {"date": -1}} 
     ]);
 
+    console.log("=> dailyReport 4");
+
     let totalUserStats = await User.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
     let totalSubscriberStats = await Subscription.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
     let totalExpiredCount = await BillingHistory.count({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
 
+    console.log("=> dailyReport 5");
 
     let billingStats = await BillingHistory.aggregate([
             { $match: { "billing_status": {$in : ["Success","expired"]}, "billing_dtm": { "$gte": reportStartDate ,$lt: myToday  } } },
@@ -239,7 +248,10 @@ dailyReport = async(mode = 'prod') => {
                 "year":{ $year: "$billing_dtm" },billing_status: "$billing_status",package_id: "$package_id" } , revenue:{ $sum: "$price" },count:{$sum: 1} } },
             {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
                 "revenue": "$revenue","count":"$count",_id:-1 }},{$sort: {"date": -1}}
-        ]);       
+    ]);
+    
+    console.log("=> dailyReport 6");
+    
     let trialStats = await BillingHistory.aggregate([
         { $match: { "billing_status": "trial","billing_dtm": { "$gte": reportStartDate ,$lt: myToday  }  } },
         {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
@@ -248,6 +260,7 @@ dailyReport = async(mode = 'prod') => {
             "trials": "$trials",_id:-1 }},{$sort: {"date": -1}}
     ]);
     
+    console.log("=> dailyReport 7");
 
     let resultToWrite = {};
     userStats.forEach(userStat => {
@@ -255,6 +268,9 @@ dailyReport = async(mode = 'prod') => {
             resultToWrite[userStat.date.toDateString()] =  {};
         }
     });
+
+    console.log("=> dailyReport 8");
+
     let totalUsers = totalUserStats;
     userStats.forEach(userStat => {
         if(userStat.date){
@@ -263,6 +279,9 @@ dailyReport = async(mode = 'prod') => {
             resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
         }
     });
+
+    console.log("=> dailyReport 9");
+
     var totalSubscriber = totalSubscriberStats;
     susbcriberStats.forEach(subsc => {
         if(subsc.date){
@@ -271,8 +290,10 @@ dailyReport = async(mode = 'prod') => {
             resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
         }
     });
+
+    console.log("=> dailyReport 10");
+
     let totalExpiredCountt = totalExpiredCount;
-    console.log("[dailyReport]Reached HEre 4");
 
     billingStats.forEach(billingHistor => {
         // console.log(billingHistor);
@@ -303,13 +324,16 @@ dailyReport = async(mode = 'prod') => {
             resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = totalExpiredCountt;
         }
     });
-    console.log("[dailyReport]Reached HEre 5");
+    console.log("=> dailyReport 11");
 
     trialStats.forEach(trialStat => {
         if(resultToWrite[trialStat.date.toDateString()]) {
             resultToWrite[trialStat.date.toDateString()]['trials'] = trialStat.trials;
         }
     });
+
+    console.log("=> dailyReport 12");
+
     // console.log("myDate",dayBeforeYesterday.toDateString());
     // console.log("myToday",resultToWrite[dayBeforeYesterday.toDateString()]);
     resultToWrite[dayBeforeYesterday.toDateString()]["tempTotalActiveSubscribers"] = totalActiveSubscribers; 
@@ -344,6 +368,8 @@ dailyReport = async(mode = 'prod') => {
         resultToWriteToCsv.push(temp);
     } 
 
+    console.log("=> dailyReport 13");
+
     try {  
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
@@ -360,22 +386,22 @@ dailyReport = async(mode = 'prod') => {
                     }
                 ]
             });
-            console.log("[dailyReport]Reached HEre 6",info);
+            console.log("=> dailyReport 14",info);
             fs.unlink(paywallRevFilePath,function(err,data) {
                 if (err) {
-                    console.log("[dailyReport]File not deleted");
+                    console.log("=> [dailyReport]File not deleted");
                 }
-                console.log("[dailyReport]data");
+                console.log("=> [dailyReport]data");
             });
-            console.log("[dailyReport]info",info);
+            console.log("=> [dailyReport]info",info);
         }).catch(er => {
-            console.log("[dailyReport]err",er)
+            console.log("=> [dailyReport]err",er)
         })
     } catch(err) {
-        console.log("[dailyReport]",err);
+        console.log("=> [dailyReport]",err);
     }
 
-    console.log("[dailyReport]resultToWrite",resultToWriteToCsv);
+    console.log("=> [dailyReport]resultToWrite",resultToWriteToCsv);
 }
 
 callBacksReport =async() => {
