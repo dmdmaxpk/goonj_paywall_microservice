@@ -153,7 +153,7 @@ class SubscriptionConsumer {
                 }
     
                 // Send acknowledgement message
-                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.display_price_point_numeric, is_manual_recharge,packageObj._id,user._id);
+                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.display_price_point, is_manual_recharge,packageObj._id,user._id);
                 rabbitMq.acknowledge(queueMessage);
             }else{
                 // Unsuccess billing. Save tp billing response
