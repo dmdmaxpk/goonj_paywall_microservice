@@ -240,11 +240,11 @@ dailyReport = async(mode = 'prod') => {
 
         console.log("=> dailyReport 4");
 
-        let totalUserStats = await User.estimatedDocumentCount({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
+        let totalUserStats = await User.countDocuments({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
         console.log("=> dailyReport 4.1");
-        let totalSubscriberStats = await Subscription.estimatedDocumentCount({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
+        let totalSubscriberStats = await Subscription.countDocuments({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
         console.log("=> dailyReport 4.2 - ", totalSubscriberStats);
-        let totalExpiredCount = await BillingHistory.estimatedDocumentCount({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
+        let totalExpiredCount = await BillingHistory.countDocuments({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
         console.log("=> dailyReport 5 - ", totalExpiredCount);
 
         let billingStats = await BillingHistory.aggregate([
