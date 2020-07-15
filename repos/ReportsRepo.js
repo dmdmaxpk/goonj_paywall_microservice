@@ -376,7 +376,7 @@ dailyReport = async(mode = 'prod') => {
                 from: 'paywall@dmdmax.com.pk', // sender address
                 to:  ['paywall@dmdmax.com.pk'],
                 //to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com","zara.naqi@telenor.com.pk",
-                        "fahad.shabbir@ideationtec.com","ceo@ideationtec.com","asad@ideationtec.com"], // list of receivers
+                        //"fahad.shabbir@ideationtec.com","ceo@ideationtec.com","asad@ideationtec.com"], // list of receivers
                 subject: `Paywall Report`, // Subject ne
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
                 attachments:[
