@@ -15,7 +15,6 @@ class Constants {
             QDfI: `Your Goonj TV subscription for Comedy Portal has been activated at Rs.%price%/week. Thankyou for watching Goonj Comedy`,
         },
         this.message_after_repeated_succes_charge = {
-            
             QDfC: `Thank you for using Goonj TV with Live TV Only at Rs. %price%/day. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein. http://www.goonj.pk/live`,
             QDfG: `Thank you for using Goonj TV with Live TV Only at Rs. %price%/week. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein. http://www.goonj.pk/live`,                            
             QDfH: `Thank you for using Goonj TV Comedy Portal Only at Rs. %price%. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein. http://www.goonj.pk/live`,
@@ -23,7 +22,6 @@ class Constants {
         }
 
         this.message_after_first_successful_charge = {
-            
             QDfC: `Ap Pakistan ki best Live TV service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. http://www.goonj.pk/live`,
             QDfG: `Ap Pakistan ki best Live TV service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. http://www.goonj.pk/live`,                            
             QDfH: `Ap Pakistan ki best Comedy Portal service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. http://www.goonj.pk/live`,
