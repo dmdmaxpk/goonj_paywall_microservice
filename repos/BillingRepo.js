@@ -100,7 +100,7 @@ class BillingRepository {
                 console.timeEnd("[timeLog][TPAPI][FullChargeTPCall]" + label);
                 resolve(subscriptionObj);
             }).catch(function(err){
-                // console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
+                console.timeEnd("[timeLog][TPAPI][FullChargeTPCall]" + label);
                 reject(err);
             });
         })
@@ -138,7 +138,7 @@ class BillingRepository {
                 console.timeEnd("[timeLog][TPAPI][MicroChargeTPCall]"+ + label);
                 resolve(subscriptionObj);
             }).catch(function(err){
-                // console.timeEnd("[timeLog][TPAPI][MicroChargeTPCall]" + label);
+                console.timeEnd("[timeLog][TPAPI][MicroChargeTPCall]" + label);
                 reject(err);
             });
         })
