@@ -174,6 +174,8 @@ var transporter = nodemailer.createTransport({
 
 dailyReport = async(mode = 'prod') => {
 
+    let resultToWriteToCsv= [];
+
     try{
         console.log("=> dailyReport");
         let today = new Date();
@@ -341,7 +343,6 @@ dailyReport = async(mode = 'prod') => {
         // console.log("myToday",resultToWrite[dayBeforeYesterday.toDateString()]);
         resultToWrite[dayBeforeYesterday.toDateString()]["tempTotalActiveSubscribers"] = totalActiveSubscribers; 
 
-        let resultToWriteToCsv= [];
         for (res in resultToWrite) {
             let liveOnlyRevenue = (resultToWrite[res]["revenue-liveonly"])?resultToWrite[res]["revenue-liveonly"]:0;
             let liveWeeklyRevenue = (resultToWrite[res]["revenue-liveweekly"])?resultToWrite[res]["revenue-liveweekly"]:0;
@@ -376,11 +377,12 @@ dailyReport = async(mode = 'prod') => {
     }catch(err){
         console.log("=> catch ", err);
     }
+
     try {  
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to:  ['paywall@dmdmax.com.pk'],
+                to:  ['farhan.ali@dmdmax.com'],
                 //to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com","zara.naqi@telenor.com.pk",
                         //"fahad.shabbir@ideationtec.com","ceo@ideationtec.com","asad@ideationtec.com"], // list of receivers
                 subject: `Paywall Report`, // Subject ne
@@ -402,12 +404,11 @@ dailyReport = async(mode = 'prod') => {
             console.log("=> [dailyReport]info",info);
         }).catch(er => {
             console.log("=> [dailyReport]err",er)
-        })
+        });
+        console.log("=> [dailyReport]resultToWrite",resultToWriteToCsv)
     } catch(err) {
         console.log("=> [dailyReport]",err);
     }
-
-    console.log("=> [dailyReport]resultToWrite",resultToWriteToCsv);
 }
 
 callBacksReport =async() => {
