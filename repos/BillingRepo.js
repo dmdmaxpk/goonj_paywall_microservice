@@ -87,7 +87,8 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
-        console.time("[timeLog][TPAPI][FullChargeTPCall]");
+        let label = "label " + Date.now() + Math.random();
+        console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
         return new Promise(function(resolve, reject) {
             axios({
                 method: 'post',
@@ -96,10 +97,10 @@ class BillingRepository {
                 data: form
             }).then(function(response){
                 subscriptionObj.api_response = response;
-                console.time("[timeLog][TPAPI][FullChargeTPCall]");
+                console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
                 resolve(subscriptionObj);
             }).catch(function(err){
-                console.time("[timeLog][TPAPI][FullChargeTPCall]");
+                console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
                 reject(err);
             });
         })
@@ -124,7 +125,8 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
-        console.time("[timeLog][TPAPI][MicroChargeTPCall]");
+        let label = "label " + Date.now() + Math.random();
+        console.time("[timeLog][TPAPI][MicroChargeTPCall]" + label);
         return new Promise(function(resolve, reject) {
             axios({
                 method: 'post',
@@ -133,10 +135,10 @@ class BillingRepository {
                 data: form
             }).then(function(response){
                 subscriptionObj.api_response = response;
-                console.timeEnd("[timeLog][TPAPI][MicroChargeTPCall]");
+                console.timeEnd("[timeLog][TPAPI][MicroChargeTPCall]"+ + label);
                 resolve(subscriptionObj);
             }).catch(function(err){
-                console.timeEnd("[timeLog][TPAPI][MicroChargeTPCall]");
+                console.timeEnd("[timeLog][TPAPI][MicroChargeTPCall]" + label);
                 reject(err);
             });
         })
