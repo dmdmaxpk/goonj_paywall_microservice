@@ -337,6 +337,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				// Check if trial is allowed by the system
 				let sendTrialMessage = false;
 				let sendChargingMessage = false;
+
 				if (packageObj.is_trial_allowed && !( subscriptionObj.source === 'HE' && subscriptionObj.affiliate_mid ===  "gdn")) {
 					console.log("activating trial");
 
@@ -351,14 +352,50 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.active = true;
 					subscriptionObj.amount_billed_today = 0;
 
-					if(packageObj.paywall_id === "ghRtjhT7"){
-						// Live paywall, subscription rules along with micro changing started
-						let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.source, user, subscriber, packageObj, subscriptionObj);
+					if(subscriptionObj.source === 'HE'){
+						// For affiliate/gdn users
+						if(packageObj.paywall_id === "ghRtjhT7"){
+							// Live paywall, subscription rules along with micro changing started
+							let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.source, user, subscriber, packageObj, subscriptionObj);
+							console.log("subsResponse", subsResponse);
+							if(subsResponse && subsResponse.status === "charged"){
+								res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+								sendChargingMessage = true;
+							}else if(subsResponse && subsResponse.status === "trial"){
+								res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+								sendTrialMessage = true;
+							}else{
+								res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+							}
+							subscriptionObj = subsResponse.subscriptionObj;
+							packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
+						}else{
+							// comedy paywall
+							try {
+								let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,true);
+								console.log("Direct Billing processed",result,user.msisdn);
+								if(result.message === "success"){
+									// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
+									// subscribePackage(subscription, packageObj);
+									res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
+												gw_transaction_id: gw_transaction_id});
+									sendChargingMessage = true;
+								}else{
+									res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
+											gw_transaction_id: gw_transaction_id});
+								}
+							} catch(err){
+								console.log("Error while direct billing first time",err.message,user.msisdn);
+							}
+						}	
+					}else{
+						// For non-affiliate/non-gdn users
+						let subsResponse = await doSubscribeUsingSubscribingRule(req.body.source, user, subscriber, packageObj, subscriptionObj);
 						console.log("subsResponse", subsResponse);
-						if(subsResponse && subsResponse.status === "charged"){
+						if(subsResponse.status === "charged"){
 							res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 							sendChargingMessage = true;
-						}else if(subsResponse && subsResponse.status === "trial"){
+						}else if(subsResponse.status === "trial"){
 							res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 							sendTrialMessage = true;
 						}else{
@@ -366,48 +403,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						}
 						subscriptionObj = subsResponse.subscriptionObj;
 						packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
-						// Subscription rules along with micro changing ended	
-					}else{
-						// comedy paywall
-						try {
-							let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,true);
-							console.log("Direct Billing processed",result,user.msisdn);
-							if(result.message === "success"){
-								// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
-								// subscribePackage(subscription, packageObj);
-								res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
-											gw_transaction_id: gw_transaction_id});
-								sendMessage = true;
-							}else{
-								res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
-										gw_transaction_id: gw_transaction_id});
-								sendMessage= false;
-							}
-						} catch(err){
-							console.log("Error while direct billing first time",err.message,user.msisdn);
-							sendMessage= false;
-						}
-					}
-
-
-
-
-					// Subscription rules started
-					// let subsResponse = await doSubscribeUsingSubscribingRule(req.body.source, user, subscriber, packageObj, subscriptionObj);
-					// console.log("subsResponse", subsResponse);
-					// if(subsResponse.status === "charged"){
-					// 	res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-					// 	sendChargingMessage = true;
-					// }else if(subsResponse.status === "trial"){
-					// 	res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-					// 	sendTrialMessage = true;
-					// }else{
-					// 	res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-					// }
-					// subscriptionObj = subsResponse.subscriptionObj;
-					// packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
-					// Subscription rules ended
-					
+					}	
 				}
 
 				if (sendTrialMessage === true) {
