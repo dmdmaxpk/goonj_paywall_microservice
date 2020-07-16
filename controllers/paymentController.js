@@ -421,16 +421,15 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
 					console.log("Messages",message,user.msisdn);
-					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${subscriptionObj.subscribed_package_id}`;
 					text = message;
-					text = text.replace("%unsub_link%",unsubLink);
 					text = text.replace("%trial_hours%",trial_hours);
+					text = text.replace("%price%",packageObj.display_price_point_numeric);
 					console.log("Subscription Message Text",text,user.msisdn);
 					sendTextMessage(text, user.msisdn);
 				} else if(sendChargingMessage === true) {
 					let trial_hours = packageObj.trial_hours;
-					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${subscriptionObj.subscribed_package_id}`;
-					let message = `Apka ${packageObj.package_name} activate kr dia gya ha. Service khatm krna k liye ${unsubLink}`;
+					let message = constants.subscription_messages_direct[packageObj._id];
+					message= message.replace("%price%",packageObj.display_price_point_numeric)
 					if(subscriptionObj.affiliate_mid === 'gdn'){
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
@@ -687,6 +686,7 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 				}
 			});
 			let currentIndex = packages.findIndex(x => x._id === packageObj._id);
+			console.log("Current index: ", currentIndex);
 			if(currentIndex > 0){
 				// try on lower package
 				packageObj = packages[--currentIndex];

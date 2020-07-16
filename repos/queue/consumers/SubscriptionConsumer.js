@@ -7,7 +7,7 @@ const axios =require("axios");
 class SubscriptionConsumer {
 
     constructor({emailService,subscriptionRepository,billingHistoryRepository,tpsCountRepository,billingRepository,
-        packageRepository,messageRepository,userRepository}) {
+        packageRepository,messageRepository,userRepository,constants}) {
         this.subscriptionRepo = subscriptionRepository;
         this.billingHistoryRepo = billingHistoryRepository;
         this.tpsCountRepo = tpsCountRepository;
@@ -16,6 +16,7 @@ class SubscriptionConsumer {
         this.messageRepo = messageRepository;
         this.userRepo = userRepository;
         this.emailService = emailService;
+        this.constants = constants;
     }
 
     async consume(message) {
@@ -101,7 +102,6 @@ class SubscriptionConsumer {
         
         let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-       
         
         try{
             let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
@@ -153,7 +153,7 @@ class SubscriptionConsumer {
                 }
     
                 // Send acknowledgement message
-                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.price_point_pkr, is_manual_recharge,packageObj._id,user._id);
+                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.display_price_point, is_manual_recharge,packageObj._id,user._id);
                 rabbitMq.acknowledge(queueMessage);
             }else{
                 // Unsuccess billing. Save tp billing response
@@ -279,6 +279,7 @@ class SubscriptionConsumer {
         try{
             
             if(micro_price <= packageObj.price_point_pkr){
+                
                 let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
                 let api_response = response.api_response;
                 let message = api_response.data.Message;
@@ -373,6 +374,8 @@ class SubscriptionConsumer {
     // ASSIGN GRACE PERIOD
     async assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error,transaction_id) {
     
+        let expiry_source = undefined;
+
         let subscriptionObj = {};
         subscriptionObj.queued = false;
         let historyStatus;
@@ -419,6 +422,8 @@ class SubscriptionConsumer {
                 subscriptionObj.try_micro_charge_in_next_cycle = false;
                 subscriptionObj.micro_price_point = 0;
                 subscriptionObj.priority = 0;
+
+                expiry_source = "system-after-grace-end";
 
                 //Send acknowledgement to user
                 let link = 'https://www.goonj.pk/goonjplus/subscribe';
@@ -495,6 +500,11 @@ class SubscriptionConsumer {
             history.price = (subscription.try_micro_charge_in_next_cycle)?subscription.micro_price_point:0;
             history.transaction_id = transaction_id;
             history.operator = 'telenor';
+            
+            if(expiry_source !== undefined){
+                history.source = expiry_source;
+            }
+
             history.operator_response = error;
             await this.addHistory(history);
         }
@@ -538,7 +548,7 @@ class SubscriptionConsumer {
     async createBillingHistory(
         subscription, response, billingStatus, 
         transaction_id, micro_charge, discount, price, packageObj) {
-        
+        console.time("[timeLog][createHistory]")
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
         
         let history = {};
@@ -568,10 +578,13 @@ class SubscriptionConsumer {
         }
         
         this.addHistory(history);
+        console.timeEnd("[timeLog][createHistory]")
     }
     
     async addHistory(history) {
+        console.time("[timeLog][addHistory]")
         await this.billingHistoryRepo.createBillingHistory(history);
+        console.timeEnd("[timeLog][addHistory]")
     }
     
     // UN-QUEUE SUBSCRIPTION
@@ -628,7 +641,9 @@ class SubscriptionConsumer {
             url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
         } else if (mid === "goonj"){
             url = config.ideation_callback_url2 + `?txid=${tid}`;
-        } else if (mid === "1" || mid === "gdn" ){
+        } else if (mid === "aff3"){
+            url = config.ideation_callback_url3 + `${tid}`;
+        }  else if (mid === "1" || mid === "gdn" ){
             return new Promise((resolve,reject) => { reject(null)})
         }
         console.log("url",url)
@@ -650,8 +665,7 @@ class SubscriptionConsumer {
             // For the first time or every week of consecutive billing
     
             //Send acknowldement to user
-            let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user_id}&amp;pg=${package_id}`;
-            let message = `Apka Goonj tv ka phela Rs${price} charge kia gya hai. Live tv dekhnay ke liye www.goonj.pk aur service khatam karnay ke liye ${unsubLink}`;
+            let message = this.constants.message_after_first_successful_charge[package_id];
             this.messageRepo.sendSmsToUser(message, msisdn);
         }else if(subscription.consecutive_successive_bill_counts % 3 === 0){
             // Every week
@@ -661,7 +675,8 @@ class SubscriptionConsumer {
                 this.messageRepo.sendSmsToUser(message, msisdn);
             } else {
                 let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user_id}&amp;pg=${package_id}`;
-                let message = `Goonj tv per top channels Rs${price}/day dekhnay ka shukriya. Service istemal ke liye www.goonj.pk aur service khatam karnay ke liye ${unsubLink}`;
+                let message = this.constants.message_after_repeated_succes_charge[package_id];
+                message = message.replace("%price%",price);
                 this.messageRepo.sendSmsToUser(message, msisdn);
             }
         }
@@ -673,7 +688,7 @@ class SubscriptionConsumer {
         percentage = (100 - percentage);
     
         //Send acknowldement to user
-        let message = "You've got "+percentage+"% discount on "+packageName;
+        let message = "You've got "+percentage+"% discount on "+packageName+". Thank you for watching Goonj TV.";
         this.messageRepo.sendSmsToUser(message, msisdn);
     }
 }
