@@ -935,8 +935,13 @@ dailyTrialToBilledUsers = async() => {
         trialToBilledUsers.forEach(element => {
             element.msisdn = JSON.stringify(element.msisdn);
         });
+        
 
-        await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
+        let trialToBilledUserToWr = trialToBilledUsers.sort(function (a,b){
+            return a['trial_date'] - b['trial_date'];
+        })
+
+        await csvTrialToBilledUsers.writeRecords(trialToBilledUserToWr);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
             to:  ["hamza@dmdmax.com"],
