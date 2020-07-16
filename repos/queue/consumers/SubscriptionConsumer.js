@@ -29,7 +29,8 @@ class SubscriptionConsumer {
         let discount = subscriptionObj.discount;
         
         try {
-            
+            let label = "label " + Date.now() + Math.random();
+            console.time("[timeLog][Consumer][SubscriptionConsumer]" + label);
             // Check if the subscription is active or blocked for some reason.
             if (subscription.active === true) {
                 
@@ -48,7 +49,7 @@ class SubscriptionConsumer {
                         }else{
                             this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
                         }
-                        
+                        console.timeEnd("[timeLog][Consumer][SubscriptionConsumer]" + label);
                     }  else{
                         console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                         setTimeout(() => {
@@ -180,6 +181,7 @@ class SubscriptionConsumer {
     
             await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error.response.data,transaction_id);
             rabbitMq.acknowledge(queueMessage);
+            
         }
     }
     
