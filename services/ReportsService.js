@@ -20,42 +20,42 @@ generateDailyReport = async() => {
     from.setMinutes(00);
     from.setSeconds(00);
 
-    //unc
+    
     // Revenue report
-    // reportsRepo.dailyReport();
+    reportsRepo.dailyReport();
 
     // //Unsub Zara's number daily
     // await subscriberRepo.removeNumberAndHistory('03458561755');
     
-    //unc
-    // await sleep(180*1000);
-    // reportsRepo.callBacksReport();
-
-    //unc
-    // await sleep(180*1000);
-    // reportsRepo.dailyReturningUsers(from, to);
     
-    //unc
-    // await sleep(120*1000);
-    // reportsRepo.dailyUnsubReport();
+    await sleep(180*1000);
+    reportsRepo.callBacksReport();
+
+    
+    await sleep(180*1000);
+    reportsRepo.dailyReturningUsers(from, to);
+    
+    
+    await sleep(120*1000);
+    reportsRepo.dailyUnsubReport();
 
     //await sleep(120*1000);
     //reportsRepo.errorCountReport();
     
-    //unc
-    // await sleep(120*1000);
-    // reportsRepo.dailyFullAndPartialChargedUsers();
+    
+    await sleep(120*1000);
+    reportsRepo.dailyFullAndPartialChargedUsers();
     
     // await sleep(120*1000);
     reportsRepo.dailyTrialToBilledUsers();
     
-    //unc
-    // await sleep(120*1000);
-    // reportsRepo.dailyChannelWiseUnsub();
+    
+    await sleep(120*1000);
+    reportsRepo.dailyChannelWiseUnsub();
 
-    //unc
-    // await sleep(120*1000);
-    // reportsRepo.dailyChannelWiseTrialActivated();
+    
+    await sleep(120*1000);
+    reportsRepo.dailyChannelWiseTrialActivated();
 
 
     await sleep(120*1000);
