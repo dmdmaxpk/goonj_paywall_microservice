@@ -404,7 +404,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				} else if(sendChargingMessage === true) {
 					let trial_hours = packageObj.trial_hours;
 					let message = constants.subscription_messages_direct[packageObj._id];
-					message= message.replace("%price%",packageObj.display_price_point_numeric)
+					message= message.replace("%price%",packageObj.display_price_point)
 					if(subscriptionObj.affiliate_mid === 'gdn'){
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
