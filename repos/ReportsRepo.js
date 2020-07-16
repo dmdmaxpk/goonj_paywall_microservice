@@ -156,9 +156,10 @@ const csvTrialToBilledUsers = createCsvWriter({
 const csvAffiliatePvs = createCsvWriter({
     path: affiliatePvsFilePath,
     header: [
-        {id: '_id', title: 'Date'},
+        {id: 'date', title: 'Date'},
+        {id: 'source',title: "Source"},
+        {id: 'mid',title: "MID"},
         {id: 'count', title: "Page Views"},
-        {id: 'mid',title: "MID"}
     ]
 });
 
@@ -938,7 +939,7 @@ dailyTrialToBilledUsers = async() => {
         await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["farhan.ali@dmdmax.com"],
+            to:  ["hamza@dmdmax.com"],
             // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
             subject: 'Trial To Billed Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date row.`, // plain text bodyday
@@ -1017,8 +1018,8 @@ dailyPageViews = async() => {
             await csvAffiliatePvs.writeRecords(pvs);
                 var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk',
-                // to:  ["hamza@dmdmax.com"],
-                to:  ["paywall@dmdmax.com.pk","nauman@dmdmax.com", "mikaeel@dmdmax.com"], // list of receivers
+                to:  ["hamza@dmdmax.com"],
+                // to:  ["paywall@dmdmax.com.pk","nauman@dmdmax.com", "mikaeel@dmdmax.com"], // list of receivers
                 subject: 'Affiliate Page Views',
                 text: `This report (generated at ${(new Date()).toDateString()}) contains affiliate page views`, // plain text bodyday
                 attachments:[
