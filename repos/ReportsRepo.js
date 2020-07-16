@@ -938,7 +938,7 @@ dailyTrialToBilledUsers = async() => {
         
 
         let trialToBilledUserToWr = trialToBilledUsers.sort(function (a,b){
-            return a['trial_date'] - b['trial_date'];
+            return   b['trial_date'] - a['trial_date'];
         })
 
         await csvTrialToBilledUsers.writeRecords(trialToBilledUserToWr);
