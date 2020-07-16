@@ -13,7 +13,7 @@ class PaywallRepository {
 
     async getPaywallById(paywall_id){
         if (paywallId) {
-            let paywall = await Paywall.findOne({active: true,_id: paywall_id });
+            let paywall = await Paywall.findOne({active: true, _id: paywall_id });
             return paywall;
         } else {
             return undefined;

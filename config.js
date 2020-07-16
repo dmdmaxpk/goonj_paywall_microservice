@@ -53,6 +53,7 @@ const telenor_dcb_api_token = '';
 //Ideation Url
 const Ideation_call_back_url = 'http://bpd.o18.click/';
 const Ideation_call_back_url_2 = 'http://210.56.13.190/goonj_callback.php/';
+const Ideation_call_back_url_3 = `https://postback.level23.nl/?currency=USD&handler=10821&hash=c4e51373f0d516d0d4fdbd7f0e544c61&tracker=`;
 const time_between_billing_attempts_hours = 8;
 
 let config = {
@@ -65,6 +66,7 @@ let config = {
         telenor_dcb_api_token: telenor_dcb_api_token,
         ideation_callback_url: Ideation_call_back_url,
         ideation_callback_url2: Ideation_call_back_url_2,
+        ideation_callback_url3: Ideation_call_back_url_3,
         time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
@@ -96,6 +98,7 @@ let config = {
         telenor_dcb_api_token: telenor_dcb_api_token,
         ideation_callback_url: Ideation_call_back_url,
         ideation_callback_url2: Ideation_call_back_url_2,
+        ideation_callback_url3: Ideation_call_back_url_3,
         time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
@@ -127,6 +130,7 @@ let config = {
         telenor_dcb_api_token: telenor_dcb_api_token,
         ideation_callback_url: Ideation_call_back_url,
         ideation_callback_url2: Ideation_call_back_url_2,
+        ideation_callback_url3: Ideation_call_back_url_3,
         time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,

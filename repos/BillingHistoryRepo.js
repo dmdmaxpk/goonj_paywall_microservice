@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
+const Subscription = mongoose.model('Subscription');
 const config = require('../config');
 
 class BillingHistoryRepository {
@@ -41,11 +42,14 @@ class BillingHistoryRepository {
     
     async errorCountReportBySource ()  {
         console.time("errorCountReportBySource");
-       let result = await User.aggregate([ {
+       let result = await Subscription.aggregate([ {
+        $match:{
+            added_dtm: {$gte: new Date("2020-06-10T00:00:00.000Z")}
+        },
                 $lookup:{
                            from: "billinghistories",
-                           localField: "_id",
-                           foreignField: "user_id",
+                           localField: "subscriber_id",
+                           foreignField: "subscriber_id",
                            as: "histories"
                          }
             }, { 
@@ -91,11 +95,14 @@ class BillingHistoryRepository {
     
     async errorCountReport  ()  {
         console.time("errorCountReport");
-        let result = await User.aggregate([ {
+        let result = await Subscription.aggregate([ {
+                $match:{
+                    added_dtm: {$gte: new Date("2020-06-10T00:00:00.000Z")}
+                },
                  $lookup:{
                             from: "billinghistories",
-                            localField: "_id",
-                            foreignField: "user_id",
+                            localField: "subscriber_id",
+                            foreignField: "subscriber_id",
                             as: "histories"
                           }
              }, { 
@@ -138,25 +145,31 @@ class BillingHistoryRepository {
     }
     
     async dailyUnsubReport () {
+        console.log("[dailyUnsubReport]");
         let result = await BillingHistory.aggregate([
             {
                 $match:{
-                    "billing_status" : "expired"
+                    $or:[
+                        {"billing_status": "expired"}, 
+                        {"billing_status": "unsubscribe-request-received-and-expired"}
+               ]
                 }
             },{
                 $group: {
                     _id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
-                    "year":{ $year: "$billing_dtm" }},
+                    "year":{ $year: "$billing_dtm" },source:"$source"},
                     count:{$sum: 1} 
                 }
             },{ 
                 $project: { 
                     date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
-                    count:"$count" 
+                    source: "$_id.source",
+                    count:"$count"
                 } 
             },
             { $sort: { date: -1} }
             ]);
+            console.log("[dailyUnsubReport][reached]",result);
          return result;
     }
 
@@ -263,7 +276,7 @@ class BillingHistoryRepository {
             {
                 $match:{
                     $or:[{"billing_status" : "unsubscribe-request-recieved"}, {"billing_status" : "unsubscribe-request-received-and-expired"}],
-                    "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")},
+                    "billing_dtm": {$gte:new Date("2020-06-10T00:00:00.000Z")},
                     "operator": "telenor"
                 }
             },{
@@ -326,7 +339,7 @@ class BillingHistoryRepository {
             {
                 $match:{
                     "billing_status" : "expired",
-            "billing_dtm": {$gte:new Date("2020-03-25T00:00:00.000Z")},
+            "billing_dtm": {$gte:new Date("2020-06-10T00:00:00.000Z")},
             "operator_response": {$exists: true}
                 }
             },{
@@ -386,7 +399,7 @@ class BillingHistoryRepository {
         let result = await BillingHistory.aggregate([{
             $match: {
                 "billing_status": "Success",
-                "billing_dtm": {$gte: new Date("2020-03-14T00:00:00.000Z")}
+                "billing_dtm": {$gte: new Date("2020-06-10T00:00:00.000Z")}
             }
         },{
             $group: {
