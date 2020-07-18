@@ -156,7 +156,9 @@ const csvTrialToBilledUsers = createCsvWriter({
 const csvAffiliatePvs = createCsvWriter({
     path: affiliatePvsFilePath,
     header: [
-        {id: '_id', title: 'Date'},
+        {id: 'date', title: 'Date'},
+        {id: 'source',title: "Source"},
+        {id: 'mid',title: "MID"},
         {id: 'count', title: "Page Views"},
     ]
 });
@@ -172,190 +174,219 @@ var transporter = nodemailer.createTransport({
 });
 
 dailyReport = async(mode = 'prod') => {
-    let today = new Date();
-    let myToday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
 
-    let dayBeforeYesterday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
-    dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
-    let reportStartDate = new Date("2020-02-07T00:00:00.672Z");
-    let susbcriberStats = await Subscription.aggregate([
-        {
-            "$match": 
-            {
-                "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
-                "active": true
-            }
-        },
-        {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" } } , count:{ $sum: 1 } } },
-        {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
-        { $sort: {"date": -1}}
-    ]);
-    
-    let subscription_status_stats = await Subscription.aggregate([
-        {
-            "$match": 
-            {
-                "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
-                active:true
-            }
-        },
-        {$group: {_id: {subscription_status: "$subscription_status" } , count:{ $sum: 1 } } },
-        {$project: {  "count": "$count",_id: 1 }} ,
-        { $sort: {"date": -1}}
-          ]);
+    let resultToWriteToCsv= [];
 
-        console.log("[dailyReport]Subscription Stats",subscription_status_stats);
+    try{
+        console.log("=> dailyReport");
+        let today = new Date();
+        let myToday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
+
+        let dayBeforeYesterday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
+        dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
+        let reportStartDate = new Date("2020-02-07T00:00:00.672Z");
+        let susbcriberStats = await Subscription.aggregate([
+            {
+                "$match": 
+                {
+                    "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
+                    "active": true
+                }
+            },
+            {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },"year":{ $year: "$added_dtm" } } , count:{ $sum: 1 } } },
+            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }} ,
+            { $sort: {"date": -1}}
+        ]);
+
+        console.log("=> dailyReport 1");
         
+        let subscription_status_stats = await Subscription.aggregate([
+            {
+                "$match": 
+                {
+                    "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
+                    active:true
+                }
+            },
+            {$group: {_id: {subscription_status: "$subscription_status" } , count:{ $sum: 1 } } },
+            {$project: {  "count": "$count",_id: 1 }} ,
+            { $sort: {"date": -1}}
+        ]);
+
+        console.log("=> dailyReport 2");
+
         let totalActiveSubscribers = subscription_status_stats.reduce((accum,elem) => {
             if (elem._id.subscription_status === "trial" || elem._id.subscription_status === "graced" || elem._id.subscription_status === "billed") {
                 return accum = accum + elem.count; 
             }
             return accum;
         },0);
-        console.log("[dailyReport]Total Active Subscribers",totalActiveSubscribers);
 
-    let userStats = await User.aggregate([
-            {
-                "$match": 
+        console.log("=> dailyReport 3");
+
+        let userStats = await User.aggregate([
                 {
-                    "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
-                    active:true,
-                    operator:"telenor"
-                }
-            },
-        {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },
-        "year":{ $year: "$added_dtm" }} , count:{ $sum: 1 } } },
-        {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }},
-        {$sort: {"date": -1}} 
-    ]);
-    console.log("[dailyReport]Reached HEre 1");
+                    "$match": 
+                    {
+                        "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },
+                        active:true,
+                        operator:"telenor"
+                    }
+                },
+            {$group: {_id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },
+            "year":{ $year: "$added_dtm" }} , count:{ $sum: 1 } } },
+            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, "count": "$count",_id:-1 }},
+            {$sort: {"date": -1}} 
+        ]);
 
-    let totalUserStats = await User.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
-    let totalSubscriberStats = await Subscription.count({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
-    let totalExpiredCount = await BillingHistory.count({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
-    console.log("[dailyReport]totalExpiredCount",totalExpiredCount);
+        console.log("=> dailyReport 4");
 
+        let totalUserStats = await User.countDocuments({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
+        console.log("=> dailyReport 4.1");
+        let totalSubscriberStats = await Subscription.countDocuments({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
+        console.log("=> dailyReport 4.2 - ", totalSubscriberStats);
+        let totalExpiredCount = await BillingHistory.countDocuments({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
+        console.log("=> dailyReport 5 - ", totalExpiredCount);
 
-    let billingStats = await BillingHistory.aggregate([
-            { $match: { "billing_status": {$in : ["Success","expired"]}, "billing_dtm": { "$gte": reportStartDate ,$lt: myToday  } } },
+        let billingStats = await BillingHistory.aggregate([
+                { $match: { "billing_status": {$in : ["Success","expired"]}, "billing_dtm": { "$gte": reportStartDate ,$lt: myToday  } } },
+                {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
+                    "year":{ $year: "$billing_dtm" },billing_status: "$billing_status",package_id: "$package_id" } , revenue:{ $sum: "$price" },count:{$sum: 1} } },
+                {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                    "revenue": "$revenue","count":"$count",_id:-1 }},{$sort: {"date": -1}}
+        ]);
+        
+        console.log("=> dailyReport 6");
+        
+        let trialStats = await BillingHistory.aggregate([
+            { $match: { "billing_status": "trial","billing_dtm": { "$gte": reportStartDate ,$lt: myToday  }  } },
             {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
-                "year":{ $year: "$billing_dtm" },billing_status: "$billing_status",package_id: "$package_id" } , revenue:{ $sum: "$price" },count:{$sum: 1} } },
-            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
-                "revenue": "$revenue","count":"$count",_id:-1 }},{$sort: {"date": -1}}
-        ]);       
-        console.log("[dailyReport]Reached HEre 2");
-    let trialStats = await BillingHistory.aggregate([
-        { $match: { "billing_status": "trial","billing_dtm": { "$gte": reportStartDate ,$lt: myToday  }  } },
-        {$group: {_id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
-            "year":{ $year: "$billing_dtm" } } , trials:{ $sum: 1 } } },
-        {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, 
-            "trials": "$trials",_id:-1 }},{$sort: {"date": -1}}
-    ]);
-    console.log("[dailyReport]Reached HEre 3");
-    
-
-    let resultToWrite = {};
-    userStats.forEach(userStat => {
-        if(userStat.date){
-            resultToWrite[userStat.date.toDateString()] =  {};
-        }
-    });
-    let totalUsers = totalUserStats;
-    userStats.forEach(userStat => {
-        if(userStat.date){
-            resultToWrite[userStat.date.toDateString()]['newUser'] = userStat.count;
-            totalUsers = totalUsers - userStat.count;
-            resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
-        }
-    });
-    var totalSubscriber = totalSubscriberStats;
-    susbcriberStats.forEach(subsc => {
-        if(subsc.date){
-            resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
-            totalSubscriber = totalSubscriber - subsc.count;
-            resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
-        }
-    });
-    let totalExpiredCountt = totalExpiredCount;
-    console.log("[dailyReport]Reached HEre 4");
-
-    billingStats.forEach(billingHistor => {
-        // console.log(billingHistor);
-        if(resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "Success") {
-            console.log("billingHistor",billingHistor);
-            if (billingHistor._id.package_id === "QDfC") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-liveonly'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-liveonly'] = billingHistor.count;
-            }
-            if (billingHistor._id.package_id === "QDfG") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-liveweekly'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-liveweekly'] = billingHistor.count;
-            }
-            if (billingHistor._id.package_id === "QDfH") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-comedyonly'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyonly'] = billingHistor.count;
-            }
-            if (billingHistor._id.package_id === "QDfI") {
-                resultToWrite[billingHistor.date.toDateString()]['revenue-comedyweekly'] = billingHistor.revenue;
-                resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyweekly'] = billingHistor.count;
-            }
-        } else if (resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "expired")  {
-            console.log("[dailyReport]expired On the day",billingHistor.count);
-            console.log("[dailyReport]date",billingHistor.date.toDateString());
-            totalExpiredCountt = totalExpiredCountt - billingHistor.count;
-            console.log("[dailyReport]totalExpiredCountt",totalExpiredCountt);
-            resultToWrite[billingHistor.date.toDateString()]['users_expired'] = billingHistor.count;
-            resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = totalExpiredCountt;
-        }
-    });
-    console.log("[dailyReport]Reached HEre 5");
-
-    trialStats.forEach(trialStat => {
-        if(resultToWrite[trialStat.date.toDateString()]) {
-            resultToWrite[trialStat.date.toDateString()]['trials'] = trialStat.trials;
-        }
-    });
-    // console.log("myDate",dayBeforeYesterday.toDateString());
-    // console.log("myToday",resultToWrite[dayBeforeYesterday.toDateString()]);
-    resultToWrite[dayBeforeYesterday.toDateString()]["tempTotalActiveSubscribers"] = totalActiveSubscribers; 
-
-    let resultToWriteToCsv= [];
-    for (res in resultToWrite) {
-        let liveOnlyRevenue = (resultToWrite[res]["revenue-liveonly"])?resultToWrite[res]["revenue-liveonly"]:0;
-        let liveWeeklyRevenue = (resultToWrite[res]["revenue-liveweekly"])?resultToWrite[res]["revenue-liveweekly"]:0;
-        let comedyOnlyRevenue = (resultToWrite[res]["revenue-comedyonly"])?resultToWrite[res]["revenue-comedyonly"]:0 ;
-        let comedyWeeklyRevenue = (resultToWrite[res]["revenue-comedyweekly"])?resultToWrite[res]["revenue-comedyweekly"]:0 ;
+                "year":{ $year: "$billing_dtm" } } , trials:{ $sum: 1 } } },
+            {$project: {  "date":{"$dateFromParts":{ year: "$_id.year","month":"$_id.month","day":"$_id.day" }}, 
+                "trials": "$trials",_id:-1 }},{$sort: {"date": -1}}
+        ]);
         
-        let totalRevenue = liveOnlyRevenue + liveWeeklyRevenue + comedyOnlyRevenue + comedyWeeklyRevenue;
-        
-        let temp = {date: res, newUser: resultToWrite[res].newUser , newSubscriber: resultToWrite[res].newSubscriber,
-            liveOnlyCount: resultToWrite[res]["users-billed-liveonly"],
-            liveOnlyRevenue: liveOnlyRevenue,
+        console.log("=> dailyReport 7");
+
+        let resultToWrite = {};
+        userStats.forEach(userStat => {
+            if(userStat.date){
+                resultToWrite[userStat.date.toDateString()] =  {};
+            }
+        });
+
+        console.log("=> dailyReport 8");
+
+        let totalUsers = totalUserStats;
+        userStats.forEach(userStat => {
+            if(userStat.date){
+                resultToWrite[userStat.date.toDateString()]['newUser'] = userStat.count;
+                totalUsers = totalUsers - userStat.count;
+                resultToWrite[userStat.date.toDateString()]['totalUsers'] = totalUsers;
+            }
+        });
+
+        console.log("=> dailyReport 9");
+
+        var totalSubscriber = totalSubscriberStats;
+        susbcriberStats.forEach(subsc => {
+            if(subsc.date){
+                resultToWrite[subsc.date.toDateString()]['newSubscriber'] = subsc.count;
+                totalSubscriber = totalSubscriber - subsc.count;
+                resultToWrite[subsc.date.toDateString()]['totalSubscribers'] = totalSubscriber;
+            }
+        });
+
+        console.log("=> dailyReport 10");
+
+        let totalExpiredCountt = totalExpiredCount;
+
+        billingStats.forEach(billingHistor => {
+            // console.log(billingHistor);
+            if(resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "Success") {
+                console.log("billingHistor",billingHistor);
+                if (billingHistor._id.package_id === "QDfC") {
+                    resultToWrite[billingHistor.date.toDateString()]['revenue-liveonly'] = billingHistor.revenue;
+                    resultToWrite[billingHistor.date.toDateString()]['users-billed-liveonly'] = billingHistor.count;
+                }
+                if (billingHistor._id.package_id === "QDfG") {
+                    resultToWrite[billingHistor.date.toDateString()]['revenue-liveweekly'] = billingHistor.revenue;
+                    resultToWrite[billingHistor.date.toDateString()]['users-billed-liveweekly'] = billingHistor.count;
+                }
+                if (billingHistor._id.package_id === "QDfH") {
+                    resultToWrite[billingHistor.date.toDateString()]['revenue-comedyonly'] = billingHistor.revenue;
+                    resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyonly'] = billingHistor.count;
+                }
+                if (billingHistor._id.package_id === "QDfI") {
+                    resultToWrite[billingHistor.date.toDateString()]['revenue-comedyweekly'] = billingHistor.revenue;
+                    resultToWrite[billingHistor.date.toDateString()]['users-billed-comedyweekly'] = billingHistor.count;
+                }
+            } else if (resultToWrite[billingHistor.date.toDateString()] && billingHistor._id["billing_status"] === "expired")  {
+                console.log("[dailyReport]expired On the day",billingHistor.count);
+                console.log("[dailyReport]date",billingHistor.date.toDateString());
+                totalExpiredCountt = totalExpiredCountt - billingHistor.count;
+                console.log("[dailyReport]totalExpiredCountt",totalExpiredCountt);
+                resultToWrite[billingHistor.date.toDateString()]['users_expired'] = billingHistor.count;
+                resultToWrite[billingHistor.date.toDateString()]['users_expired_till_today'] = totalExpiredCountt;
+            }
+        });
+        console.log("=> dailyReport 11");
+
+        trialStats.forEach(trialStat => {
+            if(resultToWrite[trialStat.date.toDateString()]) {
+                resultToWrite[trialStat.date.toDateString()]['trials'] = trialStat.trials;
+            }
+        });
+
+        console.log("=> dailyReport 12");
+
+        // console.log("myDate",dayBeforeYesterday.toDateString());
+        // console.log("myToday",resultToWrite[dayBeforeYesterday.toDateString()]);
+        resultToWrite[dayBeforeYesterday.toDateString()]["tempTotalActiveSubscribers"] = totalActiveSubscribers; 
+
+        for (res in resultToWrite) {
+            let liveOnlyRevenue = (resultToWrite[res]["revenue-liveonly"])?resultToWrite[res]["revenue-liveonly"]:0;
+            let liveWeeklyRevenue = (resultToWrite[res]["revenue-liveweekly"])?resultToWrite[res]["revenue-liveweekly"]:0;
+            let comedyOnlyRevenue = (resultToWrite[res]["revenue-comedyonly"])?resultToWrite[res]["revenue-comedyonly"]:0 ;
+            let comedyWeeklyRevenue = (resultToWrite[res]["revenue-comedyweekly"])?resultToWrite[res]["revenue-comedyweekly"]:0 ;
             
-            liveWeeklyCount: resultToWrite[res]["users-billed-liveweekly"],
-            liveWeeklyRevenue: liveWeeklyRevenue,
+            let totalRevenue = liveOnlyRevenue + liveWeeklyRevenue + comedyOnlyRevenue + comedyWeeklyRevenue;
             
-            comedyOnlyCount: resultToWrite[res]["users-billed-comedyonly"],
-            comedyOnlyRevenue: comedyOnlyRevenue,
-            
-            comedyWeeklyCount: resultToWrite[res]["users-billed-comedyweekly"],
-            comedyWeeklyRevenue: comedyWeeklyRevenue,
-            
-            users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,tempTotalActiveSubscribers: (resultToWrite[res]["tempTotalActiveSubscribers"])?resultToWrite[res]["tempTotalActiveSubscribers"]:"",
-            totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers, 
-            totalActiveSubscribers : (resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today < 0)? 0 : resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today,
-            totalRevenue:  totalRevenue       
-        }
-        resultToWriteToCsv.push(temp);
-    } 
+            let temp = {date: res, newUser: resultToWrite[res].newUser , newSubscriber: resultToWrite[res].newSubscriber,
+                liveOnlyCount: resultToWrite[res]["users-billed-liveonly"],
+                liveOnlyRevenue: liveOnlyRevenue,
+                
+                liveWeeklyCount: resultToWrite[res]["users-billed-liveweekly"],
+                liveWeeklyRevenue: liveWeeklyRevenue,
+                
+                comedyOnlyCount: resultToWrite[res]["users-billed-comedyonly"],
+                comedyOnlyRevenue: comedyOnlyRevenue,
+                
+                comedyWeeklyCount: resultToWrite[res]["users-billed-comedyweekly"],
+                comedyWeeklyRevenue: comedyWeeklyRevenue,
+                
+                users_billed: resultToWrite[res].users_billed, trials: resultToWrite[res].trials,tempTotalActiveSubscribers: (resultToWrite[res]["tempTotalActiveSubscribers"])?resultToWrite[res]["tempTotalActiveSubscribers"]:"",
+                totalUsers : resultToWrite[res].totalUsers, totalSubscribers: resultToWrite[res].totalSubscribers, 
+                totalActiveSubscribers : (resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today < 0)? 0 : resultToWrite[res].totalSubscribers - resultToWrite[res].users_expired_till_today,
+                totalRevenue:  totalRevenue       
+            }
+            resultToWriteToCsv.push(temp);
+        } 
+
+        console.log("=> dailyReport 13");
+
+    }catch(err){
+        console.log("=> catch ", err);
+    }
 
     try {  
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                //to:  ['paywall@dmdmax.com.pk'],
-                to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
-                subject: `Paywall Report`, // Subject line
+                // to:  ['farhan.ali@dmdmax.com'],
+                to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com","zara.naqi@telenor.com.pk",
+                        "fahad.shabbir@ideationtec.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","wasif@dmdmax.com"], // list of receivers
+                subject: `Paywall Report`, // Subject ne
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
                 attachments:[
                     {
@@ -364,22 +395,21 @@ dailyReport = async(mode = 'prod') => {
                     }
                 ]
             });
-            console.log("[dailyReport]Reached HEre 6",info);
+            console.log("=> dailyReport 14",info);
             fs.unlink(paywallRevFilePath,function(err,data) {
                 if (err) {
-                    console.log("[dailyReport]File not deleted");
+                    console.log("=> [dailyReport]File not deleted");
                 }
-                console.log("[dailyReport]data");
+                console.log("=> [dailyReport]data");
             });
-            console.log("[dailyReport]info",info);
+            console.log("=> [dailyReport]info",info);
         }).catch(er => {
-            console.log("[dailyReport]err",er)
-        })
+            console.log("=> [dailyReport]err",er)
+        });
+        console.log("=> [dailyReport]resultToWrite",resultToWriteToCsv)
     } catch(err) {
-        console.log("[dailyReport]",err);
+        console.log("=> [dailyReport]",err);
     }
-
-    console.log("[dailyReport]resultToWrite",resultToWriteToCsv);
 }
 
 callBacksReport =async() => {
@@ -452,8 +482,8 @@ callBacksReport =async() => {
         let write = await csvReportWriter.writeRecords(report);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk"],
-            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+            // to:  ["paywall@dmdmax.com.pk"],
+            to:  ["paywall@dmdmax.com.pk","nauman@dmdmax.com","mikaeel@dmdmax.com"], // list of receivers
             subject: `Callbacks Report`, // Subject line
             text: `Callbacks sent with their TIDs and timestamps -  ${(new Date()).toDateString()}`, // plain text bodyday
             attachments:[
@@ -499,7 +529,8 @@ const dailyUnsubReportWriter = createCsvWriter({
     path: paywallUnsubFilePath,
     header: [
         {id: 'date', title: 'Date'},
-        {id: "count",title: "Unsubscribe Count" }
+        {id: "count",title: "Unsubscribe Count" },
+        {id: "source",title: "Source" }
     ]
 });
 
@@ -511,6 +542,7 @@ const dailyChannelWiseUnsubWriter = createCsvWriter({
         {id: 'web', title: 'Web'},
         {id: 'sms', title: 'Sms'},
         {id: 'cc', title: 'Customer Care'},
+        {id: 'cp', title: 'Customer Portal'},
         {id: 'expired', title: 'Expired By System'},
         {id: "total",title: "Total" }
     ]
@@ -530,13 +562,16 @@ const dailyChannelWiseTrialWriter = createCsvWriter({
 errorCountReport = async() => {
     try {
         let errorBySourceReport = await billinghistoryRepo.errorCountReportBySource();
+        console.log("=> done 1");
         let errorReport = await billinghistoryRepo.errorCountReport();
+        console.log("=> done 2");
+        
         await errorCountReportWriter.writeRecords(errorReport);
         await errorCountReportBySource.writeRecords(errorBySourceReport);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            //to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            to:  ["farhan.ali@dmdmax.com"],
+            //to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Daily Error Reports`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains all error count stats from 23rd February 2020 onwards.`, // plain text bodyday
             attachments:[
@@ -550,7 +585,7 @@ errorCountReport = async() => {
                 }
             ]
         });
-        console.log("[errorCountReport][emailSent]",info);
+        console.log("=> [errorCountReport][emailSent]",info);
         fs.unlink(paywallErrorCountFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted[errorCountReport]");
@@ -564,18 +599,18 @@ errorCountReport = async() => {
             console.log("File deleted [errorCountReportBySource]");
         });
     } catch (error) {
-        console.error(error);
+        console.error("=>", error);
     }
 }
 
-dailyUnsubReport = async() => {
+dailyUnsubReport = async(from,to) => {
     try {
         let dailyUnsubReport = await billinghistoryRepo.dailyUnsubReport();
         await dailyUnsubReportWriter.writeRecords(dailyUnsubReport);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk"],
-            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            // to:  ["hamza@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk"], // list of receivers
             subject: `Daily Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users.`, // plain text bodyday
             attachments:[
@@ -692,9 +727,12 @@ dailyReturningUsers = async(from, to) => {
 
 dailyChannelWiseUnsub = async() => {
     try {
+        console.log("=> [dailyChannelWiseUnsub]");
         let records = [];
-        let dailyChannelWiseUnsub = await billinghistoryRepo.dailyChannelWiseUnsub();  
+        let dailyChannelWiseUnsub = await billinghistoryRepo.dailyChannelWiseUnsub(); 
+        console.log("=> done 1"); 
         let dailyExpiredBySystem = await billinghistoryRepo.dailyExpiredBySystem();
+        console.log("=> done 2");
 
         dailyChannelWiseUnsub.forEach(element => {
             let date = element.date;
@@ -715,6 +753,9 @@ dailyChannelWiseUnsub = async() => {
                 }else if(source === "CC"){
                     present.cc = (present.cc + count);
                     present.total = (present.total + count);
+                }else if(source === "CP"){
+                    present.cp = (present.cp + count);
+                    present.total = (present.total + count);
                 }
             }else{
                 let expiredBySystem = isDatePresent(dailyExpiredBySystem, date);
@@ -722,22 +763,23 @@ dailyChannelWiseUnsub = async() => {
                 let web = source === "web" ? count : 0;
                 let sms = source === "sms" ? count : 0;
                 let cc = source === "CC" ? count : 0;
+                let cp = source === "CP" ? count : 0;
                 let expired = expiredBySystem !== undefined ? expiredBySystem.count : 0;
 
-                let total = (app + web + sms + cc + expired);
+                let total = (app + web + sms + cc + cp + expired);
 
-                let object = {date: date, app: app, web: web, sms: sms, cc: cc, expired: expired, total: total};
+                let object = {date: date, app: app, web: web, sms: sms, cc: cc, cp: cp, expired: expired, total: total};
                 records.push(object);
             }
             
         });
 
         await dailyChannelWiseUnsubWriter.writeRecords(records);
-
+        console.log("=> done 3");
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk"],
-            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            // to:  ["farhan.ali@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk","nauman@dmdmax.com"], // list of receivers
             subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.\n\nNote: Expired By System column indicates those users expired by the system because their grace time is over and they still have no balance.`, // plain text bodyday
             attachments:[
@@ -747,20 +789,21 @@ dailyChannelWiseUnsub = async() => {
                 }
             ]
         });
-        console.log("[dailyChannelWiseUnsub][emailSent]",info);
+        console.log("=> [dailyChannelWiseUnsub][emailSent]",info);
         fs.unlink(paywallChannelWiseUnsubReportFilePath,function(err,data) {
             if (err) {
-                console.log("File not deleted[dailyChannelWiseUnsub]");
+                console.log("=> File not deleted[dailyChannelWiseUnsub]");
             }
-            console.log("File deleted [dailyChannelWiseUnsub]");
+            console.log("=> File deleted [dailyChannelWiseUnsub]");
         });
     } catch (error) {
-        console.error(error);
+        console.error("=>", error);
     }
 }
 
 dailyChannelWiseTrialActivated = async() => {
     try {
+        console.log("[dailyChannelWiseTrialActivated]");
         let records = [];
         let dailyChannelWiseTrial = await billinghistoryRepo.dailyChannelWiseTrialActivated(); 
 
@@ -797,8 +840,8 @@ dailyChannelWiseTrialActivated = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk"],
-            // to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
+            // to:  ["paywall@dmdmax.com.pk"],
+            to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Source Wise Trial Activated Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of trials activated with respect to source.`, // plain text bodyday
             attachments:[
@@ -808,12 +851,12 @@ dailyChannelWiseTrialActivated = async() => {
                 }
             ]
         });
-        console.log("[paywallChannelWiseTrial][emailSent]",info);
+        console.log("[dailyChannelWiseTrialActivated][emailSent]",info);
         fs.unlink(paywallChannelWiseTrialFilePath,function(err,data) {
             if (err) {
                 console.log("File not deleted[paywallChannelWiseTrial]");
             }
-            console.log("File deleted [paywallChannelWiseTrial]");
+            console.log("File deleted [dailyChannelWiseTrialActivated]");
         });
     } catch (error) {
         console.error(error);
@@ -836,7 +879,7 @@ function isMultipleDatePresent(array, date1ToFind) {
 
 dailyTrialToBilledUsers = async() => {
     try {
-        let trialToBilled = await usersRepo.dailyTrialToBilledUsers();
+        let trialToBilled = await subscriptionRepo.dailyTrialToBilledUsers();
         let trialToBilledUsers = [];
 
         trialToBilled.forEach(element => {
@@ -892,14 +935,19 @@ dailyTrialToBilledUsers = async() => {
         trialToBilledUsers.forEach(element => {
             element.msisdn = JSON.stringify(element.msisdn);
         });
+        
 
-        await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
+        let trialToBilledUserToWr = trialToBilledUsers.sort(function (a,b){
+            return   b['trial_date'] - a['trial_date'];
+        })
+
+        await csvTrialToBilledUsers.writeRecords(trialToBilledUserToWr);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["paywall@dmdmax.com.pk"],
-            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            // to:  ["hamza@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk", "nauman@dmdmax.com", "mikaeel@dmdmax.com"], // list of receivers
             subject: 'Trial To Billed Users',
-            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date data.`, // plain text bodyday
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date row.`, // plain text bodyday
             attachments:[
                 {
                     filename: paywallTrialToBilledUsers,
@@ -921,7 +969,9 @@ dailyTrialToBilledUsers = async() => {
 
 dailyFullAndPartialChargedUsers = async() => {
     try {
+        console.log("=> dailyFullAndPartialChargedUsers");
         let dailyReport = await billinghistoryRepo.getDailyFullyChargedAndPartialChargedUsers();
+        console.log("=> done 1");
         let array = [];
 
         dailyReport.forEach(element => {
@@ -942,8 +992,8 @@ dailyFullAndPartialChargedUsers = async() => {
         await csvFullAndPartialCharged.writeRecords(array);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["paywall@dmdmax.com.pk"],
-            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            // to:  ["farhan.ali@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk",  "mikaeel@dmdmax.com", "nauman@dmdmax.com"], // list of receivers
             subject: 'Full & Partial Charged Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of full & partial charged users.`, // plain text bodyday
             attachments:[
@@ -953,15 +1003,15 @@ dailyFullAndPartialChargedUsers = async() => {
                 }
             ]
         });
-        console.log("[fullAndPartialChargedUsers][emailSent]", info);
+        console.log("=> [fullAndPartialChargedUsers][emailSent]", info);
         fs.unlink(paywallFullAndPartialChargedReportFilePath,function(err,data) {
             if (err) {
-                console.log("File not deleted");
+                console.log("=> File not deleted");
             }
-            console.log("data");
+            console.log("=> ", data);
         });
     } catch (error) {
-        console.error(error);
+        console.error("=>", error);
     }
 }
 
@@ -973,8 +1023,8 @@ dailyPageViews = async() => {
             await csvAffiliatePvs.writeRecords(pvs);
                 var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk',
-                //to:  ["farhan.ali@dmdmax.com"],
-                to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"], // list of receivers
+                // to:  ["hamza@dmdmax.com"],
+                to:  ["paywall@dmdmax.com.pk","nauman@dmdmax.com", "mikaeel@dmdmax.com"], // list of receivers
                 subject: 'Affiliate Page Views',
                 text: `This report (generated at ${(new Date()).toDateString()}) contains affiliate page views`, // plain text bodyday
                 attachments:[

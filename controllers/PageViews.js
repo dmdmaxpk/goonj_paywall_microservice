@@ -19,28 +19,37 @@ getPageViews = async(db) => {
             collection.aggregate([
                 {
                     $match:{
-                        method:'pageview', 
-                        source:'HE'
+                        method:'pageview'
                     }
                 },{
                     $group:{
-                        _id: {msisdn: "$req_body.msisdn", "day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" }, "year":{ $year: "$added_dtm" }},
+                        _id: {msisdn: "$req_body.msisdn", "day": {"$dayOfMonth" : "$added_dtm"}, 
+                                "month": { "$month" : "$added_dtm" }, "year":{ $year: "$added_dtm" },"source": "$source","mid": "$req_body.mid"},
                         count: {$sum: 1}	
                     }
                 },{
                     $project: { 
-                                _id: 0,
-                                date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
-                        count: "$count"
+                        _id: 0,
+                        date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                        count: "$count",
+                        source: "$_id.source",
+                        mid: "$_id.mid"
                         } 
                 },{
                     $group:{
-                        _id: "$date",
+                        _id: {date: "$date",source: "$source",mid: "$mid"},
                         count:{$sum:1}	
                     }
+                }, {
+                    $project:{
+			_id: 0,
+                        date: "$_id.date",
+                        source: "$_id.source",
+                        mid: "$_id.mid",
+                        count:"$count"	
+                    }
                 }
-                
-                ,{$sort: {_id: -1}}
+                ,{$sort: {date: -1}}
                 ], { allowDiskUse: true }).toArray(function(err, items) {
                     if(err){
                         reject(err);

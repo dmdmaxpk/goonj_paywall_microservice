@@ -356,6 +356,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				// Check if trial is allowed by the system
 				let sendTrialMessage = false;
 				let sendChargingMessage = false;
+
 				if (packageObj.is_trial_allowed && !( subscriptionObj.source === 'HE' && subscriptionObj.affiliate_mid ===  "gdn")) {
 					console.log("activating trial");
 
@@ -370,6 +371,13 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.active = true;
 					subscriptionObj.amount_billed_today = 0;
 
+
+					// For affiliate/gdn users and for non-affiliate/non-gdn users
+					// Logic - For affiliate/gdn: daily > micro ? trial
+					// Logic - For non affiliate/non-gdn: weekly > micro ? trial
+					// Logic will behave as per package is coming in request for subscription 
+					// As in affiliate case package will be for daily so daily > micro > trial
+					// And for non, package will be weekly, so: weekly > micro > trial
 					if(packageObj.paywall_id === "ghRtjhT7"){
 						// Live paywall, subscription rules along with micro changing started
 						let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.source, user, subscriber, packageObj, subscriptionObj);
@@ -385,7 +393,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						}
 						subscriptionObj = subsResponse.subscriptionObj;
 						packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
-						// Subscription rules along with micro changing ended	
 					}else{
 						// comedy paywall
 						try {
@@ -396,36 +403,15 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 								// subscribePackage(subscription, packageObj);
 								res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
 											gw_transaction_id: gw_transaction_id});
-								sendMessage = true;
+								sendChargingMessage = true;
 							}else{
 								res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
 										gw_transaction_id: gw_transaction_id});
-								sendMessage= false;
 							}
 						} catch(err){
 							console.log("Error while direct billing first time",err.message,user.msisdn);
-							sendMessage= false;
 						}
 					}
-
-
-
-
-					// Subscription rules started
-					// let subsResponse = await doSubscribeUsingSubscribingRule(req.body.source, user, subscriber, packageObj, subscriptionObj);
-					// console.log("subsResponse", subsResponse);
-					// if(subsResponse.status === "charged"){
-					// 	res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-					// 	sendChargingMessage = true;
-					// }else if(subsResponse.status === "trial"){
-					// 	res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-					// 	sendTrialMessage = true;
-					// }else{
-					// 	res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-					// }
-					// subscriptionObj = subsResponse.subscriptionObj;
-					// packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
-					// Subscription rules ended
 					
 				}
 
@@ -440,16 +426,15 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
 					console.log("Messages",message,user.msisdn);
-					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${subscriptionObj.subscribed_package_id}`;
 					text = message;
-					text = text.replace("%unsub_link%",unsubLink);
 					text = text.replace("%trial_hours%",trial_hours);
+					text = text.replace("%price%",packageObj.display_price_point_numeric);
 					console.log("Subscription Message Text",text,user.msisdn);
 					sendTextMessage(text, user.msisdn);
 				} else if(sendChargingMessage === true) {
 					let trial_hours = packageObj.trial_hours;
-					let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${subscriptionObj.subscribed_package_id}`;
-					let message = `Apka ${packageObj.package_name} activate kr dia gya ha. Service khatm krna k liye ${unsubLink}`;
+					let message = constants.subscription_messages_direct[packageObj._id];
+					message= message.replace("%price%",packageObj.display_price_point)
 					if(subscriptionObj.affiliate_mid === 'gdn'){
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
@@ -706,6 +691,7 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 				}
 			});
 			let currentIndex = packages.findIndex(x => x._id === packageObj._id);
+			console.log("Current index: ", currentIndex);
 			if(currentIndex > 0){
 				// try on lower package
 				packageObj = packages[--currentIndex];
