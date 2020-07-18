@@ -47,7 +47,7 @@ const csvReportWriter = createCsvWriter({
 });
 
 gdnReport = async(from , to) => {
-    let rows = ["HE", "Unique Success HE", "Page Views", "Subscription Click", "Subsscriptions", "Trial", "Daily", "Weekly"];
+    /*let rows = ["HE", "Unique Success HE", "Page Views", "Subscription Click", "Subsscriptions", "Trial", "Daily", "Weekly"];
     let csvData = [];
 
     for(let j = 0; j < rows.length; j++){
@@ -111,7 +111,7 @@ gdnReport = async(from , to) => {
     }).catch(function(err){
         console.log(err);
     })
-    console.log("2");
+    console.log("2");*/
 }
 
 
