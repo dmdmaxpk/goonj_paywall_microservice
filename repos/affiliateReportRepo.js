@@ -7,6 +7,8 @@ var usersRepo = container.resolve("userRepository");
 const config = require("../config");
 const axios = require('axios');
 
+const pageViews = require('../controllers/PageViews');
+
 var transporter = nodemailer.createTransport({
     host: "mail.dmdmax.com.pk",
     port: 465,
@@ -29,24 +31,34 @@ function getCurrentDate(){
 let currentDate = null;
 currentDate = getCurrentDate();
 
-let gdnReportF = currentDate+"gdn_report.csv";
+let gdnReportF = currentDate+"_affiliate_gdn_report.csv";
 let gdnReportFilePath = `./${gdnReportF}`;
+
+let keys = ["gdn", "1569", "goonj", "aff3"];
+
+let headers = [];
+for(let i = 0; i < keys.length; i++){
+    headers.push({title: keys[i].toUpperCase(), id: keys[i]});
+}
 
 const csvReportWriter = createCsvWriter({
     path: gdnReportFilePath,
-    header: [
-        {id: 'date', title: 'Date'},
-        {title: 'Page Views', id: 'pageview'},
-        {title: "Subscriber Button Click",id: "subsClicks" },
-        {title: "Unique Subscriber Button Clicks",id: "uniqueSubClick" },
-        {title: 'Already Subscribed Users', id: 'alreadySubscribeUsers'},
-        {title: 'Trials Activated', id: 'trialsActivated'},
-        {title: 'Users Billed', id: 'usersBilled'}
-    ]
+    header: headers
 });
 
-gdnReport = async(isManual = false) => {
-    console.log("gdnReport",config.logger_url + 'report/affiliate_page');
+gdnReport = async(from , to) => {
+    let rows = ["HE", "Unique Success HE", "Page Views", "Subscription Click", "Subsscriptions", "Trial", "Daily", "Weekly"];
+    let csvData = [];
+
+    for(let j = 0; j < rows.length; j++){
+        let singleRow = {};
+        singleRow.
+        for(let k = 0; k < keys.length; k++){
+            let heLogs = pageViews.getHeLogs(keys[k], from, to);
+        }   
+    }
+
+    
     axios({
         method: 'post',
         url: config.logger_url + 'report/affiliate_page',
