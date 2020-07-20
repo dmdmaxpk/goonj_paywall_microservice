@@ -11,8 +11,9 @@ const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const viewLogRepo = require('../repos/ViewLogRepo');
 
 const telenorBillingService = container.resolve("telenorBillingService");
-const easypaisaPaymentService = container.resolve("EasypaisaPaymentService");
+const easypaisaPaymentService = container.resolve("easypaisaPaymentService");
 
+const mongoose = require('mongoose');
 const paymentSources = mongoose.model('PaymentSources');
 
 const shortId = require('shortid');
@@ -930,10 +931,9 @@ exports.expire = async (req, res) => {
 	}
 }
 
-
 // Get all Resource type, for-example : Telenor, Easypaisa etc
 exports.getAllResources = async (req, res) => {
-    let result = await paymentSources.findOne({});
+    let result = await paymentSources.find({});
     return result;
 };
 

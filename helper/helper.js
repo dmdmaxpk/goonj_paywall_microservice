@@ -1,6 +1,6 @@
 
 //Helper class - define all basic functions
-class helper {
+class Helper {
     static getCurrentDate() {
         let now = new Date();
         let strDateTime = [
@@ -22,4 +22,4 @@ class helper {
     }
 }
 
-export default helper;
+module.exports = Helper;

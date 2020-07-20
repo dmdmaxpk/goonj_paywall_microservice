@@ -1,6 +1,6 @@
 const axios = require('axios');
 const config = require('./../config');
-const helper = require('./../helper/helper');
+const helper = require('./../helper/Helper');
 const crypto = require("crypto");
 const shortId = require('shortid');
 
@@ -16,8 +16,8 @@ class EasypaisaPaymentService {
     }
 
     /*
-   * Used to verify customer OPT and perform transaction for first time
-   * Params: null
+   * Boot the script to get new User OPT
+   * Params: msisdn (user mobile number)
    * Return Type: Object
    * */
     async bootOptScript(msisdn){
@@ -26,8 +26,8 @@ class EasypaisaPaymentService {
     }
 
     /*
-   * Used to verify customer OPT and perform transaction for first time
-   * Params: null
+   * Used to initiate transaction using User OPT
+   * Params: mobileAccountNo, transactionAmount, opt
    * Return Type: Object
    * */
     initiateLinkTransaction(mobileAccountNo, transactionAmount, opt){
@@ -69,8 +69,8 @@ class EasypaisaPaymentService {
     }
 
     /*
-    * Used to perform pinless Mobile Account transaction
-    * Params: null
+    * Used to perform pinless Mobile Account transaction using easypaisa MA token - mainly used in renewal subscription
+    * Params: msisdn(mobileAccountNo), packageObj(user package info), transaction_id(user transaction ID), subscription(Subscription data)
     * Return Type: Object
     * */
     initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription){
@@ -122,7 +122,7 @@ class EasypaisaPaymentService {
 
     /*
     * Used to break the link/pair between merchant and customer
-    * Params: null
+    * Params: mobileAccountNo, tokenNumber(easypaisa token no)
     * Return Type: Object
     * */
     deactivateLinkTransaction(mobileAccountNo, tokenNumber){
@@ -179,7 +179,7 @@ class EasypaisaPaymentService {
     /*
     * Telenor Opt - Merchant app call to get user opt
     * Private key is used to generate signature
-    * Params: storeID, mobileAccountNo
+    * Params: mobileAccountNo
     * Return Type: Object
     * */
     generateOPT(mobileAccountNo){
@@ -221,7 +221,8 @@ class EasypaisaPaymentService {
     }
 
     /*
-    * Generate a unique ID for orderId parameter
+    * RSA Encryption
+    * Used to generate random Public and Private keys that will be used to generate signature for each Easypaisa & Telenor endpoint call.
     * Params: null
     * Return Type: Object
     * */
@@ -236,16 +237,16 @@ class EasypaisaPaymentService {
     }
 
     /*
-    * RSA Encryption - get signature
-    * Private key is used to generate signature. Its length should be 2048 bits.
+    * Used to update private key object.
     * Params: null
-    * Return Type: Object
+    * Return Type: null
     * */
     getKey(){
         this.privateKey = helper.easypaisaPrivateKey();
     }
+
     /*
-    * RSA Encryption - get signature
+    * Hash Algorithm using sha256
     * Private key is used to generate signature. Its length should be 2048 bits.
     * Params: null
     * Return Type: Object

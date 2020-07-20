@@ -1,8 +1,7 @@
-
 const config = require('../../../config');
 const moment = require('moment');
 var nodemailer = require('nodemailer');
-const axios =require("axios");
+const axios = require("axios");
 
 class SubscriptionConsumer {
 
@@ -694,7 +693,5 @@ class SubscriptionConsumer {
         this.messageRepo.sendSmsToUser(message, msisdn);
     }
 }
-
-
 
 module.exports = SubscriptionConsumer;
