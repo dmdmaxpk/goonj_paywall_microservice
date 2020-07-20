@@ -11,6 +11,7 @@ const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const viewLogRepo = require('../repos/ViewLogRepo');
 
 const telenorBillingService = container.resolve("telenorBillingService");
+const easypaisaPaymentService = container.resolve("EasypaisaPaymentService");
 
 const shortId = require('shortid');
 const axios = require('axios');
@@ -114,7 +115,15 @@ exports.sendOtp = async (req, res) => {
 			} catch (err) {
 				res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
 			}
-		}else{
+		} else if(req.body.sourceType === "easypaisa"){
+            let requestData = req.body;
+            if (requestData.msisdn) {
+                record = await easypaisaPaymentService.bootOptScript(requestData.msisdn);
+                res.send("Easypaisa get OPT process is done");
+            } else{
+                res.send("Easypaisa get OPT process is failed. Reason: msisdn is not exist");
+            }
+		} else{
 			// invalid customer
 			createBlockUserHistory(msisdn, null, null, response.api_response, req.body.source);
 			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
@@ -277,7 +286,16 @@ exports.subscribe = async (req, res) => {
 			} catch(er) {
 				res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
 			}
-		}else{
+		} else if(req.body.sourceType === "easypaisa"){
+            let requestData = req.body;
+            if (requestData.msisdn && requestData.amount && requestData.opt) {
+                record = await easypaisaPaymentService.bootTransactionScript(requestData.msisdn, requestData.amount, requestData.opt);
+                res.send("Easypaisa payment process done");
+            } else{
+                res.send("Easypaisa payment process is failed. Reason: msisdn or transaction amount or opt is missed. Please verify the data.");
+            }
+		}
+		else{
 			createBlockUserHistory(msisdn, req.body.affiliate_unique_transaction_id, req.body.affiliate_mid, response.api_response, req.body.source);
 			res.send({code: config.codes.code_error, message: "Not a valid Telenor number.", gw_transaction_id: gw_transaction_id });
 		}

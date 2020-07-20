@@ -3,21 +3,16 @@ const config = require('./../config');
 const helper = require('./../helper/helper');
 const crypto = require("crypto");
 const shortId = require('shortid');
-const userRepo = container.resolve("userRepository");
 
 class EasypaisaPaymentService {
     constructor(){
         this.token = config.telenor_dcb_api_token;
         this.emailAddress = 'muhammad.azam@dmdmax.com';
-        this.storeName = 'DMD';
         this.storeId = '10631';
         this.orderId = this.getOrderId();
-        this.otp = null;
         this.signature = null;
         this.publicKey = null;
         this.privateKey = null;
-        this.username = 'DMD';
-        this.password = '3dca201bc26a31247bb4c6fbd1858468';
     }
 
     /*
@@ -26,7 +21,7 @@ class EasypaisaPaymentService {
    * Return Type: Object
    * */
     async bootOptScript(msisdn){
-        await this.getKeys(msisdn);
+        await this.getKey();
         let optData = await this.generateOPT(msisdn);
         console.log('optData: ', optData);
 
@@ -38,8 +33,8 @@ class EasypaisaPaymentService {
    * Params: null
    * Return Type: Object
    * */
-    async bootTransactionScript(msisdn, transactionAmount){
-        await this.initiateTransaction(msisdn, transactionAmount);
+    bootTransactionScript(msisdn, transactionAmount){
+        this.initiateTransaction(msisdn, transactionAmount);
         return {'status': true, 'message': 'Opt script is executed successfully'};
     }
 
@@ -48,13 +43,11 @@ class EasypaisaPaymentService {
    * Params: null
    * Return Type: Object
    * */
-    async initiateTransaction(msisdn, transactionAmount, opt){
-        let user = await userRepo.getUserByMsisdn(msisdn);
-        if (user.hasOwnProperty('easypaisaToken')){
-            this.initiatePinlessTransaction(msisdn, transactionAmount, user.easypaisaToken)
-        } else{
-            this.initiateLinkTransaction(msisdn, transactionAmount, opt, user);
-        }
+    initiateTransaction(msisdn, transactionAmount, easypaisaToken=undefined, opt){
+        if (easypaisaToken !== undefined)
+            this.initiatePinlessTransaction(msisdn, transactionAmount, easypaisaToken);
+        else
+            this.initiateLinkTransaction(msisdn, transactionAmount, opt);
     }
 
     /*
@@ -62,7 +55,7 @@ class EasypaisaPaymentService {
    * Params: null
    * Return Type: Object
    * */
-    initiateLinkTransaction(mobileAccountNo, transactionAmount, opt, userData){
+    initiateLinkTransaction(mobileAccountNo, transactionAmount, opt){
         try {
             let data = {
                 'request': {
@@ -73,14 +66,14 @@ class EasypaisaPaymentService {
                     'mobileAccountNo': mobileAccountNo,
                     'emailAddress': this.emailAddress,
                     'otp': opt,
-                },
-                'signature': this.signature
+                }
             };
             console.log('initiateLinkTransaction: data: ', data);
 
             return new Promise(function(resolve, reject) {
                 this.generateSignature(data);
                 data.signature = this.signature;
+                console.log('initiateLinkTransaction: data.signature: ', data.signature);
             }).then(function(response){
                 console.log('initiateLinkTransaction: response 1: ', response);
                 axios({
@@ -91,9 +84,6 @@ class EasypaisaPaymentService {
                 }).then(function(response){
                     console.log('initiateLinkTransaction: response 2: ', response.data);
                     resolve(response.data);
-
-                    userData.tokenNumber = response.data.response.tokenNumber;
-                    userRepo.updateUser(mobileAccountNo, userData);
                 }).catch(function(err){
                     reject(err);
                 });
@@ -119,14 +109,14 @@ class EasypaisaPaymentService {
                     'mobileAccountNo': mobileAccountNo,
                     'emailAddress': this.emailAddress,
                     'tokenNumber': tokenNumber,
-                },
-                'signature': this.signature
+                }
             };
             console.log('initiatePinlessTransaction: data: ', data);
 
             return new Promise(function(resolve, reject) {
                 this.generateSignature(data);
                 data.signature = this.signature;
+                console.log('initiateLinkTransaction: data.signature: ', data.signature);
             }).then(function(response){
                 console.log('initiatePinlessTransaction: response 1: ', response);
                 axios({
@@ -213,20 +203,19 @@ class EasypaisaPaymentService {
             'request': {
                 'storeId': this.storeId,
                 'mobileAccountNo': mobileAccountNo
-            },
-            'signature': this.signature
+            }
         };
         return new Promise(function(resolve, reject) {
             this.generateSignature(data);
             data.signature = this.signature;
+            console.log('generateOPT: data.signature: ', data.signature);
         }).then(function(response){
             console.log('generateOPT: response 1: ', response);
             axios({
                 method: 'post',
                 url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
                 data: data,
-                headers: {'Authorization': 'Basic '+this.token,
-                    'Content-Type': 'application/x-www-form-urlencoded' }
+                headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
             }).then(function(response){
                 console.log('generateOPT: response 2: ', response);
                 resolve(response.data.response);
@@ -263,35 +252,13 @@ class EasypaisaPaymentService {
     }
 
     /*
-    * Generate a unique ID for orderId parameter
-    * Params: null
-    * Return Type: Object
-    * */
-    saveKeys(msisdn, postData) {
-        postData.easypaisa_public_key = this.publicKey;
-        postData.easypaisa_privet_key = this.privateKey;
-        userRepo.updateUser(msisdn, postData);
-    }
-
-    /*
     * RSA Encryption - get signature
     * Private key is used to generate signature. Its length should be 2048 bits.
     * Params: null
     * Return Type: Object
     * */
-    async getKeys(msisdn){
-        try {
-            let user = await userRepo.getUserByMsisdn(msisdn);
-            if (Object.hasOwnProperty(user.easypaisa_public_key)) {
-                this.publicKey = user.easypaisa_public_key;
-                this.privateKey = user.easypaisa_privet_key;
-            } else{
-                await this.generateKeys();
-                await this.saveKeys(msisdn, user);
-            }
-        } catch(err){
-            return {'status': false, 'message': err};
-        }
+    getKey(){
+        this.privateKey = helper.easypaisaPrivateKey();
     }
     /*
     * RSA Encryption - get signature
@@ -321,7 +288,6 @@ class EasypaisaPaymentService {
     * */
     verfiySignature(){
         try {
-
             return {'status': true, 'message': 'Signature is verified successfully'};
         } catch(err){
             return {'status': false, 'message': err};
@@ -329,4 +295,4 @@ class EasypaisaPaymentService {
     }
 }
 
-module.exports = PaywallService;
+module.exports = EasypaisaPaymentService;
