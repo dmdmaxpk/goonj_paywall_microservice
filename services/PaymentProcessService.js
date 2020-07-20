@@ -3,7 +3,6 @@ const config = require('../config');
 class PaymentProcessService {
     constructor({billingRepository, easypaisaPaymentService}){
         this.billingRepository = billingRepository;
-        this.PaymentProcessService = PaymentProcessService;
         this.easypaisaPaymentService = easypaisaPaymentService;
     }
 
