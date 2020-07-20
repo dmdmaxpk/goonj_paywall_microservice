@@ -1,4 +1,5 @@
 const config = require('../config');
+const e = require('express');
 
 class PaymentProcessService {
     constructor({billingRepository, easypaisaPaymentService}){
@@ -7,22 +8,37 @@ class PaymentProcessService {
     }
 
     async fullChargeAttempt(msisdn, packageObj, transaction_id, subscription){
-
         if(subscription.payment_source_id === ""){
-            let subscriptionObj = {};
-            subscriptionObj.packageObj = packageObj;
-            subscriptionObj.msisdn = msisdn;
-            subscriptionObj.transactionId = transaction_id;
-            subscriptionObj.subscription = subscription;
-            let response =  await this.easypaisaPaymentService.initiatePinlessTransaction(msisdn, packageObj.price_point_pkr, subscription.ep_token);
-            if (response.code === 0)
-                subscriptionObj.api_response = response;
-            else
-                subscriptionObj.api_response = '';
-
-            return subscriptionObj;
+            let returnObject = {};
+            try{
+                let response =  await this.easypaisaPaymentService.initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription);
+                if(response.responseDesc === "SUCCESS"){
+                    returnObject.message = "Success";
+                    returnObject.api_response = response;
+                }else{
+                    returnObject.message = "Failed";
+                    returnObject.api_response = response;
+                }
+                return returnObject;
+            }catch(err){
+                throw err;
+            }
         }else{
-            return await this.billingRepo.fullChargeAttempt(msisdn, packageObj, transaction_id, subscription);
+            let returnObject = {};
+            try{
+                let response = await this.billingRepo.fullChargeAttempt(msisdn, packageObj, transaction_id, subscription);
+                if(response.api_response.data.Message === "Success"){
+                    returnObject.message = "Success";
+                    returnObject.api_response = response;
+                }else{
+                    returnObject.message = "Failed";
+                    returnObject.api_response = response;
+                }
+                return returnObject;
+            }catch(err){
+                console.log("Error thrown from telenor billing: ", err);
+                throw err;
+            }
         }
     }
 }

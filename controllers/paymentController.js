@@ -1,5 +1,5 @@
 const config = require('../config');
-const container = require("../configurations/container")
+const container = require("../configurations/container");
 const otpRepo = require('../repos/OTPRepo');
 const userRepo = container.resolve("userRepository");
 const subscriberRepo = container.resolve("subscriberRepository");
@@ -12,6 +12,8 @@ const viewLogRepo = require('../repos/ViewLogRepo');
 
 const telenorBillingService = container.resolve("telenorBillingService");
 const easypaisaPaymentService = container.resolve("EasypaisaPaymentService");
+
+const paymentSources = mongoose.model('PaymentSources');
 
 const shortId = require('shortid');
 const axios = require('axios');
@@ -288,13 +290,11 @@ exports.subscribe = async (req, res) => {
 		} else if(req.body.payment_source === "easypaisa"){
             let requestData = req.body;
             try {
-                record = await easypaisaPaymentService.bootTransactionScript(requestData.msisdn, requestData.amount, easypaisaToken, requestData.opt);
+                record = await easypaisaPaymentService.initiateLinkTransaction(msisdn, requestData.amount, requestData.opt);
                 if (record.code === 0){
-
                     res.send({code: record.code, message: record.message, gw_transaction_id: gw_transaction_id});
 				}
                 else{
-
                     res.send({code: record.code, message: record.message, gw_transaction_id: gw_transaction_id});
 				}
             }catch (e) {
@@ -929,6 +929,19 @@ exports.expire = async (req, res) => {
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
 	}
 }
+
+
+// Get all Resource type, for-example : Telenor, Easypaisa etc
+exports.getAllResources = async (req, res) => {
+    let result = await paymentSources.findOne({});
+    return result;
+};
+
+// Get Resource by 'name', for-example : Easypaisa
+getResourceByName = async (source_name) => {
+    let result = await paymentSources.findOne({source_name: source_name});
+    return result;
+};
 
 // Helper functions
 function getCurrentDate() {

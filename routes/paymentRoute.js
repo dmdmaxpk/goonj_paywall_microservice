@@ -27,4 +27,7 @@ router.route('/recharge')
 router.route('/delete')
     .get(authMiddleWare.checkToken, controller.delete);
 
+router.route('/getResources')
+    .get(authMiddleWare.checkToken, controller.getAllResources);
+
 module.exports = router;

@@ -108,7 +108,7 @@ class SubscriptionConsumer {
         try{
             let response = await this.paymentProcessService.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
             let api_response = response.api_response;
-            let message = api_response.data.Message;
+            let message = response.message;
     
             if(message === 'Success'){
                 console.log("Billing success for subscription id:", subscription._id);
