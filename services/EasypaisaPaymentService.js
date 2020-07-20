@@ -102,20 +102,21 @@ class EasypaisaPaymentService {
 
             return new Promise(function(resolve, reject) {
                 this.generateSignature(data);
-                data.signature = this.signature;
+                resolve(this.signature);
                 console.log('initiateLinkTransaction: data.signature: ', data.signature);
-            }).then(function(response, resolve){
+            }).then(function(response){
                 console.log('initiatePinlessTransaction: response 1: ', response);
+                data.signature = response;
                 axios({
                     method: 'post',
                     url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-pinless-transaction',
                     data: data,
                     headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
-                }).then(function(response){
-                    console.log('initiatePinlessTransaction: response 2: ', response);
-                    resolve(response);
+                }).then(function(resp){
+                    console.log('initiatePinlessTransaction: response 2: ', resp);
+                    return {'code': config.codes.code_success, 'data': resp};
                 }).catch(function(err){
-                    return {'code': config.codes.code_error, 'message': err.message, 'method': 'initiatePinlessTransaction'};
+                    return {'code': config.codes.code_error, 'data': err.message};
                 });
             });
         } catch(err){

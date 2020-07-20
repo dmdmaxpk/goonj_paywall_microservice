@@ -15,7 +15,10 @@ class PaymentProcessService {
             subscriptionObj.transactionId = transaction_id;
             subscriptionObj.subscription = subscription;
             let response =  await this.easypaisaPaymentService.initiatePinlessTransaction(msisdn, packageObj.price_point_pkr, subscription.ep_token);
-            subscriptionObj.api_response = response;
+            if (response.code === 0)
+                subscriptionObj.api_response = response;
+            else
+                subscriptionObj.api_response = '';
 
             return subscriptionObj;
         }else{
