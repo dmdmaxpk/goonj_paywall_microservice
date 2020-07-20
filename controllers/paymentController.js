@@ -115,13 +115,12 @@ exports.sendOtp = async (req, res) => {
 			} catch (err) {
 				res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
 			}
-		} else if(req.body.sourceType === "easypaisa"){
-            let requestData = req.body;
-            if (requestData.msisdn) {
-                record = await easypaisaPaymentService.bootOptScript(requestData.msisdn);
-                res.send("Easypaisa get OPT process is done");
-            } else{
-                res.send("Easypaisa get OPT process is failed. Reason: msisdn is not exist");
+		} else if(req.body.payment_source === "easypaisa"){
+            try {
+                record = await easypaisaPaymentService.bootOptScript(msisdn);
+                res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
+            }catch (e) {
+                res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
             }
 		} else{
 			// invalid customer
@@ -286,13 +285,13 @@ exports.subscribe = async (req, res) => {
 			} catch(er) {
 				res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
 			}
-		} else if(req.body.sourceType === "easypaisa"){
+		} else if(req.body.payment_source === "easypaisa"){
             let requestData = req.body;
-            if (requestData.msisdn && requestData.amount && requestData.opt) {
-                record = await easypaisaPaymentService.bootTransactionScript(requestData.msisdn, requestData.amount, requestData.opt);
+            try {
+                record = await easypaisaPaymentService.bootTransactionScript(requestData.msisdn, requestData.amount, easypaisaToken, requestData.opt);
                 res.send("Easypaisa payment process done");
-            } else{
-                res.send("Easypaisa payment process is failed. Reason: msisdn or transaction amount or opt is missed. Please verify the data.");
+            }catch (e) {
+                res.send({code: config.codes.code_error, message: er.message})
             }
 		}
 		else{

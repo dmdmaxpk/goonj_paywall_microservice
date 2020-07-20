@@ -56,7 +56,8 @@ const subscriptionSchema = new Schema({
 
     amount_billed_today: {type: Number, default: 0},
     is_manual_recharge: { type: Boolean, default: false },
-    payment_source_id: { type: ShortId, default: false, index: true },
+    payment_source_id: { type: ShortId, index: true },
+    ep_token: { type: String },
     active: { type: Boolean, default: true, index: true }
 }, { strict: true });
 subscriptionSchema.index({subscriber_id:1,paywall_id:1},{unique: true});

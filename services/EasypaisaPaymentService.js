@@ -22,10 +22,8 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        let optData = await this.generateOPT(msisdn);
+        let optData = this.generateOPT(msisdn);
         console.log('optData: ', optData);
-
-        return {'status': true, 'message': 'Opt script is executed successfully'};
     }
 
     /*
@@ -33,21 +31,15 @@ class EasypaisaPaymentService {
    * Params: null
    * Return Type: Object
    * */
-    bootTransactionScript(msisdn, transactionAmount){
-        this.initiateTransaction(msisdn, transactionAmount);
-        return {'status': true, 'message': 'Opt script is executed successfully'};
-    }
-
-    /*
-   * Used to verify customer OPT and perform transaction for first time
-   * Params: null
-   * Return Type: Object
-   * */
-    initiateTransaction(msisdn, transactionAmount, easypaisaToken=undefined, opt){
+    bootTransactionScript(msisdn, transactionAmount, easypaisaToken, opt){
         if (easypaisaToken !== undefined)
             this.initiatePinlessTransaction(msisdn, transactionAmount, easypaisaToken);
         else
             this.initiateLinkTransaction(msisdn, transactionAmount, opt);
+
+        return {'code': config.codes.code_success, 'message': 'Signature is verifies successfully', 'method': 'verfiySignature'};
+
+        return {'status': true, 'message': 'Opt script is executed successfully'};
     }
 
     /*
@@ -80,16 +72,16 @@ class EasypaisaPaymentService {
                     method: 'post',
                     url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
                     data: data,
-                    headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: { 'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     console.log('initiateLinkTransaction: response 2: ', response.data);
-                    resolve(response.data);
+                    return {'code': config.codes.code_success, 'message': 'Initiate transaction is done successfully', 'method': 'initiateLinkTransaction'};
                 }).catch(function(err){
-                    reject(err);
+                    return {'code': config.codes.code_error, 'message': err.message, 'method': 'initiateLinkTransaction'};
                 });
             });
         } catch(err){
-            return {'status': false, 'message': err};
+            return {'code': config.codes.code_error, 'message': err.message, 'method': 'initiateLinkTransaction'};
         }
     }
 
@@ -127,12 +119,13 @@ class EasypaisaPaymentService {
                 }).then(function(response){
                     console.log('initiatePinlessTransaction: response 2: ', response.data);
                     resolve(response.data);
+                    return {'code': config.codes.code_success, 'message': 'Pinless transaction is done successfully', 'method': 'initiatePinlessTransaction'};
                 }).catch(function(err){
-                    reject(err);
+                    return {'code': config.codes.code_error, 'message': err.message, 'method': 'initiatePinlessTransaction'};
                 });
             });
         } catch(err){
-            return {'status': false, 'message': err};
+            return {'code': config.codes.code_error, 'message': err.message, 'method': 'initiatePinlessTransaction'};
         }
     }
 
@@ -164,7 +157,7 @@ class EasypaisaPaymentService {
                 });
             });
         } catch(err){
-            return {'status': false, 'message': err};
+            return {'code': config.codes.code_error, 'message': err.message, 'method': 'deactivateLinkTransaction'};
         }
     }
 
@@ -188,7 +181,7 @@ class EasypaisaPaymentService {
                 });
             });
         } catch(err){
-            return {'status': false, 'message': err};
+            return {'code': config.codes.code_error, 'message': err.message, 'method': 'getAuthToken'};
         }
     }
 
@@ -218,12 +211,12 @@ class EasypaisaPaymentService {
                 headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
             }).then(function(response){
                 console.log('generateOPT: response 2: ', response);
-                resolve(response.data.response);
+                return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
             }).catch(function(err){
-                reject(err.response);
+                return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
             });
         }).catch(function(err){
-            reject(err.response);
+            return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
         });
     }
 
@@ -248,7 +241,7 @@ class EasypaisaPaymentService {
 
         this.publicKey = publicKey;
         this.privateKey = privateKey;
-        return {'status': true, 'message': 'Keys are created successfully'};
+        return {'code': config.codes.code_success, 'message': 'Public and private keys are generated successfully', 'method': 'generateKeys'};
     }
 
     /*
@@ -274,9 +267,9 @@ class EasypaisaPaymentService {
 
             console.log('hash: ', hash);
             this.signature = hash;
-            return {'status': true, 'message': 'Signature is created successfully'};
+            return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){
-            return {'status': false, 'message': err};
+            return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
         }
     }
 
@@ -288,9 +281,9 @@ class EasypaisaPaymentService {
     * */
     verfiySignature(){
         try {
-            return {'status': true, 'message': 'Signature is verified successfully'};
+            return {'code': config.codes.code_success, 'message': 'Signature is verifies successfully', 'method': 'verfiySignature'};
         } catch(err){
-            return {'status': false, 'message': err};
+            return {'code': config.codes.code_error, 'message': err.message, 'method': 'verfiySignature'};
         }
     }
 }
