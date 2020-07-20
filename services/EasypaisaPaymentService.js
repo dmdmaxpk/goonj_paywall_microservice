@@ -22,8 +22,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        let optData = this.generateOPT(msisdn);
-        console.log('optData: ', optData);
+        return this.generateOPT(msisdn);
     }
 
     /*
@@ -33,13 +32,9 @@ class EasypaisaPaymentService {
    * */
     bootTransactionScript(msisdn, transactionAmount, easypaisaToken, opt){
         if (easypaisaToken !== undefined)
-            this.initiatePinlessTransaction(msisdn, transactionAmount, easypaisaToken);
+            return this.initiatePinlessTransaction(msisdn, transactionAmount, easypaisaToken);
         else
-            this.initiateLinkTransaction(msisdn, transactionAmount, opt);
-
-        return {'code': config.codes.code_success, 'message': 'Signature is verifies successfully', 'method': 'verfiySignature'};
-
-        return {'status': true, 'message': 'Opt script is executed successfully'};
+            return this.initiateLinkTransaction(msisdn, transactionAmount, opt);
     }
 
     /*
