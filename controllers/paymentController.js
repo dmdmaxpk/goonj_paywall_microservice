@@ -118,7 +118,7 @@ exports.sendOtp = async (req, res) => {
 		} else if(req.body.payment_source === "easypaisa"){
             try {
                 record = await easypaisaPaymentService.bootOptScript(msisdn);
-                res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
+                res.send({'code': record.code, message: record.code.message, gw_transaction_id: gw_transaction_id});
             }catch (e) {
                 res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
             }
@@ -289,9 +289,16 @@ exports.subscribe = async (req, res) => {
             let requestData = req.body;
             try {
                 record = await easypaisaPaymentService.bootTransactionScript(requestData.msisdn, requestData.amount, easypaisaToken, requestData.opt);
-                res.send("Easypaisa payment process done");
+                if (record.code === 0){
+
+                    res.send({code: record.code, message: record.message, gw_transaction_id: gw_transaction_id});
+				}
+                else{
+
+                    res.send({code: record.code, message: record.message, gw_transaction_id: gw_transaction_id});
+				}
             }catch (e) {
-                res.send({code: config.codes.code_error, message: er.message})
+                res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id});
             }
 		}
 		else{
