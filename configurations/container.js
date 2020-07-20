@@ -22,6 +22,7 @@ const MigrationRepository = require('../repos/MigrationRepository');
 const TelenorBillingService = require('../services/TelenorBillingService');
 const SystemUserService = require('../services/SystemUserService');
 const EasypaisaPaymentService = require('../services/EasypaisaPaymentService');
+const PaymentProcessService = require('../services/PaymentProcessService');
 
 // Services
 const PaywallService = require('../services/PaywallService');
@@ -56,6 +57,7 @@ container.register({
     paywallService : awilix.asClass(PaywallService).singleton(),
     subscriptionService : awilix.asClass(SubscriptionService).singleton(),
     easypaisaPaymentService: await.asClass(EasypaisaPaymentService).singleton(),
+    paymentProcessService: await.asClass(PaymentProcessService).singleton(),
 
     //scripts
     removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdnsScript).singleton(),

@@ -104,7 +104,7 @@ class EasypaisaPaymentService {
                 this.generateSignature(data);
                 data.signature = this.signature;
                 console.log('initiateLinkTransaction: data.signature: ', data.signature);
-            }).then(function(response){
+            }).then(function(response, resolve){
                 console.log('initiatePinlessTransaction: response 1: ', response);
                 axios({
                     method: 'post',
@@ -112,9 +112,8 @@ class EasypaisaPaymentService {
                     data: data,
                     headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
-                    console.log('initiatePinlessTransaction: response 2: ', response.data);
-                    resolve(response.data);
-                    return {'code': config.codes.code_success, 'message': 'Pinless transaction is done successfully', 'method': 'initiatePinlessTransaction'};
+                    console.log('initiatePinlessTransaction: response 2: ', response);
+                    resolve(response);
                 }).catch(function(err){
                     return {'code': config.codes.code_error, 'message': err.message, 'method': 'initiatePinlessTransaction'};
                 });

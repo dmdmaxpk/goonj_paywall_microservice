@@ -8,9 +8,18 @@ class PaymentProcessService {
 
     async fullChargeAttempt(msisdn, packageObj, transaction_id, subscription){
 
-        if (subscription.payment_source_id){
-            let record = await this.easypaisaPaymentService.bootTransactionScript(requestData.msisdn, requestData.amount, easypaisaToken, requestData.opt);
+        if(subscription.payment_source_id === ""){
+            let subscriptionObj = {};
+            subscriptionObj.packageObj = packageObj;
+            subscriptionObj.msisdn = msisdn;
+            subscriptionObj.transactionId = transaction_id;
+            subscriptionObj.subscription = subscription;
+            let response =  await this.easypaisaPaymentService.initiatePinlessTransaction(msisdn, packageObj.price_point_pkr, subscription.ep_token);
+            subscriptionObj.api_response = response;
 
+            return subscriptionObj;
+        }else{
+            return await this.billingRepo.fullChargeAttempt(msisdn, packageObj, transaction_id, subscription);
         }
     }
 }

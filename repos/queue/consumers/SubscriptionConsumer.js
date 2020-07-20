@@ -7,7 +7,7 @@ const axios =require("axios");
 class SubscriptionConsumer {
 
     constructor({emailService,subscriptionRepository,billingHistoryRepository,tpsCountRepository,billingRepository,
-        packageRepository,messageRepository,userRepository,constants}) {
+        packageRepository,messageRepository,userRepository,constants, paymentProcessService}) {
         this.subscriptionRepo = subscriptionRepository;
         this.billingHistoryRepo = billingHistoryRepository;
         this.tpsCountRepo = tpsCountRepository;
@@ -17,6 +17,8 @@ class SubscriptionConsumer {
         this.userRepo = userRepository;
         this.emailService = emailService;
         this.constants = constants;
+        this.paymentProcessService = paymentProcessService;
+
     }
 
     async consume(message) {
@@ -104,7 +106,7 @@ class SubscriptionConsumer {
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
         
         try{
-            let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
+            let response = await this.paymentProcessService.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
             let api_response = response.api_response;
             let message = api_response.data.Message;
     
