@@ -85,17 +85,24 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    initiatePinlessTransaction(mobileAccountNo, transactionAmount, tokenNumber){
+    initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription){
+        
+        let returnObject = {};
+        returnObject.packageObj = packageObj;
+        returnObject.msisdn = msisdn;
+        returnObject.transactionId = transaction_id;
+        returnObject.subscription = subscription;
+
         try {
             let data = {
                 'request': {
                     'orderId': this.orderId,
                     'storeId': this.storeId,
-                    'transactionAmount': transactionAmount,
+                    'transactionAmount': packageObj.price_point_pkr,
                     'transactionType': 'MA',
-                    'mobileAccountNo': mobileAccountNo,
+                    'mobileAccountNo': msisdn,
                     'emailAddress': this.emailAddress,
-                    'tokenNumber': tokenNumber,
+                    'tokenNumber': subscription.ep_token,
                 }
             };
             console.log('initiatePinlessTransaction: data: ', data);
@@ -112,8 +119,9 @@ class EasypaisaPaymentService {
                     data: data,
                     headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
+                    returnObject.api_response = response.data.response;
                     console.log('initiatePinlessTransaction: response 2: ', response);
-                    resolve(response);
+                    resolve(returnObject);
                 }).catch(function(err){
                     return {'code': config.codes.code_error, 'message': err.message, 'method': 'initiatePinlessTransaction'};
                 });
