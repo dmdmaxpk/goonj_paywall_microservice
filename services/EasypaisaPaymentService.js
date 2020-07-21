@@ -211,9 +211,10 @@ class EasypaisaPaymentService {
                 'mobileAccountNo': mobileAccountNo
             }
         };
+        var self = this;
         return new Promise(function(resolve, reject) {
-            this.generateSignature(data);
-            resolve(this.signature);
+            self.generateSignature(data);
+            resolve(self.signature);
             console.log('generateOPT: this.signature: ', this.signature);
         }).then(function(response){
             data.signature = response;
