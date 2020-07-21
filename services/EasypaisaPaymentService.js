@@ -219,7 +219,7 @@ class EasypaisaPaymentService {
         }).then(function(response){
             data.signature = response;
             console.log('generateOPT: response 1: ', response);
-            let cred = Buffer.from(this.username+":"+this.password).toString('base64');
+            let cred = Buffer.from(self.username+":"+self.password).toString('base64');
             axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
