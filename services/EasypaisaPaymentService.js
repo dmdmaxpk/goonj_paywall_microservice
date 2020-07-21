@@ -28,7 +28,7 @@ class EasypaisaPaymentService {
             console.log('bootOptScript 1');
             await this.getKey();
             console.log('bootOptScript 2');
-            return generateOPT(msisdn);
+            return this.generateOPT(msisdn);
         }catch(err){
             console.log('bootOptScript - err', err);
         }
