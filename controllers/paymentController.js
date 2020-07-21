@@ -88,8 +88,6 @@ subscribePackage = async(subscription, packageObj) => {
 
 // Generate OTP and save to collection
 exports.sendOtp = async (req, res) => {
-    console.log('req.body: ', req.body);
-
     let gw_transaction_id = req.body.transaction_id;
 	let payment_source =  req.body.payment_source; 
 	let msisdn = req.body.msisdn;
@@ -109,7 +107,6 @@ exports.sendOtp = async (req, res) => {
 			}
 		}
 
-		console.log('response.operator: ', response.operator);
 		if(response.operator === "telenor"){
 			// valid customer
 			let userObj = {};

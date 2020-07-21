@@ -208,30 +208,33 @@ class EasypaisaPaymentService {
                 'mobileAccountNo': mobileAccountNo
             }
         };
-        return new Promise(function(resolve, reject) {
-            self.generateSignature(data);
-            console.log('generateOPT: self.signature: ', self.signature);
-            resolve(self.signature);
-        }).then(function(response){
-            data.signature = response;
-            console.log('generateOPT: response 1: ', response);
-            axios({
-                method: 'post',
-                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
-                url: 'https://apis.telenor.com.pk/epp/v1/generateotp',
-                data: data,
-                headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+self.token, 'Content-Type': 'application/json'}
+        try {
+            return new Promise(function(resolve, reject) {
+                self.generateSignature(data);
+                resolve(self.signature);
             }).then(function(response){
-                console.log('generateOPT: response: ', response.data);
-                return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
+                data.signature = response;
+                axios({
+                    method: 'post',
+                    //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
+                    url: 'https://apis.telenor.com.pk/epp/v1/generateotp',
+                    data: data,
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+self.token, 'Content-Type': 'application/json'}
+                }).then(function(response){
+                    console.log('generateOPT: response: ', response);
+                    return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
+                }).catch(function(err){
+                    console.log('generateOPT: err 1', err);
+                    return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
+                });
             }).catch(function(err){
-                console.log('generateOPT: err 1', err);
+                console.log('generateOPT: err 2', err);
                 return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
             });
-        }).catch(function(err){
-            console.log('generateOPT: err 2', err);
+        }catch (e) {
+            console.log('generateOPT: catch error', e);
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
-        });
+        }
     }
 
     /*
