@@ -27,7 +27,8 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        return this.generateOPT(msisdn);
+        this.generateOPT(msisdn);
+        console.log('bootOptScript end ');
     }
 
     /*
@@ -211,7 +212,6 @@ class EasypaisaPaymentService {
         try {
             new Promise(function(resolve, reject) {
                 self.generateSignature(data);
-            }).then(function(response){
                 data.signature = self.signature;
                 console.log('generateOPT: data.signature: ', data.signature);
                 axios({
@@ -280,11 +280,17 @@ class EasypaisaPaymentService {
     * Return Type: Object
     * */
     generateSignature(object){
-        console.log('generateSignature', object);
-        let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
-        let key = new NodeRSA(null, {signingScheme: 'sha256'});
-        key.importKey(this.privateKey, 'pkcs8');
-        this.signature = key.sign(trimmedData, 'base64');
+        try {
+            console.log('generateSignature', object);
+            let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
+            let key = new NodeRSA(null, {signingScheme: 'sha256'});
+            key.importKey(this.privateKey, 'pkcs8');
+            this.signature = key.sign(trimmedData, 'base64');
+            return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
+        } catch(err){
+            console.log(err);
+            return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
+        }
     }
 
     /*
