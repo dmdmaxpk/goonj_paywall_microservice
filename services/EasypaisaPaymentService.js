@@ -225,7 +225,7 @@ class EasypaisaPaymentService {
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
                 url: 'https://telenor.com.pk/epp/v1/generateotp',
                 data: data,
-                headers: {"Credentials": cred }
+                headers: {"Credentials": cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
             }).then(function(response){
                 console.log('generateOPT: response 2: ', response);
                 return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
@@ -284,13 +284,14 @@ class EasypaisaPaymentService {
     async generateSignature(object){
         try {
             console.log('generateSignature', object);
-            const mySignature = crypto.sign('sha256', Buffer.from(object.request), this.privateKey);
-            console.log('mySignature', mySignature);
-            console.log('generateSignature - signature: ', signature.toString("base64"));
-            this.signature = signature.toString("base64");
+            let hash = crypto.createHmac('sha256', this.privateKey)
+                .update(JSON.stringify(object.request))
+                .digest('sha256');
+
+            console.log('generateSignature - hash: ', hash);
+            this.signature = hash;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){
-            console.log('mySignature', err);
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
         }
     }
