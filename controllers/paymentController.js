@@ -14,7 +14,6 @@ const telenorBillingService = container.resolve("telenorBillingService");
 const easypaisaPaymentService = container.resolve("easypaisaPaymentService");
 
 const mongoose = require('mongoose');
-const paymentSources = mongoose.model('PaymentSources');
 
 const shortId = require('shortid');
 const axios = require('axios');
@@ -24,6 +23,8 @@ const blockUsersRepo = require('../repos/BlockedUsersRepo');
 const billingRepo = container.resolve("billingRepository");
 const subscriptionRepo = container.resolve("subscriptionRepository");
 const constants = container.resolve("constants");
+const paymentProcessService = container.resolve("paymentProcessService");
+
 let jwt = require('jsonwebtoken');
 const { response } = require('express');
 
@@ -88,21 +89,24 @@ subscribePackage = async(subscription, packageObj) => {
 // Generate OTP and save to collection
 exports.sendOtp = async (req, res) => {
 	let gw_transaction_id = req.body.transaction_id;
-
+	let payment_source =  req.body.payment_source; 
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
 	// Means no user in DB, let's create one but first check if the coming user has valid active telenor number
 	if(!user){
-		let response;
-		try{
-			response = await billingRepo.subscriberQuery(msisdn);
-		}catch(err){
-			response = err;
+		let response = {};
+
+		if(payment_source && payment_source === "easypaisa"){
+			response.operator = "easypaisa";
+		}else{
+			try{
+				response = await billingRepo.subscriberQuery(msisdn);
+			}catch(err){
+				response = err;
+			}
 		}
 
-		console.log(response);
-		
 		if(response.operator === "telenor"){
 			// valid customer
 			let userObj = {};
@@ -118,10 +122,10 @@ exports.sendOtp = async (req, res) => {
 			} catch (err) {
 				res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
 			}
-		} else if(req.body.payment_source === "easypaisa"){
+		} else if(response.operator === "easypaisa"){
             try {
-                record = await easypaisaPaymentService.bootOptScript(msisdn);
-                res.send({'code': record.code, message: record.code.message, gw_transaction_id: gw_transaction_id});
+                let record = await easypaisaPaymentService.bootOptScript(msisdn);
+                res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
             }catch (e) {
                 res.send({code: config.codes.code_error, message: "Send OPT is failed", gw_transaction_id: gw_transaction_id });
             }
@@ -261,44 +265,39 @@ exports.verifyOtp = async (req, res) => {
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
 	let gw_transaction_id = req.body.transaction_id;
+	let payment_source = req.body.payment_source;
 
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
-	
+
 	if(!user){
 		// Means no user in DB, let's create one
-		let response;
-		try{
-			response = await billingRepo.subscriberQuery(msisdn);
-		}catch(err){
-			response = err;
+		let response = {};
+
+		if(payment_source && payment_source === "easypaisa"){
+			response.operator = "easypaisa";
+		}else{
+			try{
+				response = await billingRepo.subscriberQuery(msisdn);
+			}catch(err){
+				response = err;
+			}
 		}
 
-		if(response.operator === "telenor"){
+		if(response.operator === "telenor" || response.operator === "easypaisa"){
 			// Let's create user. This is valid telenor user
 			let userObj = {};
 			userObj.msisdn = msisdn;
-			userObj.operator = "telenor";
+			userObj.operator = response.operator;
 			userObj.source = req.body.source ? req.body.source : "na";
 
 			try {
 				user = await userRepo.createUser(userObj);
-				console.log('Payment - Subscriber - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
+				console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 				doSubscribe(req, res, user, gw_transaction_id);
 			} catch(er) {
 				res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
 			}
-		} else if(req.body.payment_source === "easypaisa"){
-            let requestData = req.body;
-            try {
-                record = await easypaisaPaymentService.initiateLinkTransaction(msisdn, requestData.amount, requestData.opt);
-                if (record.code === 0)
-                    updateSubscriptionEPToken(req, res, user, gw_transaction_id);
-
-                res.send({code: record.code, message: record.message, gw_transaction_id: gw_transaction_id});
-            }catch (e) {
-                res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id});
-            }
 		}
 		else{
 			createBlockUserHistory(msisdn, req.body.affiliate_unique_transaction_id, req.body.affiliate_mid, response.api_response, req.body.source);
@@ -317,7 +316,7 @@ updateSubscriptionEPToken = async (req, res, user, gw_transaction_id) => {
     }).catch(function(err){
         return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
     });
-};
+}
 
 doSubscribe = async(req, res, user, gw_transaction_id) => {
 
@@ -350,6 +349,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				subscriptionObj.paywall_id = packageObj.paywall_id;
 				subscriptionObj.subscribed_package_id = newPackageId;
 				subscriptionObj.source = req.body.source ?  req.body.source : 'unknown';
+				subscriptionObj.payment_source = req.payment_source ? req.payment_source : "telenor";
 	
 				if(req.body.marketing_source){
 					subscriptionObj.marketing_source = req.body.marketing_source;
@@ -367,7 +367,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				if (packageObj.is_trial_allowed && !( subscriptionObj.source === 'HE' && subscriptionObj.affiliate_mid ===  "gdn")) {
 					console.log("activating trial");
 
-					let trial = await activateTrial(req.body.source, user, subscriber, packageObj, subscriptionObj);
+					let trial = await activateTrial(req.body.otp? req.body.otp : undefined, req.body.source, user, subscriber, packageObj, subscriptionObj);
 					if(trial === "done"){
 						console.log("1 trial activated");
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
@@ -379,7 +379,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					subscriptionObj.amount_billed_today = 0;
 
 					// Subscription rules started
-					let subsResponse = await doSubscribeUsingSubscribingRule(req.body.source, user, subscriber, packageObj, subscriptionObj);
+					let subsResponse = await doSubscribeUsingSubscribingRule(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
 					console.log("subsResponse", subsResponse);
 					if(subsResponse.status === "charged"){
 						res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
@@ -582,49 +582,59 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 	}
 }
 
-activateTrial = async(source, user, subscriber, packageObj, subscriptionObj) => {
+activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj) => {
 
 	let nexBilling = new Date();
 	let trial_hours = packageObj.trial_hours;
 	if (subscriptionObj.source === 'daraz'){
 		trial_hours = 30;
 	}
+
+	let billingHistory = {};
+	if(subscriptionObj.payment_source === "easypaisa"){
+		packageObj.price_point_pkr = 0;
+		let response = await paymentProcessService.processDirectBilling(otp, user, subscriptionObj, packageObj, true);
+		if(response.success){
+			billingHistory.transaction_id = response.api_response.orderId;
+			billingHistory.operator_response = response.api_response;
+		}
+	}
+
 	subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
 	subscriptionObj.subscription_status = 'trial';
 	subscriptionObj.is_allowed_to_stream = true;
 	let subscription = await subscriptionRepo.createSubscription(subscriptionObj);
 
-	let billingHistory = {};
+	
 	billingHistory.user_id = user._id;
 	billingHistory.subscriber_id = subscriber._id;
 	billingHistory.subscription_id = subscription._id;
 	billingHistory.paywall_id = packageObj.paywall_id;
 	billingHistory.package_id = packageObj._id;
-	billingHistory.transaction_id = undefined;
-	billingHistory.operator_response = undefined;
 	billingHistory.billing_status = 'trial';
 	billingHistory.source = source;
-	billingHistory.operator = "telenor";
+	billingHistory.operator = subscriptionObj.payment_source;
 	await billingHistoryRepo.createBillingHistory(billingHistory);
 	await viewLogRepo.createViewLog(user._id, subscription._id);
 
 	return "done";
 }
 
-doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, subscriptionObj) => {
+doSubscribeUsingSubscribingRule = async(otp, source, user, subscriber, packageObj, subscriptionObj) => {
 	let dataToReturn = {};
 
 	try {
 		console.log("Trying direct billing for", packageObj._id);
 		subscriptionObj.subscribed_package_id = packageObj._id;
 
-		let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj, true);
+		let result = await paymentProcessService.processDirectBilling(subscriptionObj.ep_token ? undefined : otp, user, subscriptionObj, packageObj, true);
 		console.log("Direct billing processed with status ", result);
 		if(result.message === "success"){
 			dataToReturn.status = "charged";
 			dataToReturn.subscriptionObj = subscriptionObj;
 			return dataToReturn;
 		}else {
+			let pinLessTokenNumber = result.tokenNumber;
 			let packages = await packageRepo.getAllPackages({paywall_id:packageObj.paywall_id});
 			
 			// sort packages basis of their package duration
@@ -635,17 +645,22 @@ doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, su
 					return -1;
 				}
 			});
+
 			let currentIndex = packages.findIndex(x => x._id === packageObj._id);
 			console.log("Current index: ", currentIndex);
+			
 			if(currentIndex > 0){
 				// try on lower package
 				packageObj = packages[--currentIndex];
-				return await doSubscribeUsingSubscribingRule(source, user, subscriber, packageObj, subscriptionObj);
+				if(pinLessTokenNumber){
+					subscriptionObj.ep_token = pinLessTokenNumber;
+				}
+				return await doSubscribeUsingSubscribingRule(otp, source, user, subscriber, packageObj, subscriptionObj);
 			}else{
 				// activate trial
 				console.log("activating trial");
 				subscriptionObj.should_affiliation_callback_sent = false;
-				let trial = await activateTrial(source, user, subscriber, packageObj, subscriptionObj);
+				let trial = await activateTrial(otp, source, user, subscriber, packageObj, subscriptionObj);
 				if(trial === "done"){
 					console.log("trial activated successfully");
 					dataToReturn.status = "trial";
@@ -938,18 +953,6 @@ exports.expire = async (req, res) => {
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
 	}
 }
-
-// Get all Resource type, for-example : Telenor, Easypaisa etc
-exports.getAllResources = async (req, res) => {
-    let result = await paymentSources.find({});
-    return result;
-};
-
-// Get Resource by 'name', for-example : Easypaisa
-getResourceByName = async (source_name) => {
-    let result = await paymentSources.findOne({source_name: source_name});
-    return result;
-};
 
 // Helper functions
 function getCurrentDate() {

@@ -1,8 +1,9 @@
 const axios = require('axios');
 const config = require('./../config');
-const helper = require('./../helper/Helper');
+const helper = require('./../helper/helper');
 const crypto = require("crypto");
 const shortId = require('shortid');
+const e = require('express');
 
 class EasypaisaPaymentService {
     constructor(){
@@ -30,7 +31,7 @@ class EasypaisaPaymentService {
    * Params: mobileAccountNo, transactionAmount, opt
    * Return Type: Object
    * */
-    initiateLinkTransaction(mobileAccountNo, transactionAmount, opt){
+    initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
         try {
             let data = {
                 'request': {
@@ -40,7 +41,7 @@ class EasypaisaPaymentService {
                     'transactionType': 'MA',
                     'mobileAccountNo': mobileAccountNo,
                     'emailAddress': this.emailAddress,
-                    'otp': opt,
+                    'otp': otp,
                 }
             };
             console.log('initiateLinkTransaction: data: ', data);
@@ -54,18 +55,21 @@ class EasypaisaPaymentService {
                 console.log('initiateLinkTransaction: response 1: ', response);
                 axios({
                     method: 'post',
-                    url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
+                    //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
+                    url: 'https://telenor.com.pk/epp/v1/initiatelinktransaction',
                     data: data,
                     headers: { 'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     console.log('initiateLinkTransaction: response 2: ', response.data);
-                    return {'code': config.codes.code_success, 'message': 'Initiate transaction is done successfully', 'method': 'initiateLinkTransaction'};
-                }).catch(function(err){
-                    return {'code': config.codes.code_error, 'message': err.message, 'method': 'initiateLinkTransaction'};
+                    return response.data.response;
+                }).catch(function(error){
+                    console.log('initiateLinkTransaction error 1: ', error);
+                    throw error;
                 });
             });
         } catch(err){
-            return {'code': config.codes.code_error, 'message': err.message, 'method': 'initiateLinkTransaction'};
+            console.log('initiateLinkTransaction error 2: ', err);
+            throw err;
         }
     }
 
@@ -105,7 +109,8 @@ class EasypaisaPaymentService {
                 data.signature = response;
                 axios({
                     method: 'post',
-                    url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-pinless-transaction',
+                    //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-pinless-transaction',
+                    url: 'https://telenor.com.pk/epp/v1/initiatepinlesstransaction',
                     data: data,
                     headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
@@ -205,7 +210,8 @@ class EasypaisaPaymentService {
             console.log('generateOPT: response 1: ', response);
             axios({
                 method: 'post',
-                url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
+                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
+                url: 'https://telenor.com.pk/epp/v1/generateotp',
                 data: data,
                 headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
             }).then(function(response){
