@@ -26,9 +26,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         try{
-            console.log('bootOptScript 1');
             await this.getKey();
-            console.log('bootOptScript 2');
             return this.generateOPT(msisdn);
         }catch(err){
             console.log('bootOptScript - err', err);
@@ -220,7 +218,6 @@ class EasypaisaPaymentService {
             console.log('generateOPT: this.signature: ', this.signature);
         }).then(function(response){
             data.signature = response;
-            console.log('generateOPT: response 1: ', response);
             let cred = Buffer.from(self.username+":"+self.password).toString('base64');
             axios({
                 method: 'post',
@@ -229,7 +226,7 @@ class EasypaisaPaymentService {
                 data: data,
                 headers: {'Credentials': cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
             }).then(function(response){
-                console.log('generateOPT: response 2: ', response);
+                console.log('generateOPT: response: ', response.data);
                 return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
             }).catch(function(err){
                 console.log('generateOPT: err 1', err);
@@ -287,8 +284,6 @@ class EasypaisaPaymentService {
         try {
             console.log('generateSignature', object);
             let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
-            console.log('Trimmed Data', trimmedData);
-
             let key = new NodeRSA(null, {signingScheme: 'sha256'});
             key.importKey(this.privateKey, 'pkcs8');
             let sign = key.sign(trimmedData, 'base64');
