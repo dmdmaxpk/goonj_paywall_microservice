@@ -123,7 +123,7 @@ exports.sendOtp = async (req, res) => {
                 record = await easypaisaPaymentService.bootOptScript(msisdn);
                 res.send({'code': record.code, message: record.code.message, gw_transaction_id: gw_transaction_id});
             }catch (e) {
-                res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
+                res.send({code: config.codes.code_error, message: "Send OPT is failed", gw_transaction_id: gw_transaction_id });
             }
 		} else{
 			// invalid customer
@@ -292,12 +292,7 @@ exports.subscribe = async (req, res) => {
             let requestData = req.body;
             try {
                 record = await easypaisaPaymentService.initiateLinkTransaction(msisdn, requestData.amount, requestData.opt);
-                if (record.code === 0){
-                    res.send({code: record.code, message: record.message, gw_transaction_id: gw_transaction_id});
-				}
-                else{
-                    res.send({code: record.code, message: record.message, gw_transaction_id: gw_transaction_id});
-				}
+                res.send({code: record.code, message: record.message, gw_transaction_id: gw_transaction_id});
             }catch (e) {
                 res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id});
             }
