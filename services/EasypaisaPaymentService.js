@@ -288,8 +288,8 @@ class EasypaisaPaymentService {
                 .update(JSON.stringify(object.request))
                 .digest('sha256');
 
-            console.log('generateSignature - hash: ', hash.toString());
-            this.signature = hash.toString();
+            console.log('generateSignature - hash: ', hash);
+            this.signature = hash;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
