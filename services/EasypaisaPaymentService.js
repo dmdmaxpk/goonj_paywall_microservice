@@ -285,11 +285,13 @@ class EasypaisaPaymentService {
     async generateSignature(object){
         try {
             console.log('generateSignature', object);
-            let trimmedData = JSON.stringify(JSON.parse(object.request));
+            let trimmedData = JSON.parse(JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"'))
             console.log('Trimmed Data', trimmedData);
+
             const signer = crypto.createSign('RSA-SHA256');
-            const sign = signer.sign(this.privateKey, trimmedData);
-            
+            signer.write(trimmedData);
+            const sign = signer.sign(this.privateKey, 'base64');
+            console.log('sign', sign);
             this.signature = sign;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){
