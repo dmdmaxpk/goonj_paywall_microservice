@@ -27,7 +27,7 @@ class EasypaisaPaymentService {
         console.log('bootOptScript 1');
         await getKey();
         console.log('bootOptScript 2');
-        return await generateOPT(msisdn);
+        return generateOPT(msisdn);
     }
 
     /*
@@ -198,7 +198,7 @@ class EasypaisaPaymentService {
     * Params: mobileAccountNo
     * Return Type: Object
     * */
-    async generateOPT(mobileAccountNo){
+    generateOPT(mobileAccountNo){
         console.log('generateOPT', mobileAccountNo);
         let data = {
             'request': {
