@@ -290,7 +290,7 @@ class EasypaisaPaymentService {
             console.log('Trimmed Data', trimmedData);
 
             let key = new NodeRSA(null, {signingScheme: 'sha256'});
-            key.importKey(this.privateKey, 'pkcs1');
+            key.importKey(this.privateKey, 'pkcs8');
             let sign = key.sign(trimmedData, 'hex');
             console.log('sign', sign);
             this.signature = sign;
