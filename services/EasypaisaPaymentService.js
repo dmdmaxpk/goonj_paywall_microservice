@@ -296,6 +296,7 @@ class EasypaisaPaymentService {
             this.signature = sign;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){
+            console.log(err);
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
         }
     }
