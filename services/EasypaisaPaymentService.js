@@ -27,8 +27,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        this.generateOPT(msisdn);
-        console.log('bootOptScript end ');
+        return this.generateOPT(msisdn);
     }
 
     /*
@@ -281,17 +280,11 @@ class EasypaisaPaymentService {
     * Return Type: Object
     * */
     generateSignature(object){
-        try {
-            console.log('generateSignature', object);
-            let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
-            let key = new NodeRSA(null, {signingScheme: 'sha256'});
-            key.importKey(this.privateKey, 'pkcs8');
-            this.signature = key.sign(trimmedData, 'base64');
-            return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
-        } catch(err){
-            console.log(err);
-            return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
-        }
+        console.log('generateSignature', object);
+        let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
+        let key = new NodeRSA(null, {signingScheme: 'sha256'});
+        key.importKey(this.privateKey, 'pkcs8');
+        this.signature = key.sign(trimmedData, 'base64');
     }
 
     /*
