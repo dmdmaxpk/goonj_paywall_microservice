@@ -222,8 +222,8 @@ class EasypaisaPaymentService {
             let cred = Buffer.from(self.username+":"+self.password).toString('base64');
             axios({
                 method: 'post',
-                url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
-                //url: 'https://telenor.com.pk/epp/v1/generateotp',
+                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
+                url: 'https://telenor.com.pk/epp/v1/generateotp',
                 data: data,
                 headers: {'Credentials': cred }
             }).then(function(response){
