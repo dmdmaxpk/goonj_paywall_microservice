@@ -23,7 +23,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        return this.generateOPT(msisdn);
+        return generateOPT(msisdn);
     }
 
     /*
@@ -31,7 +31,7 @@ class EasypaisaPaymentService {
    * Params: mobileAccountNo, transactionAmount, opt
    * Return Type: Object
    * */
-    initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
+    async initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
         try {
             let data = {
                 'request': {
@@ -78,7 +78,7 @@ class EasypaisaPaymentService {
     * Params: msisdn(mobileAccountNo), packageObj(user package info), transaction_id(user transaction ID), subscription(Subscription data)
     * Return Type: Object
     * */
-    initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription){
+    async initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription){
         
         let returnObject = {};
         returnObject.packageObj = packageObj;
@@ -131,7 +131,7 @@ class EasypaisaPaymentService {
     * Params: mobileAccountNo, tokenNumber(easypaisa token no)
     * Return Type: Object
     * */
-    deactivateLinkTransaction(mobileAccountNo, tokenNumber){
+    async deactivateLinkTransaction(mobileAccountNo, tokenNumber){
         try {
             let data = {
                 'request': {
@@ -169,7 +169,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    getAuthToken(){
+    async getAuthToken(){
         try {
             return new Promise(function(resolve, reject) {
                 axios({
@@ -194,7 +194,7 @@ class EasypaisaPaymentService {
     * Params: mobileAccountNo
     * Return Type: Object
     * */
-    generateOPT(mobileAccountNo){
+    async generateOPT(mobileAccountNo){
         let data = {
             'request': {
                 'storeId': this.storeId,
@@ -230,7 +230,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    getOrderId() {
+    async getOrderId() {
         this.orderId = "GoonjEasypaisa_"+shortId.generate()+"_"+helper.getCurrentDate();
     }
 
@@ -240,7 +240,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    generateKeys() {
+    async generateKeys() {
         const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
             modulusLength: 2048,
         });
@@ -255,7 +255,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: null
     * */
-    getKey(){
+    async getKey(){
         this.privateKey = helper.easypaisaPrivateKey();
     }
 
@@ -265,7 +265,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    generateSignature(object){
+    async generateSignature(object){
         try {
             let hash = crypto.createHmac('sha256', this.privateKey)
                 .update(JSON.stringify(object.request))
@@ -285,7 +285,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    verfiySignature(){
+    async verfiySignature(){
         try {
             return {'code': config.codes.code_success, 'message': 'Signature is verifies successfully', 'method': 'verfiySignature'};
         } catch(err){
