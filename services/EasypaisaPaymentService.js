@@ -202,7 +202,7 @@ class EasypaisaPaymentService {
     * */
     generateOPT(mobileAccountNo){
         console.log('generateOPT', mobileAccountNo);
-        console.log('this.token', this.token);
+        console.log('config.telenor_dcb_api_token', config.telenor_dcb_api_token);
         let self = this;
         let data = {
             'request': {
@@ -220,7 +220,7 @@ class EasypaisaPaymentService {
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
                     url: 'https://apis.telenor.com.pk/epp/v1/generateotp',
                     data: data,
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+self.token, 'Content-Type': 'application/json'}
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 }).then(function(response){
                     console.log('generateOPT: response: ', response);
                     return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
