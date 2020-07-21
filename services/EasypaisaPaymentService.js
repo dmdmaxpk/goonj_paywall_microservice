@@ -288,11 +288,12 @@ class EasypaisaPaymentService {
                 key: this.privateKey,
                 padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
             });
-            
+            console.log('mySignature', mySignature);
             console.log('generateSignature - signature: ', mySignature);
             this.signature = mySignature;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){
+            console.log('mySignature', err);
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
         }
     }
