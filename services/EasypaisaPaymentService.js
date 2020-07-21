@@ -211,6 +211,7 @@ class EasypaisaPaymentService {
                 'mobileAccountNo': mobileAccountNo
             }
         };
+        data = data.trim();
         var self = this;
         return new Promise(function(resolve, reject) {
             self.generateSignature(data);
@@ -283,9 +284,9 @@ class EasypaisaPaymentService {
     * */
     async generateSignature(object){
         try {
-            console.log('generateSignature', object.replace(/\s/g, ''));
+            console.log('generateSignature', object);
             const signer = crypto.createSign('RSA-SHA256');
-            signer.update(object.request.replace(/\s/g, ''));
+            signer.update(object.request);
             const sign = signer.sign(this.privateKey, 'hex');
 
             console.log('generateSignature - hash: ', sign);
