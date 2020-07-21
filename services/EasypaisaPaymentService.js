@@ -28,6 +28,7 @@ class EasypaisaPaymentService {
     async bootOptScript(msisdn){
         await this.getKey();
         this.generateOPT(msisdn);
+        console.log('bootOptScript end ');
     }
 
     /*
@@ -209,11 +210,11 @@ class EasypaisaPaymentService {
             }
         };
         try {
-            return new Promise(function(resolve, reject) {
+            new Promise(function(resolve, reject) {
                 self.generateSignature(data);
-                resolve(self.signature);
             }).then(function(response){
-                data.signature = response;
+                data.signature = self.signature;
+                console.log('generateOPT: data.signature: ', data.signature);
                 axios({
                     method: 'post',
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
@@ -285,9 +286,7 @@ class EasypaisaPaymentService {
             let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
             let key = new NodeRSA(null, {signingScheme: 'sha256'});
             key.importKey(this.privateKey, 'pkcs8');
-            let sign = key.sign(trimmedData, 'base64');
-            console.log('sign', sign);
-            this.signature = sign;
+            this.signature = key.sign(trimmedData, 'base64');
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){
             console.log(err);
