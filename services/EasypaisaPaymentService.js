@@ -24,10 +24,15 @@ class EasypaisaPaymentService {
    * Return Type: Object
    * */
     async bootOptScript(msisdn){
-        console.log('bootOptScript 1');
-        await getKey();
-        console.log('bootOptScript 2');
-        return generateOPT(msisdn);
+        try{
+            console.log('bootOptScript 1');
+            await getKey();
+            console.log('bootOptScript 2');
+            return generateOPT(msisdn);
+        }catch(err){
+            console.log('bootOptScript - err', err);
+        }
+        
     }
 
     /*
