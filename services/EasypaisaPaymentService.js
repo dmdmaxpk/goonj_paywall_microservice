@@ -202,6 +202,7 @@ class EasypaisaPaymentService {
     * */
     generateOPT(mobileAccountNo){
         console.log('generateOPT', mobileAccountNo);
+        console.log('this.token', this.token);
         let self = this;
         let data = {
             'request': {
