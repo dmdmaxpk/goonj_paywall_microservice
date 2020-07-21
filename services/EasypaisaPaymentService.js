@@ -24,8 +24,10 @@ class EasypaisaPaymentService {
    * Return Type: Object
    * */
     async bootOptScript(msisdn){
-        await this.getKey();
-        return generateOPT(msisdn);
+        console.log('bootOptScript 1');
+        await getKey();
+        console.log('bootOptScript 2');
+        return await generateOPT(msisdn);
     }
 
     /*
@@ -197,6 +199,7 @@ class EasypaisaPaymentService {
     * Return Type: Object
     * */
     async generateOPT(mobileAccountNo){
+        console.log('generateOPT', mobileAccountNo);
         let data = {
             'request': {
                 'storeId': this.storeId,
@@ -272,6 +275,7 @@ class EasypaisaPaymentService {
     * */
     async generateSignature(object){
         try {
+            console.log('generateSignature', object);
             let hash = crypto.createHmac('sha256', this.privateKey)
                 .update(JSON.stringify(object.request))
                 .digest('hex');
