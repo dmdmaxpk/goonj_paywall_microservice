@@ -291,7 +291,7 @@ class EasypaisaPaymentService {
 
             let key = new NodeRSA(null, {signingScheme: 'sha256'});
             key.importKey(this.privateKey, 'pkcs8');
-            let sign = key.sign(trimmedData, 'hex');
+            let sign = key.sign(trimmedData, 'base64');
             console.log('sign', sign);
             this.signature = sign;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
