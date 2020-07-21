@@ -4,6 +4,7 @@ const helper = require('./../helper/helper');
 const crypto = require("crypto");
 const shortId = require('shortid');
 const e = require('express');
+const NodeRSA = require('node-rsa');
 
 class EasypaisaPaymentService {
     constructor(){
@@ -285,12 +286,11 @@ class EasypaisaPaymentService {
     async generateSignature(object){
         try {
             console.log('generateSignature', object);
-            let trimmedData = JSON.parse(JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"'))
+            let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
             console.log('Trimmed Data', trimmedData);
 
-            const signer = crypto.createSign('RSA-SHA256');
-            signer.write(trimmedData);
-            const sign = signer.sign(this.privateKey, 'base64');
+            const key = new NodeRSA(this.privateKey);
+            let sign = key.sign(trimmedData, 'sha256', 'sha256');
             console.log('sign', sign);
             this.signature = sign;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
