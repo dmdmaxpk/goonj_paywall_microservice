@@ -286,7 +286,7 @@ class EasypaisaPaymentService {
             console.log('generateSignature', object);
             let hash = crypto.createHmac('sha256', this.privateKey)
                 .update(JSON.stringify(object.request))
-                .digest('sha256');
+                .digest('hex');
 
             console.log('generateSignature - hash: ', hash.toString('base64'));
             this.signature = hash.toString('base64');
