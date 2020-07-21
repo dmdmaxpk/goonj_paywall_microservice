@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const shortId = require('shortid');
 const e = require('express');
 const NodeRSA = require('node-rsa');
+const { resolve } = require('path');
 
 class EasypaisaPaymentService {
     constructor(){
@@ -27,7 +28,7 @@ class EasypaisaPaymentService {
     async bootOptScript(msisdn){
         try{
             await this.getKey();
-            return await this.generateOPT(msisdn);
+            return this.generateOPT(msisdn);
         }catch(err){
             console.log('bootOptScript - err', err);
         }
@@ -202,7 +203,7 @@ class EasypaisaPaymentService {
     * Params: mobileAccountNo
     * Return Type: Object
     * */
-    async generateOPT(mobileAccountNo){
+    generateOPT(mobileAccountNo){
         console.log('generateOPT', mobileAccountNo);
         let data = {
             'request': {
@@ -227,7 +228,7 @@ class EasypaisaPaymentService {
                 headers: {'Credentials': cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
             }).then(function(response){
                 console.log('generateOPT: response: ', response.data);
-                return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
+                resolve({'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'});
             }).catch(function(err){
                 console.log('generateOPT: err 1', err);
                 return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
