@@ -47,9 +47,10 @@ class EasypaisaPaymentService {
 
             return new Promise(function(resolve, reject) {
                 this.generateSignature(data);
-                data.signature = this.signature;
-                console.log('initiateLinkTransaction: data.signature: ', data.signature);
+                resolve(this.signature);
+                console.log('initiateLinkTransaction: this.signature: ', this.signature);
             }).then(function(response){
+                data.signature = response;
                 console.log('initiateLinkTransaction: response 1: ', response);
                 axios({
                     method: 'post',
@@ -98,7 +99,7 @@ class EasypaisaPaymentService {
             return new Promise(function(resolve, reject) {
                 this.generateSignature(data);
                 resolve(this.signature);
-                console.log('initiateLinkTransaction: data.signature: ', data.signature);
+                console.log('initiateLinkTransaction: this.signature: ', this.signature);
             }).then(function(response){
                 console.log('initiatePinlessTransaction: response 1: ', response);
                 data.signature = response;
@@ -127,18 +128,24 @@ class EasypaisaPaymentService {
     * */
     deactivateLinkTransaction(mobileAccountNo, tokenNumber){
         try {
+            let data = {
+                'request': {
+                    'storeId': this.storeId,
+                    'mobileAccountNo': mobileAccountNo,
+                    'tokenNumber': tokenNumber
+                }
+            };
             return new Promise(function(resolve, reject) {
+                this.generateSignature(data);
+                resolve(this.signature);
+                console.log('deactivateLinkTransaction: this.signature: ', this.signature);
+            }).then(function(response){
+                console.log('deactivateLinkTransaction: response 1: ', response);
+                data.signature = response;
                 axios({
                     method: 'post',
                     url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
-                    data: {
-                        'request': {
-                            'storeId': this.storeId, //'16025'
-                            'mobileAccountNo': mobileAccountNo, //'03451234567'
-                            'tokenNumber': tokenNumber //0000002991
-                        },
-                        'signature': this.signature
-                    },
+                    data: data,
                     headers: {'Authorization': 'Basic '+this.token,
                         'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
@@ -191,9 +198,10 @@ class EasypaisaPaymentService {
         };
         return new Promise(function(resolve, reject) {
             this.generateSignature(data);
-            data.signature = this.signature;
-            console.log('generateOPT: data.signature: ', data.signature);
+            resolve(this.signature);
+            console.log('generateOPT: this.signature: ', this.signature);
         }).then(function(response){
+            data.signature = response;
             console.log('generateOPT: response 1: ', response);
             axios({
                 method: 'post',
@@ -257,7 +265,7 @@ class EasypaisaPaymentService {
                 .update(JSON.stringify(object.request))
                 .digest('hex');
 
-            console.log('hash: ', hash);
+            console.log('generateSignature - hash: ', hash);
             this.signature = hash;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){

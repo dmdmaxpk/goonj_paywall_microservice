@@ -292,6 +292,9 @@ exports.subscribe = async (req, res) => {
             let requestData = req.body;
             try {
                 record = await easypaisaPaymentService.initiateLinkTransaction(msisdn, requestData.amount, requestData.opt);
+                if (record.code === 0)
+                    updateSubscriptionEPToken(req, res, user, gw_transaction_id);
+
                 res.send({code: record.code, message: record.message, gw_transaction_id: gw_transaction_id});
             }catch (e) {
                 res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id});
@@ -305,6 +308,16 @@ exports.subscribe = async (req, res) => {
 		doSubscribe(req, res, user, gw_transaction_id);
 	}
 }
+
+updateSubscriptionEPToken = async (req, res, user, gw_transaction_id) => {
+    return new Promise(function(resolve, reject) {
+        subscriptionRepo.updateSubscription(subscription_id, postData);
+    }).then(function(response){
+        doSubscribe(req, res, user, gw_transaction_id);
+    }).catch(function(err){
+        return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
+    });
+};
 
 doSubscribe = async(req, res, user, gw_transaction_id) => {
 
