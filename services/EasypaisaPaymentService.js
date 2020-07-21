@@ -223,7 +223,7 @@ class EasypaisaPaymentService {
             axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
-                url: 'https://telenor.com.pk/epp/v1/generateotp',
+                url: 'https://apis.telenor.com.pk/epp/v1/generateotp',
                 data: data,
                 headers: {"Credentials": cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
             }).then(function(response){
