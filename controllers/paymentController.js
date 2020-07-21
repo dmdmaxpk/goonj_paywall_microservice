@@ -88,7 +88,9 @@ subscribePackage = async(subscription, packageObj) => {
 
 // Generate OTP and save to collection
 exports.sendOtp = async (req, res) => {
-	let gw_transaction_id = req.body.transaction_id;
+    console.log('req.body: ', req.body);
+
+    let gw_transaction_id = req.body.transaction_id;
 	let payment_source =  req.body.payment_source; 
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
@@ -107,6 +109,7 @@ exports.sendOtp = async (req, res) => {
 			}
 		}
 
+		console.log('response.operator: ', response.operator);
 		if(response.operator === "telenor"){
 			// valid customer
 			let userObj = {};
@@ -124,9 +127,11 @@ exports.sendOtp = async (req, res) => {
 			}
 		} else if(response.operator === "easypaisa"){
             try {
-                let record = await easypaisaPaymentService.bootOptScript(msisdn);
+				let record = await easypaisaPaymentService.bootOptScript(msisdn);
+				console.log('sendOtp', record);
                 res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
             }catch (e) {
+				console.log('sendOtp - error', e);
                 res.send({code: config.codes.code_error, message: "Send OPT is failed", gw_transaction_id: gw_transaction_id });
             }
 		} else{

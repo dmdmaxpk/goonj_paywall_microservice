@@ -3,6 +3,8 @@ const config = require('./../config');
 const helper = require('./../helper/helper');
 const crypto = require("crypto");
 const shortId = require('shortid');
+const e = require('express');
+const NodeRSA = require('node-rsa');
 
 class EasypaisaPaymentService {
     constructor(){
@@ -24,14 +26,8 @@ class EasypaisaPaymentService {
    * Return Type: Object
    * */
     async bootOptScript(msisdn){
-        try{
-            console.log('bootOptScript 1');
-            await this.getKey();
-            console.log('bootOptScript 2');
-            return this.generateOPT(msisdn);
-        }catch(err){
-            console.log('bootOptScript - err', err);
-        }
+        await this.getKey();
+        this.generateOPT(msisdn);
     }
 
     /*
@@ -67,7 +63,7 @@ class EasypaisaPaymentService {
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
                     url: 'https://telenor.com.pk/epp/v1/initiatelinktransaction',
                     data: data,
-                    headers: { 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     console.log('initiateLinkTransaction: response 2: ', response.data);
                     return response.data.response;
@@ -121,7 +117,7 @@ class EasypaisaPaymentService {
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-pinless-transaction',
                     url: 'https://telenor.com.pk/epp/v1/initiatepinlesstransaction',
                     data: data,
-                    headers: {'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     returnObject.api_response = response.data.response;
                     console.log('initiatePinlessTransaction: response 2: ', returnObject);
@@ -161,8 +157,7 @@ class EasypaisaPaymentService {
                     method: 'post',
                     url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
                     data: data,
-                    headers: {'Authorization': 'Basic '+self.token,
-                        'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     resolve(response.data);
                 }).catch(function(err){
@@ -186,8 +181,7 @@ class EasypaisaPaymentService {
                 axios({
                     method: 'post',
                     url: config.telenor_dcb_api_baseurl + 'oauthtoken/v1/generate?grant_type=client_credentials',
-                    headers: {'Authorization': 'Basic '+self.token,
-                        'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     resolve(response.data);
                 }).catch(function(err){
@@ -216,19 +210,19 @@ class EasypaisaPaymentService {
         };
         return new Promise(function(resolve, reject) {
             self.generateSignature(data);
-            resolve(self.signature);
             console.log('generateOPT: self.signature: ', self.signature);
+            resolve(self.signature);
         }).then(function(response){
             data.signature = response;
             console.log('generateOPT: response 1: ', response);
             axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
-                url: 'https://telenor.com.pk/epp/v1/generateotp',
+                url: 'https://apis.telenor.com.pk/epp/v1/generateotp',
                 data: data,
-                headers: {"credentials": self.base64_cred }
+                headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+self.token, 'Content-Type': 'application/json'}
             }).then(function(response){
-                console.log('generateOPT: response 2: ', response);
+                console.log('generateOPT: response: ', response.data);
                 return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
             }).catch(function(err){
                 console.log('generateOPT: err 1', err);
@@ -285,14 +279,15 @@ class EasypaisaPaymentService {
     generateSignature(object){
         try {
             console.log('generateSignature', object);
-            let hash = crypto.createHmac('sha256', this.privateKey)
-                .update(JSON.stringify(object.request))
-                .digest('hex');
-
-            console.log('generateSignature - hash: ', hash);
-            this.signature = hash;
+            let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
+            let key = new NodeRSA(null, {signingScheme: 'sha256'});
+            key.importKey(this.privateKey, 'pkcs8');
+            let sign = key.sign(trimmedData, 'base64');
+            console.log('sign', sign);
+            this.signature = sign;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){
+            console.log(err);
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
         }
     }
@@ -305,6 +300,7 @@ class EasypaisaPaymentService {
     * */
     verfiySignature(){
         try {
+
             return {'code': config.codes.code_success, 'message': 'Signature is verifies successfully', 'method': 'verfiySignature'};
         } catch(err){
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'verfiySignature'};
