@@ -290,7 +290,7 @@ class EasypaisaPaymentService {
             console.log('Trimmed Data', trimmedData);
 
             const key = new NodeRSA(this.privateKey);
-            let sign = key.sign(trimmedData, 'sha256', 'sha256');
+            let sign = key.sign(Buffer.from(trimmedData, 'utf8'), 'sha256', 'hex');
             console.log('sign', sign);
             this.signature = sign;
             return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
