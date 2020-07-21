@@ -34,7 +34,7 @@ generateDailyReport = async() => {
     // await subscriberRepo.removeNumberAndHistory('03458561755');
     
     
-    await sleep(180*1000);
+    await sleep(25*60*1000);
     reportsRepo.callBacksReport();
 
     
