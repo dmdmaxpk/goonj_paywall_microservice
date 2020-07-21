@@ -289,6 +289,10 @@ class EasypaisaPaymentService {
             let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
             console.log('Trimmed Data', trimmedData);
 
+            let key = new NodeRSA(null, {signingScheme: 'pkcs1-sha256'});
+            key.importKey(this.privateKey, 'pkcs8');
+            signature=key.sign(trimmedData, 'hex');
+
             const key = new NodeRSA(this.privateKey);
             let sign = key.sign(Buffer.from(trimmedData, 'utf8'), 'sha256', 'hex');
             console.log('sign', sign);
