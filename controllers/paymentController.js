@@ -125,9 +125,10 @@ exports.sendOtp = async (req, res) => {
 		} else if(response.operator === "easypaisa"){
             try {
 				let record = await easypaisaPaymentService.bootOptScript(msisdn);
-				console.log(record);
+				console.log('sendOtp', record);
                 res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
             }catch (e) {
+				console.log('sendOtp - error', e);
                 res.send({code: config.codes.code_error, message: "Send OPT is failed", gw_transaction_id: gw_transaction_id });
             }
 		} else{
