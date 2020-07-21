@@ -9,6 +9,8 @@ class EasypaisaPaymentService {
     constructor(){
         this.token = config.telenor_dcb_api_token;
         this.emailAddress = 'muhammad.azam@dmdmax.com';
+        this.username = 'DMD',
+        this.password = '3dca201bc26a31247bb4c6fbd1858468',
         this.storeId = '10631';
         this.orderId = this.getOrderId();
         this.signature = null;
@@ -208,19 +210,22 @@ class EasypaisaPaymentService {
         }).then(function(response){
             data.signature = response;
             console.log('generateOPT: response 1: ', response);
+            let cred = Buffer.from(this.username+":"+this.password).toString('base64');
             axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
                 url: 'https://telenor.com.pk/epp/v1/generateotp',
                 data: data,
-                headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                headers: {'Credentials': cred, 'Content-Type': 'application/json' }
             }).then(function(response){
                 console.log('generateOPT: response 2: ', response);
                 return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
             }).catch(function(err){
+                console.log('generateOPT: err 1', err);
                 return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
             });
         }).catch(function(err){
+            console.log('generateOPT: err 2', err);
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
         });
     }
