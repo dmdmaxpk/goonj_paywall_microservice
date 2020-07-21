@@ -213,7 +213,7 @@ class EasypaisaPaymentService {
         };
 
         for (var key in data) {
-            user[key] = user[key].toString().trim()
+            data[key] = data[key].toString().trim()
         }
         console.log(data);
 
