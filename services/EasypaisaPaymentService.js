@@ -222,10 +222,10 @@ class EasypaisaPaymentService {
             let cred = Buffer.from(self.username+":"+self.password).toString('base64');
             axios({
                 method: 'post',
-                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
-                url: 'https://telenor.com.pk/epp/v1/generateotp',
+                url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
+                //url: 'https://telenor.com.pk/epp/v1/generateotp',
                 data: data,
-                headers: {'Credentials': cred, 'Content-Type': 'application/json' }
+                headers: {'Credentials': cred }
             }).then(function(response){
                 console.log('generateOPT: response 2: ', response);
                 return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
