@@ -9,13 +9,14 @@ class EasypaisaPaymentService {
     constructor(){
         this.token = config.telenor_dcb_api_token;
         this.emailAddress = 'muhammad.azam@dmdmax.com';
-        this.username = 'DMD',
-        this.password = '3dca201bc26a31247bb4c6fbd1858468',
+        this.username = 'DMD';
+        this.password = '3dca201bc26a31247bb4c6fbd1858468';
         this.storeId = '10631';
         this.orderId = this.getOrderId();
         this.signature = null;
         this.publicKey = null;
         this.privateKey = null;
+        this.base64_cred = Buffer.from(this.username+":"+this.password).toString('base64');
     }
 
     /*
@@ -40,25 +41,26 @@ class EasypaisaPaymentService {
    * Params: mobileAccountNo, transactionAmount, opt
    * Return Type: Object
    * */
-    async initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
+    initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
         try {
+            let self = this;
             let data = {
                 'request': {
-                    'orderId': this.orderId,
-                    'storeId': this.storeId,
+                    'orderId': self.orderId,
+                    'storeId': self.storeId,
                     'transactionAmount': transactionAmount,
                     'transactionType': 'MA',
                     'mobileAccountNo': mobileAccountNo,
-                    'emailAddress': this.emailAddress,
+                    'emailAddress': self.emailAddress,
                     'otp': otp,
                 }
             };
             console.log('initiateLinkTransaction: data: ', data);
 
             return new Promise(function(resolve, reject) {
-                this.generateSignature(data);
-                resolve(this.signature);
-                console.log('initiateLinkTransaction: this.signature: ', this.signature);
+                self.generateSignature(data);
+                resolve(self.signature);
+                console.log('initiateLinkTransaction: self.signature: ', self.signature);
             }).then(function(response){
                 data.signature = response;
                 console.log('initiateLinkTransaction: response 1: ', response);
@@ -67,7 +69,7 @@ class EasypaisaPaymentService {
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
                     url: 'https://telenor.com.pk/epp/v1/initiatelinktransaction',
                     data: data,
-                    headers: { 'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: { 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     console.log('initiateLinkTransaction: response 2: ', response.data);
                     return response.data.response;
@@ -87,32 +89,32 @@ class EasypaisaPaymentService {
     * Params: msisdn(mobileAccountNo), packageObj(user package info), transaction_id(user transaction ID), subscription(Subscription data)
     * Return Type: Object
     * */
-    async initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription){
-        
-        let returnObject = {};
-        returnObject.packageObj = packageObj;
-        returnObject.msisdn = msisdn;
-        returnObject.transactionId = transaction_id;
-        returnObject.subscription = subscription;
-
+    initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription){
         try {
+            let self = this;
+            let returnObject = {};
+            returnObject.packageObj = packageObj;
+            returnObject.msisdn = msisdn;
+            returnObject.transactionId = transaction_id;
+            returnObject.subscription = subscription;
+
             let data = {
                 'request': {
-                    'orderId': this.orderId,
-                    'storeId': this.storeId,
+                    'orderId': self.orderId,
+                    'storeId': self.storeId,
                     'transactionAmount': packageObj.price_point_pkr,
                     'transactionType': 'MA',
                     'mobileAccountNo': msisdn,
-                    'emailAddress': this.emailAddress,
+                    'emailAddress': self.emailAddress,
                     'tokenNumber': subscription.ep_token,
                 }
             };
             console.log('initiatePinlessTransaction: data: ', data);
 
             return new Promise(function(resolve, reject) {
-                this.generateSignature(data);
-                resolve(this.signature);
-                console.log('initiateLinkTransaction: this.signature: ', this.signature);
+                self.generateSignature(data);
+                resolve(self.signature);
+                console.log('initiateLinkTransaction: self.signature: ', self.signature);
             }).then(function(response){
                 console.log('initiatePinlessTransaction: response 1: ', response);
                 data.signature = response;
@@ -121,7 +123,7 @@ class EasypaisaPaymentService {
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-pinless-transaction',
                     url: 'https://telenor.com.pk/epp/v1/initiatepinlesstransaction',
                     data: data,
-                    headers: {'Authorization': 'Basic '+this.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: {'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     returnObject.api_response = response.data.response;
                     console.log('initiatePinlessTransaction: response 2: ', returnObject);
@@ -140,19 +142,20 @@ class EasypaisaPaymentService {
     * Params: mobileAccountNo, tokenNumber(easypaisa token no)
     * Return Type: Object
     * */
-    async deactivateLinkTransaction(mobileAccountNo, tokenNumber){
+    deactivateLinkTransaction(mobileAccountNo, tokenNumber){
         try {
+            let self = this;
             let data = {
                 'request': {
-                    'storeId': this.storeId,
+                    'storeId': self.storeId,
                     'mobileAccountNo': mobileAccountNo,
                     'tokenNumber': tokenNumber
                 }
             };
             return new Promise(function(resolve, reject) {
-                this.generateSignature(data);
-                resolve(this.signature);
-                console.log('deactivateLinkTransaction: this.signature: ', this.signature);
+                self.generateSignature(data);
+                resolve(self.signature);
+                console.log('deactivateLinkTransaction: self.signature: ', self.signature);
             }).then(function(response){
                 console.log('deactivateLinkTransaction: response 1: ', response);
                 data.signature = response;
@@ -160,7 +163,7 @@ class EasypaisaPaymentService {
                     method: 'post',
                     url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
                     data: data,
-                    headers: {'Authorization': 'Basic '+this.token,
+                    headers: {'Authorization': 'Basic '+self.token,
                         'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     resolve(response.data);
@@ -178,13 +181,14 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    async getAuthToken(){
+    getAuthToken(){
         try {
+            let self = this;
             return new Promise(function(resolve, reject) {
                 axios({
                     method: 'post',
                     url: config.telenor_dcb_api_baseurl + 'oauthtoken/v1/generate?grant_type=client_credentials',
-                    headers: {'Authorization': 'Basic '+this.token,
+                    headers: {'Authorization': 'Basic '+self.token,
                         'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     resolve(response.data);
@@ -205,27 +209,26 @@ class EasypaisaPaymentService {
     * */
     generateOPT(mobileAccountNo){
         console.log('generateOPT', mobileAccountNo);
+        let self = this;
         let data = {
             'request': {
-                'storeId': this.storeId,
+                'storeId': self.storeId,
                 'mobileAccountNo': mobileAccountNo
             }
         };
-        var self = this;
         return new Promise(function(resolve, reject) {
             self.generateSignature(data);
             resolve(self.signature);
-            console.log('generateOPT: this.signature: ', this.signature);
+            console.log('generateOPT: self.signature: ', self.signature);
         }).then(function(response){
             data.signature = response;
             console.log('generateOPT: response 1: ', response);
-            let cred = Buffer.from(self.username+":"+self.password).toString('base64');
             axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
                 url: 'https://telenor.com.pk/epp/v1/generateotp',
                 data: data,
-                headers: {"Credentials": cred }
+                headers: {"Credentials": self.base64_cred }
             }).then(function(response){
                 console.log('generateOPT: response 2: ', response);
                 return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
@@ -244,7 +247,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    async getOrderId() {
+    getOrderId() {
         this.orderId = "GoonjEasypaisa_"+shortId.generate()+"_"+helper.getCurrentDate();
     }
 
@@ -254,7 +257,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    async generateKeys() {
+    generateKeys() {
         const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
             modulusLength: 2048,
         });
@@ -269,8 +272,8 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: null
     * */
-    async getKey(){
-        console.log('getKey')
+    getKey(){
+        console.log('getKey');
         this.privateKey = helper.easypaisaPrivateKey();
         console.log('this.privateKey', this.privateKey);
     }
@@ -281,7 +284,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    async generateSignature(object){
+    generateSignature(object){
         try {
             console.log('generateSignature', object);
             let hash = crypto.createHmac('sha256', this.privateKey)
@@ -302,7 +305,7 @@ class EasypaisaPaymentService {
     * Params: null
     * Return Type: Object
     * */
-    async verfiySignature(){
+    verfiySignature(){
         try {
             return {'code': config.codes.code_success, 'message': 'Signature is verifies successfully', 'method': 'verfiySignature'};
         } catch(err){
