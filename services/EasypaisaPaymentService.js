@@ -257,9 +257,7 @@ class EasypaisaPaymentService {
     * Return Type: null
     * */
     getKey(){
-        console.log('getKey');
         this.privateKey = helper.easypaisaPrivateKey();
-        console.log('this.privateKey', this.privateKey);
     }
 
     /*
