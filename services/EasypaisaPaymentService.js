@@ -59,7 +59,7 @@ class EasypaisaPaymentService {
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
                 url: 'https://apis.telenor.com.pk/epp/v1/initiatelinktransaction',
                 data: data,
-                headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
+                headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
             
             if (resp.status === 200){
