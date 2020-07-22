@@ -36,6 +36,7 @@ class EasypaisaPaymentService {
    * */
     initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
         try {
+            await this.getKey();
             this.getOrderId();
             let self = this;
             let data = {
