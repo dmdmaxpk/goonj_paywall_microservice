@@ -354,7 +354,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 				subscriptionObj.paywall_id = packageObj.paywall_id;
 				subscriptionObj.subscribed_package_id = newPackageId;
 				subscriptionObj.source = req.body.source ?  req.body.source : 'unknown';
-				subscriptionObj.payment_source = req.body.payment_source ? req.payment_source : "telenor";
+				subscriptionObj.payment_source = req.body.payment_source ? req.body.payment_source : "telenor";
 	
 				if(req.body.marketing_source){
 					subscriptionObj.marketing_source = req.body.marketing_source;
