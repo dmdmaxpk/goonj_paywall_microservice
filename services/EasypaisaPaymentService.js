@@ -229,7 +229,8 @@ class EasypaisaPaymentService {
     * Return Type: Object
     * */
     getOrderId() {
-        this.orderId = "GoonjEasypaisa_"+shortId.generate()+"_"+helper.getCurrentDate();
+        //this.orderId = "GoonjEasypaisa_"+shortId.generate()+"_"+helper.getCurrentDate();
+        this.orderId = "GEP_"+shortId.generate();
     }
 
     /*
