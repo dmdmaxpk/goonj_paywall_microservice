@@ -34,7 +34,7 @@ class EasypaisaPaymentService {
    * Params: mobileAccountNo, transactionAmount, OTP
    * Return Type: Object
    * */
-    initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
+    async initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
         try {
             await this.getKey();
             this.getOrderId();
