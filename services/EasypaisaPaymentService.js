@@ -207,25 +207,20 @@ class EasypaisaPaymentService {
             }
         };
         try {
-            new Promise(function(resolve, reject) {
-                self.generateSignature(data);
-                data.signature = self.signature;
-                console.log('generateOPT: data.signature: ', data.signature);
-                axios({
-                    method: 'post',
-                    //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
-                    url: 'https://apis.telenor.com.pk/epp/v1/generateotp',
-                    data: data,
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
-                }).then(function(response){
-                    console.log('generateOPT: response: ', response);
-                    return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
-                }).catch(function(err){
-                    console.log('generateOPT: err 1', err);
-                    return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
-                });
+            self.generateSignature(data);
+            data.signature = self.signature;
+            console.log('generateOPT: data.signature: ', data.signature);
+            axios({
+                method: 'post',
+                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
+                url: 'https://apis.telenor.com.pk/epp/v1/generateotp',
+                data: data,
+                headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
+            }).then(function(response){
+                console.log('generateOPT: response: ', response);
+                return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
             }).catch(function(err){
-                console.log('generateOPT: err 2', err);
+                console.log('generateOPT: err 1', err);
                 return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
             });
         }catch (e) {
