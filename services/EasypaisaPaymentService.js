@@ -8,7 +8,6 @@ const NodeRSA = require('node-rsa');
 
 class EasypaisaPaymentService {
     constructor(){
-        this.token = config.telenor_dcb_api_token;
         this.emailAddress = 'muhammad.azam@dmdmax.com';
         this.username = 'DMD';
         this.password = '3dca201bc26a31247bb4c6fbd1858468';
@@ -27,8 +26,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        this.generateOPT(msisdn);
-        console.log('bootOptScript end ');
+        return await this.generateOPT(msisdn);
     }
 
     /*
@@ -64,7 +62,7 @@ class EasypaisaPaymentService {
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
                     url: 'https://telenor.com.pk/epp/v1/initiatelinktransaction',
                     data: data,
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     console.log('initiateLinkTransaction: response 2: ', response.data);
                     return response.data.response;
@@ -118,7 +116,7 @@ class EasypaisaPaymentService {
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-pinless-transaction',
                     url: 'https://telenor.com.pk/epp/v1/initiatepinlesstransaction',
                     data: data,
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     returnObject.api_response = response.data.response;
                     console.log('initiatePinlessTransaction: response 2: ', returnObject);
@@ -158,7 +156,7 @@ class EasypaisaPaymentService {
                     method: 'post',
                     url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
                     data: data,
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     resolve(response.data);
                 }).catch(function(err){
@@ -182,7 +180,7 @@ class EasypaisaPaymentService {
                 axios({
                     method: 'post',
                     url: config.telenor_dcb_api_baseurl + 'oauthtoken/v1/generate?grant_type=client_credentials',
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+self.token, 'Content-Type': 'application/x-www-form-urlencoded' }
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/x-www-form-urlencoded' }
                 }).then(function(response){
                     resolve(response.data);
                 }).catch(function(err){
@@ -200,7 +198,7 @@ class EasypaisaPaymentService {
     * Params: mobileAccountNo
     * Return Type: Object
     * */
-    generateOPT(mobileAccountNo){
+    async generateOPT(mobileAccountNo){
         console.log('generateOPT', mobileAccountNo);
         console.log('config.telenor_dcb_api_token', config.telenor_dcb_api_token);
         let self = this;
@@ -211,7 +209,7 @@ class EasypaisaPaymentService {
             }
         };
         try {
-            new Promise(function(resolve, reject) {
+            await new Promise(function(resolve, reject) {
                 self.generateSignature(data);
                 data.signature = self.signature;
                 console.log('generateOPT: data.signature: ', data.signature);
