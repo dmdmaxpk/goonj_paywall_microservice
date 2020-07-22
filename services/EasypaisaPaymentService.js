@@ -62,12 +62,20 @@ class EasypaisaPaymentService {
                 headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
             
-            if (resp.status === 200){
+            let returnObj = {};
+            returnObject.transaction_id = self.orderId;
+            
+            if (resp.status === 200 && resp.data.responseDesc === "SUCCESS"){
                 console.log('initiateLinkTransaction: response 2: ', resp.data);
-                return resp.data.response
+                returnObj.message = "success";
+                returnObj.response = resp.data;
             }
-            else
-                return {'code': config.codes.code_error, 'message': 'Transaction failed'};
+            else{
+                console.log('initiateLinkTransaction: response 2: ', resp.data);
+                returnObj.message = "failed";
+                returnObj.response = resp.data;
+            }
+            return returnObj;
         } catch(err){
             console.log('initiateLinkTransaction error 2: ', err);
             throw err;

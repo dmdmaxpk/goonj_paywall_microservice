@@ -639,7 +639,11 @@ doSubscribeUsingSubscribingRule = async(otp, source, user, subscriber, packageOb
 			dataToReturn.subscriptionObj = subscriptionObj;
 			return dataToReturn;
 		}else {
-			let pinLessTokenNumber = result.tokenNumber;
+			let pinLessTokenNumber = result.subscriptionObj.ep_token ? result.subscriptionObj.ep_token : undefined;
+			if(pinLessTokenNumber){
+				subscriptionObj.ep_token = pinLessTokenNumber;
+			}
+			
 			let packages = await packageRepo.getAllPackages({paywall_id:packageObj.paywall_id});
 			
 			// sort packages basis of their package duration
@@ -657,9 +661,6 @@ doSubscribeUsingSubscribingRule = async(otp, source, user, subscriber, packageOb
 			if(currentIndex > 0){
 				// try on lower package
 				packageObj = packages[--currentIndex];
-				if(pinLessTokenNumber){
-					subscriptionObj.ep_token = pinLessTokenNumber;
-				}
 				return await doSubscribeUsingSubscribingRule(otp, source, user, subscriber, packageObj, subscriptionObj);
 			}else{
 				// activate trial
