@@ -140,7 +140,7 @@ class EasypaisaPaymentService {
     * Params: mobileAccountNo, tokenNumber(easypaisa token no)
     * Return Type: Object
     * */
-    deactivateLinkTransaction(mobileAccountNo, tokenNumber){
+    async deactivateLinkTransaction(mobileAccountNo, tokenNumber){
         try {
             let self = this;
             let data = {
@@ -150,24 +150,23 @@ class EasypaisaPaymentService {
                     'tokenNumber': tokenNumber
                 }
             };
-            return new Promise(function(resolve, reject) {
-                self.generateSignature(data);
-                resolve(self.signature);
-                console.log('deactivateLinkTransaction: self.signature: ', self.signature);
-            }).then(function(response){
-                console.log('deactivateLinkTransaction: response 1: ', response);
-                data.signature = response;
-                axios({
+
+            self.generateSignature(data);
+            data.signature = self.signature;
+            let resp = await axios({
                     method: 'post',
+                    //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
                     url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
                     data: data,
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/x-www-form-urlencoded' }
-                }).then(function(response){
-                    resolve(response.data);
-                }).catch(function(err){
-                    reject(err);
+                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
-            });
+
+            if (resp.status === 200){
+                console.log("Delink: ", resp.data);
+                return {'code': config.codes.code_success, 'message': 'OTP Sent'};
+            }else{
+                console.log("Delink: failed");
+            }
         } catch(err){
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'deactivateLinkTransaction'};
         }

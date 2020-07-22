@@ -53,6 +53,7 @@ class PaymentProcessService {
     }
 
     async processDirectBilling(otp, user, subscription, packageObj, first_time_billing){
+        console.log("processDirectBilling");
         // Check if the subscription is active or blocked for some reason.
         if (subscription.active === true) {
             let returnObject = {};
@@ -66,13 +67,17 @@ class PaymentProcessService {
                     if(subscription.payment_source === "easypaisa"){
                         try{  
                             if(otp){
+                                console.log("easypaisa - otp");
                                 response = await this.easypaisaPaymentService.initiateLinkTransaction(user.msisdn, packageObj.price_point_pkr, otp);
                             }else{
-                                response = await this.telenorBillingService.processDirectBilling(user, subscription, packageObj, true);
+                                console.log("easypaisa - without otp");
+                                response = await this.telenorBillingService.initiatePinlessTransaction(user, subscription, packageObj, true);
                             }
                             
                             if(response && response.message === "success"){
+                                console.log("easypaisa - success");
                                 subscription.ep_token = response.response.tokenNumber ? response.response.tokenNumber : undefined;
+                                console.log("easypaisa - success", subscription);
                             }
                         }catch(err){
                             console.log("Error thrown from easypaisa processDirectBilling: ", err);
@@ -92,10 +97,13 @@ class PaymentProcessService {
                     returnObject.subscriptionObj = subscription;
 
                     if(response && response.message === "success"){
+                        console.log("billing - success");
                         await this.billingSuccess(user, subscription, response.response, packageObj, response.transaction_id, first_time_billing);
                     }else{
+                        console.log("billing - failed");
                         await this.billingFailed(user, subscription, response.response, packageObj, response.transaction_id, first_time_billing);
                     }
+                    console.log("billing - returning object");
                     return returnObject;
                 }else{
                     console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
@@ -115,7 +123,9 @@ class PaymentProcessService {
     }
 
     async billingSuccess (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
-        
+        console.log("billingSuccess");
+        console.log("billingSuccess: ", first_time_billing, subscription);
+
         // Success billing
         let nextBilling = new Date();
         nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
@@ -227,6 +237,8 @@ class PaymentProcessService {
     }
 
     async addHistory(history) {
+        console.log("addHistory");
+        console.log("addHistory: ", history);
         await this.billingHistoryRepo.createBillingHistory(history);
     }
     
@@ -256,6 +268,9 @@ class PaymentProcessService {
     }
     
     async billingFailed (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
+        console.log("billingFailed");
+        console.log("billingFailed: ", response, subscription);
+        
         // Add history record
         let history = {};
         history.user_id = user._id;
