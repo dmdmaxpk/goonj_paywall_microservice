@@ -43,7 +43,7 @@ class EasypaisaPaymentService {
                 'request': {
                     'orderId': self.orderId,
                     'storeId': self.storeId,
-                    'transactionAmount': transactionAmount,
+                    'transactionAmount': '' + transactionAmount,
                     'transactionType': 'MA',
                     'mobileAccountNo': mobileAccountNo,
                     'emailAddress': self.emailAddress,
