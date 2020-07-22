@@ -26,7 +26,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        return this.generateOPT(msisdn);
+        return await this.generateOPT(msisdn);
     }
 
     /*
