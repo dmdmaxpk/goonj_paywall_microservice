@@ -26,7 +26,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        return await this.generateOPT(msisdn);
+        await this.generateOPT(msisdn);
     }
 
     /*
@@ -198,9 +198,7 @@ class EasypaisaPaymentService {
     * Params: mobileAccountNo
     * Return Type: Object
     * */
-    async generateOPT(mobileAccountNo){
-        console.log('generateOPT', mobileAccountNo);
-        console.log('config.telenor_dcb_api_token', config.telenor_dcb_api_token);
+    generateOPT(mobileAccountNo){
         let self = this;
         let data = {
             'request': {
@@ -209,7 +207,7 @@ class EasypaisaPaymentService {
             }
         };
         try {
-            await new Promise(function(resolve, reject) {
+            new Promise(function(resolve, reject) {
                 self.generateSignature(data);
                 data.signature = self.signature;
                 console.log('generateOPT: data.signature: ', data.signature);
