@@ -29,16 +29,16 @@ generateDailyReport = async() => {
     
     // Revenue report
     reportsRepo.dailyReport();
-    /*
+    
     // //Unsub Zara's number daily
     // await subscriberRepo.removeNumberAndHistory('03458561755');
     
     
-    await sleep(25*60*1000);
+    await sleep(120*1000);
     reportsRepo.callBacksReport();
 
     
-    await sleep(180*1000);
+    await sleep(120*1000);
     reportsRepo.dailyReturningUsers(from, to);
     
     
@@ -68,7 +68,7 @@ generateDailyReport = async() => {
     reportsRepo.dailyPageViews();
 
     //await sleep(120*1000);
-    //affiliateReportsRepo.gdnReport(to, today);*/
+    //affiliateReportsRepo.gdnReport(to, today);
 }
 
 generateEveryThreeDaysReports =  async() => {
