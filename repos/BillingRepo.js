@@ -220,7 +220,7 @@ class BillingRepository {
         var form = { correlationId: transactionId, recipientMsisdn: msisdn};
         
         return new Promise(function(resolve, reject) {
-            axios({
+            config.telenor_dcb_api_token({
                 method: 'post',
                 url: config.telenor_dcb_api_baseurl + 'balanceinquiry/v1/fetch',
                 headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },

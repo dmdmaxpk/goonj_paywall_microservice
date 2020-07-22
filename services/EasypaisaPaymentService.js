@@ -210,8 +210,8 @@ class EasypaisaPaymentService {
             self.generateSignature(data);
             data.signature = self.signature;
             console.log('generateOPT: data.signature: ', data.signature);
-            (async () => {
-                await axios({
+            return new Promise(function(resolve, reject) {
+                axios({
                     method: 'post',
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
                     url: 'https://apis.telenor.com.pk/epp/v1/generateotp',
@@ -224,7 +224,7 @@ class EasypaisaPaymentService {
                     console.log('generateOPT: err 1', err);
                     return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
                 });
-            })();
+            });
         }catch (e) {
             console.log('generateOPT: catch error', e);
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
