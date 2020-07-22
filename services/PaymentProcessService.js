@@ -62,22 +62,22 @@ class PaymentProcessService {
                 if (tpsCount < config.telenor_subscription_api_tps) {
                     await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                     console.log("processDirectBilling - OTP - ", otp, ' - Source - ', subscription.payment_source);
-                    let response = {};
+                    let api_response = {};
                     
                     if(subscription.payment_source === "easypaisa"){
                         try{  
                             if(otp){
                                 console.log("easypaisa - otp");
-                                response = await this.easypaisaPaymentService.initiateLinkTransaction(user.msisdn, packageObj.price_point_pkr, otp);
+                                api_response = await this.easypaisaPaymentService.initiateLinkTransaction(user.msisdn, packageObj.price_point_pkr, otp);
                             }else{
                                 console.log("easypaisa - without otp");
-                                response = await this.telenorBillingService.initiatePinlessTransaction(user, subscription, packageObj, true);
+                                api_response = await this.telenorBillingService.initiatePinlessTransaction(user, subscription, packageObj, true);
                             }
                             
-                            if(response && response.message === "success"){
+                            if(api_response && api_response.message === "success"){
                                 console.log("easypaisa - success ", response);
                                 console.log("easypaisa - success response.response ", response.response)
-                                subscription.ep_token = response.response.tokenNumber ? response.response.tokenNumber : undefined;
+                                subscription.ep_token = api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
                                 console.log("easypaisa - success - saving response ", subscription);
                             }
                         }catch(err){
