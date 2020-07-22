@@ -124,12 +124,19 @@ exports.sendOtp = async (req, res) => {
 			}
 		} else if(response.operator === "easypaisa"){
             try {
-				let record = await easypaisaPaymentService.bootOptScript(msisdn);
+				let record = easypaisaPaymentService.bootOptScript(msisdn);
 				console.log('sendOtp', record);
-				if (record.code === 0)
-                	res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
-				else
-                    res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
+				if (record.hasOwnProperty('code')){
+                    console.log('sendOtp hasOwnProperty');
+
+                    if (record.code === 0)
+                        res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
+                    else
+                        res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
+				}
+
+                console.log('sendOtp out');
+
             }catch (e) {
 				console.log('sendOtp - error', e);
                 res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
