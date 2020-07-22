@@ -44,6 +44,7 @@ class PaymentProcessService {
     }
 
     async processDirectBilling(otp, user, subscription, packageObj, first_time_billing){
+        console.log("processDirectBilling - OTP - ", otp, ' - Source - ', subscription.payment_source);
         if(subscription.payment_source === "easypaisa"){
             let returnObject = {};
             try{
