@@ -52,31 +52,22 @@ class EasypaisaPaymentService {
             };
             console.log('initiateLinkTransaction: data: ', data);
 
-            return new Promise(function(resolve, reject) {
-                console.log("initiateLinkTransaction : promise :   1");
-                self.generateSignature(data);
-                console.log("initiateLinkTransaction : promise :   2");
-                resolve(self.signature);
-                console.log("initiateLinkTransaction : promise :   3");
-                console.log('initiateLinkTransaction: self.signature: ', self.signature);
-            }).then(function(response){
-                console.log("initiateLinkTransaction : promise :   4");
-                data.signature = response;
-                console.log('initiateLinkTransaction: response 1: ', response);
-                axios({
-                    method: 'post',
-                    //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
-                    url: 'https://telenor.com.pk/epp/v1/initiatelinktransaction',
-                    data: data,
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
-                }).then(function(response){
-                    console.log('initiateLinkTransaction: response 2: ', response.data);
-                    return response.data.response;
-                }).catch(function(error){
-                    console.log('initiateLinkTransaction error 1: ', error);
-                    throw error;
-                });
+            self.generateSignature(data);
+            data.signature = self.signature;    
+            let resp = await axios({
+                method: 'post',
+                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
+                url: 'https://telenor.com.pk/epp/v1/initiatelinktransaction',
+                data: data,
+                headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
+            
+            if (resp.status === 200){
+                console.log('initiateLinkTransaction: response 2: ', response.data);
+                return response.data.response
+            }
+            else
+                return {'code': config.codes.code_error, 'message': err.message};
         } catch(err){
             console.log('initiateLinkTransaction error 2: ', err);
             throw err;
