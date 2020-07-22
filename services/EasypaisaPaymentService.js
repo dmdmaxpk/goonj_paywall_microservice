@@ -26,7 +26,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        let data = this.generateOPT(msisdn);
+        let data = await this.generateOPT(msisdn);
         console.log('data: ', data);
     }
 
