@@ -218,10 +218,12 @@ class EasypaisaPaymentService {
                     data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 }).then(function(response){
-                    console.log('generateOPT: response: ', response);
+                    console.log('generateOPT: response: ', response.data);
+                    resolve(response.data);
                     return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
                 }).catch(function(err){
                     console.log('generateOPT: err 1', err);
+                    reject(err);
                     return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
                 });
             });
