@@ -63,11 +63,11 @@ class EasypaisaPaymentService {
             });
             
             if (resp.status === 200){
-                console.log('initiateLinkTransaction: response 2: ', response.data);
-                return response.data.response
+                console.log('initiateLinkTransaction: response 2: ', resp.data);
+                return resp.data.response
             }
             else
-                return {'code': config.codes.code_error, 'message': err.message};
+                return {'code': config.codes.code_error, 'message': 'Transaction failed'};
         } catch(err){
             console.log('initiateLinkTransaction error 2: ', err);
             throw err;
