@@ -20,7 +20,7 @@ class EasypaisaPaymentService {
     }
 
     /*
-   * Boot the script to get new User OPT
+   * Boot the script to get new User OTP
    * Params: msisdn (user mobile number)
    * Return Type: Object
    * */
@@ -30,8 +30,8 @@ class EasypaisaPaymentService {
     }
 
     /*
-   * Used to initiate transaction using User OPT
-   * Params: mobileAccountNo, transactionAmount, opt
+   * Used to initiate transaction using User OTP
+   * Params: mobileAccountNo, transactionAmount, OTP
    * Return Type: Object
    * */
     initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
@@ -193,7 +193,7 @@ class EasypaisaPaymentService {
     }
 
     /*
-    * Telenor Opt - Merchant app call to get user opt
+    * Telenor OTP - Merchant app call to get user OTP
     * Private key is used to generate signature
     * Params: mobileAccountNo
     * Return Type: Object
