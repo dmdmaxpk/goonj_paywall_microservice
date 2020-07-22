@@ -37,6 +37,7 @@ exports.getAll = async (req, res) => {
 	if (!slug){
 		slug = "live"		
 	}
+
 	paywall = await paywallRepository.getPaywallsBySlug(slug);
 	if (paywall){
 		let query = {paywall_id : paywall._id,default: is_default };
@@ -45,7 +46,6 @@ exports.getAll = async (req, res) => {
 		} else {
 			query.default = true;
 		}
-		console.log("query",query);
 		result = await repo.getAllPackages(query);
 		res.send(result);
 	} else{

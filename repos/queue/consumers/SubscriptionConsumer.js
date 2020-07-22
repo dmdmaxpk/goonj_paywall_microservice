@@ -29,7 +29,7 @@ class SubscriptionConsumer {
         let discount = subscriptionObj.discount;
         
         try {
-            let label = "label " + Date.now() + Math.random();
+            let label = "label " + Date.now() + Math.random() + "---" + subscription._id;
             console.time("[timeLog][Consumer][SubscriptionConsumer]" + label);
             // Check if the subscription is active or blocked for some reason.
             if (subscription.active === true) {
@@ -643,7 +643,7 @@ class SubscriptionConsumer {
             url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
         } else if (mid === "goonj"){
             url = config.ideation_callback_url2 + `?txid=${tid}`;
-        } else if (mid === "aff3"){
+        } else if (mid === "aff3" || mid === "aff3a" ){
             url = config.ideation_callback_url3 + `${tid}`;
         }  else if (mid === "1" || mid === "gdn" ){
             return new Promise((resolve,reject) => { reject(null)})

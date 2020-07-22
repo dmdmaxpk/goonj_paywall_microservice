@@ -88,7 +88,6 @@ class TelenorBillingService {
         });
     }
 
-
     async billingSuccess (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
         
         // Success billing
@@ -157,6 +156,7 @@ class TelenorBillingService {
         // Add history record
         console.log("Adding history record",user.msisdn);
         let history = {};
+        history.micro_charge = subscription.try_micro_charge_in_next_cycle ? subscription.try_micro_charge_in_next_cycle : false;
         history.user_id = user._id;
         history.subscription_id =  updatedSubscription ? updatedSubscription._id : subscription._id ;
         history.subscriber_id = subscription.subscriber_id;
@@ -211,11 +211,12 @@ class TelenorBillingService {
             url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
         } else if (mid === "goonj"){
             url = config.ideation_callback_url2 + `?txid=${tid}`;
-        } else if (mid === "aff3"){
+        } else if (mid === "aff3" || mid === "aff3a"){
             url = config.ideation_callback_url3 + `${tid}`;
         } else if (mid === "1" || mid === "gdn" ){
             return new Promise((resolve,reject) => { reject(null)})
         }
+        
         console.log("url",url)
         return new Promise(function(resolve, reject) {
             axios({
@@ -233,6 +234,8 @@ class TelenorBillingService {
     async billingFailed (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
         // Add history record
         let history = {};
+        history.micro_charge = subscription.try_micro_charge_in_next_cycle ? subscription.try_micro_charge_in_next_cycle : false;
+        history.price = subscription.micro_price_point ? subscription.micro_price_point : 0;
         history.user_id = user._id;
         history.subscription_id = subscription._id;
         history.subscriber_id = subscription.subscriber_id;
@@ -240,7 +243,7 @@ class TelenorBillingService {
         history.package_id = packageObj._id;
         history.transaction_id = transaction_id;
         history.operator_response = response;
-        history.billing_status = first_time_billing ? "direct-billing-tried-but-failed" : "switch-package-request-tried-but-failed";
+        history.billing_status = first_time_billing ? (subscription.try_micro_charge_in_next_cycle === true ? "direct-micro-charge-tried-but-failed" : "direct-billing-tried-but-failed") : "switch-package-request-tried-but-failed";
         history.operator = 'telenor';
         await this.billingHistoryRepo.createBillingHistory(history);
     }

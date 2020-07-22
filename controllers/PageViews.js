@@ -60,7 +60,17 @@ getPageViews = async(db) => {
     });
 }
 
+getHeLogs = async(key, from, to) => {
+    return new Promise((resolve, reject) => {
+        db.collection('helogs', async (err, collection) => {
+            let count = await collection.countDocuments({added_dtm : {$gte: new Date(from),$lt: new Date(to) }, "mid":key});
+            resolve(count);
+        });
+    });
+}
+
 module.exports = {
     connect: connect,
-    getPageViews: getPageViews
+    getPageViews: getPageViews,
+    getHeLogs: getHeLogs
 }
