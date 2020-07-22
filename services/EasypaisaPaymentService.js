@@ -47,7 +47,7 @@ class EasypaisaPaymentService {
                     'transactionType': 'MA',
                     'mobileAccountNo': mobileAccountNo,
                     'emailAddress': self.emailAddress,
-                    'otp': otp,
+                    'otp': otp
                 }
             };
             console.log('initiateLinkTransaction: data: ', data);
