@@ -43,7 +43,7 @@ class EasypaisaPaymentService {
                 "storeId":"10631",
                 "transactionAmount":"5",
                 "transactionType":"MA",
-                "mobileAccountNo":"03450021028",
+                "tokenNumber":"03450021028",
                 "emailAddress":"muhammad.azam@dmdmax.com",
                 "otp":"5476"
             },signature:""
