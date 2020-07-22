@@ -26,7 +26,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        await this.generateOPT(msisdn);
+        return await this.generateOPT(msisdn);
     }
 
     /*
@@ -210,7 +210,7 @@ class EasypaisaPaymentService {
             self.generateSignature(data);
             data.signature = self.signature;
             console.log('generateOPT: data.signature: ', data.signature);
-            return new Promise(function(resolve, reject) {
+            new Promise(function(resolve, reject) {
                 axios({
                     method: 'post',
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
@@ -219,12 +219,12 @@ class EasypaisaPaymentService {
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 }).then(function(response){
                     console.log('generateOPT: response: ', response.data);
-                    resolve(response.data);
-                    return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
+                    resolve(response.data.response);
+                    // return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
                 }).catch(function(err){
                     console.log('generateOPT: err 1', err);
                     reject(err);
-                    return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
+                    // return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
                 });
             });
         }catch (e) {
@@ -282,7 +282,6 @@ class EasypaisaPaymentService {
             let key = new NodeRSA(null, {signingScheme: 'sha256'});
             key.importKey(this.privateKey, 'pkcs8');
             this.signature = key.sign(trimmedData, 'base64');
-            return {'code': config.codes.code_success, 'message': 'Signature is generated successfully', 'method': 'generateSignature'};
         } catch(err){
             console.log(err);
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
