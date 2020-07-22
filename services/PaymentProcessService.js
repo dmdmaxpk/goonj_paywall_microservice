@@ -91,16 +91,16 @@ class PaymentProcessService {
                         }
                     }
             
-                    returnObject.message = response.message;
-                    returnObject.response = response.response;
+                    returnObject.message = api_response.message;
+                    returnObject.response = api_response.response;
                     returnObject.subscriptionObj = subscription;
 
-                    if(response && response.message === "success"){
+                    if(api_response && api_response.message === "success"){
                         console.log("billing - success");
-                        await this.billingSuccess(user, subscription, response.response, packageObj, response.transaction_id, first_time_billing);
+                        await this.billingSuccess(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
                     }else{
                         console.log("billing - failed");
-                        await this.billingFailed(user, subscription, response.response, packageObj, response.transaction_id, first_time_billing);
+                        await this.billingFailed(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
                     }
                     console.log("billing - returning object");
                     return returnObject;
