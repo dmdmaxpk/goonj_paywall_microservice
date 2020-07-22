@@ -77,7 +77,7 @@ class PaymentProcessService {
                             if(response && response.message === "success"){
                                 console.log("easypaisa - success");
                                 subscription.ep_token = response.response.tokenNumber ? response.response.tokenNumber : undefined;
-                                console.log("easypaisa - success", subscription);
+                                console.log("easypaisa - success ", subscription);
                             }
                         }catch(err){
                             console.log("Error thrown from easypaisa processDirectBilling: ", err);

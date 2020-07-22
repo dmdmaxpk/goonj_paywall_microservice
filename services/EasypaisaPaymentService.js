@@ -65,13 +65,13 @@ class EasypaisaPaymentService {
             let returnObj = {};
             returnObj.transaction_id = self.orderId;
             
-            if (resp.status === 200 && resp.data.responseDesc === "SUCCESS"){
-                console.log('initiateLinkTransaction: response 2: ', resp.data);
+            if (resp.status === 200 && resp.data.response.responseDesc === "SUCCESS"){
+                console.log('initiateLinkTransaction: success : response 2: ', resp.data);
                 returnObj.message = "success";
                 returnObj.response = resp.data;
             }
             else{
-                console.log('initiateLinkTransaction: response 2: ', resp.data);
+                console.log('initiateLinkTransaction: failed : response 2: ', resp.data);
                 returnObj.message = "failed";
                 returnObj.response = resp.data;
             }
