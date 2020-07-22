@@ -667,7 +667,7 @@ doSubscribeUsingSubscribingRule = async(otp, source, user, subscriber, packageOb
 			}
 		}
 	} catch(err){
-		console.log("Error while direct billing",err.message,user.msisdn);
+		console.log("Error while direct billing", err.message);
 		dataToReturn.status = "error";
 		dataToReturn.subscriptionObj = subscriptionObj;
 		return dataToReturn;

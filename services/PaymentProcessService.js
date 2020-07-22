@@ -75,6 +75,7 @@ class PaymentProcessService {
                             }
                             
                             if(api_response && api_response.message === "success"){
+                                console.log('success - ', api_response.response);
                                 subscription.ep_token = api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
                                 console.log("easypaisa - success - saving response ", subscription);
                             }
