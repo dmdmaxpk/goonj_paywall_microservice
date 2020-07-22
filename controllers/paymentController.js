@@ -313,16 +313,6 @@ exports.subscribe = async (req, res) => {
 	}
 }
 
-updateSubscriptionEPToken = async (req, res, user, gw_transaction_id) => {
-    return new Promise(function(resolve, reject) {
-        subscriptionRepo.updateSubscription(subscription_id, postData);
-    }).then(function(response){
-        doSubscribe(req, res, user, gw_transaction_id);
-    }).catch(function(err){
-        return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
-    });
-}
-
 doSubscribe = async(req, res, user, gw_transaction_id) => {
 
 	if(user && user.active === true){
@@ -423,37 +413,37 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					
 				}
 
-				if (sendTrialMessage === true) {
-					let trial_hours = packageObj.trial_hours;
-					console.log("subscribed_package_id",subscriptionObj.subscribed_package_id, user.msisdn);
-					console.log("source",subscriptionObj.affiliate_mid,user.msisdn);
-					console.log("subscribed_package_id",constants.subscription_messages,user.msisdn);
+				// if (sendTrialMessage === true) {
+				// 	let trial_hours = packageObj.trial_hours;
+				// 	console.log("subscribed_package_id",subscriptionObj.subscribed_package_id, user.msisdn);
+				// 	console.log("source",subscriptionObj.affiliate_mid,user.msisdn);
+				// 	console.log("subscribed_package_id",constants.subscription_messages,user.msisdn);
 					
-					let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
-					if (subscriptionObj.affiliate_mid === 'gdn'){
-						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
-					}
-					console.log("Messages",message,user.msisdn);
-					text = message;
-					text = text.replace("%trial_hours%",trial_hours);
-					text = text.replace("%price%",packageObj.display_price_point_numeric);
-					console.log("Subscription Message Text",text,user.msisdn);
-					sendTextMessage(text, user.msisdn);
-				} else if(sendChargingMessage === true) {
-					let trial_hours = packageObj.trial_hours;
-					let message = constants.subscription_messages_direct[packageObj._id];
-					message= message.replace("%price%",packageObj.display_price_point_numeric)
-					if(subscriptionObj.affiliate_mid === 'gdn'){
-						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
-					}
-					console.log("Messages",message, user.msisdn);
+				// 	let message = constants.subscription_messages[subscriptionObj.subscribed_package_id];
+				// 	if (subscriptionObj.affiliate_mid === 'gdn'){
+				// 		message = constants.subscription_messages[subscriptionObj.affiliate_mid];
+				// 	}
+				// 	console.log("Messages",message,user.msisdn);
+				// 	text = message;
+				// 	text = text.replace("%trial_hours%",trial_hours);
+				// 	text = text.replace("%price%",packageObj.display_price_point_numeric);
+				// 	console.log("Subscription Message Text",text,user.msisdn);
+				// 	sendTextMessage(text, user.msisdn);
+				// } else if(sendChargingMessage === true) {
+				// 	let trial_hours = packageObj.trial_hours;
+				// 	let message = constants.subscription_messages_direct[packageObj._id];
+				// 	message= message.replace("%price%",packageObj.display_price_point_numeric)
+				// 	if(subscriptionObj.affiliate_mid === 'gdn'){
+				// 		message = constants.subscription_messages[subscriptionObj.affiliate_mid];
+				// 	}
+				// 	console.log("Messages",message, user.msisdn);
 					
 				
-					console.log("Subscription Message Text", message, user.msisdn);
-					sendTextMessage(message, user.msisdn);
-				}else {
-					console.log("Not sending message",user.msisdn);
-				}
+				// 	console.log("Subscription Message Text", message, user.msisdn);
+				// 	sendTextMessage(message, user.msisdn);
+				// }else {
+				// 	console.log("Not sending message",user.msisdn);
+				// }
 			}else {
 				console.log("Active Subscription",subscription.active);
 				if(subscription.active === true){

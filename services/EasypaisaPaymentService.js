@@ -35,6 +35,26 @@ class EasypaisaPaymentService {
    * Return Type: Object
    * */
     async initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
+
+        let returnObj = {};
+        let data = {
+            response:{
+                "orderId":"GEP_By-EQcHlv",
+                "storeId":"10631",
+                "transactionAmount":"5",
+                "transactionType":"MA",
+                "mobileAccountNo":"03450021028",
+                "emailAddress":"muhammad.azam@dmdmax.com",
+                "otp":"5476"
+            },signature:""
+        }
+
+        returnObj.transaction_id = data.response.orderId;
+        returnObj.message = "success";
+        returnObj.response = data;
+
+        return returnObj;
+
         try {
             await this.getKey();
             this.getOrderId();
