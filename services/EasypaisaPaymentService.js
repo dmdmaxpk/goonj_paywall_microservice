@@ -26,9 +26,7 @@ class EasypaisaPaymentService {
    * */
     async bootOptScript(msisdn){
         await this.getKey();
-        let data = await this.generateOPT(msisdn);
-        console.log('data: ', data);
-        return data;
+        return await this.generateOPT(msisdn);
     }
 
     /*
@@ -211,7 +209,6 @@ class EasypaisaPaymentService {
         try {
             self.generateSignature(data);
             data.signature = self.signature;
-            console.log('generateOPT: data.signature: ', data.signature);
             let resp = await axios({
                     method: 'post',
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
@@ -220,17 +217,12 @@ class EasypaisaPaymentService {
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
 
-            console.log('generateOPT: resp.status: ', resp.status);
-            console.log('generateOPT: resp.statusText: ', resp.statusText);
-            console.log('generateOPT: resp.data: ', resp.data);
-
             if (resp.status === 200)
-                return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
+                return {'code': config.codes.code_success, 'message': 'OTP Sent'};
             else
-                return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
+                return {'code': config.codes.code_error, 'message': err.message};
         }catch (e) {
-            console.log('generateOPT: catch error', e);
-            return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
+            return {'code': config.codes.code_error, 'message': err.message};
         }
     }
 
@@ -277,16 +269,10 @@ class EasypaisaPaymentService {
     * Return Type: Object
     * */
     generateSignature(object){
-        try {
-            console.log('generateSignature', object);
-            let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
-            let key = new NodeRSA(null, {signingScheme: 'sha256'});
-            key.importKey(this.privateKey, 'pkcs8');
-            this.signature = key.sign(trimmedData, 'base64');
-        } catch(err){
-            console.log(err);
-            return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateSignature'};
-        }
+        let trimmedData = JSON.stringify(object.request).replace(/(\\)?"\s*|\s+"/g, ($0, $1) => $1 ? $0 : '"');
+        let key = new NodeRSA(null, {signingScheme: 'sha256'});
+        key.importKey(this.privateKey, 'pkcs8');
+        this.signature = key.sign(trimmedData, 'base64');
     }
 
     /*
