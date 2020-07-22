@@ -28,6 +28,7 @@ class EasypaisaPaymentService {
         await this.getKey();
         let data = await this.generateOPT(msisdn);
         console.log('data: ', data);
+        return data;
     }
 
     /*
@@ -223,20 +224,10 @@ class EasypaisaPaymentService {
             console.log('generateOPT: resp.statusText: ', resp.statusText);
             console.log('generateOPT: resp.data: ', resp.data);
 
-            if (resp.status)
+            if (resp.status === 200)
                 return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
             else
                 return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
-
-            // then(function(response){
-            //         console.log('generateOPT: response: ', response.data);
-            //         resolve(response.data.response);
-            //         return {'code': config.codes.code_success, 'message': 'OPT is generated successfully', 'method': 'generateOPT'};
-            //     }).catch(function(err){
-            //         console.log('generateOPT: err 1', err);
-            //         reject(err);
-            //         return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
-            //     });
         }catch (e) {
             console.log('generateOPT: catch error', e);
             return {'code': config.codes.code_error, 'message': err.message, 'method': 'generateOPT'};
