@@ -116,12 +116,10 @@ class EasypaisaPaymentService {
         try {
             let self = this, returnObj = {};
             await self.getKey();
-            self.getOrderId();
-            returnObj.transaction_id = self.orderId;
 
             let data = {
                 'request': {
-                    'orderId': self.orderId,
+                    'orderId': transaction_id,
                     'storeId': self.storeId,
                     'transactionAmount': packageObj.price_point_pkr,
                     'transactionType': 'MA',
