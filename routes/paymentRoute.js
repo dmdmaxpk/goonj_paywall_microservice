@@ -33,4 +33,7 @@ router.route('/delete')
 router.route('/switchPaymentSource')
     .post(authMiddleWare.checkToken, controller.switchPaymentSource);
 
+router.route('/linkTransaction')
+    .post(authMiddleWare.checkToken, controller.linkTransaction);
+
 module.exports = router;

@@ -323,6 +323,19 @@ class PaymentProcessService {
         history.operator = subscription.payment_source;
         await this.billingHistoryRepo.createBillingHistory(history);
     }
+
+    async linkTransaction (msisdn, otp){
+        try {
+            let api_response = await this.easypaisaPaymentService.initiateLinkTransaction(msisdn, 0, otp);
+            if(api_response && api_response.message === "success")
+                return api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
+            else
+                return undefined;
+        }catch (e) {
+            console.log('linkTransaction Err: ', e);
+            return undefined
+        }
+    }
 }
 
 module.exports = PaymentProcessService;

@@ -962,7 +962,6 @@ exports.switchPaymentSource = async (req, res) => {
 	let subscription_id = req.body.subscription_id;
 	let new_source = req.body.new_source;
 	let gw_transaction_id = req.body.transaction_id;
-
 	let msisdn = req.body.msisdn;
 
 	try {
@@ -994,9 +993,21 @@ exports.switchPaymentSource = async (req, res) => {
 				// create link transaction with easypaisa
 				if(record.ep_token === undefined){
 					// no ep_token available
+                    try {
+                        let record = await easypaisaPaymentService.bootOptScript(msisdn);
+                        console.log('sendOtp', record);
+                        if (record.code === 0)
+                            res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
+                        else
+                            res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
+                    }catch (e) {
+                        console.log('sendOtp - error', e);
+                        res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
+                    }
 				}else{
 					// update record
-					let result = await subscriptionRepo.updateSubscription(subscription_id, record);
+                    record.payment_source = new_source;
+                    let result = await subscriptionRepo.updateSubscription(subscription_id, record);
 					if (result === undefined){
 						res.send({code: config.codes.code_success, message: 'Payment source updated successfully', gw_transaction_id: gw_transaction_id});
 					}else{
@@ -1011,6 +1022,33 @@ exports.switchPaymentSource = async (req, res) => {
         res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
     }
 };
+
+exports.linkTransaction = async (req, res) => {
+	let msisdn = req.body.msisdn;
+	let otp = req.body.otp;
+	let gw_transaction_id = req.body.transaction_id;
+	let subscription_id = req.body.subscription_id;
+
+	try {
+		let ep_token = await easypaisaPaymentService.linkTransaction(msisdn, otp);
+		if (ep_token !== undefined) {
+			let subRecord = await subscriptionRepo.getSubscription(subscription_id);
+			subRecord.payment_source = 'easypaisa';
+			subRecord.ep_token = ep_token;
+			let result = await subscriptionRepo.updateSubscription(subscription_id, subRecord);
+			if (result === undefined){
+				res.send({code: config.codes.code_success, message: 'Payment source updated successfully', gw_transaction_id: gw_transaction_id});
+			}else{
+				res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
+			}
+		} else {
+            res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
+        }
+    } catch (e) {
+        res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
+    }
+};
+
 
 // Helper functions
 function getCurrentDate() {
