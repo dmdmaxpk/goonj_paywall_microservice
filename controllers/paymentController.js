@@ -1038,7 +1038,7 @@ exports.linkTransaction = async (req, res) => {
 	let subscription_id = req.body.subscription_id;
 
 	try {
-		let ep_token = await easypaisaPaymentService.linkTransaction(msisdn, otp);
+		let ep_token = await paymentProcessService.linkTransaction(msisdn, otp);
 		console.log('ep_token: ', ep_token);
 		if (ep_token !== undefined) {
 			let subRecord = await subscriptionRepo.getSubscription(subscription_id);
