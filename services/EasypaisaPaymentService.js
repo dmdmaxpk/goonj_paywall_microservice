@@ -121,7 +121,7 @@ class EasypaisaPaymentService {
                 'request': {
                     'orderId': transaction_id,
                     'storeId': self.storeId,
-                    'transactionAmount': packageObj.price_point_pkr,
+                    'transactionAmount': '' + packageObj.price_point_pkr,
                     'transactionType': 'MA',
                     'mobileAccountNo': mobileAccountNo,
                     'emailAddress': self.emailAddress,
