@@ -27,4 +27,7 @@ router.route('/recharge')
 router.route('/delete')
     .get(authMiddleWare.checkToken, controller.delete);
 
+router.route('/switchPaymentSource')
+    .post(authMiddleWare.checkToken, controller.switchPaymentSource);
+
 module.exports = router;

@@ -950,6 +950,29 @@ exports.expire = async (req, res) => {
 	}
 }
 
+// When user switch payment source
+exports.switchPaymentSource = async (req, res) => {
+	let subscription_id = req.body.subscription_id;
+	let new_source = req.body.new_source;
+	let gw_transaction_id = req.body.transaction_id;
+
+	try {
+        let record = subscriptionRepo.getSubscription(subscription_id);
+        if (record.payment_source !== new_source) {
+            record.payment_source = new_source;
+            let result = subscriptionRepo.updateSubscription(subscription_id, record);
+            if (result === undefined)
+                res.send({code: config.codes.code_success, message: 'Payment source is updated successfully', gw_transaction_id: gw_transaction_id});
+            else
+                res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
+        } else{
+            res.send({code: config.codes.code_error, message: 'Payment source should be different.', gw_transaction_id: gw_transaction_id});
+        }
+    } catch (e) {
+        res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
+    }
+};
+
 // Helper functions
 function getCurrentDate() {
     var now = new Date();
