@@ -112,7 +112,7 @@ class EasypaisaPaymentService {
     * Params: mobileAccountNo, packageObj(user package info), transaction_id(user transaction ID), subscription(Subscription data)
     * Return Type: Object
     * */
-    async initiatePinlessTransaction(mobileAccountNo, packageObj, transaction_id, subscription){
+    async initiatePinlessTransaction(mobileAccountNo, price_point, transaction_id, subscription){
         try {
             let self = this, returnObj = {};
             await self.getKey();
@@ -121,7 +121,7 @@ class EasypaisaPaymentService {
                 'request': {
                     'orderId': transaction_id,
                     'storeId': self.storeId,
-                    'transactionAmount': '' + packageObj.price_point_pkr,
+                    'transactionAmount': '' + price_point,
                     'transactionType': 'MA',
                     'mobileAccountNo': mobileAccountNo,
                     'emailAddress': self.emailAddress,
