@@ -131,7 +131,7 @@ class EasypaisaPaymentService {
             console.log('initiatePinlessTransaction: data: ', data);
 
             self.generateSignature(data);
-            data.signature = response;
+            data.signature = self.signature;
             let resp = await axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
