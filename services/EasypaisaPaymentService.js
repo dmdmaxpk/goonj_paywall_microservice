@@ -3,7 +3,6 @@ const config = require('./../config');
 const helper = require('./../helper/helper');
 const crypto = require("crypto");
 const shortId = require('shortid');
-const e = require('express');
 const NodeRSA = require('node-rsa');
 
 class EasypaisaPaymentService {
@@ -21,12 +20,12 @@ class EasypaisaPaymentService {
 
     /*
    * Boot the script to get new User OTP
-   * Params: msisdn (user mobile number)
+   * Params: mobileAccountNo (user mobile number)
    * Return Type: Object
    * */
-    async bootOptScript(msisdn){
+    async bootOptScript(mobileAccountNo){
         await this.getKey();
-        return await this.generateOPT(msisdn);
+        return await this.generateOPT(mobileAccountNo);
     }
 
     /*
@@ -48,7 +47,8 @@ class EasypaisaPaymentService {
               mobileAccountNo: '03450021028',
               emailAddress: 'muhammad.azam@dmdmax.com',
               responseCode: '0000',
-              responseDesc: 'SUCCESS' } }
+              responseDesc: 'SUCCESS' }
+        };
 
         returnObj.transaction_id = data.response.orderId;
         returnObj.message = "success";
@@ -57,9 +57,9 @@ class EasypaisaPaymentService {
         return returnObj;
 
         try {
-            await this.getKey();
-            this.getOrderId();
             let self = this;
+            await self.getKey();
+            self.getOrderId();
             let data = {
                 'request': {
                     'orderId': self.orderId,
@@ -90,6 +90,10 @@ class EasypaisaPaymentService {
                 console.log('initiateLinkTransaction: success : response 2: ');
                 returnObj.message = "success";
                 returnObj.response = resp.data;
+
+                // console.log('initiateLinkTransaction: success : tokenNumber: ', resp.data.response.tokenNumber);
+                // Now close the link between Merchant and Easypaisa after successful transaction
+                // self.deactivateLinkTransaction(mobileAccountNo, resp.data.response.tokenNumber);
             }
             else{
                 console.log('initiateLinkTransaction: failed : response 2: ', resp.data);
@@ -105,17 +109,15 @@ class EasypaisaPaymentService {
 
     /*
     * Used to perform pinless Mobile Account transaction using easypaisa MA token - mainly used in renewal subscription
-    * Params: msisdn(mobileAccountNo), packageObj(user package info), transaction_id(user transaction ID), subscription(Subscription data)
+    * Params: mobileAccountNo, packageObj(user package info), transaction_id(user transaction ID), subscription(Subscription data)
     * Return Type: Object
     * */
-    initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription){
+    async initiatePinlessTransaction(mobileAccountNo, packageObj, transaction_id, subscription){
         try {
-            let self = this;
-            let returnObject = {};
-            returnObject.packageObj = packageObj;
-            returnObject.msisdn = msisdn;
-            returnObject.transactionId = transaction_id;
-            returnObject.subscription = subscription;
+            let self = this, returnObj = {};
+            await self.getKey();
+            self.getOrderId();
+            returnObj.transaction_id = self.orderId;
 
             let data = {
                 'request': {
@@ -123,35 +125,40 @@ class EasypaisaPaymentService {
                     'storeId': self.storeId,
                     'transactionAmount': packageObj.price_point_pkr,
                     'transactionType': 'MA',
-                    'mobileAccountNo': msisdn,
+                    'mobileAccountNo': mobileAccountNo,
                     'emailAddress': self.emailAddress,
                     'tokenNumber': subscription.ep_token,
                 }
             };
             console.log('initiatePinlessTransaction: data: ', data);
 
-            return new Promise(function(resolve, reject) {
-                self.generateSignature(data);
-                resolve(self.signature);
-                console.log('initiateLinkTransaction: self.signature: ', self.signature);
-            }).then(function(response){
-                console.log('initiatePinlessTransaction: response 1: ', response);
-                data.signature = response;
-                axios({
-                    method: 'post',
-                    //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-pinless-transaction',
-                    url: 'https://telenor.com.pk/epp/v1/initiatepinlesstransaction',
-                    data: data,
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/x-www-form-urlencoded' }
-                }).then(function(response){
-                    returnObject.api_response = response.data.response;
-                    console.log('initiatePinlessTransaction: response 2: ', returnObject);
-                    return returnObject;
-                }).catch(function(err){
-                    throw err;
-                });
+            self.generateSignature(data);
+            data.signature = response;
+            let resp = await axios({
+                method: 'post',
+                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
+                url: 'https://apis.telenor.com.pk/epp/v1/initiatepinlesstransaction',
+                data: data,
+                headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
+
+            if (resp.status === 200 && resp.data.response.responseDesc === "SUCCESS"){
+                console.log('initiatePinlessTransaction: success : response 2: ');
+                returnObj.message = "success";
+                returnObj.response = resp.data;
+
+                // Now close the link between Merchant and Easypaisa after successful transaction
+                // self.deactivateLinkTransaction(mobileAccountNo, subscription.ep_token);
+            }
+            else{
+                console.log('initiatePinlessTransaction: failed : response 2: ', resp.data);
+                returnObj.message = "failed";
+                returnObj.response = resp.data;
+            }
+            return returnObj;
+
         } catch(err){
+            console.log('initiatePinlessTransaction error 2: ', err);
             throw err;
         }
     }
@@ -163,7 +170,8 @@ class EasypaisaPaymentService {
     * */
     async deactivateLinkTransaction(mobileAccountNo, tokenNumber){
         try {
-            let self = this;
+            let self = this, returnObj = {};
+            await self.getKey();
             let data = {
                 'request': {
                     'storeId': self.storeId,
@@ -175,21 +183,26 @@ class EasypaisaPaymentService {
             self.generateSignature(data);
             data.signature = self.signature;
             let resp = await axios({
-                    method: 'post',
-                    //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
-                    url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
-                    data: data,
+                method: 'post',
+                url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
+                data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
 
-            if (resp.status === 200){
-                console.log("Delink: ", resp.data);
-                return {'code': config.codes.code_success, 'message': 'OTP Sent'};
-            }else{
-                console.log("Delink: failed");
+            if (resp.status === 200 && resp.data.response.responseDesc === "SUCCESS"){
+                console.log('deactivateLinkTransaction: success : response 2: ');
+                returnObj.message = "success";
+                returnObj.response = resp.data;
             }
+            else{
+                console.log('deactivateLinkTransaction: failed : response 2: ', resp.data);
+                returnObj.message = "failed";
+                returnObj.response = resp.data;
+            }
+            return returnObj;
         } catch(err){
-            return {'code': config.codes.code_error, 'message': err.message, 'method': 'deactivateLinkTransaction'};
+            console.log('deactivateLinkTransaction: Err: ', err);
+            throw err;
         }
     }
 
@@ -283,9 +296,7 @@ class EasypaisaPaymentService {
     * Return Type: null
     * */
     getKey(){
-        console.log('getKey');
         this.privateKey = helper.easypaisaPrivateKey();
-        console.log('this.privateKey', this.privateKey);
     }
 
     /*
