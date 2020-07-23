@@ -967,23 +967,9 @@ exports.switchPaymentSource = async (req, res) => {
 	try {
         // await billingRepo.subscriberQuery(msisdn);
         let record = await subscriptionRepo.getSubscription(subscription_id);
-        console.log('record.payment_source: ', record.payment_source);
-
-        delete record.ep_token;
-        delete record.payment_source;
-
-        console.log('record.payment_source: 1 ', record.payment_source);
-
-        console.log('record: ', record);
-
-        let result = await subscriptionRepo.updateSubscription(subscription_id, record);
-        console.log('result: ', result);
-        return;
-
         console.log('record: ', record);
 
         if (record.payment_source !== new_source) {
-
             console.log('new_source: ', new_source);
             if(new_source === 'telenor'){
 				let response;
@@ -1011,7 +997,7 @@ exports.switchPaymentSource = async (req, res) => {
 			}else if(new_source === 'easypaisa'){
 				// create link transaction with easypaisa
 				console.log('record.ep_token: ', record.ep_token);
-				if(record.ep_token === undefined){
+				if(record.ep_token === undefined || record.ep_token == ''){
 					// no ep_token available
                     try {
                         let record = await easypaisaPaymentService.bootOptScript(msisdn);
