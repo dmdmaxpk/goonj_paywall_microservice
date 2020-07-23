@@ -967,15 +967,21 @@ exports.switchPaymentSource = async (req, res) => {
 	try {
         // await billingRepo.subscriberQuery(msisdn);
         let record = await subscriptionRepo.getSubscription(subscription_id);
+        console.log('record: ', record);
+
         if (record.payment_source !== new_source) {
 
-			if(new_source === 'telenor'){
+            console.log('new_source: ', new_source);
+            if(new_source === 'telenor'){
 				let response;
 				// Check if telenor number - subscriber query
 				try{
 				    response = await billingRepo.subscriberQuery(msisdn);
+				    console.log('response: ', response);
 				}catch(err){
-				    response = err;
+                    console.log('err: ', err);
+
+                    response = err;
 				}
 
 				if(response.operator === "telenor"){
@@ -991,6 +997,7 @@ exports.switchPaymentSource = async (req, res) => {
 				}
 			}else if(new_source === 'easypaisa'){
 				// create link transaction with easypaisa
+				console.log('record.ep_token: ', record.ep_token);
 				if(record.ep_token === undefined){
 					// no ep_token available
                     try {
@@ -1016,6 +1023,8 @@ exports.switchPaymentSource = async (req, res) => {
 				}
 			}
         } else{
+            console.log('else case: ');
+
             res.send({code: config.codes.code_error, message: 'Payment source should be different.', gw_transaction_id: gw_transaction_id});
         }
     } catch (e) {
