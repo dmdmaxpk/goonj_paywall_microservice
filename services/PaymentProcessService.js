@@ -21,7 +21,7 @@ class PaymentProcessService {
         if(subscription.payment_source === "easypaisa"){
             let returnObject = {};
             try{
-                let response =  await this.easypaisaPaymentService.initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription);
+                let response =  await this.easypaisaPaymentService.initiatePinlessTransaction(msisdn, packageObj.price_point_pkr, transaction_id, subscription);
                 if(response.message === "success"){
                     returnObject.message = "Success";
                     returnObject.api_response = response;
@@ -37,6 +37,46 @@ class PaymentProcessService {
             let returnObject = {};
             try{
                 let response = await this.billingRepo.fullChargeAttempt(msisdn, packageObj, transaction_id, subscription);
+                if(response.api_response.data.Message === "Success"){
+                    returnObject.message = "Success";
+                    returnObject.api_response = response;
+                }else{
+                    returnObject.message = "Failed";
+                    returnObject.api_response = response;
+                }
+                return returnObject;
+            }catch(err){
+                console.log("Error thrown from telenor billing: ", err);
+                throw err;
+            }
+        }
+    }
+
+    async microChargeAttempt(msisdn, packageObj, transaction_id, micro_price, subscription){
+        if(subscription.payment_source === "easypaisa"){
+            let returnObject = {};
+            try{
+                returnObject.packageObj = packageObj;
+                returnObject.msisdn = msisdn;
+                returnObject.transactionId = transaction_id;
+                returnObject.subscription = subscription;
+
+                let response =  await this.easypaisaPaymentService.initiatePinlessTransaction(msisdn, micro_price, transaction_id, subscription);
+                if(response.message === "success"){
+                    returnObject.message = "Success";
+                    returnObject.api_response = response;
+                }else{
+                    returnObject.message = "Failed";
+                    returnObject.api_response = response;
+                }
+                return returnObject;
+            }catch(err){
+                throw err;
+            }
+        }else{
+            let returnObject = {};
+            try{
+                let response = await this.billingRepo.microChargeAttempt(msisdn, packageObj, transaction_id, micro_price, subscription);
                 if(response.api_response.data.Message === "Success"){
                     returnObject.message = "Success";
                     returnObject.api_response = response;

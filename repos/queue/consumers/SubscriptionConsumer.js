@@ -106,7 +106,7 @@ class SubscriptionConsumer {
         
         try{
             let response = await this.paymentProcessService.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
-            let api_response = subscription.payment_source === 'easypaisa' ? response.api_response : response.api_response.data;
+            let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.data;
             let message = response.message;
     
             if(message === 'Success'){
@@ -281,14 +281,14 @@ class SubscriptionConsumer {
             
             if(micro_price <= packageObj.price_point_pkr){
                 
-                let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
-                let api_response = response.api_response;
-                let message = api_response.data.Message;
+                let response = await this.paymentProcessService.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
+                let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.data;
+                let message = response.message;
 
                 if(message === 'Success'){
                     console.log("Micro Chargning success for ",subscription._id," for price ",micro_price);
                     // Save tp billing response
-                    this.createBillingHistory(subscription, api_response.data, message, transaction_id, true, false, micro_price, packageObj);
+                    this.createBillingHistory(subscription, api_response, message, transaction_id, true, false, micro_price, packageObj);
                     
                     // Success billing
                     let nextBilling = new Date();
@@ -335,7 +335,7 @@ class SubscriptionConsumer {
                     rabbitMq.acknowledge(queueMessage);
                 }else{
                     // Unsuccess billing. Save tp billing response
-                    await this.assignGracePeriod(subscription, user, packageObj, false,api_response.data,transaction_id);
+                    await this.assignGracePeriod(subscription, user, packageObj, false,api_response,transaction_id);
                     rabbitMq.acknowledge(queueMessage);
                 }
             }else{
@@ -562,7 +562,7 @@ class SubscriptionConsumer {
         history.operator_response = response;
         history.billing_status = billingStatus;
         
-        history.operator = 'telenor';
+        history.operator = subscription.payment_source?subscription.payment_source:'telenor';
     
         if(micro_charge === true){
             history.price = price;
