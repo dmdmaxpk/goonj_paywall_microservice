@@ -960,26 +960,39 @@ exports.expire = async (req, res) => {
 // When user switch payment source
 exports.switchPaymentSource = async (req, res) => {
 	let subscription_id = req.body.subscription_id;
-	let msisdn = req.body.msisdn;
 	let new_source = req.body.new_source;
 	let gw_transaction_id = req.body.transaction_id;
 
-    // try{
-    //     response = await billingRepo.subscriberQuery(msisdn);
-    // }catch(err){
-    //     response = err;
-    // }
+	let msisdn = req.body.msisdn;
 
 	try {
         // await billingRepo.subscriberQuery(msisdn);
-        let record = subscriptionRepo.getSubscription(subscription_id);
+        let record = await subscriptionRepo.getSubscription(subscription_id);
         if (record.payment_source !== new_source) {
-            record.payment_source = new_source;
-            let result = subscriptionRepo.updateSubscription(subscription_id, record);
-            if (result === undefined)
-                res.send({code: config.codes.code_success, message: 'Payment source is updated successfully', gw_transaction_id: gw_transaction_id});
-            else
-                res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
+
+			if(new_source === 'telenor'){
+				let response;
+				// Check if telenor number - subscriber query
+				try{
+				    response = await billingRepo.subscriberQuery(msisdn);
+				}catch(err){
+				    response = err;
+				}
+
+				if(response.operator === "telenor"){
+					record.payment_source = new_source;
+					let result = await subscriptionRepo.updateSubscription(subscription_id, record);
+					if (result === undefined){
+						res.send({code: config.codes.code_success, message: 'Payment source updated successfully', gw_transaction_id: gw_transaction_id});
+					}else{
+						res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
+					}
+				}else{
+					res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
+				}
+			}else if(new_source === 'easypaisa'){
+				// create link transaction with easypaisa
+			}
         } else{
             res.send({code: config.codes.code_error, message: 'Payment source should be different.', gw_transaction_id: gw_transaction_id});
         }
