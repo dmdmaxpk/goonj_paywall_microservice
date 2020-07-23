@@ -8,9 +8,9 @@ const NodeRSA = require('node-rsa');
 class EasypaisaPaymentService {
     constructor(){
         this.emailAddress = 'muhammad.azam@dmdmax.com';
-        this.username = 'DMD';
-        this.password = '3dca201bc26a31247bb4c6fbd1858468';
-        this.storeId = '10631';
+        this.username = 'Goonj';
+        this.password = '8c2f6b83579b69bc04903d1c3310c2db';
+        this.storeId = '42221';
         this.orderId = this.getOrderId();
         this.signature = null;
         this.publicKey = null;
@@ -78,7 +78,7 @@ class EasypaisaPaymentService {
             let resp = await axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
-                url: 'https://apis.telenor.com.pk/epp/v1/initiatelinktransaction',
+                url: 'https://apis.telenor.com.pk/epp/v2/initiatelinktransaction',
                 data: data,
                 headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
@@ -135,7 +135,7 @@ class EasypaisaPaymentService {
             let resp = await axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
-                url: 'https://apis.telenor.com.pk/epp/v1/initiatepinlesstransaction',
+                url: 'https://apis.telenor.com.pk/epp/v2/initiatepinlesstransaction',
                 data: data,
                 headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
@@ -182,7 +182,8 @@ class EasypaisaPaymentService {
             data.signature = self.signature;
             let resp = await axios({
                 method: 'post',
-                url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
+                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
+                url: 'https://apis.telenor.com.pk/epp/v2/deactivatelink',
                 data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
@@ -201,30 +202,6 @@ class EasypaisaPaymentService {
         } catch(err){
             console.log('deactivateLinkTransaction: Err: ', err);
             throw err;
-        }
-    }
-
-    /*
-    * Telenor Auth token - get token
-    * Params: null
-    * Return Type: Object
-    * */
-    getAuthToken(){
-        try {
-            let self = this;
-            return new Promise(function(resolve, reject) {
-                axios({
-                    method: 'post',
-                    url: config.telenor_dcb_api_baseurl + 'oauthtoken/v1/generate?grant_type=client_credentials',
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Basic '+config.telenor_dcb_api_token, 'Content-Type': 'application/x-www-form-urlencoded' }
-                }).then(function(response){
-                    resolve(response.data);
-                }).catch(function(err){
-                    reject(err);
-                });
-            });
-        } catch(err){
-            return {'code': config.codes.code_error, 'message': err.message, 'method': 'getAuthToken'};
         }
     }
 
@@ -248,7 +225,7 @@ class EasypaisaPaymentService {
             let resp = await axios({
                     method: 'post',
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
-                    url: 'https://apis.telenor.com.pk/epp/v1/generateotp',
+                    url: 'https://apis.telenor.com.pk/epp/v2/generateotp',
                     data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
