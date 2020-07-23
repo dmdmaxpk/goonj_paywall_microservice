@@ -124,7 +124,7 @@ class PaymentProcessService {
                         }
                     }else{
                         try{
-                            response = await this.telenorBillingService.processDirectBilling(user, subscription, packageObj, first_time_billing);
+                            api_response = await this.telenorBillingService.processDirectBilling(user, subscription, packageObj, first_time_billing);
                         }catch(err){
                             console.log("Error thrown from telenor processDirectBilling: ", err);
                             throw err;
