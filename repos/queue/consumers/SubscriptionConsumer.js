@@ -106,14 +106,14 @@ class SubscriptionConsumer {
         
         try{
             let response = await this.paymentProcessService.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
-            let api_response = response.api_response;
+            let api_response = subscription.payment_source === 'easypaisa' ? response.api_response : response.api_response.data;
             let message = response.message;
     
             if(message === 'Success'){
                 console.log("Billing success for subscription id:", subscription._id);
                 
                 // Save tp billing response
-                this.createBillingHistory(subscription, api_response.data, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
+                this.createBillingHistory(subscription, api_response, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
                 
                 // Success billing
                 let nextBilling = new Date();
@@ -159,7 +159,7 @@ class SubscriptionConsumer {
             }else{
                 // Unsuccess billing. Save tp billing response
                 console.log("Billing failed for subscription id:", subscription._id);
-                await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,api_response.data,transaction_id);
+                await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,api_response,transaction_id);
                 rabbitMq.acknowledge(queueMessage);
             }
         }catch(error){

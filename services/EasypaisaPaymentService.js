@@ -35,26 +35,26 @@ class EasypaisaPaymentService {
    * */
     async initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
 
-        let returnObj = {};
-        let data = { signature:
-            'Mm+zzNPe8DF1srslvT57zXvmIc/YngVgAZWRf7tZbXOu9DeCRZBCmyJDHm4kNMEWbFW/m1kbkQhkgAmvhDuKDd0TxnKe/8b6/kNYXHIgMSQEZ1Fbbo/YxbqtdDwe3TNEc19bBnB2z8hDhnqKGbBbHA54PI+kGQ2XxknponBbF2tACOjQfqHstFOYyQougYynyJP+k1mBt+KpdhgH1WVduEDtYF+GJuXxFVElbRf2l2wWAHvyHRH6r1tAxREoDuohuUUAoVWc6ii5ynGBCXhGso22y4C5q7jnb5sbE1nluqD5Eq8UnERlEoobaz7jW0XeL7dVxtLkbtZ9KzEMk0x5zA==',
-           response:
-            { orderId: 'GEP_HkfcjKHeP',
-              storeId: '10631',
-              transactionId: '2361678',
-              transactionDateTime: '22/07/2020 02:48 PM',
-              tokenNumber: '0000001658',
-              mobileAccountNo: '03450021028',
-              emailAddress: 'muhammad.azam@dmdmax.com',
-              responseCode: '0000',
-              responseDesc: 'SUCCESS' }
-        };
+        // let returnObj = {};
+        // let data = { signature:
+        //     'Mm+zzNPe8DF1srslvT57zXvmIc/YngVgAZWRf7tZbXOu9DeCRZBCmyJDHm4kNMEWbFW/m1kbkQhkgAmvhDuKDd0TxnKe/8b6/kNYXHIgMSQEZ1Fbbo/YxbqtdDwe3TNEc19bBnB2z8hDhnqKGbBbHA54PI+kGQ2XxknponBbF2tACOjQfqHstFOYyQougYynyJP+k1mBt+KpdhgH1WVduEDtYF+GJuXxFVElbRf2l2wWAHvyHRH6r1tAxREoDuohuUUAoVWc6ii5ynGBCXhGso22y4C5q7jnb5sbE1nluqD5Eq8UnERlEoobaz7jW0XeL7dVxtLkbtZ9KzEMk0x5zA==',
+        //    response:
+        //     { orderId: 'GEP_HkfcjKHeP',
+        //       storeId: '10631',
+        //       transactionId: '2361678',
+        //       transactionDateTime: '22/07/2020 02:48 PM',
+        //       tokenNumber: '0000001658',
+        //       mobileAccountNo: '03450021028',
+        //       emailAddress: 'muhammad.azam@dmdmax.com',
+        //       responseCode: '0000',
+        //       responseDesc: 'SUCCESS' }
+        // };
 
-        returnObj.transaction_id = data.response.orderId;
-        returnObj.message = "success";
-        returnObj.response = data;
+        // returnObj.transaction_id = data.response.orderId;
+        // returnObj.message = "success";
+        // returnObj.response = data;
 
-        return returnObj;
+        // return returnObj;
 
         try {
             let self = this;
@@ -116,14 +116,12 @@ class EasypaisaPaymentService {
         try {
             let self = this, returnObj = {};
             await self.getKey();
-            self.getOrderId();
-            returnObj.transaction_id = self.orderId;
 
             let data = {
                 'request': {
-                    'orderId': self.orderId,
+                    'orderId': transaction_id,
                     'storeId': self.storeId,
-                    'transactionAmount': packageObj.price_point_pkr,
+                    'transactionAmount': '' + packageObj.price_point_pkr,
                     'transactionType': 'MA',
                     'mobileAccountNo': mobileAccountNo,
                     'emailAddress': self.emailAddress,
@@ -133,7 +131,7 @@ class EasypaisaPaymentService {
             console.log('initiatePinlessTransaction: data: ', data);
 
             self.generateSignature(data);
-            data.signature = response;
+            data.signature = self.signature;
             let resp = await axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',

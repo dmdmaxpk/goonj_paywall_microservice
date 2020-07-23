@@ -22,7 +22,7 @@ class PaymentProcessService {
             let returnObject = {};
             try{
                 let response =  await this.easypaisaPaymentService.initiatePinlessTransaction(msisdn, packageObj, transaction_id, subscription);
-                if(response.responseDesc === "SUCCESS"){
+                if(response.message === "success"){
                     returnObject.message = "Success";
                     returnObject.api_response = response;
                 }else{
