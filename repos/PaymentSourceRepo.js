@@ -7,7 +7,7 @@ class PaymentSourceRepo {
     }
 
     async getSources() {
-        let result = await PaymentSource.find({});
+        let result = await PaymentSource.find({active:true});
         return result;
     }
 }
