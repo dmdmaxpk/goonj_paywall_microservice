@@ -328,7 +328,7 @@ class PaymentProcessService {
         try {
             console.log('linkTransaction: ', msisdn, otp);
 
-            let api_response = await this.easypaisaPaymentService.initiateLinkTransaction(msisdn, 0, otp);
+            let api_response = await this.easypaisaPaymentService.initiateLinkTransaction(msisdn, '0', otp);
             if(api_response && api_response.message === "success")
                 return api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
             else
