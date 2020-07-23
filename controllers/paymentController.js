@@ -960,10 +960,18 @@ exports.expire = async (req, res) => {
 // When user switch payment source
 exports.switchPaymentSource = async (req, res) => {
 	let subscription_id = req.body.subscription_id;
+	let msisdn = req.body.msisdn;
 	let new_source = req.body.new_source;
 	let gw_transaction_id = req.body.transaction_id;
 
+    // try{
+    //     response = await billingRepo.subscriberQuery(msisdn);
+    // }catch(err){
+    //     response = err;
+    // }
+
 	try {
+        // await billingRepo.subscriberQuery(msisdn);
         let record = subscriptionRepo.getSubscription(subscription_id);
         if (record.payment_source !== new_source) {
             record.payment_source = new_source;
