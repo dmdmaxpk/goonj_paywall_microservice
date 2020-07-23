@@ -3,6 +3,9 @@ const router = express.Router();
 const controller = require('../controllers/paymentController');
 const authMiddleWare = require('../middlewares/auth.middleware');
 
+router.route('/sources')
+    .get(authMiddleWare.checkToken, controller.paymentSources);
+
 router.route('/otp/send')
     .post(authMiddleWare.checkToken, controller.sendOtp);
 

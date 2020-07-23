@@ -25,6 +25,8 @@ const subscriptionRepo = container.resolve("subscriptionRepository");
 const constants = container.resolve("constants");
 const paymentProcessService = container.resolve("paymentProcessService");
 
+const paymentSourceRepo = container.resolve("paymentSourceRepository");
+
 let jwt = require('jsonwebtoken');
 const { response } = require('express');
 
@@ -85,6 +87,11 @@ subscribePackage = async(subscription, packageObj) => {
 	}
 }
 
+exports.paymentSources = async (req, res) => {
+    let gw_transaction_id = req.body.transaction_id;
+	let sources = await paymentSourceRepo.getSources();
+	res.send({code: config.codes.code_success, data: sources, gw_transaction_id: gw_transaction_id })
+}
 
 // Generate OTP and save to collection
 exports.sendOtp = async (req, res) => {
