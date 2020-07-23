@@ -967,8 +967,13 @@ exports.switchPaymentSource = async (req, res) => {
 	try {
         // await billingRepo.subscriberQuery(msisdn);
         let record = await subscriptionRepo.getSubscription(subscription_id);
+        console.log('record.payment_source: ', record.payment_source);
+
         delete record.ep_token;
         delete record.payment_source;
+
+        console.log('record.payment_source: 1 ', record.payment_source);
+
         console.log('record: ', record);
 
         let result = await subscriptionRepo.updateSubscription(subscription_id, record);
