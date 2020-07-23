@@ -992,6 +992,17 @@ exports.switchPaymentSource = async (req, res) => {
 				}
 			}else if(new_source === 'easypaisa'){
 				// create link transaction with easypaisa
+				if(record.ep_token === undefined){
+					// no ep_token available
+				}else{
+					// update record
+					let result = await subscriptionRepo.updateSubscription(subscription_id, record);
+					if (result === undefined){
+						res.send({code: config.codes.code_success, message: 'Payment source updated successfully', gw_transaction_id: gw_transaction_id});
+					}else{
+						res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
+					}
+				}
 			}
         } else{
             res.send({code: config.codes.code_error, message: 'Payment source should be different.', gw_transaction_id: gw_transaction_id});
