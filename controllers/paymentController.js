@@ -654,7 +654,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 					dataToReturn.desc = result.desc;
 					dataToReturn.status = "failed";
 					dataToReturn.subscriptionObj = subscriptionObj;
-					return dataToReturn;
+					resolve(dataToReturn);
 				}
 
 				let pinLessTokenNumber = result.subscriptionObj.ep_token ? result.subscriptionObj.ep_token : undefined;
