@@ -112,7 +112,6 @@ class EasypaisaPaymentService {
                     'tokenNumber': subscription.ep_token,
                 }
             };
-            console.log('initiatePinlessTransaction: data: ', data);
 
             self.generateSignature(data);
             data.signature = self.signature;
@@ -133,7 +132,7 @@ class EasypaisaPaymentService {
                 // self.deactivateLinkTransaction(mobileAccountNo, subscription.ep_token);
             }
             else{
-                console.log('initiatePinlessTransaction: failed : response 2: ', resp.data);
+                console.log('initiatePinlessTransaction: failed : response 2: ');
                 returnObj.message = "failed";
                 returnObj.response = resp.data;
             }
