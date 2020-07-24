@@ -20,8 +20,9 @@ exports.rev_report = async (req,res) =>  {
     today.setHours(00);
     today.setMinutes(00);
     today.setSeconds(00);
-    
+
     let revenue = await billingHistoryRepo.getTodaysRevenue(today);
+    console.log("=> ", revenue);
     if (revenue){
         res.send(`Revenue for the date of ${today} is Rs. ${revenue}`);
     }else{
