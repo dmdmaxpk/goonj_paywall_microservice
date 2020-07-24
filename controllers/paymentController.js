@@ -1104,7 +1104,7 @@ exports.linkTransaction = async (req, res) => {
 
 exports.updateBillingHistory = async (msisdn, subscription, source) => {
     // Add history record
-    console.log("Adding history record",user.msisdn);
+    console.log("Adding history record: ", msisdn);
     try {
     	let toSource = source === 'easypaisa' ? 'telenor' : source;
         let user = await userRepo.getUserByMsisdn(msisdn);
