@@ -324,11 +324,10 @@ class PaymentProcessService {
         await this.billingHistoryRepo.createBillingHistory(history);
     }
 
-    async linkTransaction (msisdn, otp){
+    async linkTransaction (msisdn, amount, otp){
         try {
-            console.log('linkTransaction: ', msisdn, otp);
-
-            let api_response = await this.easypaisaPaymentService.initiateLinkTransaction(msisdn, 1, otp);
+            console.log('linkTransaction: ', msisdn, amount, otp);
+            let api_response = await this.easypaisaPaymentService.initiateLinkTransaction(msisdn, amount, otp);
             if(api_response && api_response.message === "success")
                 return api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
             else

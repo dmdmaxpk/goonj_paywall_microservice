@@ -979,14 +979,13 @@ exports.switchPaymentSource = async (req, res) => {
 				    console.log('response: ', response);
 				}catch(err){
                     console.log('err: ', err);
-
                     response = err;
 				}
 
 				if(response.operator === "telenor"){
 					record.payment_source = new_source;
 					let result = await subscriptionRepo.updateSubscription(subscription_id, record);
-					if (result === undefined){
+					if (result !== undefined){
 						res.send({code: config.codes.code_success, message: 'Payment source updated successfully', gw_transaction_id: gw_transaction_id});
 					}else{
 						res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
@@ -1001,7 +1000,6 @@ exports.switchPaymentSource = async (req, res) => {
 					// no ep_token available
                     try {
                         console.log('easypaisaPaymentService.bootOptScript: ');
-
                         let record = await easypaisaPaymentService.bootOptScript(msisdn);
                         console.log('sendOtp', record);
                         if (record.code === 0)
@@ -1025,7 +1023,6 @@ exports.switchPaymentSource = async (req, res) => {
 			}
         } else{
             console.log('else case: ');
-
             res.send({code: config.codes.code_error, message: 'Payment source should be different.', gw_transaction_id: gw_transaction_id});
         }
     } catch (e) {
@@ -1036,11 +1033,12 @@ exports.switchPaymentSource = async (req, res) => {
 exports.linkTransaction = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let otp = req.body.otp;
+	let amount = req.body.amount;
 	let gw_transaction_id = req.body.transaction_id;
 	let subscription_id = req.body.subscription_id;
 
 	try {
-		let ep_token = await paymentProcessService.linkTransaction(msisdn, otp);
+		let ep_token = await paymentProcessService.linkTransaction(msisdn, amount, otp);
 		console.log('ep_token: ', ep_token);
 		if (ep_token !== undefined) {
 			let subRecord = await subscriptionRepo.getSubscription(subscription_id);
@@ -1049,7 +1047,6 @@ exports.linkTransaction = async (req, res) => {
             subRecord.payment_source = 'easypaisa';
 			subRecord.ep_token = ep_token;
 			let result = await subscriptionRepo.updateSubscription(subscription_id, subRecord);
-
             console.log('result: ', result);
 
             if (result === undefined){
