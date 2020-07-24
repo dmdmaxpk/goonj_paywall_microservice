@@ -24,7 +24,7 @@ exports.rev_report = async (req,res) =>  {
     let revenue = await billingHistoryRepo.getTodaysRevenue(today);
     console.log("=> ", revenue);
     if (revenue){
-        res.send(`Revenue for the date of ${today} is Rs. ${revenue}`);
+        res.send(`Revenue for the date of ${today} is Rs. ${revenue[0].total}`);
     }else{
         res.send(`Failed to fetch revenue`);
     }
