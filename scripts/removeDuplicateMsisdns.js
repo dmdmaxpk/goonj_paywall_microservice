@@ -13,24 +13,25 @@ class RemoveDuplicateMsisdnsScript {
 
     async removeDuplicateMsisdns(){
         try {
+            console.log("[rms]")
             let userIdsToRemove = await this.userRepository.getDuplicatedMsisdnUsers();
             // console.log("userIdsToRemove",userIdsToRemove[0]["ids"]);
             let userids = userIdsToRemove[0]["ids"];
-            console.log(userids)
+            console.log("[rms]",userids)
             let userCount = await User.count({"_id": {$in: userids }});
-            console.log("userCount",userCount);
+            console.log("[rms]userCount",userCount);
             User.updateMany({"_id": {$in:userids }},{$set:{should_remove: true}}).then(async (data) => {
-                console.log("Data",data);
+                console.log("[rms]Data",data);
                 let subscriber_ids = await Subscriber.find({"user_id": {$in: userids }}).select('_id');
-                console.log("subscriber_ids got",subscriber_ids.length);
+                console.log("[rms]subscriber_ids got",subscriber_ids.length);
                 subscriber_ids = subscriber_ids.map(id => {return id._id});
                 // console.log("subscriber_ids",subscriber_ids);
                 let result1 = await Subscriber.updateMany({"user_id": {$in: userids }},{$set:{should_remove: true}},{multi: true});
-                console.log("subscriber",result1);
+                console.log("[rms]subscriber",result1);
                 let result2 = await Subscription.updateMany({"subscriber_id": {$in: subscriber_ids }},{$set:{should_remove: true}},{multi: true});
-                console.log("subscriber",result2);
+                console.log("[rms]subscriber",result2);
             }).catch(err => {
-                console.log("Error",err);
+                console.log("[rms]Error",err);
             });
         } catch (err) {
             console.error(err);
