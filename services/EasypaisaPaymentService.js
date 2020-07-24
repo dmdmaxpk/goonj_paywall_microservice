@@ -15,6 +15,9 @@ class EasypaisaPaymentService {
         this.signature = null;
         this.publicKey = null;
         this.privateKey = null;
+        this.generateotpUrl = 'https://apis.telenor.com.pk/epp/v2/generateotp';
+        this.initiatelinktransactionUrl = 'https://apis.telenor.com.pk/epp/v2/initiatelinktransaction';
+        this.initiatepinlesstransactionUrl = 'https://apis.telenor.com.pk/epp/v2/initiatepinlesstransaction';
         this.base64_cred = Buffer.from(this.username+":"+this.password).toString('base64');
     }
 
@@ -80,7 +83,8 @@ class EasypaisaPaymentService {
             let resp = await axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
-                url: 'https://apis.telenor.com.pk/epp/v2/initiatelinktransaction',
+                url:
+                self.initiatelinktransactionUrl,
                 data: data,
                 headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
@@ -137,7 +141,7 @@ class EasypaisaPaymentService {
             let resp = await axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
-                url: 'https://apis.telenor.com.pk/epp/v2/initiatepinlesstransaction',
+                url: self.initiatepinlesstransactionUrl,
                 data: data,
                 headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
@@ -227,7 +231,7 @@ class EasypaisaPaymentService {
             let resp = await axios({
                     method: 'post',
                     //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
-                    url: 'https://apis.telenor.com.pk/epp/v2/generateotp',
+                    url: self.generateotpUrl,
                     data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });

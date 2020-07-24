@@ -1000,6 +1000,8 @@ exports.switchPaymentSource = async (req, res) => {
 				if(record.ep_token === undefined || record.ep_token == ''){
 					// no ep_token available
                     try {
+                        console.log('easypaisaPaymentService.bootOptScript: ');
+
                         let record = await easypaisaPaymentService.bootOptScript(msisdn);
                         console.log('sendOtp', record);
                         if (record.code === 0)
