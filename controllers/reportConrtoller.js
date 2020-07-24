@@ -18,6 +18,10 @@ exports.gdn_report = async (req,res) =>  {
 exports.rev_report = async (req,res) =>  {
     let today = new Date();
     let revenue = await billingHistoryRepo.getTodaysRevenue(today);
-    res.send(`Revenue for the date of ${today} is Rs. ${revenue}`);
+    if (revenue){
+        res.send(`Revenue for the date of ${today} is Rs. ${revenue}`);
+    }else{
+        res.send(`Failed to fetch revenue`);
+    }
 }
 
