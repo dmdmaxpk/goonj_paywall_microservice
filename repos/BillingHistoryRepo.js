@@ -426,6 +426,10 @@ class BillingHistoryRepository {
     }
 
     async getTodaysRevenue (today)  {
+        today.setHours(00);
+        today.setMinutes(00);
+        today.setSeconds(00);
+
         console.log("=>", today);
         try{
             let result = await BillingHistory.aggregate([ { $match: { 
