@@ -405,7 +405,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 							sendTrialMessage = true;
 						}else{
-							res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+							res.send({code: config.codes.code_error, message: 'Failed to subscribe package' + (subsResponse.desc ? ', possible cause: '+subsResponse.desc : ''), package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 						}
 						subscriptionObj = subsResponse.subscriptionObj;
 						packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
@@ -650,6 +650,13 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 				dataToReturn.subscriptionObj = subscriptionObj;
 				resolve(dataToReturn);
 			}else {
+				if(result.desc){
+					dataToReturn.desc = result.desc;
+					dataToReturn.status = "failed";
+					dataToReturn.subscriptionObj = subscriptionObj;
+					return dataToReturn;
+				}
+
 				let pinLessTokenNumber = result.subscriptionObj.ep_token ? result.subscriptionObj.ep_token : undefined;
 				if(pinLessTokenNumber){
 					subscriptionObj.ep_token = pinLessTokenNumber;

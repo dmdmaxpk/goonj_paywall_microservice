@@ -117,6 +117,31 @@ class PaymentProcessService {
                             if(api_response && api_response.message === "success"){
                                 subscription.ep_token = api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
                                 console.log("easypaisa - success - saving response ", subscription);
+                            }else{
+                                // Failed
+                                if(api_response.response.response.responseCode === '0030'){
+                                    // invalid otp
+                                    returnObject.desc = 'Invalid OTP Entered';
+                                }else if(api_response.response.response.responseCode === '0034'){
+                                    // invalid otp
+                                    returnObject.desc = 'OTP Expired';
+                                }else if(api_response.response.response.responseCode === '---'){
+                                    // Todo: Need to enter response code
+                                    // invalid otp
+                                    returnObject.desc = 'Invalid Transaction Amount';
+                                }else if(api_response.response.response.responseCode === '0011'){
+                                    // invalid otp
+                                    returnObject.desc = 'Wrong PIN Entered';
+                                }else if(api_response.response.response.responseCode === '0012'){
+                                    // invalid otp
+                                    returnObject.desc = 'PIN Not Entered';
+                                }else if(api_response.response.response.responseCode === '0013'){
+                                    // invalid otp
+                                    returnObject.desc = 'Insufficient Balance';
+                                }else if(api_response.response.response.responseCode === '0014'){
+                                    // invalid otp
+                                    returnObject.desc = 'Account Doesnt Exist';
+                                }
                             }
                         }catch(err){
                             console.log("Error thrown from easypaisa processDirectBilling: ", err);
