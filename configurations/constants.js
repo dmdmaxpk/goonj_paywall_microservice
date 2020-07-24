@@ -12,8 +12,8 @@ class Constants {
         this.subscription_messages_direct = {
             QDfC: `Goonj Live TV Rs %price%/d subscribe kar diya gya hai. TV dekhnay k liye http://www.goonj.pk/live aur numainday se baat k liye 727200 milayein`,
             QDfG: `Goonj Live TV Rs%price%/wk subscribe kar diya gya hai. TV dekhnay k liye http://www.goonj.pk/live aur numainday se baat k liye 727200 milayein`,
-            QDfH: `Goonj Comedy Rs%price%/+t/d mein subscribe kar di gaye hai. Service dekhne k liye http://www.goonj.pk/ aur numainday se baat ke liye 727200 milayein.`,
-            QDfI: `Goonj Comedy Rs%price%/+t/w mein subscribe kar di gaye hai. Service dekhne k liye http://www.goonj.pk/ aur numainday se baat ke liye 727200 milayein.`,
+            QDfH: `Goonj Comedy Rs%price% mein subscribe kar di gaye hai. Service dekhne k liye http://www.goonj.pk/ aur numainday se baat ke liye 727200 milayein.`,
+            QDfI: `Goonj Comedy Rs%price% mein subscribe kar di gaye hai. Service dekhne k liye http://www.goonj.pk/ aur numainday se baat ke liye 727200 milayein.`,
         },
         this.message_after_repeated_succes_charge = {
             QDfC: `Goonj Live TV Rs. 5/day dekhnay ka shukriya.. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein. http://www.goonj.pk/live`,
