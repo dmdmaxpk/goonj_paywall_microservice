@@ -10,8 +10,8 @@ class Constants {
             gdn:`Apko Goonj TV activate kr dia gaya ha. Jub chahien Jaib se Mobile nikalien aur TOP LIVE TV Channels deikhen.`
         },
         this.subscription_messages_direct = {
-            QDfC: `Goonj Live TV Rs %price%/wk subscribe kar diya gya hai. TV dekhnay k liye http://www.goonj.pk/live aur numainday se baat k liye 727200 milayein`,
-            QDfG: `Goonj Live TV Rs%price%/d subscribe kar diya gya hai. TV dekhnay k liye http://www.goonj.pk/live aur numainday se baat k liye 727200 milayein`,
+            QDfC: `Goonj Live TV Rs %price%/d subscribe kar diya gya hai. TV dekhnay k liye http://www.goonj.pk/live aur numainday se baat k liye 727200 milayein`,
+            QDfG: `Goonj Live TV Rs%price%/wk subscribe kar diya gya hai. TV dekhnay k liye http://www.goonj.pk/live aur numainday se baat k liye 727200 milayein`,
             QDfH: `Goonj Comedy Rs%price%/+t/d mein subscribe kar di gaye hai. Service dekhne k liye http://www.goonj.pk/ aur numainday se baat ke liye 727200 milayein.`,
             QDfI: `Goonj Comedy Rs%price%/+t/w mein subscribe kar di gaye hai. Service dekhne k liye http://www.goonj.pk/ aur numainday se baat ke liye 727200 milayein.`,
         },
