@@ -150,6 +150,7 @@ class SubscriberRepository {
             return null;
         }
     }
+
 }
 
 module.exports = SubscriberRepository;

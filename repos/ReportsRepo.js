@@ -156,9 +156,10 @@ const csvTrialToBilledUsers = createCsvWriter({
 const csvAffiliatePvs = createCsvWriter({
     path: affiliatePvsFilePath,
     header: [
-        {id: '_id', title: 'Date'},
+        {id: 'date', title: 'Date'},
+        {id: 'source',title: "Source"},
+        {id: 'mid',title: "MID"},
         {id: 'count', title: "Page Views"},
-        {id: 'mid',title: "MID"}
     ]
 });
 
@@ -382,9 +383,8 @@ dailyReport = async(mode = 'prod') => {
         csvWriter.writeRecords(resultToWriteToCsv).then(async (data) => {
             var info = await transporter.sendMail({
                 from: 'paywall@dmdmax.com.pk', // sender address
-                to:  ['farhan.ali@dmdmax.com'],
-                //to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com","zara.naqi@telenor.com.pk",
-                        //"fahad.shabbir@ideationtec.com","ceo@ideationtec.com","asad@ideationtec.com"], // list of receivers
+                //to:  ['farhan.ali@dmdmax.com'],
+                to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com","zara.naqi@telenor.com.pk", "fahad.shabbir@ideationtec.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","wasif@dmdmax.com"], // list of receivers
                 subject: `Paywall Report`, // Subject ne
                 text: `PFA some basic stats for Paywall - ${(new Date()).toDateString()}`, // plain text bodyday
                 attachments:[
@@ -481,8 +481,8 @@ callBacksReport =async() => {
         let write = await csvReportWriter.writeRecords(report);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["paywall@dmdmax.com.pk"],
-            // to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com","ceo@ideationtec.com","asad@ideationtec.com","usama.abbasi@ideationtec.com","fahad.shabbir@ideationtec.com" ], // list of receivers
+            // to:  ["paywall@dmdmax.com.pk"],
+            to:  ["paywall@dmdmax.com.pk","nauman@dmdmax.com","mikaeel@dmdmax.com"], // list of receivers
             subject: `Callbacks Report`, // Subject line
             text: `Callbacks sent with their TIDs and timestamps -  ${(new Date()).toDateString()}`, // plain text bodyday
             attachments:[
@@ -777,8 +777,8 @@ dailyChannelWiseUnsub = async() => {
         console.log("=> done 3");
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk', // sender address
-            to:  ["farhan.ali@dmdmax.com"],
-            to:  ["paywall@dmdmax.com.pk"], // list of receivers
+            // to:  ["farhan.ali@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk","nauman@dmdmax.com"], // list of receivers
             subject: `Daily Source Wise Unsubscribed Users Report`, // Subject line
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of unsubscribed users with respect to source.\n\nNote: Expired By System column indicates those users expired by the system because their grace time is over and they still have no balance.`, // plain text bodyday
             attachments:[
@@ -934,12 +934,17 @@ dailyTrialToBilledUsers = async() => {
         trialToBilledUsers.forEach(element => {
             element.msisdn = JSON.stringify(element.msisdn);
         });
+        
 
-        await csvTrialToBilledUsers.writeRecords(trialToBilledUsers);
+        let trialToBilledUserToWr = trialToBilledUsers.sort(function (a,b){
+            return   b['trial_date'] - a['trial_date'];
+        })
+
+        await csvTrialToBilledUsers.writeRecords(trialToBilledUserToWr);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["farhan.ali@dmdmax.com"],
-            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            // to:  ["hamza@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk", "nauman@dmdmax.com", "mikaeel@dmdmax.com"], // list of receivers
             subject: 'Trial To Billed Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date row.`, // plain text bodyday
             attachments:[
@@ -986,8 +991,8 @@ dailyFullAndPartialChargedUsers = async() => {
         await csvFullAndPartialCharged.writeRecords(array);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["farhan.ali@dmdmax.com"],
-            // to:  ["paywall@dmdmax.com.pk", "zara.naqi@telenor.com.pk", "mikaeel@dmdmax.com", "khurram.javaid@telenor.com.pk", "junaid.basir@telenor.com.pk"], // list of receivers
+            // to:  ["farhan.ali@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk",  "mikaeel@dmdmax.com", "nauman@dmdmax.com"], // list of receivers
             subject: 'Full & Partial Charged Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of full & partial charged users.`, // plain text bodyday
             attachments:[

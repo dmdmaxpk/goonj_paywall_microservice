@@ -55,6 +55,7 @@ const Ideation_call_back_url = 'http://bpd.o18.click/';
 const Ideation_call_back_url_2 = 'http://210.56.13.190/goonj_callback.php/';
 const Ideation_call_back_url_3 = `https://postback.level23.nl/?currency=USD&handler=10821&hash=c4e51373f0d516d0d4fdbd7f0e544c61&tracker=`;
 const time_between_billing_attempts_hours = 8;
+const he_service_pass_phrase = "fdkPmW8yOX";
 
 let config = {
     development: {
@@ -87,7 +88,8 @@ let config = {
         emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
         emailSecure: true,
-        default_package_id: default_package_id
+        default_package_id: default_package_id,
+        he_service_pass_phrase: he_service_pass_phrase
     },
     staging: {
         port: '5000',
@@ -119,7 +121,8 @@ let config = {
         emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
         emailSecure: true,
-        default_package_id: default_package_id
+        default_package_id: default_package_id,
+        he_service_pass_phrase: he_service_pass_phrase
     },
     production: {
         port: process.env.PW_PORT,
@@ -151,7 +154,8 @@ let config = {
         emailPassword: "YiVmeCPtzJn39Mu",
         emailPort: 465,
         emailSecure: true,
-        default_package_id: default_package_id
+        default_package_id: default_package_id,
+        he_service_pass_phrase: he_service_pass_phrase
     }
 };
 

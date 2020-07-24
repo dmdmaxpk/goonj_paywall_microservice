@@ -18,6 +18,10 @@ class BillingHistoryRepository {
         const result = await BillingHistory.deleteMany({user_id: user_id});
         return result;
     }
+
+    async deleteHistoryForSubscriber(subscriber_id)  {
+        return await BillingHistory.remove({subscriber_id: subscriber_id});
+    }
     
     async getUserForUnGray  (subscription_id)  {
         let dayToCompare = new Date();
@@ -419,6 +423,21 @@ class BillingHistoryRepository {
             } 
         }]);
          return result;
+    }
+
+    async getTodaysRevenue (today)  {
+        console.log("=>", today);
+        try{
+            let result = await BillingHistory.aggregate([ { $match: { 
+                "billing_status": "Success",
+                "billing_dtm":{$gt: new Date(today)}
+                } },
+                { $project: { _id: 0, "price": "$price" } },{ $group: {          _id: null,          total: {              $sum: "$price"          }      }  } ]);
+                console.log("=> ", result);
+             return result;
+        }catch(err){
+            console.log("=>", err);
+        }
     }
 }
 
