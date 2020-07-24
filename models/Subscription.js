@@ -56,6 +56,7 @@ const subscriptionSchema = new Schema({
 
     amount_billed_today: {type: Number, default: 0},
     is_manual_recharge: { type: Boolean, default: false },
+    should_remove: Boolean, // temporary field
     active: { type: Boolean, default: true, index: true }
 }, { strict: true });
 subscriptionSchema.index({subscriber_id:1,paywall_id:1},{unique: true});
