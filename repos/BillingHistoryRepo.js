@@ -426,12 +426,17 @@ class BillingHistoryRepository {
     }
 
     async getTodaysRevenue (today)  {
-        let result = await BillingHistory.aggregate([ { $match: { 
-            "billing_status": "Success",
-            "billing_dtm":{$gt: new Date(today)}
-            } },
-            { $project: { _id: 0, "price": "$price" } },{ $group: {          _id: null,          total: {              $sum: "$price"          }      }  } ]);
-         return result;
+        try{
+            let result = await BillingHistory.aggregate([ { $match: { 
+                "billing_status": "Success",
+                "billing_dtm":{$gt: new Date(today)}
+                } },
+                { $project: { _id: 0, "price": "$price" } },{ $group: {          _id: null,          total: {              $sum: "$price"          }      }  } ]);
+                console.log("=> ", result);
+             return result;
+        }catch(err){
+            console.log("=>", err);
+        }
     }
 }
 
