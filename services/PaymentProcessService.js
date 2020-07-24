@@ -161,13 +161,10 @@ class PaymentProcessService {
                     returnObject.subscriptionObj = subscription;
 
                     if(api_response && api_response.message === "success"){
-                        console.log("billing - success");
                         await this.billingSuccess(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
                     }else{
-                        console.log("billing - failed");
                         await this.billingFailed(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
                     }
-                    console.log("billing - returning object");
                     return returnObject;
                 }else{
                     console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
@@ -187,8 +184,6 @@ class PaymentProcessService {
     }
 
     async billingSuccess (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
-        console.log("billingSuccess");
-        console.log("billingSuccess: ", first_time_billing, subscription);
 
         // Success billing
         let nextBilling = new Date();
@@ -332,9 +327,7 @@ class PaymentProcessService {
     }
     
     async billingFailed (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
-        console.log("billingFailed");
-        console.log("billingFailed: ", response, subscription);
-        
+     
         // Add history record
         let history = {};
         history.user_id = user._id;

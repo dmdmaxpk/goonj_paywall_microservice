@@ -178,7 +178,7 @@ class EasypaisaPaymentService {
                 returnObj.response = resp.data;
             }
             else{
-                console.log('deactivateLinkTransaction: failed : response 2: ', resp.data);
+                console.log('deactivateLinkTransaction: failed : response 2: ');
                 returnObj.message = "failed";
                 returnObj.response = resp.data;
             }
