@@ -424,6 +424,17 @@ class BillingHistoryRepository {
         }]);
          return result;
     }
+
+    async getTodaysRevenue ()  {
+        let today = new Date();
+
+        let result = await BillingHistory.aggregate([ { $match: { 
+            "billing_status": "Success",
+            billing_dtm:{$gt: new Date(today)}
+            } },
+            { $project: { _id: 0, "price": "$price" } },{ $group: {          _id: null,          total: {              $sum: "$price"          }      }  } ]);
+         return result;
+    }
 }
 
 
