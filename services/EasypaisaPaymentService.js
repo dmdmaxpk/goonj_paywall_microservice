@@ -213,7 +213,7 @@ class EasypaisaPaymentService {
                     data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
-            console.log('generateOPT: EP: ', resp);
+            console.log('generateOPT: EP: ', resp.data);
             if (resp.status === 200)
                 return {'code': config.codes.code_success, 'message': 'OTP Sent'};
             else
