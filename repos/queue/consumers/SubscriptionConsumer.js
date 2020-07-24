@@ -84,7 +84,7 @@ class SubscriptionConsumer {
                     history.operator = 'telenor';
                     this.addHistory(history);
                     console.log("[SubscriptionConsumer][excessiveCharging][AmountBilled]",subscription.amount_billed_today);
-                    console.log("[SubscriptionConsumer][excessiveCharging][Limit]",subscription.amount_billed_today);
+                    console.log("[SubscriptionConsumer][excessiveCharging][Limit]",config.maximum_daily_payment_limit_pkr);
                     console.log("[SubscriptionConsumer][excessiveCharging][SubscriptionId]",subscription._id);
                     rabbitMq.acknowledge(message);
                 }
