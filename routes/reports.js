@@ -9,4 +9,7 @@ const controller = require('../controllers/reportConrtoller')
 router.route('/gdn')
     .post(controller.gdn_report)
 
+router.route('/rev')
+    .get(controller.rev_report)
+
 module.exports = router;

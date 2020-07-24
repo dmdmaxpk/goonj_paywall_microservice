@@ -30,7 +30,8 @@ class SubscriptionConsumer {
         let discount = subscriptionObj.discount;
         
         try {
-            
+            let label = "label " + Date.now() + Math.random() + "---" + subscription._id;
+            console.time("[timeLog][Consumer][SubscriptionConsumer]" + label);
             // Check if the subscription is active or blocked for some reason.
             if (subscription.active === true) {
                 
@@ -49,7 +50,7 @@ class SubscriptionConsumer {
                         }else{
                             this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
                         }
-                        
+                        console.timeEnd("[timeLog][Consumer][SubscriptionConsumer]" + label);
                     }  else{
                         console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                         setTimeout(() => {
@@ -83,7 +84,9 @@ class SubscriptionConsumer {
                     history.billing_status = "billing_exceeded";
                     history.operator = 'telenor';
                     this.addHistory(history);
-                    console.log("[SubscriptionConsumer][excessiveCharging][RabbitMQ-Acknowledge]");
+                    console.log("[SubscriptionConsumer][excessiveCharging][AmountBilled]",subscription.amount_billed_today);
+                    console.log("[SubscriptionConsumer][excessiveCharging][Limit]",config.maximum_daily_payment_limit_pkr);
+                    console.log("[SubscriptionConsumer][excessiveCharging][SubscriptionId]",subscription._id);
                     rabbitMq.acknowledge(message);
                 }
             } else {
@@ -181,6 +184,7 @@ class SubscriptionConsumer {
     
             await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error.response.data,transaction_id);
             rabbitMq.acknowledge(queueMessage);
+            
         }
     }
     
@@ -642,7 +646,7 @@ class SubscriptionConsumer {
             url = config.ideation_callback_url + `p?mid=${mid}&tid=${tid}`;
         } else if (mid === "goonj"){
             url = config.ideation_callback_url2 + `?txid=${tid}`;
-        } else if (mid === "aff3"){
+        } else if (mid === "aff3" || mid === "aff3a" ){
             url = config.ideation_callback_url3 + `${tid}`;
         }  else if (mid === "1" || mid === "gdn" ){
             return new Promise((resolve,reject) => { reject(null)})
