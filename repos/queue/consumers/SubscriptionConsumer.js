@@ -83,7 +83,9 @@ class SubscriptionConsumer {
                     history.billing_status = "billing_exceeded";
                     history.operator = 'telenor';
                     this.addHistory(history);
-                    console.log("[SubscriptionConsumer][excessiveCharging][RabbitMQ-Acknowledge]");
+                    console.log("[SubscriptionConsumer][excessiveCharging][AmountBilled]",subscription.amount_billed_today);
+                    console.log("[SubscriptionConsumer][excessiveCharging][Limit]",subscription.amount_billed_today);
+                    console.log("[SubscriptionConsumer][excessiveCharging][SubscriptionId]",subscription._id);
                     rabbitMq.acknowledge(message);
                 }
             } else {
