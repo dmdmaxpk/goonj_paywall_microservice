@@ -80,7 +80,7 @@ class EasypaisaPaymentService {
                 // self.deactivateLinkTransaction(mobileAccountNo, resp.data.response.tokenNumber);
             }
             else{
-                console.log('initiateLinkTransaction: failed : response 2: ', resp.data);
+                console.log('initiateLinkTransaction: failed : response 2: ');
                 returnObj.message = "failed";
                 returnObj.response = resp.data;
             }
