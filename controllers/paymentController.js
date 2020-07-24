@@ -395,20 +395,26 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					// As in affiliate case package will be for daily so daily > micro > trial
 					// And for non, package will be weekly, so: weekly > micro > trial
 					if(packageObj.paywall_id === "ghRtjhT7"){
-						// Live paywall, subscription rules along with micro changing started
-						let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
-						console.log("subsResponse", subsResponse);
-						if(subsResponse && subsResponse.status === "charged"){
-							res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-							sendChargingMessage = true;
-						}else if(subsResponse && subsResponse.status === "trial"){
-							res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-							sendTrialMessage = true;
-						}else{
-							res.send({code: config.codes.code_error, message: 'Failed to subscribe package' + (subsResponse.desc ? ', possible cause: '+subsResponse.desc : ''), package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+						try{
+							// Live paywall, subscription rules along with micro changing started
+							let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
+							console.log("subsResponse", subsResponse);
+							if(subsResponse && subsResponse.status === "charged"){
+								res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+								sendChargingMessage = true;
+							}else if(subsResponse && subsResponse.status === "trial"){
+								res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+								sendTrialMessage = true;
+							}else{
+								res.send({code: config.codes.code_error, message: 'Failed to subscribe package' + (subsResponse.desc ? ', possible cause: '+subsResponse.desc : ''), package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+							}
+							subscriptionObj = subsResponse.subscriptionObj;
+							packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
+						}catch(err){
+							sendTrialMessage = false;
+							sendChargingMessage = false;
+							res.send({code: config.codes.code_error, message: 'Failed to subscribe package, please try again', gw_transaction_id: gw_transaction_id});
 						}
-						subscriptionObj = subsResponse.subscriptionObj;
-						packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
 					}else{
 						// comedy paywall
 						try {
