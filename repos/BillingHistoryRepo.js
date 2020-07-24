@@ -426,7 +426,6 @@ class BillingHistoryRepository {
     }
 
     async getTodaysRevenue (today)  {
-        today.setDate(today);
         console.log("=>", today);
         try{
             let result = await BillingHistory.aggregate([ { $match: { 
