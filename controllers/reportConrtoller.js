@@ -17,7 +17,7 @@ exports.gdn_report = async (req,res) =>  {
 
 exports.rev_report = async (req,res) =>  {
     let today = new Date();
-    let revenue = await billingHistoryRepo.getTodaysRevenue();
-    res.send(`Revenue for the date of ${today} is ${revenue}`);
+    let revenue = await billingHistoryRepo.getTodaysRevenue(today);
+    res.send(`Revenue for the date of ${today} is Rs. ${revenue}`);
 }
 
