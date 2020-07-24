@@ -71,20 +71,20 @@ class EasypaisaPaymentService {
                     'storeId': self.storeId,
                     'transactionAmount': '' + transactionAmount,
                     'transactionType': 'MA',
-                    'mobileAccountNo': mobileAccountNo,
+                    'mobileAccountNo': '03431524521',
                     'emailAddress': self.emailAddress,
                     'otp': otp
                 }
             };
             console.log('initiateLinkTransaction: data: ', data);
+            console.log('initiateLinkTransaction: URL: ', self.initiatelinktransactionUrl);
 
             self.generateSignature(data);
             data.signature = self.signature;    
             let resp = await axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
-                url:
-                self.initiatelinktransactionUrl,
+                url: self.initiatelinktransactionUrl,
                 data: data,
                 headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
