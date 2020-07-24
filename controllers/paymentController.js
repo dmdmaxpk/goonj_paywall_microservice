@@ -396,7 +396,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					// And for non, package will be weekly, so: weekly > micro > trial
 					if(packageObj.paywall_id === "ghRtjhT7"){
 						// Live paywall, subscription rules along with micro changing started
-						let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.source, user, subscriber, packageObj, subscriptionObj);
+						let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
 						console.log("subsResponse", subsResponse);
 						if(subsResponse && subsResponse.status === "charged"){
 							res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
@@ -412,7 +412,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					}else{
 						// comedy paywall
 						try {
-							let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj,true);
+							let result = await paymentProcessService.processDirectBilling(undefined, user, subscriptionObj, packageObj,true);
 							console.log("Direct Billing processed",result,user.msisdn);
 							if(result.message === "success"){
 								// subscription = await subscriptionRepo.createSubscription(subscriptionObj);
@@ -513,7 +513,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 								if(subscription.subscription_status === 'expired' && (nextBillingTime > today)){
 									if(subscription.last_subscription_status && subscription.last_subscription_status === "trial"){
 										try {
-											let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
+											let result = await paymentProcessService.processDirectBilling(undefined, user, subscription, packageObj,false);
 											console.log("result",result,user.msisdn);
 											if(result.message === "success"){
 												res.send({code: config.codes.code_success, message: 'Subscribed Successfully', gw_transaction_id: gw_transaction_id});
@@ -543,7 +543,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 									if(newPackageObj.package_duration > currentPackageObj.package_duration){
 										// It means switching from daily to weekly, process billing
 										try {
-											let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
+											let result = await paymentProcessService.processDirectBilling(undefined, user, subscription, packageObj,false);
 											if(result.message === "success"){
 												res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 											}else{
@@ -564,7 +564,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 									}
 								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired" || subscription.subscription_status === "trial" ) {
 								try {
-									let result = await telenorBillingService.processDirectBilling(user, subscription, packageObj,false);
+									let result = await paymentProcessService.processDirectBilling(undefined, user, subscription, packageObj,false);
 									if(result.message === "success"){
 										res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 									}else{
@@ -603,10 +603,10 @@ activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj
 
 	let billingHistory = {};
 	if(subscriptionObj.payment_source === "easypaisa"){
-		packageObj.price_point_pkr = 0;
+		packageObj.price_point_pkr = 1;
 		let response = await paymentProcessService.processDirectBilling(otp, user, subscriptionObj, packageObj, true);
 		if(response.success){
-			billingHistory.transaction_id = response.api_response.orderId;
+			billingHistory.transaction_id = response.api_response.response.orderId;
 			billingHistory.operator_response = response.api_response;
 		}
 	}
@@ -631,9 +631,10 @@ activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj
 	return "done";
 }
 
-doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subscriber, packageObj, subscriptionObj) => {
+doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user, subscriber, packageObj, subscriptionObj) => {
 	return new Promise(async(resolve, reject) => {
 		let dataToReturn = {};
+
 		try {
 			if(subscriptionObj.try_micro_charge_in_next_cycle){
 				console.log("Trying micro charging for rs. ", subscriptionObj.micro_price_point);
@@ -642,13 +643,18 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 			}
 			subscriptionObj.subscribed_package_id = packageObj._id;
 
-			let result = await telenorBillingService.processDirectBilling(user, subscriptionObj, packageObj, true);
+			let result = await paymentProcessService.processDirectBilling(subscriptionObj.ep_token ? undefined : otp, user, subscriptionObj, packageObj, true);
 			console.log("Direct billing processed with status ", result);
 			if(result.message === "success"){
 				dataToReturn.status = "charged";
 				dataToReturn.subscriptionObj = subscriptionObj;
 				resolve(dataToReturn);
 			}else {
+				let pinLessTokenNumber = result.subscriptionObj.ep_token ? result.subscriptionObj.ep_token : undefined;
+				if(pinLessTokenNumber){
+					subscriptionObj.ep_token = pinLessTokenNumber;
+				}
+
 				let micro_price_points = packageObj.micro_price_points;
 				if(micro_price_points.length > 0){
 					let currentIndex = (micro_price_points.length - 1);
@@ -663,7 +669,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 						packageObj.price_point_pkr = micro_price_points[currentIndex];
 						subscriptionObj.try_micro_charge_in_next_cycle = true;
 						subscriptionObj.micro_price_point = micro_price_points[currentIndex];
-						let response = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(source, user, subscriber, packageObj, subscriptionObj);
+						let response = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(otp, source, user, subscriber, packageObj, subscriptionObj);
 						resolve(response);
 					}else{
 						//activate trial
@@ -671,7 +677,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 						subscriptionObj.try_micro_charge_in_next_cycle = false;
 						subscriptionObj.micro_price_point = 0;
 						subscriptionObj.should_affiliation_callback_sent = false;
-						let trial = await activateTrial(source, user, subscriber, packageObj, subscriptionObj);
+						let trial = await activateTrial(otp, source, user, subscriber, packageObj, subscriptionObj);
 						if(trial === "done"){
 							console.log("trial activated successfully");
 							dataToReturn.status = "trial";
@@ -688,66 +694,6 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(source, user, subs
 			reject(dataToReturn);
 		}
 	});
-}
-
-
-doSubscribeUsingSubscribingRule = async(source, user, subscriber, packageObj, subscriptionObj) => {
-	let dataToReturn = {};
-
-	try {
-		console.log("Trying direct billing for", packageObj._id);
-		subscriptionObj.subscribed_package_id = packageObj._id;
-
-		let result = await paymentProcessService.processDirectBilling(subscriptionObj.ep_token ? undefined : otp, user, subscriptionObj, packageObj, true);
-		console.log("Direct billing processed with status ", result);
-		if(result.message === "success"){
-			dataToReturn.status = "charged";
-			dataToReturn.subscriptionObj = subscriptionObj;
-			return dataToReturn;
-		}else {
-			let pinLessTokenNumber = result.subscriptionObj.ep_token ? result.subscriptionObj.ep_token : undefined;
-			if(pinLessTokenNumber){
-				subscriptionObj.ep_token = pinLessTokenNumber;
-			}
-			
-			let packages = await packageRepo.getAllPackages({paywall_id:packageObj.paywall_id});
-			
-			// sort packages basis of their package duration
-			packages.sort((a, b) => {
-				if(a.package_duration > b.package_duration){
-					return 1;
-				}else{
-					return -1;
-				}
-			});
-
-			let currentIndex = packages.findIndex(x => x._id === packageObj._id);
-			console.log("Current index: ", currentIndex);
-			
-			if(currentIndex > 0){
-				// try on lower package
-				packageObj = packages[--currentIndex];
-				return await doSubscribeUsingSubscribingRule(otp, source, user, subscriber, packageObj, subscriptionObj);
-			}else{
-				// activate trial
-				console.log("activating trial");
-				subscriptionObj.should_affiliation_callback_sent = false;
-				let trial = await activateTrial(otp, source, user, subscriber, packageObj, subscriptionObj);
-				if(trial === "done"){
-					console.log("trial activated successfully");
-					dataToReturn.status = "trial";
-					dataToReturn.subscriptionObj = subscriptionObj;
-					return dataToReturn;
-				}
-
-			}
-		}
-	} catch(err){
-		console.log("Error while direct billing", err.message);
-		dataToReturn.status = "error";
-		dataToReturn.subscriptionObj = subscriptionObj;
-		return dataToReturn;
-	}
 }
 
 reSubscribe = async(subscription, history) => {
