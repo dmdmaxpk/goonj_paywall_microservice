@@ -160,8 +160,8 @@ exports.deLink = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let subscription_id = req.body.subscription_id;
 
-	let user = ""; //await userRepo.getUserByMsisdn(msisdn);
-	let subscription = "";// = await subscriptionRepo.getSubscription(subscription_id);
+	let user = "123"; //await userRepo.getUserByMsisdn(msisdn);
+	let subscription = "123";// = await subscriptionRepo.getSubscription(subscription_id);
 
 	// Means no user in DB, let's create one but first check if the coming user has valid active telenor number
 	if(user && subscription){
