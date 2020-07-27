@@ -105,6 +105,10 @@ exports.sendOtp = async (req, res) => {
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
 	// Means no user in DB, let's create one but first check if the coming user has valid active telenor number
+
+
+	console.log('payment_source: ', payment_source);
+	console.log('user: ', user);
 	if(!user){
 		let response = {};
 
