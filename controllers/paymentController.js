@@ -109,16 +109,22 @@ exports.sendOtp = async (req, res) => {
 
     // Means no user in DB, let's create one but first check if the coming user has valid active telenor number
     if(!user) {
-        let userObj = {};
+        let userObj = {}, response = {};
         userObj.msisdn = msisdn;
         userObj.subscribed_package_id = 'none';
         userObj.source = req.body.source ? req.body.source : 'na';
         userObj.operator = payment_source;
-        user = await userRepo.createUser(userObj);
+        try {
+            // user = await userRepo.createUser(userObj);
+        }catch (e) {
+            response = e;
+        }
     }
 
-	let response = {};
-	if(payment_source && payment_source === "easypaisa"){
+    res.send({code: config.codes.code_success, message: 'test case', gw_transaction_id: gw_transaction_id});
+
+    let response = {};
+    if(payment_source && payment_source === "easypaisa"){
 		response.operator = "easypaisa";
 	}else{
 		try{
@@ -322,7 +328,16 @@ exports.subscribe = async (req, res) => {
 
 	if(!user){
 		// Means no user in DB, let's create one
-		let response = {};
+        let userObj = {}, response = {};
+        userObj.msisdn = msisdn;
+        userObj.operator = response.operator;
+        userObj.source = req.body.source ? req.body.source : "na";
+
+        try {
+            user = await userRepo.createUser(userObj);
+        }catch (e) {
+            response = e;
+        }
 
 		if(payment_source && payment_source === "easypaisa"){
 			response.operator = "easypaisa";
@@ -336,13 +351,13 @@ exports.subscribe = async (req, res) => {
 
 		if(response.operator === "telenor" || response.operator === "easypaisa"){
 			// Let's create user. This is valid telenor user
-			let userObj = {};
-			userObj.msisdn = msisdn;
-			userObj.operator = response.operator;
-			userObj.source = req.body.source ? req.body.source : "na";
+			// let userObj = {};
+			// userObj.msisdn = msisdn;
+			// userObj.operator = response.operator;
+			// userObj.source = req.body.source ? req.body.source : "na";
 
 			try {
-				user = await userRepo.createUser(userObj);
+				// user = await userRepo.createUser(userObj);
 				console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 				doSubscribe(req, res, user, gw_transaction_id);
 			} catch(er) {
