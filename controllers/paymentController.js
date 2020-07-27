@@ -108,15 +108,6 @@ exports.sendOtp = async (req, res) => {
 	console.log('user: ', user);
 
     // Means no user in DB, let's create one but first check if the coming user has valid active telenor number
-    if(!user) {
-        let userObj = {};
-        userObj.msisdn = msisdn;
-        userObj.subscribed_package_id = 'none';
-        userObj.source = req.body.source ? req.body.source : 'na';
-        userObj.operator = payment_source;
-        user = await userRepo.createUser(userObj);
-    }
-
 	let response = {};
 	if(payment_source && payment_source === "easypaisa"){
 		response.operator = "easypaisa";
@@ -128,41 +119,56 @@ exports.sendOtp = async (req, res) => {
 		}
 	}
 
-	if(response.operator === "telenor"){
-		// valid customer
-		// let userObj = {};
-		// userObj.msisdn = msisdn;
-		// userObj.subscribed_package_id = 'none';
-		// userObj.source = req.body.source ? req.body.source : 'na';
-		// userObj.operator = "telenor";
-
-		try {
-			// user = await userRepo.createUser(userObj);
-			console.log('Payment - OTP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
-			generateOtp(res, msisdn, user, gw_transaction_id);
-		} catch (err) {
-			res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
+	let userObj = {};
+	if(!user) {
+        userObj.msisdn = msisdn;
+        userObj.subscribed_package_id = 'none';
+		userObj.source = req.body.source ? req.body.source : 'na';
+		
+		if(response.operator === "telenor"){	
+			try {
+				userObj.operator = response.operator;
+				user = await userRepo.createUser(userObj);
+	
+				console.log('Payment - OTP - TP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
+				generateOtp(res, msisdn, user, gw_transaction_id);
+			} catch (err) {
+				res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
+			}
+		} else if(response.operator === "easypaisa"){
+			try {
+				userObj.operator = response.operator;
+				user = await userRepo.createUser(userObj);
+				console.log('Payment - OTP - EP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
+	
+				let record = await easypaisaPaymentService.bootOptScript(msisdn);
+				console.log('sendOtp', record);
+				if (record.code === 0)
+					res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
+				else
+					res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
+			}catch (e) {
+				console.log('sendOtp - error', e);
+				res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
+			}
+		} else{
+			// invalid customer
+			createBlockUserHistory(msisdn, null, null, response.api_response, req.body.source);
+			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
 		}
-	} else if(response.operator === "easypaisa"){
-		try {
+    }else{
+		if(payment_source === 'telenor'){
+			console.log('sent otp - telenor');
+			generateOtp(res, msisdn, user, gw_transaction_id);
+		}else{
 			let record = await easypaisaPaymentService.bootOptScript(msisdn);
-			console.log('sendOtp', record);
+			console.log('sent otp - ep');
 			if (record.code === 0)
 				res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
 			else
 				res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
-		}catch (e) {
-			console.log('sendOtp - error', e);
-			res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
 		}
-	} else{
-		// invalid customer
-		createBlockUserHistory(msisdn, null, null, response.api_response, req.body.source);
-		res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
 	}
-	// }else{
-	// 	generateOtp(res, msisdn, user, gw_transaction_id);
-	// }
 }
 
 exports.deLink = async (req, res) => {
@@ -347,8 +353,7 @@ exports.subscribe = async (req, res) => {
 			} catch(er) {
 				res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
 			}
-		}
-		else{
+		}else{
 			createBlockUserHistory(msisdn, req.body.affiliate_unique_transaction_id, req.body.affiliate_mid, response.api_response, req.body.source);
 			res.send({code: config.codes.code_error, message: "Not a valid Telenor number.", gw_transaction_id: gw_transaction_id });
 		}
