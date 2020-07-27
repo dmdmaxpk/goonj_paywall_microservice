@@ -132,7 +132,7 @@ exports.sendOtp = async (req, res) => {
             res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
         }
 
-		if(response.operator === "telenor"){	
+		if(response.operator === "telenor"){
 			try {
 				console.log('Payment - OTP - TP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 				generateOtp(res, msisdn, user, gw_transaction_id);
@@ -142,7 +142,11 @@ exports.sendOtp = async (req, res) => {
 		}
 		else if(response.operator === "easypaisa"){
 			try {
-				let record = await easypaisaPaymentService.bootOptScript(msisdn);
+                //check EP token already exist, if yes then generate Telenor token
+                console.log('check EP token already exist, ');
+                await checkEPToken(res, msisdn, user, gw_transaction_id);
+
+                let record = await easypaisaPaymentService.bootOptScript(msisdn);
 				console.log('sendOtp', record);
 				if (record.code === 0)
 					res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
@@ -172,6 +176,29 @@ exports.sendOtp = async (req, res) => {
             res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
         }
 	}
+};
+
+async function checkEPToken(res, msisdn, user, gw_transaction_id){
+    console.log('checkEPToken: ', user._id);
+
+    let subscriber = subscriberRepo.getSubscriberByUserId(user._id);
+    console.log('subscriber: ', subscriber);
+
+    if (subscriber !== null){
+        console.log('subscriber._id: ', subscriber._id);
+
+        let prevSub = await subscriptionRepo.getSubscriptionBySubscriberId(subscriber._id);
+        console.log('prevSub: ', prevSub);
+
+        if (prevSub !== null) {
+            console.log('prevSub.ep_token: ', prevSub.ep_token);
+
+            if ( prevSub.ep_token !== undefined || prevSub.ep_token !== '')
+                await generateOtp(res, msisdn, user, gw_transaction_id);
+        }
+	}
+
+    return true;
 }
 
 exports.deLink = async (req, res) => {

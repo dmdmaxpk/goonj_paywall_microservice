@@ -75,6 +75,11 @@ class SubscriptionRepository {
         let result = await Subscription.findOne({subscriber_id: subscriber_id, paywall_id: paywall_id});
         return result;
     }
+
+    async getSubscriptionBySubscriberId(subscriber_id)  {
+        let result = await Subscription.findOne({subscriber_id: subscriber_id});
+        return result;
+    }
     
     async getRenewableSubscriptions  ()  {
         let results = await Subscription.find({is_billable_in_this_cycle: true}).sort({priority:1}).limit(7000);
