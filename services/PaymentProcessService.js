@@ -127,7 +127,6 @@ class PaymentProcessService {
                                     returnObject.desc = 'OTP Expired';
                                 }else if(api_response.response.response.responseCode === '---'){
                                     // Todo: Need to enter response code
-                                    // invalid otp
                                     returnObject.desc = 'Invalid Transaction Amount';
                                 }else if(api_response.response.response.responseCode === '0011'){
                                     // invalid otp
@@ -141,6 +140,9 @@ class PaymentProcessService {
                                 }else if(api_response.response.response.responseCode === '0014'){
                                     // invalid otp
                                     returnObject.desc = 'Account Doesnt Exist';
+                                }else if(api_response.response.response.responseCode === '0018'){
+                                    // invalid otp
+                                    returnObject.desc = 'Token Already Exist';
                                 }
                             }
                         }catch(err){
@@ -180,6 +182,18 @@ class PaymentProcessService {
             }
         }else{
             console.log("Not an active subscription");
+        }
+    }
+
+    async deLink(user, subscription){
+        console.log("deLink");
+        let api_response = await this.easypaisaPaymentService.deactivateLinkTransaction("03336106083", "0000861994");
+        if(api_response && api_response.message === 'success'){
+            console.log('Success DeLinking EP_token');
+            return api_response;
+        }else{
+            console.log('Failed DeLinking EP_token');
+            return api_response;
         }
     }
 

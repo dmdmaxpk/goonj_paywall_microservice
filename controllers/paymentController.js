@@ -155,6 +155,28 @@ exports.sendOtp = async (req, res) => {
 	}
 }
 
+exports.deLink = async (req, res) => {
+    let gw_transaction_id = req.body.transaction_id;
+	let msisdn = req.body.msisdn;
+	let subscription_id = req.body.subscription_id;
+
+	let user = ""; //await userRepo.getUserByMsisdn(msisdn);
+	let subscription = "";// = await subscriptionRepo.getSubscription(subscription_id);
+
+	// Means no user in DB, let's create one but first check if the coming user has valid active telenor number
+	if(user && subscription){
+		let response = await paymentProcessService.deLink(user, subscription);
+		if(response && response.message === 'success'){
+			res.send({code: config.codes.code_success, message: 'DeLinked successfully', gw_transaction_id: gw_transaction_id })
+		}else{
+			res.send({code: config.codes.code_error, message: 'No user exist', gw_transaction_id: gw_transaction_id })
+		}
+	}else{
+		res.send({code: config.codes.code_error, message: 'Failed to delink', gw_transaction_id: gw_transaction_id })
+	}
+}
+
+
 createBlockUserHistory = async(msisdn, tid, mid, api_response, source) => {
 	let history = {};
 	history.msisdn = msisdn;

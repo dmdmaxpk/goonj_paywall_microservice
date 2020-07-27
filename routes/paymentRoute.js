@@ -9,6 +9,9 @@ router.route('/sources')
 router.route('/otp/send')
     .post(authMiddleWare.checkToken, controller.sendOtp);
 
+router.route('/delink') 
+    .post(authMiddleWare.checkToken, controller.deLink);
+
 router.route('/otp/verify')
     .post(authMiddleWare.checkToken, controller.verifyOtp);
 
