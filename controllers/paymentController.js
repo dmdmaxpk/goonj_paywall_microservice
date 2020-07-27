@@ -176,7 +176,6 @@ exports.deLink = async (req, res) => {
 	}
 }
 
-
 createBlockUserHistory = async(msisdn, tid, mid, api_response, source) => {
 	let history = {};
 	history.msisdn = msisdn;
@@ -373,14 +372,23 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 		if (packageObj) {
 			let subscription = await subscriptionRepo.getSubscriptionByPaywallId(subscriber._id, packageObj.paywall_id);
 			if(!subscription){
+				
 				// No subscription available, let's create one
 				let subscriptionObj = {};
 				subscriptionObj.subscriber_id = subscriber._id;
 				subscriptionObj.paywall_id = packageObj.paywall_id;
 				subscriptionObj.subscribed_package_id = newPackageId;
-				subscriptionObj.source = req.body.source ?  req.body.source : 'unknown';
+				subscriptionObj.source = req.body.source ?  req.body.source : 'unknalreadyEpSubscriptionsAvailableown';
 				subscriptionObj.payment_source = req.body.payment_source ? req.body.payment_source : "telenor";
-	
+
+				// First check, if there is any other subscription of the same subscriber having payment source easypaisa and having ep token
+				let alreadyEpSubscriptionsAvailable = await subscriptionRepo.getSubscriptionHavingPaymentSourceEP(subscriber._id);
+				if(alreadyEpSubscriptionsAvailable){
+					// already ep subscription available, let's use the same token
+					// No subscription available, let's create one
+					subscriptionObj.ep_token = alreadyEpSubscriptionsAvailable.ep_token;
+				}
+
 				if(req.body.marketing_source){
 					subscriptionObj.marketing_source = req.body.marketing_source;
 				}
@@ -678,7 +686,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 				dataToReturn.subscriptionObj = subscriptionObj;
 				resolve(dataToReturn);
 			}else {
-				if(result.desc){
+				if(result.desc && result.desc !== 'Insufficient Balance'){
 					dataToReturn.desc = result.desc;
 					dataToReturn.status = "failed";
 					dataToReturn.subscriptionObj = subscriptionObj;
@@ -708,17 +716,24 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 						let response = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(otp, source, user, subscriber, packageObj, subscriptionObj);
 						resolve(response);
 					}else{
-						//activate trial
-						console.log("activating trial after micro charging attempts are done");
-						subscriptionObj.try_micro_charge_in_next_cycle = false;
-						subscriptionObj.micro_price_point = 0;
-						subscriptionObj.should_affiliation_callback_sent = false;
-						let trial = await activateTrial(otp, source, user, subscriber, packageObj, subscriptionObj);
-						if(trial === "done"){
-							console.log("trial activated successfully");
-							dataToReturn.status = "trial";
-							dataToReturn.subscriptionObj = subscriptionObj;
+						if(otp){
+							dataToReturn.desc = "Insufficient balance, please recharge and try again.";
+							dataToReturn.status = "failed";
 							resolve(dataToReturn);
+							return;
+						}else{
+							//activate trial
+							console.log("activating trial after micro charging attempts are done");
+							subscriptionObj.try_micro_charge_in_next_cycle = false;
+							subscriptionObj.micro_price_point = 0;
+							subscriptionObj.should_affiliation_callback_sent = false;
+							let trial = await activateTrial(otp, source, user, subscriber, packageObj, subscriptionObj);
+							if(trial === "done"){
+								console.log("trial activated successfully");
+								dataToReturn.status = "trial";
+								dataToReturn.subscriptionObj = subscriptionObj;
+								resolve(dataToReturn);
+							}
 						}
 					}
 				}
