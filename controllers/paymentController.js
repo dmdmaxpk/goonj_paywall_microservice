@@ -117,7 +117,7 @@ exports.sendOtp = async (req, res) => {
         userObj.subscribed_package_id = 'none';
 		userObj.source = req.body.source ? req.body.source : 'na';
 
-		if (response.operator === 'telenor' || reposnse.operator === 'easypaisa'){
+		if (response.operator === 'telenor' || response.operator === 'easypaisa'){
 			try {
                 userObj.operator = response.operator;
                 user = await userRepo.createUser(userObj);
