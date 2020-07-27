@@ -116,6 +116,7 @@ class EasypaisaPaymentService {
 
             self.generateSignature(data);
             data.signature = self.signature;
+            console.log('Pinless Data: ', data);
             let resp = await axios({
                 method: 'post',
                 //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
@@ -133,7 +134,7 @@ class EasypaisaPaymentService {
                 // self.deactivateLinkTransaction(mobileAccountNo, subscription.ep_token);
             }
             else{
-                console.log('initiatePinlessTransaction: failed : response 2: ');
+                console.log('initiatePinlessTransaction: failed : response 2: ', resp.data);
                 returnObj.message = "failed";
                 returnObj.response = resp.data;
             }

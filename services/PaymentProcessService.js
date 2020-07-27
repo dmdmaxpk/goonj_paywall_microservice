@@ -120,28 +120,21 @@ class PaymentProcessService {
                             }else{
                                 // Failed
                                 if(api_response.response.response.responseCode === '0030'){
-                                    // invalid otp
                                     returnObject.desc = 'Invalid OTP Entered';
                                 }else if(api_response.response.response.responseCode === '0034'){
-                                    // invalid otp
                                     returnObject.desc = 'OTP Expired';
                                 }else if(api_response.response.response.responseCode === '---'){
                                     // Todo: Need to enter response code
                                     returnObject.desc = 'Invalid Transaction Amount';
                                 }else if(api_response.response.response.responseCode === '0011'){
-                                    // invalid otp
                                     returnObject.desc = 'Wrong PIN Entered';
                                 }else if(api_response.response.response.responseCode === '0012'){
-                                    // invalid otp
                                     returnObject.desc = 'PIN Not Entered';
                                 }else if(api_response.response.response.responseCode === '0013'){
-                                    // invalid otp
                                     returnObject.desc = 'Insufficient Balance';
                                 }else if(api_response.response.response.responseCode === '0014'){
-                                    // invalid otp
                                     returnObject.desc = 'Account Doesnt Exist';
                                 }else if(api_response.response.response.responseCode === '0018'){
-                                    // invalid otp
                                     returnObject.desc = 'Token Already Exist';
                                 }
                             }
