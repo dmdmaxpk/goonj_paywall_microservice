@@ -116,12 +116,17 @@ exports.sendOtp = async (req, res) => {
         userObj.msisdn = msisdn;
         userObj.subscribed_package_id = 'none';
 		userObj.source = req.body.source ? req.body.source : 'na';
-		
+
+		if (response.operator === 'telenor' || reposnse.operator === 'easypaisa'){
+			try {
+                userObj.operator = response.operator;
+                user = await userRepo.createUser(userObj);
+            }catch (e) {
+                res.send({code: config.codes.code_error, message: 'Failed to register user', gw_transaction_id: gw_transaction_id })
+            }
+		}
 		if(response.operator === "telenor"){	
 			try {
-				userObj.operator = response.operator;
-				user = await userRepo.createUser(userObj);
-	
 				console.log('Payment - OTP - TP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 				generateOtp(res, msisdn, user, gw_transaction_id);
 			} catch (err) {
@@ -129,10 +134,6 @@ exports.sendOtp = async (req, res) => {
 			}
 		} else if(response.operator === "easypaisa"){
 			try {
-				userObj.operator = response.operator;
-				user = await userRepo.createUser(userObj);
-				console.log('Payment - OTP - EP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
-	
 				let record = await easypaisaPaymentService.bootOptScript(msisdn);
 				console.log('sendOtp', record);
 				if (record.code === 0)
@@ -148,11 +149,12 @@ exports.sendOtp = async (req, res) => {
 			createBlockUserHistory(msisdn, null, null, response.api_response, req.body.source);
 			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
 		}
-    }else{
-		if(payment_source === 'telenor'){
+    }
+    else{
+		if(response.operator === 'telenor'){
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);
-		}else{
+		}else if (response.operator === 'easypaisa') {
 			let record = await easypaisaPaymentService.bootOptScript(msisdn);
 			console.log('sent otp - ep');
 			if (record.code === 0)
@@ -160,6 +162,8 @@ exports.sendOtp = async (req, res) => {
 			else
 				res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
 		}
+		else
+            res.send({code: config.codes.code_error, message: "Failed to send OTP. Invalid payment source.", gw_transaction_id: gw_transaction_id });
 	}
 }
 
