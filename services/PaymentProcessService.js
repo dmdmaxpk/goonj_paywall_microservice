@@ -111,7 +111,7 @@ class PaymentProcessService {
                                 api_response = await this.easypaisaPaymentService.initiateLinkTransaction(user.msisdn, packageObj.price_point_pkr, otp);
                             }else{
                                 console.log("easypaisa - without otp");
-                                api_response = await this.easypaisaPaymentService.initiatePinlessTransaction(user, subscription, packageObj, true);
+                                api_response = await this.easypaisaPaymentService.initiatePinlessTransaction(user.msisdn, packageObj.price_point_pkr, undefined, subscription);
                             }
                             
                             if(api_response && api_response.message === "success"){

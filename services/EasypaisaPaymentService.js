@@ -100,10 +100,11 @@ class EasypaisaPaymentService {
         try {
             let self = this, returnObj = {};
             await self.getKey();
+            self.getOrderId();
 
             let data = {
                 'request': {
-                    'orderId': transaction_id,
+                    'orderId': transaction_id ? transaction_id : self.orderId,
                     'storeId': self.storeId,
                     'transactionAmount': '' + price_point,
                     'transactionType': 'MA',
@@ -230,6 +231,7 @@ class EasypaisaPaymentService {
     getOrderId() {
         //this.orderId = "GoonjEasypaisa_"+shortId.generate()+"_"+helper.getCurrentDate();
         this.orderId = "GEP_"+shortId.generate();
+        return this.orderId;
     }
 
     /*
