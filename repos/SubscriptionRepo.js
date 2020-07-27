@@ -23,6 +23,11 @@ class SubscriptionRepository {
         let result = await Subscription.findOne({_id: subscription_id});
         return result;
     }
+
+    async getSubscriptionHavingPaymentSourceEP (subscriber_id)  {
+        let result = await Subscription.findOne({subscriber_id: subscriber_id, payment_source: 'easypaisa', 'ep_token':{$exists:true}});
+        return result;
+    }
     
     async getAllSubscriptions(subscriber_id)  {
         let result = await Subscription.find({subscriber_id: subscriber_id});
