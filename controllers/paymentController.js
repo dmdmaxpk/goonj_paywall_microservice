@@ -159,6 +159,28 @@ exports.sendOtp = async (req, res) => {
 	}
 }
 
+exports.deLink = async (req, res) => {
+    let gw_transaction_id = req.body.transaction_id;
+	let msisdn = req.body.msisdn;
+	let subscription_id = req.body.subscription_id;
+
+	let user = "123"; //await userRepo.getUserByMsisdn(msisdn);
+	let subscription = "123";// = await subscriptionRepo.getSubscription(subscription_id);
+
+	// Means no user in DB, let's create one but first check if the coming user has valid active telenor number
+	if(user && subscription){
+		let response = await paymentProcessService.deLink(user, subscription);
+		if(response && response.message === 'success'){
+			res.send({code: config.codes.code_success, message: 'DeLinked successfully', gw_transaction_id: gw_transaction_id })
+		}else{
+			res.send({code: config.codes.code_error, message: 'No user exist', gw_transaction_id: gw_transaction_id })
+		}
+	}else{
+		res.send({code: config.codes.code_error, message: 'Failed to delink', gw_transaction_id: gw_transaction_id })
+	}
+}
+
+
 createBlockUserHistory = async(msisdn, tid, mid, api_response, source) => {
 	let history = {};
 	history.msisdn = msisdn;
@@ -399,20 +421,26 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					// As in affiliate case package will be for daily so daily > micro > trial
 					// And for non, package will be weekly, so: weekly > micro > trial
 					if(packageObj.paywall_id === "ghRtjhT7"){
-						// Live paywall, subscription rules along with micro changing started
-						let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
-						console.log("subsResponse", subsResponse);
-						if(subsResponse && subsResponse.status === "charged"){
-							res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-							sendChargingMessage = true;
-						}else if(subsResponse && subsResponse.status === "trial"){
-							res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
-							sendTrialMessage = true;
-						}else{
-							res.send({code: config.codes.code_error, message: 'Failed to subscribe package!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+						try{
+							// Live paywall, subscription rules along with micro changing started
+							let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
+							console.log("subsResponse", subsResponse);
+							if(subsResponse && subsResponse.status === "charged"){
+								res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+								sendChargingMessage = true;
+							}else if(subsResponse && subsResponse.status === "trial"){
+								res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+								sendTrialMessage = true;
+							}else{
+								res.send({code: config.codes.code_error, message: 'Failed to subscribe package' + (subsResponse.desc ? ', possible cause: '+subsResponse.desc : ''), package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
+							}
+							subscriptionObj = subsResponse.subscriptionObj;
+							packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
+						}catch(err){
+							sendTrialMessage = false;
+							sendChargingMessage = false;
+							res.send({code: config.codes.code_error, message: 'Failed to subscribe package, please try again', gw_transaction_id: gw_transaction_id});
 						}
-						subscriptionObj = subsResponse.subscriptionObj;
-						packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
 					}else{
 						// comedy paywall
 						try {
@@ -654,6 +682,14 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 				dataToReturn.subscriptionObj = subscriptionObj;
 				resolve(dataToReturn);
 			}else {
+				if(result.desc){
+					dataToReturn.desc = result.desc;
+					dataToReturn.status = "failed";
+					dataToReturn.subscriptionObj = subscriptionObj;
+					resolve(dataToReturn);
+					return;
+				}
+
 				let pinLessTokenNumber = result.subscriptionObj.ep_token ? result.subscriptionObj.ep_token : undefined;
 				if(pinLessTokenNumber){
 					subscriptionObj.ep_token = pinLessTokenNumber;

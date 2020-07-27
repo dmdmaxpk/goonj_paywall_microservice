@@ -117,6 +117,33 @@ class PaymentProcessService {
                             if(api_response && api_response.message === "success"){
                                 subscription.ep_token = api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
                                 console.log("easypaisa - success - saving response ", subscription);
+                            }else{
+                                // Failed
+                                if(api_response.response.response.responseCode === '0030'){
+                                    // invalid otp
+                                    returnObject.desc = 'Invalid OTP Entered';
+                                }else if(api_response.response.response.responseCode === '0034'){
+                                    // invalid otp
+                                    returnObject.desc = 'OTP Expired';
+                                }else if(api_response.response.response.responseCode === '---'){
+                                    // Todo: Need to enter response code
+                                    returnObject.desc = 'Invalid Transaction Amount';
+                                }else if(api_response.response.response.responseCode === '0011'){
+                                    // invalid otp
+                                    returnObject.desc = 'Wrong PIN Entered';
+                                }else if(api_response.response.response.responseCode === '0012'){
+                                    // invalid otp
+                                    returnObject.desc = 'PIN Not Entered';
+                                }else if(api_response.response.response.responseCode === '0013'){
+                                    // invalid otp
+                                    returnObject.desc = 'Insufficient Balance';
+                                }else if(api_response.response.response.responseCode === '0014'){
+                                    // invalid otp
+                                    returnObject.desc = 'Account Doesnt Exist';
+                                }else if(api_response.response.response.responseCode === '0018'){
+                                    // invalid otp
+                                    returnObject.desc = 'Token Already Exist';
+                                }
                             }
                         }catch(err){
                             console.log("Error thrown from easypaisa processDirectBilling: ", err);
@@ -136,13 +163,10 @@ class PaymentProcessService {
                     returnObject.subscriptionObj = subscription;
 
                     if(api_response && api_response.message === "success"){
-                        console.log("billing - success");
                         await this.billingSuccess(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
                     }else{
-                        console.log("billing - failed");
                         await this.billingFailed(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
                     }
-                    console.log("billing - returning object");
                     return returnObject;
                 }else{
                     console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
@@ -161,9 +185,19 @@ class PaymentProcessService {
         }
     }
 
+    async deLink(user, subscription){
+        console.log("deLink");
+        let api_response = await this.easypaisaPaymentService.deactivateLinkTransaction("03336106083", "0000861994");
+        if(api_response && api_response.message === 'success'){
+            console.log('Success DeLinking EP_token');
+            return api_response;
+        }else{
+            console.log('Failed DeLinking EP_token');
+            return api_response;
+        }
+    }
+
     async billingSuccess (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
-        console.log("billingSuccess");
-        console.log("billingSuccess: ", first_time_billing, subscription);
 
         // Success billing
         let nextBilling = new Date();
@@ -307,9 +341,7 @@ class PaymentProcessService {
     }
     
     async billingFailed (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
-        console.log("billingFailed");
-        console.log("billingFailed: ", response, subscription);
-        
+     
         // Add history record
         let history = {};
         history.user_id = user._id;

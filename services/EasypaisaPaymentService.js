@@ -80,7 +80,7 @@ class EasypaisaPaymentService {
                 // self.deactivateLinkTransaction(mobileAccountNo, resp.data.response.tokenNumber);
             }
             else{
-                console.log('initiateLinkTransaction: failed : response 2: ', resp.data);
+                console.log('initiateLinkTransaction: failed : response 2: ');
                 returnObj.message = "failed";
                 returnObj.response = resp.data;
             }
@@ -112,7 +112,6 @@ class EasypaisaPaymentService {
                     'tokenNumber': subscription.ep_token,
                 }
             };
-            console.log('initiatePinlessTransaction: data: ', data);
 
             self.generateSignature(data);
             data.signature = self.signature;
@@ -133,7 +132,7 @@ class EasypaisaPaymentService {
                 // self.deactivateLinkTransaction(mobileAccountNo, subscription.ep_token);
             }
             else{
-                console.log('initiatePinlessTransaction: failed : response 2: ', resp.data);
+                console.log('initiatePinlessTransaction: failed : response 2: ');
                 returnObj.message = "failed";
                 returnObj.response = resp.data;
             }
@@ -178,7 +177,7 @@ class EasypaisaPaymentService {
                 returnObj.response = resp.data;
             }
             else{
-                console.log('deactivateLinkTransaction: failed : response 2: ', resp.data);
+                console.log('deactivateLinkTransaction: failed : response 2: ');
                 returnObj.message = "failed";
                 returnObj.response = resp.data;
             }
@@ -213,7 +212,7 @@ class EasypaisaPaymentService {
                     data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
-
+            console.log('generateOPT: EP: ', resp.data);
             if (resp.status === 200)
                 return {'code': config.codes.code_success, 'message': 'OTP Sent'};
             else
