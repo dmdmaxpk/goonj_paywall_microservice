@@ -181,7 +181,7 @@ exports.sendOtp = async (req, res) => {
 async function checkEPToken(res, msisdn, user, gw_transaction_id){
     console.log('checkEPToken: ', user._id);
 
-    let subscriber = subscriberRepo.getSubscriberByUserId(user._id);
+    let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
     console.log('subscriber: ', subscriber);
 
     if (subscriber !== null){
