@@ -142,10 +142,6 @@ exports.sendOtp = async (req, res) => {
 		}
 		else if(response.operator === "easypaisa"){
 			try {
-                //check EP token already exist, if yes then generate Telenor token
-                console.log('check EP token already exist, ');
-                await checkEPToken(res, msisdn, user, gw_transaction_id);
-
                 let record = await easypaisaPaymentService.bootOptScript(msisdn);
 				console.log('sendOtp', record);
 				if (record.code === 0)
@@ -163,7 +159,11 @@ exports.sendOtp = async (req, res) => {
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);
 		}else if (response.operator === 'easypaisa') {
-			let record = await easypaisaPaymentService.bootOptScript(msisdn);
+            //check EP token already exist, if yes then generate Telenor token
+            console.log('check EP token already exist, ');
+            await checkEPToken(res, msisdn, user, gw_transaction_id);
+
+            let record = await easypaisaPaymentService.bootOptScript(msisdn);
 			console.log('sent otp - ep');
 			if (record.code === 0)
 				res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
