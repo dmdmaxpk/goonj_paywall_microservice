@@ -112,19 +112,26 @@ exports.sendOtp = async (req, res) => {
 	}
 
 	let userObj = {};
-	if(!user) {
+	if(user === null) {
         userObj.msisdn = msisdn;
         userObj.subscribed_package_id = 'none';
 		userObj.source = req.body.source ? req.body.source : 'na';
 
-		if (response.operator === 'telenor' || response.operator === 'easypaisa'){
+        console.log('user not exist: ', userObj);
+
+        if (response.operator === 'telenor' || response.operator === 'easypaisa'){
 			try {
                 userObj.operator = response.operator;
                 user = await userRepo.createUser(userObj);
             }catch (e) {
                 res.send({code: config.codes.code_error, message: 'Failed to register user', gw_transaction_id: gw_transaction_id })
             }
-		}
+		}else{
+            // invalid customer
+            createBlockUserHistory(msisdn, null, null, response.api_response, req.body.source);
+            res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
+        }
+
 		if(response.operator === "telenor"){	
 			try {
 				console.log('Payment - OTP - TP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
@@ -132,7 +139,8 @@ exports.sendOtp = async (req, res) => {
 			} catch (err) {
 				res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
 			}
-		} else if(response.operator === "easypaisa"){
+		}
+		else if(response.operator === "easypaisa"){
 			try {
 				let record = await easypaisaPaymentService.bootOptScript(msisdn);
 				console.log('sendOtp', record);
@@ -144,10 +152,6 @@ exports.sendOtp = async (req, res) => {
 				console.log('sendOtp - error', e);
 				res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
 			}
-		} else{
-			// invalid customer
-			createBlockUserHistory(msisdn, null, null, response.api_response, req.body.source);
-			res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
 		}
     }
     else{
@@ -162,8 +166,11 @@ exports.sendOtp = async (req, res) => {
 			else
 				res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
 		}
-		else
-            res.send({code: config.codes.code_error, message: "Failed to send OTP. Invalid payment source.", gw_transaction_id: gw_transaction_id });
+        else{
+            // invalid customer
+            createBlockUserHistory(msisdn, null, null, response.api_response, req.body.source);
+            res.send({code: config.codes.code_error, message: "Not a valid Telenor number", gw_transaction_id: gw_transaction_id });
+        }
 	}
 }
 
