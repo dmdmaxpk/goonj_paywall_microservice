@@ -3,20 +3,12 @@ const container = require("../configurations/container");
 const otpRepo = require('../repos/OTPRepo');
 const userRepo = container.resolve("userRepository");
 const subscriberRepo = container.resolve("subscriberRepository");
-
 const packageRepo = container.resolve("packageRepository");
-const paywallRepo = container.resolve("paywallRepository");
-
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const viewLogRepo = require('../repos/ViewLogRepo');
-
-const telenorBillingService = container.resolve("telenorBillingService");
 const easypaisaPaymentService = container.resolve("easypaisaPaymentService");
 
-const mongoose = require('mongoose');
-
 const shortId = require('shortid');
-const axios = require('axios');
 const messageRepo = container.resolve("messageRepository");
 const blockUsersRepo = require('../repos/BlockedUsersRepo');
 
@@ -327,7 +319,16 @@ exports.subscribe = async (req, res) => {
 
 	if(!user){
 		// Means no user in DB, let's create one
-		let response = {};
+        let userObj = {}, response = {};
+        userObj.msisdn = msisdn;
+        userObj.operator = response.operator;
+        userObj.source = req.body.source ? req.body.source : "na";
+
+        try {
+            user = await userRepo.createUser(userObj);
+        }catch (e) {
+            response = e;
+        }
 
 		if(payment_source && payment_source === "easypaisa"){
 			response.operator = "easypaisa";
@@ -341,13 +342,13 @@ exports.subscribe = async (req, res) => {
 
 		if(response.operator === "telenor" || response.operator === "easypaisa"){
 			// Let's create user. This is valid telenor user
-			let userObj = {};
-			userObj.msisdn = msisdn;
-			userObj.operator = response.operator;
-			userObj.source = req.body.source ? req.body.source : "na";
+			// let userObj = {};
+			// userObj.msisdn = msisdn;
+			// userObj.operator = response.operator;
+			// userObj.source = req.body.source ? req.body.source : "na";
 
 			try {
-				user = await userRepo.createUser(userObj);
+				// user = await userRepo.createUser(userObj);
 				console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 				doSubscribe(req, res, user, gw_transaction_id);
 			} catch(er) {
