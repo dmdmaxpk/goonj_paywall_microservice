@@ -179,25 +179,14 @@ exports.sendOtp = async (req, res) => {
 };
 
 async function checkEPToken(res, msisdn, user, gw_transaction_id){
-    console.log('checkEPToken: ', user._id);
-
     let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
-    console.log('subscriber: ', subscriber);
-
     if (subscriber !== null){
-        console.log('subscriber._id: ', subscriber._id);
-
         let prevSub = await subscriptionRepo.getSubscriptionBySubscriberId(subscriber._id);
-        console.log('prevSub: ', prevSub);
-
         if (prevSub !== null) {
-            console.log('prevSub.ep_token: ', prevSub.ep_token);
-
             if ( prevSub.ep_token !== undefined || prevSub.ep_token !== '')
                 await generateOtp(res, msisdn, user, gw_transaction_id);
         }
 	}
-
     return true;
 }
 
