@@ -13,10 +13,16 @@ class RemoveDuplicateMsisdnsScript {
 
     async removeDuplicateMsisdns(){
         try {
-            console.log("[rms]")
-            let userIdsToRemove = await this.userRepository.getDuplicatedMsisdnUsers();
+            console.log("removeDuplicateMsisdns")
+            let shouldRemove = await this.userRepository.getMoreThanOneMsisdns();
+            for(let i = 0; i < shouldRemove.length; i++){
+                let multiples = shouldRemove[i].dupsUsers;
+                const sortedUsers = multiples.sort((a, b) => b.added_dtm - a.added_dtm)
+                console.log('=> msisdn: ', shouldRemove[i].msisdn, ' - count - ', shouldRemove[i].count, ' sorted ', sortedUsers);
+            }
+
             // console.log("userIdsToRemove",userIdsToRemove[0]["ids"]);
-            let userids = userIdsToRemove[0]["ids"];
+            /*let userids = userIdsToRemove[0]["ids"];
             console.log("[rms]",userids)
             let userCount = await User.count({"_id": {$in: userids }});
             console.log("[rms]userCount",userCount);
@@ -32,7 +38,7 @@ class RemoveDuplicateMsisdnsScript {
                 console.log("[rms]subscriber",result2);
             }).catch(err => {
                 console.log("[rms]Error",err);
-            });
+            });*/
         } catch (err) {
             console.error(err);
         }
