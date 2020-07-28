@@ -211,6 +211,11 @@ class PaymentProcessService {
             subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
             subscriptionObj.subscribed_package_id = packageObj._id;
             subscriptionObj.queued = false;
+            subscriptionObj.payment_source = subscription.payment_source;
+            if(subscription.ep_token){
+                subscriptionObj.ep_token = subscription.ep_token;
+            }
+            
             await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         } else {
             console.log("subscription created",user.msisdn);
