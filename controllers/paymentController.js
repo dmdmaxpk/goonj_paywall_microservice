@@ -153,10 +153,10 @@ exports.sendOtp = async (req, res) => {
 		}
 		
 	}else{
-		if(response.operator === 'telenor'){
+		if(payment_source === 'telenor' && response.operator === 'telenor'){
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);
-		}else if (response.operator === 'easypaisa') {
+		}else if (payment_source === 'easypaisa' && response.operator === 'easypaisa') {
             //check EP token already exist, if yes then generate Telenor token
             console.log('Checking if EP token already exist');
             let epToken = await checkEPToken(package_id, user);
