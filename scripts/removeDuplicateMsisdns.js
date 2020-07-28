@@ -32,13 +32,13 @@ class RemoveDuplicateMsisdnsScript {
             }
 
             try{
-                console.log('-----------------------------');
+                console.log('=> -----------------------------');
                 console.log(ids);
-                console.log('-----------------------------');
+                console.log('=> -----------------------------');
                 let data = await this.userRepository.updateMany(ids);
-                console.log(data);
+                console.log('=> ', data);
             }catch(e){
-                console.log(e);
+                console.log('=>', e);
             }
 
 
