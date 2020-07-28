@@ -19,7 +19,7 @@ class RemoveDuplicateMsisdnsScript {
             let increment = 0;
             for(let i = 0; i < shouldRemove.length; i++){
                 let multiples = shouldRemove[i].dupsUsers;
-                const sortedUsers = multiples.sort((a, b) => b.added_dtm - a.added_dtm)
+                const sortedUsers = multiples.sort((a, b) => a.added_dtm - b.added_dtm)
                 console.log('=> ', increment, ' msisdn: ', shouldRemove[i]._id, ' - count - ', shouldRemove[i].count, ' sorted ', JSON.stringify(sortedUsers));
                 increment++;
             }
