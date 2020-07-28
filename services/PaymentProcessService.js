@@ -136,6 +136,8 @@ class PaymentProcessService {
                                     returnObject.desc = 'Account Doesnt Exist';
                                 }else if(api_response.response.response.responseCode === '0018'){
                                     returnObject.desc = 'Token Already Exist';
+                                }else{
+                                    returnObject.desc = 'Failed to process, please try again.';
                                 }
                             }
                         }catch(err){
