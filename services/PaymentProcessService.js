@@ -36,7 +36,7 @@ class PaymentProcessService {
         }else{
             let returnObject = {};
             try{
-                let response = await this.billingRepo.fullChargeAttempt(msisdn, packageObj, transaction_id, subscription);
+                let response = await this.billingRepository.fullChargeAttempt(msisdn, packageObj, transaction_id, subscription);
                 if(response.api_response.data.Message === "Success"){
                     returnObject.message = "Success";
                     returnObject.api_response = response;
@@ -76,7 +76,7 @@ class PaymentProcessService {
         }else{
             let returnObject = {};
             try{
-                let response = await this.billingRepo.microChargeAttempt(msisdn, packageObj, transaction_id, micro_price, subscription);
+                let response = await this.billingRepository.microChargeAttempt(msisdn, packageObj, transaction_id, micro_price, subscription);
                 if(response.api_response.data.Message === "Success"){
                     returnObject.message = "Success";
                     returnObject.api_response = response;

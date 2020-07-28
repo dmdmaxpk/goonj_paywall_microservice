@@ -607,8 +607,19 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 										res.send({code: config.codes.code_already_subscribed, message: 'You have already paid till '+date+'. Continue watching ', gw_transaction_id: gw_transaction_id});
 									}
 								}else{
-									subscribePackage(subscription, packageObj)
-									res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
+									try {
+										subscription.payment_source = req.body.payment_source;
+										let result = await paymentProcessService.processDirectBilling(req.body.otp? req.body.otp : undefined, user, subscription, packageObj,false);
+										console.log("result direct billing - ",result,user.msisdn);
+										if(result.message === "success"){
+											res.send({code: config.codes.code_success, message: 'Subscribed Successfully', gw_transaction_id: gw_transaction_id});
+										}else{
+											res.send({code: config.codes.code_error, message: 'Failed to subscribe, insufficient balance', gw_transaction_id: gw_transaction_id});
+										}
+									} catch(err){
+										console.log(err);
+										res.send({code: config.codes.code_error, message: 'Failed to subscribe, insufficient balance', gw_transaction_id: gw_transaction_id});
+									}
 								}
 							}
 						}else{
