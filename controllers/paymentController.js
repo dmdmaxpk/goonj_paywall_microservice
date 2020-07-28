@@ -101,18 +101,18 @@ exports.sendOtp = async (req, res) => {
 	console.log('user: ', user);
 
 	let response = {};
-	if(!user){
-		// no user
-		if(payment_source && payment_source === "easypaisa"){
-			response.operator = "easypaisa";
-		}else{
-			try{
-				response = await billingRepo.subscriberQuery(msisdn);
-			}catch(err){
-				response = err;
-			}
+	// no user
+	if(payment_source && payment_source === "easypaisa"){
+		response.operator = "easypaisa";
+	}else{
+		try{
+			response = await billingRepo.subscriberQuery(msisdn);
+		}catch(err){
+			response = err;
 		}
+	}
 
+	if(!user){
 		let userObj = {};
 		userObj.msisdn = msisdn;
         userObj.subscribed_package_id = 'none';
@@ -153,10 +153,12 @@ exports.sendOtp = async (req, res) => {
 		}
 		
 	}else{
-		if(payment_source === 'telenor' && response.operator === 'telenor'){
+		console.log('payment source: ', payment_source);
+		console.log('payment operator: ', response.operator);
+		if(response.operator === 'telenor'){
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);
-		}else if (payment_source === 'easypaisa' && response.operator === 'easypaisa') {
+		}else if (response.operator === 'easypaisa') {
             //check EP token already exist, if yes then generate Telenor token
             console.log('Checking if EP token already exist');
             let epToken = await checkEPToken(package_id, user);
