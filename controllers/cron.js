@@ -80,7 +80,7 @@ exports.sendReportsEveryMonth = async (req,res) =>  {
 }
 
 exports.removeDuplicateMsisdns = async (req,res) =>  {
-    console.log("removeDuplicateMsisdns")
-    await removeDuplicateMsisdns.removeDuplicateMsisdns();
-    res.send("removeDuplicateMsisdns - Executed");
+    console.log("=> removeDuplicateMsisdns")
+    removeDuplicateMsisdns.removeDuplicateMsisdns();
+    res.send("removeDuplicateMsisdns - Executed\n");
 }

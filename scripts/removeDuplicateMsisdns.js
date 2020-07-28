@@ -13,12 +13,14 @@ class RemoveDuplicateMsisdnsScript {
 
     async removeDuplicateMsisdns(){
         try {
-            console.log("removeDuplicateMsisdns")
+            console.log("=> Done 1")
             let shouldRemove = await this.userRepository.getMoreThanOneMsisdns();
+            console.log("Done 2")
+            let increment = 0;
             for(let i = 0; i < shouldRemove.length; i++){
                 let multiples = shouldRemove[i].dupsUsers;
                 const sortedUsers = multiples.sort((a, b) => b.added_dtm - a.added_dtm)
-                console.log('=> msisdn: ', shouldRemove[i].msisdn, ' - count - ', shouldRemove[i].count, ' sorted ', sortedUsers);
+                console.log('=> ', increment, ' msisdn: ', shouldRemove[i].msisdn, ' - count - ', shouldRemove[i].count, ' sorted ', sortedUsers);
             }
 
             // console.log("userIdsToRemove",userIdsToRemove[0]["ids"]);

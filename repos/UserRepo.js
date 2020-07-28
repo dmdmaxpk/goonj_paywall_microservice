@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
+const DuplicateMsisdn = mongoose.model('DuplicateMsisdn');
 const QueueRepo = require("./QueueRepo");
 
 class UserRepository {
@@ -151,7 +152,8 @@ class UserRepository {
     }
 
     async getMoreThanOneMsisdns(){
-        let users = await User.aggregate([
+        console.log("=> getMoreThanOneMsisdns")
+        let users = await DuplicateMsisdn.aggregate([
             {
                 $lookup: {
                     from: "users",
