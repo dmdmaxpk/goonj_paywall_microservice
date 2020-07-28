@@ -17,12 +17,30 @@ class RemoveDuplicateMsisdnsScript {
             let shouldRemove = await this.userRepository.getMoreThanOneMsisdns();
             console.log("Done 2")
             let increment = 0;
+
+            let ids = [];
             for(let i = 0; i < shouldRemove.length; i++){
                 let multiples = shouldRemove[i].dupsUsers;
                 const sortedUsers = multiples.sort((a, b) => a.added_dtm - b.added_dtm)
-                console.log('=> ', increment, ' msisdn: ', shouldRemove[i]._id, ' - count - ', shouldRemove[i].count, ' sorted ', JSON.stringify(sortedUsers));
+                //console.log('=> ', increment, ' msisdn: ', shouldRemove[i]._id, ' - count - ', shouldRemove[i].count, ' sorted ', JSON.stringify(sortedUsers));
+                console.log('=> ', increment);
+                for(let j = 0; j < sortedUsers.length; j++){
+                    ids.push(sortedUsers[j]._id);
+                }
                 increment++;
+
             }
+
+            try{
+                console.log('-----------------------------');
+                console.log(ids);
+                console.log('-----------------------------');
+                let data = await this.userRepository.updateMany(ids);
+                console.log(data);
+            }catch(e){
+                console.log(e);
+            }
+
 
             // console.log("userIdsToRemove",userIdsToRemove[0]["ids"]);
             /*let userids = userIdsToRemove[0]["ids"];
