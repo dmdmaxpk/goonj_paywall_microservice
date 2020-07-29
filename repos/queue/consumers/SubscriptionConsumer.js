@@ -38,26 +38,55 @@ class SubscriptionConsumer {
                 // Check if any user being excessive charge
                 if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
                     
-                    // Check current tps count
-                    let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
-                    if (countThisSec < config.telenor_subscription_api_tps) {
-    
-                        await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
-                        if(micro_charge){
-                            this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
-                        }else if(discount){
-                            this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
+                    if(subscription.payment_source && subscription.payment_source === 'easypaisa'){
+                        if(subscription.ep_token){
+                            // ep token exist
+                            // Check current tps count
+                            let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.easypaisaDispatcher);
+                            if (countThisSec < config.ep_subscription_api_tps) {
+            
+                                await this.tpsCountRepo.incrementTPSCount(config.queueNames.easypaisaDispatcher);
+                                if(micro_charge){
+                                    this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
+                                }else if(discount){
+                                    this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
+                                }else{
+                                    this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
+                                }
+                                console.timeEnd("[timeLog][Consumer - ep][SubscriptionConsumer]" + label);
+                            }  else{
+                                console.log("TPS quota full for easypaisa subscription, waiting for 1 seconds to elapse - ", new Date());
+                                setTimeout(() => {
+                                    console.log("Calling ep - consume subscription queue after 2000 seconds");
+                                    this.consume(message);
+                                }, 1000);
+                            }  
                         }else{
-                            this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
+                            console.log('EP token does not exist for subscription id ', subscription._id);
                         }
-                        console.timeEnd("[timeLog][Consumer][SubscriptionConsumer]" + label);
-                    }  else{
-                        console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
-                        setTimeout(() => {
-                            console.log("Calling consume subscription queue after 200 seconds");
-                            this.consume(message);
-                        }, 200);
-                    }  
+                    }else{
+                        // telenor billing
+                        // Check current tps count
+                        let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
+                        if (countThisSec < config.telenor_subscription_api_tps) {
+
+                            await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
+                            if(micro_charge){
+                                this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
+                            }else if(discount){
+                                this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
+                            }else{
+                                this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
+                            }
+                            console.timeEnd("[timeLog][Consumer][SubscriptionConsumer]" + label);
+                        }  else{
+                            console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
+                            setTimeout(() => {
+                                console.log("Calling consume subscription queue after 200 seconds");
+                                this.consume(message);
+                            }, 200);
+                        }  
+                    }
                 }else{
                     console.log("Excessive charging");
                     let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});

@@ -3,7 +3,7 @@ const TpsCount = mongoose.model('TpsCount');
 const config = require('../config');
 
 class TPSCountRepository {
-    async incrementTPSCount (queueName)  {
+    async incrementTPSCount (queueName, source = 'telenor')  {
         if (queueName) {
             let query = {};
             if (queueName === config.queueNames.messageDispathcer) {
@@ -16,7 +16,9 @@ class TPSCountRepository {
                 query = {$inc: {subscriptionquerytpsCount: 1}};
             } else if (queueName === config.queueNames.freeMbsDispatcher) {
                 query = {$inc: {freeMbsCount: 1}};
-            }     
+            }  else if (queueName === config.queueNames.easypaisaDispatcher) {
+                query = {$inc: {easypaisatpsCount: 1}};
+            }  
             await TpsCount.update({},query);
             return true;
         } else {
@@ -45,6 +47,9 @@ class TPSCountRepository {
             } else if (queueName === config.queueNames.freeMbsDispatcher) {
                 query =  {freeMbsCount: 1};
                 fieldName = "freeMbsCount";
+            }else if (queueName === config.queueNames.easypaisaDispatcher) {
+                query =  {easypaisaDispatcher: 1};
+                fieldName = "easypaisatpsCount";
             }
             try {
                 let tps = await TpsCount.findOne({},fieldName);
@@ -61,7 +66,7 @@ class TPSCountRepository {
     
     async resetTPSCount  ()  {
         try {
-            let updated = await TpsCount.update({},{$set:{ messagetpsCount: 0  , subscriptiontpsCount: 0, balanceCheckCount: 0, subscriptionquerytpsCount: 0, freeMbsCount: 0   }},{upsert: true});
+            let updated = await TpsCount.update({},{$set:{ messagetpsCount: 0  , subscriptiontpsCount: 0, balanceCheckCount: 0, subscriptionquerytpsCount: 0, freeMbsCount: 0, easypaisatpsCount: 0  }},{upsert: true});
         } catch (err) {
             throw err;
         }

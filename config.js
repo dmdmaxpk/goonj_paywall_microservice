@@ -3,7 +3,8 @@ const env = process.env.NODE_ENV || 'development';
 // application gets environment from either system envs or from this file in above line.
 // Total tps is 40 for now but we need to increase this
 const telenor_message_api_tps = 5;
-const telenor_subscription_api_tps = 25;
+const telenor_subscription_api_tps = 24;
+const ep_subscription_api_tps = 1;
 const telenor_subscriber_query_api_tps = 10;
 const telenor_free_mbs_api_tps = 0;
 const balance_check_api_tps = 0;
@@ -43,6 +44,7 @@ const default_package_id = "QDfC";
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
     subscriptionDispatcher: 'subscriptionDispatcher',
+    easypaisaDispatcher: 'easypaisaDispatcher',
     subscriberQueryDispatcher: 'subscriberQueryDispatcher',
     balanceCheckDispatcher: 'balanceCheckDispatcher',
     freeMbsDispatcher: 'freeMbsDispatcher'
