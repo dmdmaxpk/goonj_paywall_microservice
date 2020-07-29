@@ -48,7 +48,7 @@ class TPSCountRepository {
                 query =  {freeMbsCount: 1};
                 fieldName = "freeMbsCount";
             }else if (queueName === config.queueNames.easypaisaDispatcher) {
-                query =  {easypaisaDispatcher: 1};
+                query =  {easypaisatpsCount: 1};
                 fieldName = "easypaisatpsCount";
             }
             try {

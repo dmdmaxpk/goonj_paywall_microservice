@@ -103,6 +103,7 @@ class PaymentProcessService {
                     let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.easypaisaDispatcher);
                     if (tpsCount < config.ep_subscription_api_tps) {
                         console.log('Tps is in range as of now');
+                        
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.easypaisaDispatcher);
                         returnObject = await this.doProcess(otp, user, subscription, packageObj, first_time_billing);
                         return returnObject;
@@ -140,7 +141,7 @@ class PaymentProcessService {
 
     async doProcess(otp, user, subscription, packageObj, first_time_billing){
         console.log('doProcess');
-        
+
         let returnObject = {};
         console.log("processDirectBilling - OTP - ", otp, ' - Source - ', subscription.payment_source);
         
