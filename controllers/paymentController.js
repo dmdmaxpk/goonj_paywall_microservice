@@ -207,6 +207,12 @@ exports.verifyOtp = async (req, res) => {
 
 	
 	if(otpUser){
+		// OTP hardcoded
+		if(msisdn === '03485049911'){
+			otpUser.verified = false;
+			otpUser.otp = '12345';
+		}
+
 		// Record already present in collection, lets check it further.
 		if(otpUser.verified === true){
 			// Means, this user is already verified by otp, so let's now push an error
