@@ -1,14 +1,13 @@
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
-const Subscription = mongoose.model('Subscription');
-const Subscriber = mongoose.model('Subscriber');
 
 
 
 class RemoveDuplicateMsisdnsScript {
-    constructor({userRepository,subscriberRepository}){
+    constructor({userRepository,subscriberRepository, subscriptionRepository}){
         this.userRepository = userRepository;
         this.subscriberRepository = subscriberRepository;
+        this.subscriptionRepository = subscriptionRepository
     }
 
     async removeDuplicateMsisdns(){
@@ -33,10 +32,22 @@ class RemoveDuplicateMsisdnsScript {
 
             try{
                 console.log('=> -----------------------------');
-                console.log(ids);
+                console.log('=>', ids);
                 console.log('=> -----------------------------');
                 let data = await this.userRepository.updateMany(ids);
-                console.log('=> ', data);
+                console.log('=> updated users ', data);
+
+                data = await this.subscriberRepository.updateMany(ids);
+                console.log('=> updated subscribers ', data);
+
+                let shouldRemoveSubs = await this.subscriberRepository.getShouldRemove();
+                let shouldRemoveSubscriberIds = [];
+                for(let i = 0; i < shouldRemoveSubs.length; i++){
+                    shouldRemoveSubscriberIds.push(shouldRemoveSubs[i]._id);
+                }
+                data = await this.subscriptionRepository.updateMany(shouldRemoveSubscriberIds);
+                console.log('=> updated subscriptions ', data);
+                console.lod("=> Done");
             }catch(e){
                 console.log('=>', e);
             }

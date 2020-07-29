@@ -100,6 +100,11 @@ class SubscriptionRepository {
             return error;
         }
     }
+
+    async updateMany(subscriber_ids)  {
+        let data = await Subscription.updateMany({"subscriber_id": {$in:subscriber_ids }},{$set:{should_remove: true}});
+        return data;
+    }
     
     async deleteSubscription  (subscription_id)  {
         const result = await Subscription.deleteOne({_id: subscription_id});
