@@ -106,13 +106,19 @@ class PaymentProcessService {
                     
                     if(subscription.payment_source === "easypaisa"){
                         try{  
-                            if(otp){
-                                console.log("easypaisa - otp");
-                                api_response = await this.easypaisaPaymentService.initiateLinkTransaction(user.msisdn, packageObj.price_point_pkr, otp);
-                            }else{
-                                console.log("easypaisa - without otp");
+                            if(subscription.ep_token){
+                                console.log("easypaisa - pinless");
                                 api_response = await this.easypaisaPaymentService.initiatePinlessTransaction(user.msisdn, packageObj.price_point_pkr, undefined, subscription);
+                            }else{
+                                if(otp){
+                                    console.log("easypaisa - otp");
+                                    api_response = await this.easypaisaPaymentService.initiateLinkTransaction(user.msisdn, packageObj.price_point_pkr, otp);
+                                }else{
+                                    returnObject.message = "failed"
+                                    returnObject.desc = 'Easypaisa OTP not found';
+                                }    
                             }
+                            
                             
                             if(api_response && api_response.message === "success"){
                                 subscription.ep_token = api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
@@ -153,8 +159,8 @@ class PaymentProcessService {
                         }
                     }
             
-                    returnObject.message = api_response.message;
-                    returnObject.response = api_response.response;
+                    returnObject.message = api_response ? api_response.message : 'failed';
+                    returnObject.response = api_response ? api_response.response : returnObject.desc;
                     returnObject.subscriptionObj = subscription;
 
                     if(api_response && api_response.message === "success"){

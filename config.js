@@ -28,7 +28,8 @@ const codes = {
     code_user_blacklisted: 13,
     code_auth_failed: 14,
     code_auth_token_not_supplied: 15,
-    code_already_in_queue: 16
+    code_already_in_queue: 16,
+    code_otp_not_found: 17
 }
 
 const max_graylist_time_in_hrs = 336; // 2 weeks
