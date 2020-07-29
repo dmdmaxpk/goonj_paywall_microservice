@@ -97,6 +97,7 @@ exports.sendOtp = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
+	console.log('package_id: ', package_id);
 	console.log('payment_source: ', payment_source);
 	console.log('user: ', user);
 
@@ -232,7 +233,7 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 	if(user){
 	
 		// Generate OTP
-		let otp = Math.floor(Math.random() * 90000) + 10000;
+		let otp = Math.floor(Math.random() * 9000) + 1000;
 	
 		let postBody = {otp: otp};
 		postBody.msisdn = msisdn;
