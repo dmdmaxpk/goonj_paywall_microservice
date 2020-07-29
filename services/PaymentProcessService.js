@@ -101,9 +101,10 @@ class PaymentProcessService {
             if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
                 if(subscription.payment_source === 'easypaisa'){
                     let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.easypaisaDispatcher);
+                    console.log('EP - TPS Count: ', tpsCount);
                     if (tpsCount < config.ep_subscription_api_tps) {
                         console.log('Tps is in range as of now');
-                        
+
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.easypaisaDispatcher);
                         returnObject = await this.doProcess(otp, user, subscription, packageObj, first_time_billing);
                         return returnObject;
