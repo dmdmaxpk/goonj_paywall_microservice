@@ -233,7 +233,8 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 	if(user){
 	
 		// Generate OTP
-		let otp =  Math.floor(1000 + Math.random() * 9000);
+		let otp =  Math.floor(1000 + (9999 - 1000) * Math.random());
+		console.log('OTP Generated: ', otp)
 	
 		let postBody = {otp: otp};
 		postBody.msisdn = msisdn;
