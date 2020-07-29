@@ -733,7 +733,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 			if(subscriptionObj.try_micro_charge_in_next_cycle){
 				console.log("Trying micro charging for rs. ", subscriptionObj.micro_price_point);
 			}else{
-				console.log("Trying direct micro charging billing for", packageObj._id);
+				console.log("Trying direct billing with mc rules for ", packageObj._id);
 			}
 			subscriptionObj.subscribed_package_id = packageObj._id;
 

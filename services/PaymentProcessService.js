@@ -93,14 +93,16 @@ class PaymentProcessService {
     }
 
     async processDirectBilling(otp, user, subscription, packageObj, first_time_billing){
-        console.log("processDirectBilling");
+        console.log("PaymentProcessService - processDirectBilling");
         // Check if the subscription is active or blocked for some reason.
+
         if (subscription.active === true) {
             let returnObject = {};
             if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
                 if(subscription.payment_source === 'easypaisa'){
                     let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.easypaisaDispatcher);
                     if (tpsCount < config.ep_subscription_api_tps) {
+                        console.log('Tps is in range as of now');
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.easypaisaDispatcher);
                         returnObject = await this.doProcess(otp, user, subscription, packageObj, first_time_billing);
                         return returnObject;
@@ -137,6 +139,8 @@ class PaymentProcessService {
     }
 
     async doProcess(otp, user, subscription, packageObj, first_time_billing){
+        console.log('doProcess');
+        
         let returnObject = {};
         console.log("processDirectBilling - OTP - ", otp, ' - Source - ', subscription.payment_source);
         
