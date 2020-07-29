@@ -3,7 +3,8 @@ const env = process.env.NODE_ENV || 'development';
 // application gets environment from either system envs or from this file in above line.
 // Total tps is 40 for now but we need to increase this
 const telenor_message_api_tps = 5;
-const telenor_subscription_api_tps = 25;
+const telenor_subscription_api_tps = 24;
+const ep_subscription_api_tps = 1;
 const telenor_subscriber_query_api_tps = 10;
 const telenor_free_mbs_api_tps = 0;
 const balance_check_api_tps = 0;
@@ -28,7 +29,8 @@ const codes = {
     code_user_blacklisted: 13,
     code_auth_failed: 14,
     code_auth_token_not_supplied: 15,
-    code_already_in_queue: 16
+    code_already_in_queue: 16,
+    code_otp_not_found: 17
 }
 
 const max_graylist_time_in_hrs = 336; // 2 weeks
@@ -42,6 +44,7 @@ const default_package_id = "QDfC";
 const queueNames = {
     messageDispathcer: 'messageDispathcer',
     subscriptionDispatcher: 'subscriptionDispatcher',
+    easypaisaDispatcher: 'easypaisaDispatcher',
     subscriberQueryDispatcher: 'subscriberQueryDispatcher',
     balanceCheckDispatcher: 'balanceCheckDispatcher',
     freeMbsDispatcher: 'freeMbsDispatcher'
@@ -72,6 +75,7 @@ let config = {
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
+        ep_subscription_api_tps: ep_subscription_api_tps,
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         balance_check_api_tps: balance_check_api_tps,
         telenor_free_mbs_api_tps: telenor_free_mbs_api_tps,
@@ -105,6 +109,7 @@ let config = {
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
+        ep_subscription_api_tps: ep_subscription_api_tps,
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         balance_check_api_tps: balance_check_api_tps,
         telenor_free_mbs_api_tps: telenor_free_mbs_api_tps,
@@ -138,6 +143,7 @@ let config = {
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
         telenor_subscription_api_tps: telenor_subscription_api_tps,
+        ep_subscription_api_tps: ep_subscription_api_tps,
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         balance_check_api_tps: balance_check_api_tps,
         telenor_free_mbs_api_tps: telenor_free_mbs_api_tps,

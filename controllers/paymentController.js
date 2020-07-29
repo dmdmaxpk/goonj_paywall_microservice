@@ -596,7 +596,13 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 											if(result.message === "success"){
 												res.send({code: config.codes.code_success, message: 'Subscribed Successfully', gw_transaction_id: gw_transaction_id});
 											}else{
-												res.send({code: config.codes.code_error, message: 'Failed to subscribe, insufficient balance', gw_transaction_id: gw_transaction_id});
+												if(result.desc){
+													if(result.desc === 'Easypaisa OTP not found'){
+														res.send({code: config.codes.code_otp_not_found, message: result.desc, gw_transaction_id: gw_transaction_id});
+													}else{
+														res.send({code: config.codes.code_error, message: 'Failed to subscribe, possible cause: '+ result.desc, gw_transaction_id: gw_transaction_id});
+													}
+												}
 											}
 										} catch(err){
 											console.log(err);
@@ -728,7 +734,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 			if(subscriptionObj.try_micro_charge_in_next_cycle){
 				console.log("Trying micro charging for rs. ", subscriptionObj.micro_price_point);
 			}else{
-				console.log("Trying direct micro charging billing for", packageObj._id);
+				console.log("Trying direct billing with mc rules for ", packageObj._id);
 			}
 			subscriptionObj.subscribed_package_id = packageObj._id;
 

@@ -93,84 +93,44 @@ class PaymentProcessService {
     }
 
     async processDirectBilling(otp, user, subscription, packageObj, first_time_billing){
-        console.log("processDirectBilling");
+        console.log("PaymentProcessService - processDirectBilling");
         // Check if the subscription is active or blocked for some reason.
+
         if (subscription.active === true) {
             let returnObject = {};
             if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
-                let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
-                if (tpsCount < config.telenor_subscription_api_tps) {
-                    await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
-                    console.log("processDirectBilling - OTP - ", otp, ' - Source - ', subscription.payment_source);
-                    let api_response = {};
-                    
-                    if(subscription.payment_source === "easypaisa"){
-                        try{  
-                            if(otp){
-                                console.log("easypaisa - otp");
-                                api_response = await this.easypaisaPaymentService.initiateLinkTransaction(user.msisdn, packageObj.price_point_pkr, otp);
-                            }else{
-                                console.log("easypaisa - without otp");
-                                api_response = await this.easypaisaPaymentService.initiatePinlessTransaction(user.msisdn, packageObj.price_point_pkr, undefined, subscription);
-                            }
-                            
-                            if(api_response && api_response.message === "success"){
-                                subscription.ep_token = api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
-                                console.log("easypaisa - success - saving response ", subscription);
-                            }else{
-                                // Failed
-                                if(api_response.response.response.responseCode === '0030'){
-                                    returnObject.desc = 'Invalid OTP Entered';
-                                }else if(api_response.response.response.responseCode === '0034'){
-                                    returnObject.desc = 'OTP Expired';
-                                }else if(api_response.response.response.responseCode === '---'){
-                                    // Todo: Need to enter response code
-                                    returnObject.desc = 'Invalid Transaction Amount';
-                                }else if(api_response.response.response.responseCode === '0011'){
-                                    returnObject.desc = 'Wrong PIN Entered';
-                                }else if(api_response.response.response.responseCode === '0012'){
-                                    returnObject.desc = 'PIN Not Entered';
-                                }else if(api_response.response.response.responseCode === '0013'){
-                                    returnObject.desc = 'Insufficient Balance';
-                                }else if(api_response.response.response.responseCode === '0014'){
-                                    returnObject.desc = 'Account Doesnt Exist';
-                                }else if(api_response.response.response.responseCode === '0018'){
-                                    returnObject.desc = 'Token Already Exist';
-                                }else{
-                                    returnObject.desc = 'Failed to process, please try again.';
-                                }
-                            }
-                        }catch(err){
-                            console.log("Error thrown from easypaisa processDirectBilling: ", err);
-                            throw err;
-                        }
-                    }else{
-                        try{
-                            api_response = await this.telenorBillingService.processDirectBilling(user, subscription, packageObj, first_time_billing);
-                        }catch(err){
-                            console.log("Error thrown from telenor processDirectBilling: ", err);
-                            throw err;
-                        }
-                    }
-            
-                    returnObject.message = api_response.message;
-                    returnObject.response = api_response.response;
-                    returnObject.subscriptionObj = subscription;
+                if(subscription.payment_source === 'easypaisa'){
+                    let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.easypaisaDispatcher);
+                    console.log('EP - TPS Count: ', tpsCount);
+                    if (tpsCount < config.ep_subscription_api_tps) {
+                        console.log('Tps is in range as of now');
 
-                    if(api_response && api_response.message === "success"){
-                        await this.billingSuccess(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
+                        await this.tpsCountRepo.incrementTPSCount(config.queueNames.easypaisaDispatcher);
+                        returnObject = await this.doProcess(otp, user, subscription, packageObj, first_time_billing);
+                        return returnObject;
                     }else{
-                        await this.billingFailed(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
-                    }
-                    return returnObject;
+                        console.log("TPS quota full for ep subscription, waiting for 1 second to elapse - ", new Date());
+                        setTimeout(async () => {
+                            console.log("Calling ep consume subscription queue after 1-seconds",user.msisdn);
+                            let response = await this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
+                            return response;
+                        }, 1000);
+                    } 
                 }else{
-                    console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
-                    setTimeout(async () => {
-                        console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
-                        let response = await this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
-                        resolve(response);
-                    }, 300);
-                }  
+                    let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
+                    if (tpsCount < config.telenor_subscription_api_tps) {
+                        await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
+                        returnObject = await this.doProcess(otp, user, subscription, packageObj, first_time_billing);
+                        return returnObject;
+                    }else{
+                        console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
+                        setTimeout(async () => {
+                            console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
+                            let response = await this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
+                            return response;
+                        }, 300);
+                    }    
+                } 
             }else{
                 returnObject.shootExcessiveBillingEmail = true;
                 resolve(returnObject);
@@ -178,6 +138,80 @@ class PaymentProcessService {
         }else{
             console.log("Not an active subscription");
         }
+    }
+
+    async doProcess(otp, user, subscription, packageObj, first_time_billing){
+        console.log('doProcess');
+
+        let returnObject = {};
+        console.log("processDirectBilling - OTP - ", otp, ' - Source - ', subscription.payment_source);
+        
+        let api_response = {};
+        if(subscription.payment_source === "easypaisa"){
+            try{  
+                if(subscription.ep_token){
+                    console.log("easypaisa - pinless");
+                    api_response = await this.easypaisaPaymentService.initiatePinlessTransaction(user.msisdn, packageObj.price_point_pkr, undefined, subscription);
+                }else{
+                    if(otp){
+                        console.log("easypaisa - otp");
+                        api_response = await this.easypaisaPaymentService.initiateLinkTransaction(user.msisdn, packageObj.price_point_pkr, otp);
+                    }else{
+                        returnObject.message = "failed"
+                        returnObject.desc = 'Easypaisa OTP not found';
+                    }    
+                }
+                
+                
+                if(api_response && api_response.message === "success"){
+                    subscription.ep_token = api_response.response.response.tokenNumber ? api_response.response.response.tokenNumber : undefined;
+                    console.log("easypaisa - success - saving response ", subscription);
+                }else{
+                    // Failed
+                    if(api_response.response.response.responseCode === '0030'){
+                        returnObject.desc = 'Invalid OTP Entered';
+                    }else if(api_response.response.response.responseCode === '0034'){
+                        returnObject.desc = 'OTP Expired';
+                    }else if(api_response.response.response.responseCode === '---'){
+                        // Todo: Need to enter response code
+                        returnObject.desc = 'Invalid Transaction Amount';
+                    }else if(api_response.response.response.responseCode === '0011'){
+                        returnObject.desc = 'Wrong PIN Entered';
+                    }else if(api_response.response.response.responseCode === '0012'){
+                        returnObject.desc = 'PIN Not Entered';
+                    }else if(api_response.response.response.responseCode === '0013'){
+                        returnObject.desc = 'Insufficient Balance';
+                    }else if(api_response.response.response.responseCode === '0014'){
+                        returnObject.desc = 'Account Doesnt Exist';
+                    }else if(api_response.response.response.responseCode === '0018'){
+                        returnObject.desc = 'Token Already Exist';
+                    }else{
+                        returnObject.desc = 'Failed to process, please try again.';
+                    }
+                }
+            }catch(err){
+                console.log("Error thrown from easypaisa processDirectBilling: ", err);
+                throw err;
+            }
+        }else{
+            try{
+                api_response = await this.telenorBillingService.processDirectBilling(user, subscription, packageObj, first_time_billing);
+            }catch(err){
+                console.log("Error thrown from telenor processDirectBilling: ", err);
+                throw err;
+            }
+        }
+
+        returnObject.message = api_response ? api_response.message : 'failed';
+        returnObject.response = api_response ? api_response.response : returnObject.desc;
+        returnObject.subscriptionObj = subscription;
+
+        if(api_response && api_response.message === "success"){
+            await this.billingSuccess(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
+        }else{
+            await this.billingFailed(user, subscription, api_response.response, packageObj, api_response.transaction_id, first_time_billing);
+        }
+        return returnObject;
     }
 
     async deLink(user, subscription){
