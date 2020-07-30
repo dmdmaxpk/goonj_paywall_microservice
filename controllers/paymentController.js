@@ -640,7 +640,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 										// It means switching from daily to weekly, process billing
 										try {
 											let result = await paymentProcessService.processDirectBilling(req.body.otp? req.body.otp : undefined, user, subscription, packageObj,false);
-											if(result.message === "success"){
+											if(result && result.message === "success"){
 												res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 											}else{
 												res.send({code: config.codes.code_error, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});

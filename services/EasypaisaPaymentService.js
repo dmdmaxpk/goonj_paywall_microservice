@@ -39,6 +39,28 @@ class EasypaisaPaymentService {
     async initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
         console.log('initiateLinkTransaction: ', mobileAccountNo, transactionAmount, otp);
 
+        let returnObj = {};
+        returnObj.transaction_id = self.orderId;
+
+        let data = { 
+           response:{ 
+                orderId: 'GEP_B1ZcM-ybP',
+                storeId: '42221',
+                transactionId: '8293012755',
+                transactionDateTime: '29/07/2020 07:07 PM',
+                tokenNumber: '0000864314',
+                mobileAccountNo: '03336106083',
+                emailAddress: 'muhammad.azam@dmdmax.com',
+                responseCode: '0000',
+                responseDesc: 'SUCCESS' 
+            } 
+        }
+
+        returnObj.message = "success";
+        returnObj.response = data;
+
+        return returnObj;
+
         try {
             let self = this;
             await self.getKey();
