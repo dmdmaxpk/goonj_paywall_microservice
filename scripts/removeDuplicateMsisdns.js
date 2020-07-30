@@ -23,7 +23,7 @@ class RemoveDuplicateMsisdnsScript {
                 const sortedUsers = multiples.sort((a, b) => a.added_dtm - b.added_dtm)
                 //console.log('=> ', increment, ' msisdn: ', shouldRemove[i]._id, ' - count - ', shouldRemove[i].count, ' sorted ', JSON.stringify(sortedUsers));
                 console.log('=> ', increment);
-                for(let j = 0; j < sortedUsers.length; j++){
+                for(let j = 1; j < sortedUsers.length; j++){
                     ids.push(sortedUsers[j]._id);
                 }
                 increment++;
@@ -47,7 +47,7 @@ class RemoveDuplicateMsisdnsScript {
                 }
                 data = await this.subscriptionRepository.updateMany(shouldRemoveSubscriberIds);
                 console.log('=> updated subscriptions ', data);
-                console.lod("=> Done");
+                console.log("=> Done");
             }catch(e){
                 console.log('=>', e);
             }
