@@ -17,8 +17,6 @@ const subscriptionRepo = container.resolve("subscriptionRepository");
 const constants = container.resolve("constants");
 const paymentProcessService = container.resolve("paymentProcessService");
 
-const paymentSourceRepo = container.resolve("paymentSourceRepository");
-
 let jwt = require('jsonwebtoken');
 const { response } = require('express');
 const { resolve } = require('../configurations/container');
@@ -233,7 +231,8 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 	if(user){
 
 		// Generate OTP
-		let otp = Math.floor(Math.random() * 9000) + 1000;
+		let otp =  Math.floor(1000 + (9999 - 1000) * Math.random());
+		console.log('OTP Generated: ', otp)
 	
 		let postBody = {otp: otp};
 		postBody.msisdn = msisdn;
@@ -294,6 +293,12 @@ exports.verifyOtp = async (req, res) => {
 
 	
 	if(otpUser){
+		// OTP hardcoded
+		if(msisdn === '03485049911'){
+			otpUser.verified = false;
+			otpUser.otp = '12345';
+		}
+
 		// Record already present in collection, lets check it further.
 		if(otpUser.verified === true){
 			// Means, this user is already verified by otp, so let's now push an error
@@ -639,7 +644,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 										// It means switching from daily to weekly, process billing
 										try {
 											let result = await paymentProcessService.processDirectBilling(req.body.otp? req.body.otp : undefined, user, subscription, packageObj,false);
-											if(result.message === "success"){
+											if(result && result.message === "success"){
 												res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 											}else{
 												res.send({code: config.codes.code_error, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
@@ -1095,82 +1100,6 @@ exports.expire = async (req, res) => {
 		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.'});
 	}
 }
-
-// When user switch payment source
-exports.switchPaymentSource = async (req, res) => {
-	let subscription_id = req.body.subscription_id;
-	let new_source = req.body.new_source;
-	let gw_transaction_id = req.body.transaction_id;
-	let msisdn = req.body.msisdn;
-
-	try {
-        // await billingRepo.subscriberQuery(msisdn);
-        let record = await subscriptionRepo.getSubscription(subscription_id);
-        console.log('record: ', record);
-
-        if (record.payment_source !== new_source) {
-            console.log('new_source: ', new_source);
-            if(new_source === 'telenor'){
-				let response;
-				// Check if telenor number - subscriber query
-				try{
-				    response = await billingRepo.subscriberQuery(msisdn);
-				    console.log('response: ', response);
-				}catch(err){
-                    console.log('err: ', err);
-                    response = err;
-				}
-
-				if(response.operator === "telenor"){
-					record.payment_source = new_source;
-					let result = await subscriptionRepo.updateSubscription(subscription_id, record);
-					if (result !== undefined){
-                        let updateBillingResp = updateBillingHistory(msisdn, record, new_source);
-                        if (updateBillingResp)
-							res.send({code: config.codes.code_success, message: 'Payment source updated successfully', gw_transaction_id: gw_transaction_id});
-                        else
-                            res.send({code: config.codes.code_success, message: 'Payment source updated successfully. But Billing History could not updated successfully.', gw_transaction_id: gw_transaction_id});
-					}else
-						res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
-				}else
-					res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
-			}else if(new_source === 'easypaisa'){
-				// create link transaction with easypaisa
-				console.log('record.ep_token: ', record.ep_token);
-				if(record.ep_token === undefined || record.ep_token == ''){
-					// no ep_token available
-                    try {
-                        console.log('easypaisaPaymentService.bootOptScript: ');
-                        let record = await easypaisaPaymentService.bootOptScript(msisdn);
-                        console.log('sendOtp', record);
-                        if (record.code === 0)
-                            res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
-                        else
-                            res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
-                    }catch (e) {
-                        console.log('sendOtp - error', e);
-                        res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
-                    }
-				}else{
-					// update record
-                    record.payment_source = new_source;
-                    let result = await subscriptionRepo.updateSubscription(subscription_id, record);
-					if (result !== undefined){
-                        let updateBillingResp = updateBillingHistory(msisdn, record, new_source);
-                        if (updateBillingResp)
-							res.send({code: config.codes.code_success, message: 'Payment source updated successfully', gw_transaction_id: gw_transaction_id});
-                        else
-                            res.send({code: config.codes.code_success, message: 'Payment source updated successfully. But Billing History could not updated successfully.', gw_transaction_id: gw_transaction_id});
-					}else
-						res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
-				}
-			}
-        } else
-            res.send({code: config.codes.code_error, message: 'Payment source should be different.', gw_transaction_id: gw_transaction_id});
-    } catch (e) {
-        res.send({code: config.codes.code_error, message: 'Failed to updated payment source.', gw_transaction_id: gw_transaction_id});
-    }
-};
 
 exports.linkTransaction = async (req, res) => {
 	let msisdn = req.body.msisdn;

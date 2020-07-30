@@ -1,6 +1,7 @@
 const config = require('../config');
 const helper = require('./../helper/helper');
 const { resolve } = require('../configurations/container');
+const axios = require('axios');
 
 class PaymentProcessService {
     constructor({billingRepository, easypaisaPaymentService, telenorBillingService, 
@@ -46,7 +47,9 @@ class PaymentProcessService {
                 }
                 return returnObject;
             }catch(err){
-                console.log("Error thrown from telenor billing: ", err);
+                if(err && err.response){
+                    console.log('Error ',err.response.data);
+                }
                 throw err;
             }
         }
@@ -86,7 +89,9 @@ class PaymentProcessService {
                 }
                 return returnObject;
             }catch(err){
-                console.log("Error thrown from telenor billing: ", err);
+                if(err && err.response){
+                    console.log('Error ',err.response.data);
+                }
                 throw err;
             }
         }
@@ -190,14 +195,18 @@ class PaymentProcessService {
                     }
                 }
             }catch(err){
-                console.log("Error thrown from easypaisa processDirectBilling: ", err);
+                if(err && err.response){
+                    console.log('Error ',error.response.data);
+                }
                 throw err;
             }
         }else{
             try{
                 api_response = await this.telenorBillingService.processDirectBilling(user, subscription, packageObj, first_time_billing);
             }catch(err){
-                console.log("Error thrown from telenor processDirectBilling: ", err);
+                if(err && err.response){
+                    console.log('Error ',err.response.data);
+                }
                 throw err;
             }
         }

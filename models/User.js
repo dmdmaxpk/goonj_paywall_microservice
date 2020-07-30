@@ -70,6 +70,7 @@ const userSchema = new Schema({
     operator: {
         type: String
     },
+    should_remove: Boolean, // temporary field
     active: { type: Boolean, default: true, index: true }
 }, { strict: true });
 

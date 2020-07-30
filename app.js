@@ -18,7 +18,7 @@ require('./models/Paywall');
 require('./models/Subscription');
 require('./models/Migration');
 require('./models/SystemUser');
-require('./models/PaymentSource');
+require('./models/DuplicateMsisdn');
 const config = require('./config');
 const swStats = require('swagger-stats');
 const container = require('./configurations/container');
