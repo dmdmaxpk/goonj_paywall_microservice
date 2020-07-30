@@ -39,9 +39,14 @@ class EasypaisaPaymentService {
     async initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
         console.log('initiateLinkTransaction: ', mobileAccountNo, transactionAmount, otp);
 
+        // TEST DATA START
+        let self = this;
+        await self.getKey();
+        self.getOrderId();
+
         let returnObj = {};
         returnObj.transaction_id = self.orderId;
-
+        
         let data = { 
            response:{ 
                 orderId: 'GEP_B1ZcM-ybP',
@@ -60,6 +65,8 @@ class EasypaisaPaymentService {
         returnObj.response = data;
 
         return returnObj;
+
+        // TEST DATA END
 
         try {
             let self = this;
