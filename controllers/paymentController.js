@@ -751,7 +751,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 				resolve(dataToReturn);
 			}else {
 				if (result.message === "failed" && result.response.errorCode === "500.007.05") {
-                    dataToReturn.desc = 'Easypaisa account is not activated on this number. Please use a Easypaisa number. Thanks';
+                    dataToReturn.desc = 'Easypaisa account is not activated using this number. Please use an Easypaisa account number. Thanks';
                     dataToReturn.status = "failed";
                     dataToReturn.subscriptionObj = subscriptionObj;
                     resolve(dataToReturn);
