@@ -158,7 +158,7 @@ class PaymentProcessService {
                     console.log("easypaisa - pinless");
                     api_response = await this.easypaisaPaymentService.initiatePinlessTransaction(user.msisdn, packageObj.price_point_pkr, undefined, subscription);
                 }else{
-                    if(otp){
+                    if(otp ){
                         console.log("easypaisa - otp");
                         api_response = await this.easypaisaPaymentService.initiateLinkTransaction(user.msisdn, packageObj.price_point_pkr, otp);
                     }else{
@@ -196,7 +196,7 @@ class PaymentProcessService {
                 }
             }catch(err){
                 if(err && err.response){
-                    console.log('Error ',error.response.data);
+                    console.log('Error ',err.response.data);
                 }
                 throw err;
             }
