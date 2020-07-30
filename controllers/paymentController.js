@@ -231,7 +231,7 @@ createBlockUserHistory = async(msisdn, tid, mid, api_response, source) => {
 
 generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 	if(user){
-	
+
 		// Generate OTP
 		let otp = Math.floor(Math.random() * 9000) + 1000;
 	
