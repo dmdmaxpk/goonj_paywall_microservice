@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
+const DuplicateMsisdn = mongoose.model('DuplicateMsisdn');
 const QueueRepo = require("./QueueRepo");
 
 class UserRepository {
@@ -56,6 +57,11 @@ class UserRepository {
             let user = await this.getUserByMsisdn(msisdn);
             return user;
         }
+    }
+
+    async updateMany(ids)  {
+        let data = await User.updateMany({"_id": {$in:ids }},{$set:{should_remove: true}});
+        return data;
     }
 
     async updateUserById (user_id, postData)  {
@@ -150,41 +156,73 @@ class UserRepository {
         }
     }
 
-    async getDuplicatedMsisdnUsers(){
-        let users = await User.aggregate([{
-            $group: {
-              _id: "$msisdn",count:{$sum: 1}
+    async getMoreThanOneMsisdns(){
+        console.log("=> getMoreThanOneMsisdns")
+        let users = await DuplicateMsisdn.aggregate([
+            {
+                $lookup: {
+                    from: "users",
+                            let: { msisdn: "$_id" },
+                    pipeline: [ 
+                    {
+                        $match:{
+                            $expr:{
+                                $eq:["$$msisdn","$msisdn"]
+                            }
+                        }
+                    }
+                    ],
+                            as: "dupsUsers"
+                    }
             }
-          }, {
-            $match:{count:{$gte: 2}}
-          },{
-            $lookup:  {
-                 from: "users",
-                 let: { msisdn: "$_id" },
-                 pipeline: [ {$match: { $expr: {$and: [ { $eq : ["$msisdn", "$$msisdn"] },{$or: [{ $eq : ["$subscription_status", "trial"] },{ $eq : ["$subscription_status", "none"] }]}  ] }  }} ],
-                 as: "users"
-               }
-          },{
-              $unwind: "$users"
-          }, {
-              $project: {
-                user_id: "$users._id"
-              }
-          },{
-              /**
-               * _id: The id of the group.
-               * fieldN: The first field name.
-               */
-              $group: {
-                _id: null,
-                count: {
-                  $sum: 1
-                },
-              ids : { "$addToSet" : "$user_id" } 
-              }
-          }]);
+            ]);
+
         return users;
     }
+
+    // async getDuplicatedMsisdnUsers(){
+    //     let users = await User.aggregate([{
+    //         $group: {
+    //           _id: "$msisdn",count:{$sum: 1}
+    //         }
+    //       }, {
+    //         $match:{count:{$gte: 2}}
+    //       },
+    //         {
+    //                 $lookup:  {
+    //                     from: "users",
+    //                     let: { msisdn: "$_id" },
+    //                     pipeline: [ {$match: { $expr: {$and: [ { $eq : ["$msisdn", "$$msisdn"] }  ] }  }},{"$sort":{added_dtm: -1}} ],
+    //                     as: "users"
+    //                 }
+    //             },
+    //             {
+    //                 $project: {
+    //                     user_ids_to_remove: { $slice: [ "$users", 1 ] }
+    //                 }
+    //             },
+    //             {
+    //                 $unwind: "$user_ids_to_remove"
+    //             }, {
+    //                 $project: {
+    //                   user_id: "$user_ids_to_remove._id"
+    //                 }
+    //             },{
+    //                 /**
+    //                  * _id: The id of the group.
+    //                  * fieldN: The first field name.
+    //                  */
+    //                 $group: {
+    //                   _id: null,
+    //                   count: {
+    //                     $sum: 1
+    //                   },
+    //                 ids : { "$addToSet" : "$user_id" } 
+    //                 }
+    //             }
+    //     ]);
+    //     return users;
+    // }
 
     async removeByIds(Ids=[]){
         if (Ids.length > 0) {

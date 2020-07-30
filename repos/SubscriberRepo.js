@@ -102,6 +102,16 @@ class SubscriberRepository {
              return undefined;
         }
     }
+
+    async updateMany(userIds)  {
+        let data = await Subscriber.updateMany({"user_id": {$in:userIds }},{$set:{should_remove: true}});
+        return data;
+    }
+
+    async getShouldRemove()  {
+        let data = await Subscriber.find({should_remove: true}, {_id: 1});
+        return data;
+    }
     
     // async removeNumberAndHistory (msisdn)  {
     

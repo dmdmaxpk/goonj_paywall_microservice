@@ -722,7 +722,7 @@ class SubscriptionConsumer {
         percentage = (100 - percentage);
     
         //Send acknowldement to user
-        let message = "You've got "+percentage+"% discount on "+packageName+". Thank you for watching Goonj TV.";
+        let message = "You've got "+percentage+"% discount on "+packageName+".  Numainday se baat k liye 727200 milayein.";
         this.messageRepo.sendSmsToUser(message, msisdn);
     }
 }
