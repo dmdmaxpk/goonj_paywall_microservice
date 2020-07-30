@@ -40,7 +40,7 @@ class EasypaisaPaymentService {
         console.log('initiateLinkTransaction: ', mobileAccountNo, transactionAmount, otp);
 
         // TEST DATA START
-        let self = this;
+        /*let self = this;
         await self.getKey();
         self.getOrderId();
 
@@ -64,7 +64,7 @@ class EasypaisaPaymentService {
         returnObj.message = "success";
         returnObj.response = data;
 
-        return returnObj;
+        return returnObj;*/
 
         // TEST DATA END
 
