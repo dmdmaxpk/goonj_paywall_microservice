@@ -47,7 +47,7 @@ class PaymentProcessService {
                 return returnObject;
             }catch(err){
                 if(err && err.response){
-                    console.log('Error ',error.response.data);
+                    console.log('Error ',err.response.data);
                 }
                 throw err;
             }
@@ -204,7 +204,7 @@ class PaymentProcessService {
                 api_response = await this.telenorBillingService.processDirectBilling(user, subscription, packageObj, first_time_billing);
             }catch(err){
                 if(err && err.response){
-                    console.log('Error ',error.response.data);
+                    console.log('Error ',err.response.data);
                 }
                 throw err;
             }
