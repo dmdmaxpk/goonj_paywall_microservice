@@ -308,6 +308,7 @@ class PaymentProcessService {
         // Add history record
         console.log("Adding history record",user.msisdn);
         let history = {};
+        history.micro_charge = updatedSubscription.try_micro_charge_in_next_cycle ? updatedSubscription.try_micro_charge_in_next_cycle : false;
         history.user_id = user._id;
         history.subscription_id =  updatedSubscription ? updatedSubscription._id : subscription._id ;
         history.subscriber_id = subscription.subscriber_id;
