@@ -113,6 +113,7 @@ renewSubscription = async(subscription) => {
         let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true});
         if(updated){
             rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
+            console.log('Added: ', subscription._id);
             
             if(subscriptionObj.micro_charge){
                 console.log('Renew Subscription Micro Charge - AddInQueue', ' - ', transactionId, ' - ', (new Date()));    

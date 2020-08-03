@@ -23,7 +23,7 @@ exports.refreshToken = async (req,res) =>  {
 exports.addInBillingQueue = async (req,res) =>  {
     let subscription_id = req.query.subscription_id;
     let subscription = await SubscriptionRepository.getSubscription(subscription_id);
-    await subscriptionService.renewSubscription(subscription);
+    subscriptionService.renewSubscription(subscription);
     res.send("addInBillingQueue - Executed\n");
 }
 
