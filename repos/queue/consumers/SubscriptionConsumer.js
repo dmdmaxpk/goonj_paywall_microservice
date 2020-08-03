@@ -138,7 +138,7 @@ class SubscriptionConsumer {
         
         try{
             let response = await this.paymentProcessService.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
-            let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.data;
+            let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.api_response.data;
             let message = response.message;
     
             if(message === 'Success'){
@@ -315,7 +315,7 @@ class SubscriptionConsumer {
             if(micro_price <= packageObj.price_point_pkr){
                 
                 let response = await this.paymentProcessService.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
-                let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.data;
+                let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.api_response.data;
                 let message = response.message;
 
                 if(message === 'Success'){
