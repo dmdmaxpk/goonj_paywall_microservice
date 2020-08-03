@@ -41,9 +41,10 @@ subscriptionRenewal = async() => {
 }
 
 addSubscription =  async(subscription) => {
-    console.log(subscription._id, '3');
+    console.log('CRUUOW3EQK3m', '3');
+    console.log('CRUUOW3EQK3m', subscription);
     let promise = getPromise(subscription);
-    console.log(subscription._id, '4');
+    console.log('CRUUOW3EQK3m', '4');
     promise.then(response => {
         console.log(subscription._id, 'response', response);
     }).catch(error => {
