@@ -197,5 +197,6 @@ function AddZero(num) {
 module.exports = {
     // runJob: runJob,
     subscriptionRenewal: subscriptionRenewal,
-    markRenewableUser: markRenewableUser
+    markRenewableUser: markRenewableUser,
+    addSubscription: addSubscription
 }
