@@ -40,6 +40,15 @@ subscriptionRenewal = async() => {
     }
 }
 
+addSubscription =  async(subscription) => {
+    let promise = getPromise(subscription);
+    promise.then(response => {
+        console.log(subscription._id, 'response', response);
+    }).catch(error => {
+        console.log(subscription._id, 'error', error);
+    });
+}
+
 getPromise =  async(subscription) => {
     return new Promise((resolve, reject) => {
         renewSubscription(subscription);
@@ -114,7 +123,7 @@ renewSubscription = async(subscription) => {
         if(updated){
             rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
             console.log('Added: ', subscription._id);
-            
+
             if(subscriptionObj.micro_charge){
                 console.log('Renew Subscription Micro Charge - AddInQueue', ' - ', transactionId, ' - ', (new Date()));    
             }else if(subscriptionObj.discount){

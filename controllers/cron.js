@@ -25,7 +25,7 @@ exports.addInBillingQueue = async (req,res) =>  {
     console.log(subscription_id, '1');
     let subscription = await subscriptionRepository.getSubscription(subscription_id);
     console.log(subscription_id, '2');
-    subscriptionService.renewSubscription(subscription);
+    await subscriptionService.addSubscription(subscription);
     res.send("addInBillingQueue - Executed\n");
 }
 
