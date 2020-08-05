@@ -59,6 +59,8 @@ class RabbitMq {
 
     consumeQueue(queue, callback){
         this.channel.consume(queue, async (msg) =>  {
+
+            console.log('consumeQueue -> msg: ', msg);
             callback(msg);
           }, {
             //It's time to turn manual acnkowledgments on using the {noAck: false} option and send a 
