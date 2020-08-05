@@ -441,7 +441,6 @@ class BillingHistoryRepository {
     }
 
     async getRevenueInDateRange (from, to)  {
-        console.log("=>", today);
         try{
             let result = await BillingHistory.aggregate([ { $match: { 
                 "billing_status": "Success",
