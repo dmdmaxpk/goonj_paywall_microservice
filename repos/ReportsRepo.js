@@ -740,7 +740,7 @@ weeklyTransactingCustomers = async(weekFromArray, weekToArray, emailList) => {
             let weekTo = weekToArray[i];
 
             console.log("=> weeklyTransactingCustomers from", weekFrom, "to", weekTo);
-            let totalUniqueUsers = await billinghistoryRepo.totalUniqueTransactingUsers(from, to);
+            let totalUniqueUsers = await billinghistoryRepo.totalUniqueTransactingUsers(weekFrom, weekTo);
             emailBody.concat(`${weekFrom} - ${weekTo}:   ${totalUniqueUsers[0].count}\n`);
         }
 
