@@ -111,10 +111,9 @@ generateMonthlyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
-    //reportsRepo.dailyNetAddition(from, to);
-    
-    //await sleep(300 * 1000); // 5 minutes
-    //reportsRepo.avgTransactionPerCustomer(from, to);
+    reportsRepo.dailyNetAddition(from, to);
+    await sleep(300 * 1000); // 5 minutes
+    reportsRepo.avgTransactionPerCustomer(from, to);
 }
 
 
