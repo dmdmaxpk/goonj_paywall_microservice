@@ -132,7 +132,7 @@ generateMonthlyReports =  async() => {
     let weekFromArray = [firstWeekFrom, secondWeekFrom, thirdWeekFrom, forthWeekFrom];
     let weekToArray = [firstWeekTo, secondWeekTo, thirdWeekTo, forthWeekTo];
     
-    await sleep(60 * 1000); // 1 minutes
+    //await sleep(60 * 1000); // 1 minutes
     reportsRepo.weeklyRevenue(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);
 
     await sleep(60 * 1000); //  1 minutes
