@@ -704,6 +704,59 @@ avgTransactionPerCustomer = async(from, to) => {
     }
 }
 
+weeklyRevenue = async(weekFromArray, weekToArray, emailList) => {
+    try {
+        let emailBody = "";
+
+        for(let i = 0; i < weekFromArray.length; i++){
+            let weekFrom = weekFromArray[i];
+            let weekTo = weekToArray[i];
+
+            console.log("=> weeklyRevenue from", weekFrom, "to", weekTo);
+            let revenue = await billinghistoryRepo.getRevenueInDateRange(weekFrom, weekTo);
+            emailBody.concat(`${weekFrom} - ${weekTo}:   ${revenue[0].total}\n`);
+        }
+
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  emailList,
+            subject: `Weekly Revenue Report - ${monthNames[weekFromArray[0].getMonth()]}`,
+            text: emailBody,
+        });
+        console.log("=> [weeklyRevenue][emailSent]",info);
+        
+    } catch (error) {
+        console.error("=> weeklyRevenue- error ", error);
+    }
+}
+
+weeklyTransactingCustomers = async(weekFromArray, weekToArray, emailList) => {
+
+    try {
+        let emailBody = "";
+
+        for(let i = 0; i < weekFromArray.length; i++){
+            let weekFrom = weekFromArray[i];
+            let weekTo = weekToArray[i];
+
+            console.log("=> weeklyTransactingCustomers from", weekFrom, "to", weekTo);
+            let totalUniqueUsers = await billinghistoryRepo.totalUniqueTransactingUsers(from, to);
+            emailBody.concat(`${weekFrom} - ${weekTo}:   ${totalUniqueUsers[0].count}\n`);
+        }
+
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  emailList,
+            subject: `Weekly Transacting Customers - ${monthNames[weekFromArray[0].getMonth()]}`,
+            text: emailBody,
+        });
+        console.log("=> [weeklyTransactingCustomers][emailSent]",info);
+        
+    } catch (error) {
+        console.error("=> weeklyTransactingCustomers- error ", error);
+    }
+}
+
 dailyReturningUsers = async(from, to) => {
     try {
         console.log("=> DailyReturningUsers from", from, "to", to);
@@ -1273,5 +1326,7 @@ module.exports = {
     getInactiveBaseHavingViewLogsLessThan3: getInactiveBaseHavingViewLogsLessThan3,
     dailyNetAddition: dailyNetAddition,
     avgTransactionPerCustomer: avgTransactionPerCustomer,
-    dailyReturningUsers: dailyReturningUsers
+    dailyReturningUsers: dailyReturningUsers,
+    weeklyRevenue: weeklyRevenue,
+    weeklyTransactingCustomers: weeklyTransactingCustomers
 }

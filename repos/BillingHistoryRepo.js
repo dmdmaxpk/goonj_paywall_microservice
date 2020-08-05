@@ -439,6 +439,24 @@ class BillingHistoryRepository {
             console.log("=>", err);
         }
     }
+
+    async getRevenueInDateRange (from, to)  {
+        console.log("=>", today);
+        try{
+            let result = await BillingHistory.aggregate([ { $match: { 
+                "billing_status": "Success",
+                $and:[
+                    {"billing_dtm":{$gt: new Date(from)}}, 
+                    {"billing_dtm":{$lte: new Date(to)}}
+                ]            
+                } },
+                { $project: { _id: 0, "price": "$price" } },{ $group: {          _id: null,          total: {              $sum: "$price"          }      }  } ]);
+                console.log("=> ", result);
+             return result;
+        }catch(err){
+            console.log("=>", err);
+        }
+    }
 }
 
 
