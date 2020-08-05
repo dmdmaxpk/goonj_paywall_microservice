@@ -714,7 +714,7 @@ weeklyRevenue = async(weekFromArray, weekToArray, emailList) => {
 
             console.log("=> weeklyRevenue from", weekFrom, "to", weekTo);
             let revenue = await billinghistoryRepo.getRevenueInDateRange(weekFrom, weekTo);
-            emailBody.concat('\n', `${weekFrom} - ${weekTo}:   ${revenue[0].total}`);
+            emailBody = emailBody.concat(`${weekFrom} - ${weekTo}:   ${revenue[0].total}\n`);
         }
 
         let info = await transporter.sendMail({
@@ -741,7 +741,7 @@ weeklyTransactingCustomers = async(weekFromArray, weekToArray, emailList) => {
 
             console.log("=> weeklyTransactingCustomers from", weekFrom, "to", weekTo);
             let totalUniqueUsers = await billinghistoryRepo.totalUniqueTransactingUsers(weekFrom, weekTo);
-            emailBody.concat('\n', `${weekFrom} - ${weekTo}:   ${totalUniqueUsers[0].count}`);
+            emailBody = emailBody.concat(`${weekFrom} - ${weekTo}:   ${totalUniqueUsers[0].count}\n`);
         }
 
         let info = await transporter.sendMail({
