@@ -32,7 +32,7 @@ exports.rev_report = async (req,res) =>  {
 
 exports.req_count = async (req,res) =>  {
 
-    let data = "";
+    let data = [];
 
     let todayStart = new Date();
     todayStart.setHours(00);
@@ -60,13 +60,13 @@ exports.req_count = async (req,res) =>  {
     dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
 
     let requests = await billingHistoryRepo.getRequests(todayStart, todayEnd);
-    data = data.concat(`Today's request till the time are: ${requests[0].sum}\n`);
+    data.push({'Todays requests till the time': requests[0].sum});
 
     requests = await billingHistoryRepo.getRequests(yesterdayStart, yesterdayEnd);
-    data = data.concat(`Yesterday's requests till the time were: ${requests[0].sum}\n`);
+    data.push({'Yesterdays requests till the time': requests[0].sum});
 
     requests = await billingHistoryRepo.getRequests(dayBeforeYesterdayStart, dayBeforeYesterdayEnd);
-    data = data.concat(`Day before yesterday requests till the time were: ${requests[0].sum}`);
+    data.push({'Day before yesterdays requests till the time': requests[0].sum});
 
     console.log("=> ", data);
     res.send(data);
