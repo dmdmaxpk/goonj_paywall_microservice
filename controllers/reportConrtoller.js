@@ -59,20 +59,16 @@ exports.req_count = async (req,res) =>  {
     let dayBeforeYesterdayEnd = new Date();
     dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
 
-    let requests = await billingHistoryRepo.getRequests(dayBeforeYesterdayStart, dayBeforeYesterdayEnd);
-    data = data.concat(`Requests from ${dayBeforeYesterdayStart} to ${dayBeforeYesterdayEnd}: ${requests[0].sum}`);
+    let requests = await billingHistoryRepo.getRequests(todayStart, todayEnd);
+    data = data.concat(`Today's request till the time are: ${requests[0].sum}\n`);
 
     requests = await billingHistoryRepo.getRequests(yesterdayStart, yesterdayEnd);
-    data = data.concat(`Requests from ${yesterdayStart} to ${yesterdayEnd}: ${requests[0].sum}`);
+    data = data.concat(`Yesterday's requests till the time were: ${requests[0].sum}\n`);
 
-    requests = await billingHistoryRepo.getRequests(todayStart, todayEnd);
-    data = data.concat(`Requests from ${todayStart} to ${todayEnd}: ${requests[0].sum}`);
+    requests = await billingHistoryRepo.getRequests(dayBeforeYesterdayStart, dayBeforeYesterdayEnd);
+    data = data.concat(`Day before yesterday requests till the time were: ${requests[0].sum}`);
 
     console.log("=> ", data);
-    if (revenue){
-        res.send(data);
-    }else{
-        res.send(`Failed to fetch number of request`);
-    }
+    res.send(data);
 }
 
