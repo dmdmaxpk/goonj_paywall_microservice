@@ -30,3 +30,49 @@ exports.rev_report = async (req,res) =>  {
     }
 }
 
+exports.req_count = async (req,res) =>  {
+
+    let data = "";
+
+    let todayStart = new Date();
+    todayStart.setHours(00);
+    todayStart.setMinutes(00);
+    todayStart.setSeconds(00);
+    let todayEnd = new Date();
+
+    let yesterdayStart = new Date();
+    yesterdayStart.setDate(todayStart.getDate() - 1);
+    yesterdayStart.setHours(00);
+    yesterdayStart.setMinutes(00);
+    yesterdayStart.setSeconds(00);
+
+    let yesterdayEnd = new Date();
+    yesterdayEnd.setDate(todayStart.getDate() - 1);
+
+    let dayBeforeYesterdayStart = new Date();
+    dayBeforeYesterdayStart.setDate(todayStart.getDate() - 2);
+    dayBeforeYesterdayStart.setHours(00);
+    dayBeforeYesterdayStart.setMinutes(00);
+    dayBeforeYesterdayStart.setSeconds(00);
+
+
+    let dayBeforeYesterdayEnd = new Date();
+    dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
+
+    let requests = await billingHistoryRepo.getRequests(dayBeforeYesterdayStart, dayBeforeYesterdayEnd);
+    data = data.concat(`Requests from ${dayBeforeYesterdayStart} to ${dayBeforeYesterdayEnd}: ${requests[0].sum}`);
+
+    requests = await billingHistoryRepo.getRequests(yesterdayStart, yesterdayEnd);
+    data = data.concat(`Requests from ${yesterdayStart} to ${yesterdayEnd}: ${requests[0].sum}`);
+
+    requests = await billingHistoryRepo.getRequests(todayStart, todayEnd);
+    data = data.concat(`Requests from ${todayStart} to ${todayEnd}: ${requests[0].sum}`);
+
+    console.log("=> ", data);
+    if (revenue){
+        res.send(data);
+    }else{
+        res.send(`Failed to fetch number of request`);
+    }
+}
+

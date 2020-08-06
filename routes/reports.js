@@ -12,4 +12,7 @@ router.route('/gdn')
 router.route('/rev')
     .get(controller.rev_report)
 
+router.route('/req-count')
+    .get(controller.req_count)
+
 module.exports = router;
