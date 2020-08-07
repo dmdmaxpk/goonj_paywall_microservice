@@ -296,7 +296,7 @@ exports.verifyOtp = async (req, res) => {
 		// OTP hardcoded
 		if(msisdn === '03485049911'){
 			otpUser.verified = false;
-			otpUser.otp = '12345';
+			otpUser.otp = '1234';
 		}
 
 		// Record already present in collection, lets check it further.
@@ -750,15 +750,13 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 				dataToReturn.subscriptionObj = subscriptionObj;
 				resolve(dataToReturn);
 			}else {
-				if (result.message === "failed" && result.response.errorCode === "500.007.05") {
-                    dataToReturn.desc = 'Easypaisa account is not activated using this number. Please use an Easypaisa account number. Thanks';
-                    dataToReturn.status = "failed";
+				/*if (result.message === "failed" && result.response.errorCode === "500.007.05") {
+					dataToReturn.desc = 'Easypaisa account is not activated on this number. Please use an Easypaisa account. Thanks';
+					dataToReturn.status = "failed";
                     dataToReturn.subscriptionObj = subscriptionObj;
                     resolve(dataToReturn);
                     return;
-				}
-
-				if(result.desc && result.desc !== 'Insufficient Balance'){
+				}else*/ if(result.desc && result.desc !== 'Insufficient Balance'){
 					dataToReturn.desc = result.desc;
 					dataToReturn.status = "failed";
 					dataToReturn.subscriptionObj = subscriptionObj;

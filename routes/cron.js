@@ -20,6 +20,9 @@ router.route('/subscriptionRenewal')
 router.route('/tokenRefresh')
     .get(controller.refreshToken);
 
+router.route('/addInBillingQueue')
+    .get(controller.addInBillingQueue);
+
 router.route('/tpsCountReset')
     .get(controller.tpsCountReset);
 

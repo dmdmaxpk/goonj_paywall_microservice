@@ -439,6 +439,49 @@ class BillingHistoryRepository {
             console.log("=>", err);
         }
     }
+
+    async getRevenueInDateRange (from, to)  {
+        try{
+            let result = await BillingHistory.aggregate([ { $match: { 
+                "billing_status": "Success",
+                $and:[
+                    {"billing_dtm":{$gt: new Date(from)}}, 
+                    {"billing_dtm":{$lte: new Date(to)}}
+                ]            
+                } },
+                { $project: { _id: 0, "price": "$price" } },{ $group: {          _id: null,          total: {              $sum: "$price"          }      }  } ]);
+                console.log("=> ", result);
+             return result;
+        }catch(err){
+            console.log("=>", err);
+        }
+    }
+
+    async getRequests(from, to)  {
+        try{
+            let result = await BillingHistory.aggregate([
+            {
+                $match:{
+                $or:[
+                    {billing_status: "Success"}, 
+                    {billing_status: "graced"}
+                ],
+                $and:[
+                    {billing_dtm:{$gt: new Date(from)}}, 
+                    {billing_dtm:{$lte: new Date(to)}}
+                ]
+                }
+            },{
+                $count: "sum"
+            }
+            ]);
+
+            console.log("=> ", result);
+             return result;
+        }catch(err){
+            console.log("=>", err);
+        }
+    }
 }
 
 
