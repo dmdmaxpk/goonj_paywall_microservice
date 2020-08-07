@@ -87,8 +87,8 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
-        let label = "label " + Date.now() + Math.random();
-        console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
+
+        console.time("TimeLog -TPAPI - FullChargeTPCall - Start");
         return new Promise(function(resolve, reject) {
             axios({
                 method: 'post',
@@ -97,10 +97,10 @@ class BillingRepository {
                 data: form
             }).then(function(response){
                 subscriptionObj.api_response = response;
-                console.timeEnd("[timeLog][TPAPI][FullChargeTPCall]" + label);
+                console.timeEnd("TimeLog -TPAPI - FullChargeTPCall - End");
                 resolve(subscriptionObj);
             }).catch(function(err){
-                console.timeEnd("[timeLog][TPAPI][FullChargeTPCall]" + label);
+                console.timeEnd("TimeLog -TPAPI - FullChargeTPCall - End with error");
                 reject(err);
             });
         })
