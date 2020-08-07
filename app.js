@@ -3,6 +3,35 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const mongoose = require('mongoose');
+
+console.log('***************************************');
+const cluster = require('cluster');
+const numCPUs = require('os').cpus().length;
+
+console.log('=============================:numCPUs: ', numCPUs);
+
+if (cluster.isMaster) {
+    masterProcess();
+} else {
+    childProcess();
+}
+
+function masterProcess() {
+    console.log(`=============================:Master ${process.pid} is running`);
+    console.log('=============================:isMaster: yes');
+    // createChannel(), assertQueue(), sendToQueue() - RabbitMQ
+    // this.createQueue(); all the types of create queues
+}
+
+function childProcess() {
+    console.log(`=============================:Worker ${process.pid} started...`);
+    console.log('=============================:isWorker: yes');
+    // consumeQueue() - RabbitMQ workers
+    // this.consumeQueue(connection); all the type of consume queues
+}
+
+console.log('***************************************');
+
 // Import database models
 require('./models/User');
 require('./models/Package');
