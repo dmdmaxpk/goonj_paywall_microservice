@@ -28,7 +28,7 @@ class RabbitMq {
             }
 
             // Number of items queue will throw at a time.
-            channel.prefetch(config.telenor_subscription_api_tps + config.telenor_message_api_tps);
+            channel.prefetch(config.telenor_subscription_api_tps + config.telenor_message_api_tps + config.telenor_subscriber_query_api_tps);
             callback(null, channel);
         });
     }
@@ -59,6 +59,8 @@ class RabbitMq {
 
     consumeQueue(queue, callback){
         this.channel.consume(queue, async (msg) =>  {
+
+            //console.log('consumeQueue -> msg: ', msg);
             callback(msg);
           }, {
             //It's time to turn manual acnkowledgments on using the {noAck: false} option and send a 
