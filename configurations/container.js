@@ -19,12 +19,15 @@ const UserRepository = require('../repos/UserRepo');
 const ChargingAttemptRepository = require('../repos/ChargingAttemptRepo');
 const PaywallRepository = require('../repos/PaywallRepo');
 const MigrationRepository = require('../repos/MigrationRepository');
-const TelenorBillingService = require('../services/TelenorBillingService');
-const SystemUserService = require('../services/SystemUserService');
 
 // Services
 const PaywallService = require('../services/PaywallService');
 const SubscriptionService = require('../services/SubscriptionService');
+const TelenorBillingService = require('../services/TelenorBillingService');
+const SystemUserService = require('../services/SystemUserService');
+const EasypaisaPaymentService = require('../services/EasypaisaPaymentService');
+const PaymentProcessService = require('../services/PaymentProcessService');
+
 const Constants = require('./constants');
 //scripts
 const RemoveDuplicateMsisdnsScript = require('../scripts/removeDuplicateMsisdns');
@@ -47,13 +50,16 @@ container.register({
     userRepository: awilix.asClass(UserRepository).singleton(),
     chargingAttemptRepository: awilix.asClass(ChargingAttemptRepository).singleton(),
     migrationRepository: awilix.asClass(MigrationRepository).singleton(),
+  
+
+    //SErvices
     telenorBillingService: awilix.asClass(TelenorBillingService).singleton(),
     systemUserRepository: awilix.asClass(SystemUserRepository).singleton(),
     systemUserService: awilix.asClass(SystemUserService).singleton(),
-
-    //SErvices
     paywallService : awilix.asClass(PaywallService).singleton(),
     subscriptionService : awilix.asClass(SubscriptionService).singleton(),
+    easypaisaPaymentService: awilix.asClass(EasypaisaPaymentService).singleton(),
+    paymentProcessService: awilix.asClass(PaymentProcessService).singleton(),
 
     //scripts
     removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdnsScript).singleton(),

@@ -1,4 +1,4 @@
-const axios = require('axios')
+const axios = require('axios');
 const config = require('./../config');
 
 
@@ -87,6 +87,7 @@ class BillingRepository {
         
         form.PartnerID = packageObj.partner_id;
         form.ProductID = "GoonjDCB-Charge";
+        
         let label = "label " + Date.now() + Math.random();
         console.time("[timeLog][TPAPI][FullChargeTPCall]" + label);
         return new Promise(function(resolve, reject) {
@@ -220,7 +221,7 @@ class BillingRepository {
         var form = { correlationId: transactionId, recipientMsisdn: msisdn};
         
         return new Promise(function(resolve, reject) {
-            axios({
+            config.telenor_dcb_api_token({
                 method: 'post',
                 url: config.telenor_dcb_api_baseurl + 'balanceinquiry/v1/fetch',
                 headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },

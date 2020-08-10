@@ -1,13 +1,12 @@
-
 const config = require('../../../config');
 const moment = require('moment');
 var nodemailer = require('nodemailer');
-const axios =require("axios");
+const axios = require("axios");
 
 class SubscriptionConsumer {
 
     constructor({emailService,subscriptionRepository,billingHistoryRepository,tpsCountRepository,billingRepository,
-        packageRepository,messageRepository,userRepository,constants}) {
+        packageRepository,messageRepository,userRepository,constants, paymentProcessService}) {
         this.subscriptionRepo = subscriptionRepository;
         this.billingHistoryRepo = billingHistoryRepository;
         this.tpsCountRepo = tpsCountRepository;
@@ -17,6 +16,8 @@ class SubscriptionConsumer {
         this.userRepo = userRepository;
         this.emailService = emailService;
         this.constants = constants;
+        this.paymentProcessService = paymentProcessService;
+
     }
 
     async consume(message) {
@@ -37,26 +38,55 @@ class SubscriptionConsumer {
                 // Check if any user being excessive charge
                 if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
                     
-                    // Check current tps count
-                    let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
-                    if (countThisSec < config.telenor_subscription_api_tps) {
-    
-                        await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
-                        if(micro_charge){
-                            this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
-                        }else if(discount){
-                            this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
+                    if(subscription.payment_source && subscription.payment_source === 'easypaisa'){
+                        if(subscription.ep_token){
+                            // ep token exist
+                            // Check current tps count
+                            let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.easypaisaDispatcher);
+                            if (countThisSec < config.ep_subscription_api_tps) {
+            
+                                await this.tpsCountRepo.incrementTPSCount(config.queueNames.easypaisaDispatcher);
+                                if(micro_charge){
+                                    this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
+                                }else if(discount){
+                                    this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
+                                }else{
+                                    this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
+                                }
+                                console.timeEnd("[timeLog][Consumer - ep][SubscriptionConsumer]" + label);
+                            }  else{
+                                console.log("TPS quota full for easypaisa subscription, waiting for 1 seconds to elapse - ", new Date());
+                                setTimeout(() => {
+                                    console.log("Calling ep - consume subscription queue after 2000 seconds");
+                                    this.consume(message);
+                                }, 1000);
+                            }  
                         }else{
-                            this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
+                            console.log('EP token does not exist for subscription id ', subscription._id);
                         }
-                        console.timeEnd("[timeLog][Consumer][SubscriptionConsumer]" + label);
-                    }  else{
-                        console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
-                        setTimeout(() => {
-                            console.log("Calling consume subscription queue after 200 seconds");
-                            this.consume(message);
-                        }, 200);
-                    }  
+                    }else{
+                        // telenor billing
+                        // Check current tps count
+                        let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
+                        if (countThisSec < config.telenor_subscription_api_tps) {
+
+                            await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
+                            if(micro_charge){
+                                this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
+                            }else if(discount){
+                                this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
+                            }else{
+                                this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
+                            }
+                            console.timeEnd("[timeLog][Consumer][SubscriptionConsumer]" + label);
+                        }  else{
+                            console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
+                            setTimeout(() => {
+                                console.log("Calling consume subscription queue after 200 seconds");
+                                this.consume(message);
+                            }, 200);
+                        }  
+                    }
                 }else{
                     console.log("Excessive charging");
                     let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
@@ -107,15 +137,15 @@ class SubscriptionConsumer {
         let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
         
         try{
-            let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
-            let api_response = response.api_response;
-            let message = api_response.data.Message;
+            let response = await this.paymentProcessService.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
+            let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.api_response.data;
+            let message = response.message;
     
             if(message === 'Success'){
                 console.log("Billing success for subscription id:", subscription._id);
                 
                 // Save tp billing response
-                this.createBillingHistory(subscription, api_response.data, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
+                this.createBillingHistory(subscription, api_response, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
                 
                 // Success billing
                 let nextBilling = new Date();
@@ -161,7 +191,7 @@ class SubscriptionConsumer {
             }else{
                 // Unsuccess billing. Save tp billing response
                 console.log("Billing failed for subscription id:", subscription._id);
-                await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,api_response.data,transaction_id);
+                await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,api_response,transaction_id);
                 rabbitMq.acknowledge(queueMessage);
             }
         }catch(error){
@@ -284,14 +314,14 @@ class SubscriptionConsumer {
             
             if(micro_price <= packageObj.price_point_pkr){
                 
-                let response = await this.billingRepo.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
-                let api_response = response.api_response;
-                let message = api_response.data.Message;
+                let response = await this.paymentProcessService.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
+                let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.api_response.data;
+                let message = response.message;
 
                 if(message === 'Success'){
                     console.log("Micro Chargning success for ",subscription._id," for price ",micro_price);
                     // Save tp billing response
-                    this.createBillingHistory(subscription, api_response.data, message, transaction_id, true, false, micro_price, packageObj);
+                    this.createBillingHistory(subscription, api_response, message, transaction_id, true, false, micro_price, packageObj);
                     
                     // Success billing
                     let nextBilling = new Date();
@@ -338,7 +368,7 @@ class SubscriptionConsumer {
                     rabbitMq.acknowledge(queueMessage);
                 }else{
                     // Unsuccess billing. Save tp billing response
-                    await this.assignGracePeriod(subscription, user, packageObj, false,api_response.data,transaction_id);
+                    await this.assignGracePeriod(subscription, user, packageObj, false,api_response,transaction_id);
                     rabbitMq.acknowledge(queueMessage);
                 }
             }else{
@@ -565,7 +595,7 @@ class SubscriptionConsumer {
         history.operator_response = response;
         history.billing_status = billingStatus;
         
-        history.operator = 'telenor';
+        history.operator = subscription.payment_source?subscription.payment_source:'telenor';
     
         if(micro_charge === true){
             history.price = price;
@@ -696,7 +726,5 @@ class SubscriptionConsumer {
         this.messageRepo.sendSmsToUser(message, msisdn);
     }
 }
-
-
 
 module.exports = SubscriptionConsumer;

@@ -23,6 +23,11 @@ class SubscriptionRepository {
         let result = await Subscription.findOne({_id: subscription_id});
         return result;
     }
+
+    async getSubscriptionHavingPaymentSourceEP (subscriber_id)  {
+        let result = await Subscription.findOne({subscriber_id: subscriber_id, payment_source: 'easypaisa', 'ep_token':{$exists:true}});
+        return result;
+    }
     
     async getAllSubscriptions(subscriber_id)  {
         let result = await Subscription.find({subscriber_id: subscriber_id});
@@ -70,9 +75,14 @@ class SubscriptionRepository {
         let result = await Subscription.findOne({subscriber_id: subscriber_id, paywall_id: paywall_id});
         return result;
     }
+
+    async getSubscriptionBySubscriberId(subscriber_id)  {
+        let result = await Subscription.findOne({subscriber_id: subscriber_id});
+        return result;
+    }
     
     async getRenewableSubscriptions  ()  {
-        let results = await Subscription.find({is_billable_in_this_cycle: true}).sort({priority:1}).limit(7000);
+        let results = await Subscription.find({is_billable_in_this_cycle: true}).sort({priority:1}).limit(8000);
         return results;
     }
     

@@ -40,6 +40,18 @@ subscriptionRenewal = async() => {
     }
 }
 
+addSubscription =  async(subscription) => {
+    console.log('CRUUOW3EQK3m', '3');
+    console.log('CRUUOW3EQK3m', subscription);
+    let promise = getPromise(subscription);
+    console.log('CRUUOW3EQK3m', '4');
+    promise.then(response => {
+        console.log(subscription._id, 'response', response);
+    }).catch(error => {
+        console.log(subscription._id, 'error', error);
+    });
+}
+
 getPromise =  async(subscription) => {
     return new Promise((resolve, reject) => {
         renewSubscription(subscription);
@@ -85,7 +97,12 @@ renewSubscription = async(subscription) => {
     subscriptionObj.subscription = subscription;
     
     if(subscription.try_micro_charge_in_next_cycle === true && subscription.micro_price_point > 0){
-        transactionId = "GoonjMicroCharge_" + subscription._id + "_Price_" + subscription.micro_price_point + "_" + shortId.generate() + "_" + getCurrentDate();
+        
+        if(subscription.payment_source === 'easypaisa'){
+            transactionId = "GEP-MC_"+shortId.generate();
+        }else{
+            transactionId = "GoonjMicroCharge_" + subscription._id + "_Price_" + subscription.micro_price_point + "_" + shortId.generate() + "_" + getCurrentDate();
+        }
         subscriptionObj.micro_charge = true;
         subscriptionObj.micro_price = subscription.micro_price_point;
     }else{
@@ -94,7 +111,11 @@ renewSubscription = async(subscription) => {
             subscriptionObj.discounted_price = subscription.discounted_price;
             transactionId = "GoonjDiscountedCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
         }else{
-            transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
+            if(subscription.payment_source === 'easypaisa'){
+                transactionId = "G-EP_"+shortId.generate();
+            }else{
+                transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
+            }
         }
     }
     subscriptionObj.transactionId = transactionId;
@@ -104,7 +125,8 @@ renewSubscription = async(subscription) => {
         let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true});
         if(updated){
             rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-            
+            console.log('Added: ', subscription._id);
+
             if(subscriptionObj.micro_charge){
                 console.log('Renew Subscription Micro Charge - AddInQueue', ' - ', transactionId, ' - ', (new Date()));    
             }else if(subscriptionObj.discount){
@@ -175,5 +197,6 @@ function AddZero(num) {
 module.exports = {
     // runJob: runJob,
     subscriptionRenewal: subscriptionRenewal,
-    markRenewableUser: markRenewableUser
+    markRenewableUser: markRenewableUser,
+    addSubscription: addSubscription
 }

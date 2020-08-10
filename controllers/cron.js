@@ -8,6 +8,7 @@ const grayListService = require('../services/GrayListService');
 const reportsService = require('../services/ReportsService');
 const billingMonitoringService = require('../services/BillingMonitoringService');
 const messageService = require('../services/MessageService');
+const subscriptionRepository = container.resolve("subscriptionRepository");
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
@@ -17,6 +18,15 @@ exports.subscriptionRenewal = async (req,res) =>  {
 exports.refreshToken = async (req,res) =>  {
     await tokenRefreshService.refreshToken();
     res.send("Token Refresh - Executed");
+}
+
+exports.addInBillingQueue = async (req,res) =>  {
+    let subscription_id = req.query.subscription_id;
+    console.log(subscription_id, '1');
+    let subscription = await subscriptionRepository.getSubscription(subscription_id);
+    console.log(subscription_id, '2');
+    await subscriptionService.addSubscription(subscription);
+    res.send("addInBillingQueue - Executed\n");
 }
 
 exports.dailyAmoutReset = async (req,res) =>  {

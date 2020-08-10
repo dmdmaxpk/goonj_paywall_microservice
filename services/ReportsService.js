@@ -34,37 +34,38 @@ generateDailyReport = async() => {
     // await subscriberRepo.removeNumberAndHistory('03458561755');
     
     
-    await sleep(120*1000);
+    await sleep(180*1000);
     reportsRepo.callBacksReport();
 
     
-    await sleep(120*1000);
+    await sleep(180*1000);
     reportsRepo.dailyReturningUsers(from, to);
     
     
-    await sleep(120*1000);
+    await sleep(180*1000);
     reportsRepo.dailyUnsubReport();
 
     //await sleep(120*1000);
     //reportsRepo.errorCountReport();
     
     
-    await sleep(120*1000);
+    await sleep(180*1000);
     reportsRepo.dailyFullAndPartialChargedUsers();
     
-    // await sleep(120*1000);
-    reportsRepo.dailyTrialToBilledUsers();
+
+    //await sleep(120*1000);
+    //reportsRepo.dailyTrialToBilledUsers();
     
     
-    await sleep(120*1000);
+    await sleep(180*1000);
     reportsRepo.dailyChannelWiseUnsub();
 
     
-    await sleep(120*1000);
+    await sleep(180*1000);
     reportsRepo.dailyChannelWiseTrialActivated();
 
 
-    await sleep(120*1000);
+    await sleep(180*1000);
     reportsRepo.dailyPageViews();
 
     //await sleep(120*1000);
@@ -111,10 +112,32 @@ generateMonthlyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
-    //reportsRepo.dailyNetAddition(from, to);
+    /*reportsRepo.dailyNetAddition(from, to);
+    await sleep(180 * 1000); // 3 minutes
+    reportsRepo.avgTransactionPerCustomer(from, to);*/
     
-    //await sleep(300 * 1000); // 5 minutes
-    //reportsRepo.avgTransactionPerCustomer(from, to);
+    // For week wise reports
+    let firstWeekFrom  = new Date('2020-07-01T00:00:00.000Z');
+    let firstWeekTo  = new Date('2020-07-07T23:59:59.000Z');
+
+    let secondWeekFrom  = new Date('2020-07-08T00:00:00.000Z');
+    let secondWeekTo  = new Date('2020-07-15T23:59:59.000Z');
+
+    let thirdWeekFrom  = new Date('2020-07-16T00:00:00.000Z');
+    let thirdWeekTo  = new Date('2020-07-23T23:59:59.000Z');
+
+    let forthWeekFrom  = new Date('2020-07-24T00:00:00.000Z');
+    let forthWeekTo  = new Date('2020-07-31T23:59:59.000Z');
+
+
+    let weekFromArray = [firstWeekFrom, secondWeekFrom, thirdWeekFrom, forthWeekFrom];
+    let weekToArray = [firstWeekTo, secondWeekTo, thirdWeekTo, forthWeekTo];
+    
+    //await sleep(60 * 1000); // 1 minutes
+    reportsRepo.weeklyRevenue(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);
+
+    await sleep(60 * 1000); //  1 minutes
+    reportsRepo.weeklyTransactingCustomers(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);
 }
 
 
