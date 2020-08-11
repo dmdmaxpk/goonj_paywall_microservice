@@ -68,7 +68,8 @@ expire = async(subscription) => {
         is_billable_in_this_cycle:false, 
         consecutive_successive_bill_counts: 0,
         try_micro_charge_in_next_cycle: false,
-        micro_price_point: 0
+        micro_price_point: 0,
+        amount_billed_today: 0
     });
 
     let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});

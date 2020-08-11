@@ -1025,7 +1025,8 @@ exports.unsubscribe = async (req, res) => {
 						micro_price_point: 0,
 						last_subscription_status: subscription.subscription_status,
 						subscription_status: "expired",
-						priority: 0
+						priority: 0,
+						amount_billed_today: 0
 					});
 				
 				let history = {};

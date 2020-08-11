@@ -521,6 +521,10 @@ class SubscriptionConsumer {
         }
 
         subscriptionObj.queued = false;
+        if(historyStatus && historyStatus === 'expired'){
+            subscriptionObj.amount_billed_today = 0;
+        }
+        
         await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         if(historyStatus){
             let history = {};
