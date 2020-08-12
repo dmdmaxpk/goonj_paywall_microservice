@@ -97,6 +97,7 @@ class BillingRepository {
                 headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
                 data: form
             }).then(function(response){
+                console.log('TP RESPONSE ', response);
                 subscriptionObj.api_response = response;
                 console.timeEnd("[timeLog][TPAPI][FullChargeTPCall]" + label);
                 resolve(subscriptionObj);
