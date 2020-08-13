@@ -1315,6 +1315,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
             try{
                 dataPresent = await isDataPresent(finalResult, singleObject);
             }catch(e){
+                console.log("=>", e);
                 dataPresent = undefined;
             }
 
@@ -1366,7 +1367,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
 }
 
 function isDataPresent(array, dataToFind) {
-    new Promise(resolve, reject => {
+    return new Promise(resolve, reject => {
         for(let i = 0; i < array.length; i++){
             let o = array[i];
             if(o.mid === dataToFind.mid && o.user_id === dataToFind.user_id){
