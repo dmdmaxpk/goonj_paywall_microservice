@@ -16,6 +16,7 @@ var viewLogsRepo = require('../repos/ViewLogRepo');
 
 var pageViews = require('../controllers/PageViews');
 const SubscriberRepository = require('./SubscriberRepo');
+const { resolve } = require('path');
 
 
 let currentDate = null;
@@ -1309,7 +1310,13 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
             console.log("=> data: ", JSON.stringify(result[j]));
             singleObject.mid = affMidsSubscriptions[i]._id;
             singleObject.user_id = result[j].user_id;
-            let dataPresent = isDataPresent(finalResult, singleObject);
+
+            let dataPresent;
+            try{
+                dataPresent = await isDataPresent(finalResult, singleObject);
+            }catch(e){
+                dataPresent = undefined;
+            }
 
             if(dataPresent){
                 if(result[j].billing_status === "Success"){
@@ -1359,15 +1366,17 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
 }
 
 function isDataPresent(array, dataToFind) {
-    for(let i = 0; i < array.length; i++){
-        let o = array[i];
-        if(o.mid === dataToFind.mid && o.user_id === dataToFind.user_id){
-            console.log("Data Found", o.mid, "===", dataToFind.mid, "&&", o.user_id, "===",dataToFind.user_id)
-            return o;
+    new Promise(resolve, reject => {
+        for(let i = 0; i < array.length; i++){
+            let o = array[i];
+            if(o.mid === dataToFind.mid && o.user_id === dataToFind.user_id){
+                console.log("Data Found", o.mid, "===", dataToFind.mid, "&&", o.user_id, "===",dataToFind.user_id)
+                resolve(o);
+            }
         }
-    }
-    console.log("Data Found NOT")
-    return undefined;
+        console.log("Data Found NOT")
+        reject();
+    });
 }
 
 function getViewLogs(user_id){
