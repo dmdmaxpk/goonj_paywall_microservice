@@ -1304,7 +1304,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
         let result = await billinghistoryRepo.getBillingDataForSpecificSubscriberIds(subscriber_ids);
 
         let singleObject = {};
-
+        console.log("=> length: ", result.length);
         for(let j = 0; j < result.length; j++){
 
             singleObject.mid = affMidsSubscriptions[i]._id;
@@ -1312,7 +1312,6 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
             let dataPresent = isDataPresent(finalResult, singleObject);
 
             if(dataPresent){
-                console.log("=> Data Found");
                 if(result[j].billing_status === "Success"){
                     dataPresent.success_transactions = dataPresent.success_transactions + 1;
                     dataPresent.amount = dataPresent.amount + result[j].price;
@@ -1360,7 +1359,10 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
 }
 
 function isDataPresent(array, dataToFind) {
-    const result = array.find(o => (o.mid === dataToFind.mid && o.user_id === dataToFind.user_id));
+    const result = array.find(o => 
+            console.log("Finding data ", o.mid, "===", dataToFind.mid, "&&", o.user_id, "===",dataToFind.user_id)
+            (o.mid === dataToFind.mid && o.user_id === dataToFind.user_id)
+        );
     return result;
 }
 
