@@ -1312,6 +1312,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
             let dataPresent = isDataPresent(finalResult, singleObject);
 
             if(dataPresent){
+                console.log("=> Data Found");
                 if(result[j].billing_status === "Success"){
                     dataPresent.success_transactions = dataPresent.success_transactions + 1;
                     dataPresent.amount = dataPresent.amount + result[j].price;
@@ -1319,6 +1320,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
                     dataPresent.code = 0;
                 }
             }else{
+                console.log("=> Data Not Found");
                 if(result[j].billing_status === "Success"){
                     singleObject.success_transactions = 1;
                     singleObject.amount = result[j].price;
