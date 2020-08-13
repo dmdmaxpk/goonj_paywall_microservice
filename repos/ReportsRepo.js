@@ -1302,19 +1302,12 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
     for(let i = 0; i < affMidsSubscriptions.length; i++){
         console.log("=> fetching data for affiliate mid ",affMidsSubscriptions[i]._id);
         let subscriber_ids = affMidsSubscriptions[i].subscriber_ids;
-
         let result = await billinghistoryRepo.getBillingDataForSpecificSubscriberIds(subscriber_ids);
-
-        let singleObject = {};
-        //console.log("=> length: ", result.length);
+        
         for(let j = 0; j < result.length; j++){
-            singleObject.mid = affMidsSubscriptions[i]._id;
-            singleObject.user_id = result[j].user_id;
             console.log("=> user_id", result[j].user_id);
             
             let dataPresent = isDataPresent(finalResult, result[j].user_id);
-            
-            //console.log("=> dataPresent", JSON.stringify(dataPresent));
             if(dataPresent){
                 if(result[j].billing_status === "Success"){
                     dataPresent.success_transactions = dataPresent.success_transactions + 1;
@@ -1323,7 +1316,10 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
                     dataPresent.code = 0;
                 }
             }else{
-                //console.log("=> Data Not Found");
+                let singleObject = {};
+                singleObject.mid = affMidsSubscriptions[i]._id;
+                singleObject.user_id = result[j].user_id;
+                
                 if(result[j].billing_status === "Success"){
                     singleObject.success_transactions = 1;
                     singleObject.amount = result[j].price;
@@ -1338,7 +1334,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
         }
     }
     
-    console.log(JSON.stringify(finalResult));
+    console.log("=>", JSON.stringify(finalResult));
 
     console.log("=> Sending email");
     await usersReportWithTrialAndBillingHistoryWriter.writeRecords(finalResult);
