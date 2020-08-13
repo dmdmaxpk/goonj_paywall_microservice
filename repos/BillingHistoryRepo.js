@@ -36,6 +36,18 @@ class BillingHistoryRepository {
              null, {sort: {billing_dtm: -1}});
         return records;
     }
+
+    async getBillingDataForSpecificSubscriberIds(subscriber_ids){
+        let result = await BillingHistory.aggregate([
+            { 
+                $match:{ 
+                    "subscriber_id": {$in : subscriber_ids},
+                    $or: [{"billing_status": 'Success'}, {"billing_status": 'trial'}]
+                }
+            }
+            ]);
+        return result;
+    }
     
     async billingInLastHour  ()  {
         let todayOneHourAgo = new Date(); //step 1 

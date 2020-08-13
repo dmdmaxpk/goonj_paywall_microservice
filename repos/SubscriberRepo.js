@@ -108,6 +108,15 @@ class SubscriberRepository {
         return data;
     }
 
+    async generateUsersReportWithTrialAndBillingHistory (subscriber_ids)  {
+        try {
+            let result = await User.db.subscribers.aggregate([ { $match:{ "_id": {$in : subscriber_ids} }},{ $lookup:{ from: "billinghistories", let: {user_id: "$user_id"}, pipeline:[ {$match:  { $expr:  {$and: [  { $eq : ["$user_id", "$$user_id"] },  {$or:[ { $eq : ["$billing_status", "Success"] } , { $eq : ["$billing_status", "trial"] }   ] } ] }   } } ], as: "usershistory" } } ]);
+            return result;
+        } catch(err) {
+            console.log(err);
+        }
+    }
+
     async getShouldRemove()  {
         let data = await Subscriber.find({should_remove: true}, {_id: 1});
         return data;

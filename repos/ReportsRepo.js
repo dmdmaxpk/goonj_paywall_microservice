@@ -15,6 +15,7 @@ var usersRepo = container.resolve('userRepository');
 var viewLogsRepo = require('../repos/ViewLogRepo');
 
 var pageViews = require('../controllers/PageViews');
+const SubscriberRepository = require('./SubscriberRepo');
 
 
 let currentDate = null;
@@ -61,6 +62,9 @@ let affiliatePvsFilePath = `./${affiliatePvs}`;
 
 let dailyNetAdditionCsv = currentDate+"_DailyNetAdditions.csv";
 let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
+
+let usersReportWithTrialAndBillingHistory = currentDate+"_UsersReportWithTrialAndBillingHistory.csv";
+let usersReportWithTrialAndBillingHistoryFilePath = `./${usersReportWithTrialAndBillingHistory}`;
 
 const csvWriter = createCsvWriter({
     path: paywallRevFilePath,
@@ -160,6 +164,18 @@ const csvAffiliatePvs = createCsvWriter({
         {id: 'source',title: "Source"},
         {id: 'mid',title: "MID"},
         {id: 'count', title: "Page Views"},
+    ]
+});
+
+
+const usersReportWithTrialAndBillingHistoryWriter = createCsvWriter({
+    path: usersReportWithTrialAndBillingHistoryFilePath,
+    header: [
+        {id: 'mid', title: 'Mid'},
+        {id: 'user_id',title: "Auto Generated Id"},
+        {id: 'code',title: "Code"},
+        {id: 'success_transactions', title: "Success Transactions"},
+        {id: 'amount', title: "Amount"},
     ]
 });
 
@@ -1271,6 +1287,69 @@ getInactiveBaseHavingViewLogsLessThan3 = async(from, to) => {
     })
 }
 
+
+generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
+    console.log("=> generateUsersReportWithTrialAndBillingHistory - from ", from, " to ", to);
+    let finalResult = [];
+    
+    let aff_mids = [{affiliate_mid: "goonj"},{affiliate_mid: "1569"},{affiliate_mid: "gdn"},
+        {affiliate_mid: "gdn2"},{affiliate_mid: "aff3"},{affiliate_mid: "aff3a"}
+    ]
+
+    let affMidsSubscriptions = await subscriptionRepo.getSubscriptionsForAffiliateMids(aff_mids, from, to);
+    
+    for(let i = 0; i < affMidsSubscriptions.length; i++){
+        console.log("=> fetching data for affiliate mid ",affMidsSubscriptions[i]._id);
+        let subscriber_ids = affMidsSubscriptions[i].subscriber_ids;
+        let result = await billinghistoryRepo.getBillingDataForSpecificSubscriberIds(subscriber_ids);
+
+        let singleObject = {};
+        let isTrialActivated = false;
+        let successTransactions = 0;
+        let amount = 0;
+
+        for(let j = 0; j < result.length; j++){
+            singleObject.mid = affMidsSubscriptions[i]._id;
+            singleObject.user_id = result[j].user_id;
+
+            if(result[j].billing_status === "Success"){
+                successTransactions+=1;
+                amount += result[j].price;
+            }else if(result[j].billing_status === "trial"){
+                isTrialActivated = true;
+            }
+        }
+
+        singleObject.code = isTrialActivated === true ? 0 : 1;
+        singleObject.success_transactions = successTransactions;
+        singleObject.amount = amount;
+        finalResult.push(singleObject);
+    }
+    
+    console.log("=> Sending email");
+    await usersReportWithTrialAndBillingHistoryWriter.writeRecords(finalResult);
+    let info = await transporter.sendMail({
+        from: 'paywall@dmdmax.com.pk',
+        to:  ["farhan.ali@dmdmax.com"],
+        subject: `Users With Trial & Billing Details`, // Subject line
+        text: `This report contains affiliate users with trial and billing details from ${new Date(from)} to ${new Date(to)}.\nNote: code 0 indicates trial and code 1 indicates subscribed directly`,
+        attachments:[
+            {
+                filename: usersReportWithTrialAndBillingHistory,
+                path: usersReportWithTrialAndBillingHistoryFilePath
+            }
+        ]
+    });
+
+    console.log("=> [usersReportWithTrialAndBillingHistory][emailSent]",info);
+    fs.unlink(usersReportWithTrialAndBillingHistoryFilePath,function(err,data) {
+        if (err) {
+            console.log("=> File not deleted[usersReportWithTrialAndBillingHistory]");
+        }
+        console.log("=> File deleted [usersReportWithTrialAndBillingHistory]");
+    });
+}
+
 function getViewLogs(user_id){
     return new Promise(async(resolve, reject) => {
         try{
@@ -1328,5 +1407,6 @@ module.exports = {
     avgTransactionPerCustomer: avgTransactionPerCustomer,
     dailyReturningUsers: dailyReturningUsers,
     weeklyRevenue: weeklyRevenue,
-    weeklyTransactingCustomers: weeklyTransactingCustomers
+    weeklyTransactingCustomers: weeklyTransactingCustomers,
+    generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }

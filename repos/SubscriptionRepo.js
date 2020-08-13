@@ -227,6 +227,26 @@ class SubscriptionRepository {
         return results;
     }
 
+    async getSubscriptionsForAffiliateMids(mids, from, to){
+        let results = await Subscription.aggregate([
+            {
+                $match:{
+                $or:mids,
+                $and:[
+                    {added_dtm:{$gt: new Date(from)}}, 
+                    {added_dtm:{$lt: new Date(to)}}
+                ]
+                }
+            },{
+                $group: {
+                    _id: "$affiliate_mid",
+                    subscriber_ids: {$addToSet: "$subscriber_id"}
+                }
+            }
+            ])
+        return results;
+    }
+
     async subscriptionToExpireNonUsage(){
         let results = await Subscription.aggregate([
             {
