@@ -1361,7 +1361,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
 }
 
 function isDataPresent(array, user_id) {
-    const result = array.filter(o => o.user_id === user_id);
+    const result = array.find(o => o.user_id === user_id);
     return result;
 }
 
