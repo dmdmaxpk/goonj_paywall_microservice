@@ -35,6 +35,9 @@ router.route('/checkLastSeenOfUsers')
 router.route('/grayListService')
     .get(controller.grayListService);
 
+router.route('/generateWeeklyReport')
+    .get(controller.generateWeeklyReports);    
+
 router.route('/generateDailyReport')
     .get(controller.generateDailyReport);
 

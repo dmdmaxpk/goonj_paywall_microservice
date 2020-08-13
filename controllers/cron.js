@@ -55,6 +55,11 @@ exports.generateDailyReport = async (req,res) =>  {
     res.send("GenerateDailyReport - Executed\n");
 }
 
+exports.generateWeeklyReports = async (req,res) =>  {
+    reportsService.generateWeeklyReports();
+    res.send("GenerateWeeklyReport - Executed\n");
+}
+
 exports.generateMonthlyReports = async (req,res) =>  {
     reportsService.generateMonthlyReports();
     res.send("GenerateMonthlyReports - Executed\n");
