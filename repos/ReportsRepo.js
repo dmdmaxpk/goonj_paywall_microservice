@@ -1306,13 +1306,15 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
         let result = await billinghistoryRepo.getBillingDataForSpecificSubscriberIds(subscriber_ids);
 
         let singleObject = {};
-        console.log("=> length: ", result.length);
+        //console.log("=> length: ", result.length);
         for(let j = 0; j < result.length; j++){
             singleObject.mid = affMidsSubscriptions[i]._id;
             singleObject.user_id = result[j].user_id;
             console.log("=> user_id", result[j].user_id);
+            
             let dataPresent = isDataPresent(finalResult, result[j].user_id);
-            console.log("=> dataPresent", JSON.stringify(dataPresent));
+            
+            //console.log("=> dataPresent", JSON.stringify(dataPresent));
             if(dataPresent){
                 if(result[j].billing_status === "Success"){
                     dataPresent.success_transactions = dataPresent.success_transactions + 1;
@@ -1321,7 +1323,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
                     dataPresent.code = 0;
                 }
             }else{
-                console.log("=> Data Not Found");
+                //console.log("=> Data Not Found");
                 if(result[j].billing_status === "Success"){
                     singleObject.success_transactions = 1;
                     singleObject.amount = result[j].price;
@@ -1331,12 +1333,13 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
                     singleObject.amount = 0;
                     singleObject.code = 0
                 }
-                console.log("=> singleObject", singleObject);
                 finalResult.push(singleObject);
             }
         }
     }
     
+    console.log(JSON.stringify(finalResult));
+
     console.log("=> Sending email");
     await usersReportWithTrialAndBillingHistoryWriter.writeRecords(finalResult);
     let info = await transporter.sendMail({
@@ -1362,7 +1365,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
 }
 
 function isDataPresent(array, user_id) {
-    const result = array.find(o => o.user_id === user_id);
+    const result = array.filter(o => o.user_id === user_id);
     return result;
 }
 
