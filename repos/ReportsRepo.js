@@ -1311,13 +1311,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
             singleObject.mid = affMidsSubscriptions[i]._id;
             singleObject.user_id = result[j].user_id;
 
-            let dataPresent;
-            try{
-                dataPresent = await isDataPresent(finalResult, singleObject);
-            }catch(e){
-                console.log("=>", e);
-                dataPresent = undefined;
-            }
+            let dataPresent = isDataPresent(finalResult, result[j].user_id);
 
             if(dataPresent){
                 if(result[j].billing_status === "Success"){
@@ -1366,18 +1360,9 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
     });
 }
 
-function isDataPresent(array, dataToFind) {
-    return new Promise(resolve, reject => {
-        for(let i = 0; i < array.length; i++){
-            let o = array[i];
-            if(o.mid === dataToFind.mid && o.user_id === dataToFind.user_id){
-                console.log("Data Found", o.mid, "===", dataToFind.mid, "&&", o.user_id, "===",dataToFind.user_id)
-                resolve(o);
-            }
-        }
-        console.log("Data Found NOT")
-        reject();
-    });
+function isDataPresent(array, user_id) {
+    const result = array.find(o => o.user_id === user_id);
+    return result;
 }
 
 function getViewLogs(user_id){
