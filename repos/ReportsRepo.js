@@ -1361,11 +1361,12 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
 function isDataPresent(array, dataToFind) {
     for(let i = 0; i < array.length; i++){
         let o = array[i];
-        console.log("Finding data ", o.mid, "===", dataToFind.mid, "&&", o.user_id, "===",dataToFind.user_id)
         if(o.mid === dataToFind.mid && o.user_id === dataToFind.user_id){
+            console.log("Data Found", o.mid, "===", dataToFind.mid, "&&", o.user_id, "===",dataToFind.user_id)
             return o;
         }
     }
+    console.log("Data Found NOT")
     return undefined;
 }
 
