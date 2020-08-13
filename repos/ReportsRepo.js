@@ -1359,11 +1359,14 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
 }
 
 function isDataPresent(array, dataToFind) {
-    const result = array.find(o => 
-            console.log("Finding data ", o.mid, "===", dataToFind.mid, "&&", o.user_id, "===",dataToFind.user_id)
-            (o.mid === dataToFind.mid && o.user_id === dataToFind.user_id)
-        );
-    return result;
+    for(let i = 0; i < array.length; i++){
+        let o = array[i];
+        console.log("Finding data ", o.mid, "===", dataToFind.mid, "&&", o.user_id, "===",dataToFind.user_id)
+        if(o.mid === dataToFind.mid && o.user_id === dataToFind.user_id){
+            return o;
+        }
+    }
+    return undefined;
 }
 
 function getViewLogs(user_id){
