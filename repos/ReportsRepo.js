@@ -1306,7 +1306,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
         let singleObject = {};
         console.log("=> length: ", result.length);
         for(let j = 0; j < result.length; j++){
-            console.log("=> data: ", result[j]);
+            console.log("=> data: ", JSON.stringify(result[j]));
             singleObject.mid = affMidsSubscriptions[i]._id;
             singleObject.user_id = result[j].user_id;
             let dataPresent = isDataPresent(finalResult, singleObject);
