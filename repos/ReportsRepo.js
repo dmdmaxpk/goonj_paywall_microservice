@@ -1312,7 +1312,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
             singleObject.user_id = result[j].user_id;
             console.log("=> user_id", result[j].user_id);
             let dataPresent = isDataPresent(finalResult, result[j].user_id);
-            console.log("=> dataPresent", dataPresent);
+            console.log("=> dataPresent", JSON.stringify(dataPresent));
             if(dataPresent){
                 if(result[j].billing_status === "Success"){
                     dataPresent.success_transactions = dataPresent.success_transactions + 1;
