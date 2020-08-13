@@ -28,7 +28,6 @@ class BillingHistoryRepository {
         dayToCompare = dayToCompare.setHours(dayToCompare.getHours() - config.max_graylist_time_in_hrs);
         
         let records = await BillingHistory.findOne({subscription_id: subscription_id,
-            
             $or: [{"billing_status": "unsubscribe-request-recieved"}, 
             {"billing_status": "unsubscribe-request-received-and-expired"}], 
             

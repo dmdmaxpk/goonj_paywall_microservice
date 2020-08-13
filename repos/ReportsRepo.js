@@ -1304,26 +1304,33 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
         let result = await billinghistoryRepo.getBillingDataForSpecificSubscriberIds(subscriber_ids);
 
         let singleObject = {};
-        let isTrialActivated = false;
-        let successTransactions = 0;
-        let amount = 0;
 
         for(let j = 0; j < result.length; j++){
+
             singleObject.mid = affMidsSubscriptions[i]._id;
             singleObject.user_id = result[j].user_id;
+            let dataPresent = isDataPresent(finalResult, singleObject);
 
-            if(result[j].billing_status === "Success"){
-                successTransactions+=1;
-                amount += result[j].price;
-            }else if(result[j].billing_status === "trial"){
-                isTrialActivated = true;
+            if(dataPresent){
+                if(result[j].billing_status === "Success"){
+                    dataPresent.success_transactions = dataPresent.success_transactions + 1;
+                    dataPresent.amount = dataPresent.amount + result[j].price;
+                }else if(result[j].billing_status === "trial"){
+                    dataPresent.code = 0;
+                }
+            }else{
+                if(result[j].billing_status === "Success"){
+                    singleObject.success_transactions = 1;
+                    singleObject.amount = result[j].price;
+                    singleObject.code = 1;
+                }else if(result[j].billing_status === "trial"){
+                    singleObject.success_transactions = 0;
+                    singleObject.amount = 0;
+                    singleObject.code = 0
+                }
+                finalResult.push(singleObject);
             }
         }
-
-        singleObject.code = isTrialActivated === true ? 0 : 1;
-        singleObject.success_transactions = successTransactions;
-        singleObject.amount = amount;
-        finalResult.push(singleObject);
     }
     
     console.log("=> Sending email");
@@ -1348,6 +1355,11 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
         }
         console.log("=> File deleted [usersReportWithTrialAndBillingHistory]");
     });
+}
+
+function isDataPresent(array, dataToFind) {
+    const result = array.find(o => (o.mid === dataToFind.mid && o.user_id === dataToFind.user_id));
+    return result;
 }
 
 function getViewLogs(user_id){
