@@ -1302,17 +1302,17 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
     for(let i = 0; i < affMidsSubscriptions.length; i++){
         console.log("=> fetching data for affiliate mid ",affMidsSubscriptions[i]._id);
         let subscriber_ids = affMidsSubscriptions[i].subscriber_ids;
+
         let result = await billinghistoryRepo.getBillingDataForSpecificSubscriberIds(subscriber_ids);
 
         let singleObject = {};
         console.log("=> length: ", result.length);
         for(let j = 0; j < result.length; j++){
-            console.log("=> data: ", JSON.stringify(result[j]));
             singleObject.mid = affMidsSubscriptions[i]._id;
             singleObject.user_id = result[j].user_id;
-
+            console.log("=> user_id", result[j].user_id);
             let dataPresent = isDataPresent(finalResult, result[j].user_id);
-
+            console.log("=> dataPresent", dataPresent);
             if(dataPresent){
                 if(result[j].billing_status === "Success"){
                     dataPresent.success_transactions = dataPresent.success_transactions + 1;
@@ -1331,6 +1331,7 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
                     singleObject.amount = 0;
                     singleObject.code = 0
                 }
+                console.log("=> singleObject", singleObject);
                 finalResult.push(singleObject);
             }
         }

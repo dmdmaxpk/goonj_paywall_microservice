@@ -243,7 +243,7 @@ class SubscriptionRepository {
                     subscriber_ids: {$addToSet: "$subscriber_id"}
                 }
             }
-            ])
+            ]);
         return results;
     }
 
