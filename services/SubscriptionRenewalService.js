@@ -41,10 +41,7 @@ subscriptionRenewal = async() => {
 }
 
 addSubscription =  async(subscription) => {
-    console.log('CRUUOW3EQK3m', '3');
-    console.log('CRUUOW3EQK3m', subscription);
     let promise = getPromise(subscription);
-    console.log('CRUUOW3EQK3m', '4');
     promise.then(response => {
         console.log(subscription._id, 'response', response);
     }).catch(error => {
@@ -93,10 +90,8 @@ expire = async(subscription) => {
 renewSubscription = async(subscription) => {
     
     let transactionId;
-    
-    let subscriptionObj = {};
-    subscriptionObj.subscription = subscription;
-    
+    let mcDetails = {};
+
     if(subscription.try_micro_charge_in_next_cycle === true && subscription.micro_price_point > 0){
         
         if(subscription.payment_source === 'easypaisa'){
@@ -104,12 +99,13 @@ renewSubscription = async(subscription) => {
         }else{
             transactionId = "GoonjMicroCharge_" + subscription._id + "_Price_" + subscription.micro_price_point + "_" + shortId.generate() + "_" + getCurrentDate();
         }
-        subscriptionObj.micro_charge = true;
-        subscriptionObj.micro_price = subscription.micro_price_point;
+
+        mcDetails.micro_charge = true;
+        mcDetails.micro_price = subscription.micro_price_point;
     }else{
         if (subscription.is_discounted === true && subscription.discounted_price){ 
-            subscriptionObj.discount = true;
-            subscriptionObj.discounted_price = subscription.discounted_price;
+            mcDetails.discount = true;
+            mcDetails.discounted_price = subscription.discounted_price;
             transactionId = "GoonjDiscountedCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
         }else{
             if(subscription.payment_source === 'easypaisa'){
@@ -119,21 +115,30 @@ renewSubscription = async(subscription) => {
             }
         }
     }
-    subscriptionObj.transactionId = transactionId;
 
     // Add object in queueing server
     if(subscription.queued === false){
         let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true});
         if(updated){
-            rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, subscriptionObj);
-            console.log('Added: ', subscription._id);
+            
+            let user = await userRepo.getUserBySubscriptionId(updated._id);
+            let package = await packageRepo.getPackage({_id: updated.subscribed_package_id});
 
-            if(subscriptionObj.micro_charge){
-                console.log('Renew Subscription Micro Charge - AddInQueue', ' - ', transactionId, ' - ', (new Date()));    
-            }else if(subscriptionObj.discount){
-                console.log('Discounted Subscription - AddInQueue', ' - ', transactionId, ' - ', (new Date()));
+            if(user){
+                let messageObj = {};
+                messageObj.user = user;
+                messageObj.package = package;
+                messageObj.subscription = subscription;
+                messageObj.mcDetails = mcDetails;
+                messageObj.transaction_id = transactionId;
+                messageObj.method_type = 'renewSubscription';
+                messageObj.returnObject = {};
+
+                rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, messageObj);
+                console.log('Added: ', updated._id);
+                return;
             }else{
-                console.log('Renew Full Subscription - AddInQueue', ' - ', transactionId, ' - ', (new Date()));
+                console.log('No user exist for subscription id ', updated._id);
             }
         }else{
             console.log('Failed to updated subscription after adding in queue.');
