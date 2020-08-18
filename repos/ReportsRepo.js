@@ -1188,7 +1188,7 @@ getInactiveBase = async(from, to) => {
 
     let finalResult = [];
     let fiveDaysBack = new Date();
-    fiveDaysBack.setDate(fiveDaysBack.getDate() - 5);
+    fiveDaysBack.setDate(fiveDaysBack.getDate() - 7);
 
     let promise = new Promise((resolve, reject) => {
         result.forEach((user) => {
@@ -1223,7 +1223,7 @@ getInactiveBase = async(from, to) => {
             to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
             //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Paywall InActive Base`, // Subject line
-            text: `This report contains inactive base from ${new Date(from)} to ${new Date(to)}.\nInActive: Have not opened App/Web in last 5 days but are subscribed users`,
+            text: `This report contains inactive base from ${new Date(from)} to ${new Date(to)}.\nInActive: Have not opened App/Web in last 7 days but are subscribed users`,
             attachments:[
                 {
                     filename: paywallInActiveBase,

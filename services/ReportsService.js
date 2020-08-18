@@ -91,11 +91,11 @@ generateWeeklyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
-    //reportsRepo.getInactiveBase(from, to);
+    reportsRepo.getInactiveBase(from, to);
     //await sleep(300 * 1000); // minutes sleep
     //reportsRepo.getExpiredBase(from, to);
 
-    reportsRepo.generateUsersReportWithTrialAndBillingHistory(new Date("2020-07-01T00:00:00.000Z"), new Date("2020-07-08T00:00:00.000Z"));
+    //reportsRepo.generateUsersReportWithTrialAndBillingHistory(new Date("2020-07-01T00:00:00.000Z"), new Date("2020-07-08T00:00:00.000Z"));
 }
 
 generateMonthlyReports =  async() => {
@@ -115,7 +115,7 @@ generateMonthlyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
-    reportsRepo.getActiveBase(new Date("2020-02-07T00:00:00.000Z"), new Date("2020-07-17T00:00:00.000Z"))
+    //reportsRepo.getActiveBase(new Date("2020-02-07T00:00:00.000Z"), new Date("2020-07-17T00:00:00.000Z"))
 
     //reportsRepo.dailyNetAddition(from, to);
     //await sleep(180 * 1000); // 3 minutes
