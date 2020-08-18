@@ -42,16 +42,21 @@ const hours_on_which_to_run_renewal_cycle = [1,5,9,13,18,21];
 const default_package_id = "QDfC";
 
 const queueNames = {
-    messageDispathcer: 'messageDispathcer',
+    // producers
+    messageDispatcher: 'messageDispatcher',
     subscriptionDispatcher: 'subscriptionDispatcher',
     easypaisaDispatcher: 'easypaisaDispatcher',
     subscriberQueryDispatcher: 'subscriberQueryDispatcher',
-    balanceCheckDispatcher: 'balanceCheckDispatcher',
-    freeMbsDispatcher: 'freeMbsDispatcher'
+
+    // consumers
+    subscriptionResponseDispatcher: 'subscriptionResponseDispatcher'
 }
 // Telenor DCB API's configs
 const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
 const telenor_dcb_api_token = '';
+
+// Worker
+const paywall_worker_base_url = 'http://127.0.0.1:5001/';
 
 //Ideation Url
 const Ideation_call_back_url = 'http://bpd.o18.click/';
@@ -64,7 +69,7 @@ let config = {
     development: {
         port: '5000',
         mongoDB: 'mongodb://localhost:27017/goonjpaywall',
-        rabbitMq: 'amqp://localhost',
+        rabbitMq: 'amqp://127.0.0.1',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
@@ -93,7 +98,8 @@ let config = {
         emailPort: 465,
         emailSecure: true,
         default_package_id: default_package_id,
-        he_service_pass_phrase: he_service_pass_phrase
+        he_service_pass_phrase: he_service_pass_phrase,
+        paywall_worker_base_url: paywall_worker_base_url
     },
     staging: {
         port: '5000',
@@ -127,7 +133,8 @@ let config = {
         emailPort: 465,
         emailSecure: true,
         default_package_id: default_package_id,
-        he_service_pass_phrase: he_service_pass_phrase
+        he_service_pass_phrase: he_service_pass_phrase,
+        paywall_worker_base_url: paywall_worker_base_url
     },
     production: {
         port: process.env.PW_PORT,
@@ -161,7 +168,8 @@ let config = {
         emailPort: 465,
         emailSecure: true,
         default_package_id: default_package_id,
-        he_service_pass_phrase: he_service_pass_phrase
+        he_service_pass_phrase: he_service_pass_phrase,
+        paywall_worker_base_url: paywall_worker_base_url
     }
 };
 

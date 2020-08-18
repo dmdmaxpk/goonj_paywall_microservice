@@ -33,7 +33,7 @@ class RabbitMq {
         });
     }
 
-    initializeMesssageServer(callback) {
+    initializeMessageServer(callback) {
         this.createConnection((err,connection) => {
             if (err) {
                 console.log('connection error: ', err);

@@ -32,7 +32,7 @@ function sendMessage(otp, msisdn){
 	// Add object in queueing server
 	console.log('OTP - AddedInQueue - MSISDN - ', msisdn, ' - OTP - ', otp, ' - ', (new Date()));
 	if (messageObj.msisdn && messageObj.message) {
-		rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+		rabbitMq.addInQueue(config.queueNames.messageDispatcher, messageObj);
 	} else {
 		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
 	}
@@ -47,7 +47,7 @@ function sendTextMessage(text, msisdn){
 	// Add object in queueing server
 	console.log('Send Message - AddedInQueue - MSISDN - ', msisdn, ' - Message - ', text, ' - ', (new Date()));
 	if (messageObj.msisdn && messageObj.message) {
-		rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+		rabbitMq.addInQueue(config.queueNames.messageDispatcher, messageObj);
 	} else {
 		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
 	}

@@ -13,7 +13,7 @@ class MessageRepository {
 		messageObj.msisdn = msisdn;
 		
 		if (messageObj.msisdn && messageObj.message) {
-			rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+			rabbitMq.addInQueue(config.queueNames.messageDispatcher, messageObj);
 		} else {
 			console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
 		}

@@ -6,7 +6,7 @@ class TPSCountRepository {
     async incrementTPSCount (queueName, source = 'telenor')  {
         if (queueName) {
             let query = {};
-            if (queueName === config.queueNames.messageDispathcer) {
+            if (queueName === config.queueNames.messageDispatcher) {
                 query = {$inc: {messagetpsCount: 1}};
             } else if (queueName === config.queueNames.subscriptionDispatcher) {
                 query = {$inc: {subscriptiontpsCount: 1}};
@@ -32,7 +32,7 @@ class TPSCountRepository {
         if (queueName) {
             let query = {};
             let fieldName = ""
-            if (queueName === config.queueNames.messageDispathcer) {
+            if (queueName === config.queueNames.messageDispatcher) {
                 query = {messagetpsCount: 1};
                 fieldName = "messagetpsCount";
             } else if (queueName === config.queueNames.subscriptionDispatcher) {

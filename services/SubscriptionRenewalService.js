@@ -93,7 +93,6 @@ renewSubscription = async(subscription) => {
     let mcDetails = {};
 
     if(subscription.try_micro_charge_in_next_cycle === true && subscription.micro_price_point > 0){
-        
         if(subscription.payment_source === 'easypaisa'){
             transactionId = "GEP-MC_"+shortId.generate();
         }else{
@@ -103,16 +102,10 @@ renewSubscription = async(subscription) => {
         mcDetails.micro_charge = true;
         mcDetails.micro_price = subscription.micro_price_point;
     }else{
-        if (subscription.is_discounted === true && subscription.discounted_price){ 
-            mcDetails.discount = true;
-            mcDetails.discounted_price = subscription.discounted_price;
-            transactionId = "GoonjDiscountedCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
+        if(subscription.payment_source === 'easypaisa'){
+            transactionId = "G-EP_"+shortId.generate();
         }else{
-            if(subscription.payment_source === 'easypaisa'){
-                transactionId = "G-EP_"+shortId.generate();
-            }else{
-                transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
-            }
+            transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
         }
     }
 
