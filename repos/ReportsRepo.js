@@ -1241,6 +1241,33 @@ getInactiveBase = async(from, to) => {
     })
 }
 
+getUsersNotSubscribedAfterSubscribe = async() => {
+    let result = await billinghistoryRepo.getUsersNotSubscribedAfterSubscribe();
+    console.log("*** ALL DONE");
+    await ActiveBaseWriter.writeRecords(result);
+
+    var info = await transporter.sendMail({
+        from: 'paywall@dmdmax.com.pk', // sender address
+        to:  ["paywall@dmdmax.com.pk"],
+        subject: `Users who subscribed in Mar, Apr but did not subscribe in May, Jun or Jul`, // Subject line
+        text: `This report contains users who subscribed in Mar, Apr but did not subscribe in May, Jun or Jul`,
+        attachments:[
+            {
+                filename: ActiveBase,
+                path: ActiveBaseFilePath
+            }
+        ]
+    });
+
+    console.log("*** [ActiveBaseFilePath][emailSent]",info);
+    fs.unlink(ActiveBaseFilePath,function(err,data) {
+        if (err) {
+            console.log("*** File not deleted[ActiveBaseFilePath]");
+        }
+        console.log("*** File deleted [ActiveBaseFilePath]");
+    });
+}
+
 getActiveBase = async(from, to) => {
     let result = await usersRepo.getActiveUsers(from, to);
     console.log("*** ALL DONE");
@@ -1459,5 +1486,6 @@ module.exports = {
     weeklyRevenue: weeklyRevenue,
     getActiveBase: getActiveBase,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
+    getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
     generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }
