@@ -1,6 +1,7 @@
 const reportsRepo = require('../repos/ReportsRepo');
 const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
+const { response } = require('express');
 
 generateDailyReport = async() => {
     
@@ -114,9 +115,14 @@ generateMonthlyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
-    /*reportsRepo.dailyNetAddition(from, to);
-    await sleep(180 * 1000); // 3 minutes
-    reportsRepo.avgTransactionPerCustomer(from, to);*/
+    reportsRepo.getActiveBase(new Date("2020-02-07T00:00:00.000Z"), new Date("2020-07-17T00:00:00.000Z"))
+
+    //reportsRepo.dailyNetAddition(from, to);
+    //await sleep(180 * 1000); // 3 minutes
+    //reportsRepo.avgTransactionPerCustomer(from, to);
+
+
+    /*
     
     // For week wise reports
     let firstWeekFrom  = new Date('2020-07-01T00:00:00.000Z');
@@ -139,7 +145,7 @@ generateMonthlyReports =  async() => {
     reportsRepo.weeklyRevenue(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);
 
     await sleep(60 * 1000); //  1 minutes
-    reportsRepo.weeklyTransactingCustomers(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);
+    reportsRepo.weeklyTransactingCustomers(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);*/
 }
 
 

@@ -94,12 +94,7 @@ class UserRepository {
     }
 
     async getActiveUsers (from, to)  {
-        const result = await User.find(
-        {
-            $or:[{"subscription_status" : "billed"}, {"subscription_status" : "graced"}], 
-            operator:"telenor", subscribed_package_id: {$ne: "none"},
-            $and:[{added_dtm:{$gte:new Date(from)}}, {added_dtm:{$lte:new Date(to)}}]
-        });
+        const result = await User.find({operator:"telenor", $and:[{added_dtm:{$gte:new Date(from)}}, {added_dtm:{$lte:new Date(to)}}]}, {msisdn:1});
         return result;
     }
 

@@ -25,6 +25,9 @@ currentDate = getCurrentDate();
 let paywallTotalBase = currentDate+"_PaywallTotalBase.csv";
 let paywallTotalBaseFilePath = `./${paywallTotalBase}`;
 
+let ActiveBase = currentDate+"_ActiveBase.csv";
+let ActiveBaseFilePath = `./${ActiveBase}`;
+
 let paywallExpiredBase = currentDate+"_PaywallExpiredBase.csv";
 let paywallExpiredBaseFilePath = `./${paywallExpiredBase}`;
 
@@ -138,6 +141,13 @@ const csvInActiveBase = createCsvWriter({
     ]
 });
 
+const ActiveBaseWriter = createCsvWriter({
+    path: ActiveBaseFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+    ]
+});
+
 const csvFullAndPartialCharged = createCsvWriter({
     path: paywallFullAndPartialChargedReportFilePath,
     header: [
@@ -167,7 +177,6 @@ const csvAffiliatePvs = createCsvWriter({
         {id: 'count', title: "Page Views"},
     ]
 });
-
 
 const usersReportWithTrialAndBillingHistoryWriter = createCsvWriter({
     path: usersReportWithTrialAndBillingHistoryFilePath,
@@ -1232,6 +1241,32 @@ getInactiveBase = async(from, to) => {
     })
 }
 
+getActiveBase = async(from, to) => {
+    let result = await usersRepo.getActiveUsers(from, to);
+    console.log("*** ALL DONE");
+    await ActiveBaseWriter.writeRecords(result);
+
+    var info = await transporter.sendMail({
+        from: 'paywall@dmdmax.com.pk', // sender address
+        to:  ["paywall@dmdmax.com.pk"],
+        subject: `Paywall Active Base`, // Subject line
+        text: `This report contains active base from ${new Date(from)} to ${new Date(to)}.`,
+        attachments:[
+            {
+                filename: ActiveBase,
+                path: ActiveBaseFilePath
+            }
+        ]
+    });
+    console.log("*** [ActiveBaseFilePath][emailSent]",info);
+    fs.unlink(ActiveBaseFilePath,function(err,data) {
+        if (err) {
+            console.log("*** File not deleted[ActiveBaseFilePath]");
+        }
+        console.log("*** File deleted [ActiveBaseFilePath]");
+    });
+}
+
 getInactiveBaseHavingViewLogsLessThan3 = async(from, to) => {
     let result = await usersRepo.getActiveUsers(from, to);
     let finalResult = [];
@@ -1422,6 +1457,7 @@ module.exports = {
     avgTransactionPerCustomer: avgTransactionPerCustomer,
     dailyReturningUsers: dailyReturningUsers,
     weeklyRevenue: weeklyRevenue,
+    getActiveBase: getActiveBase,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }
