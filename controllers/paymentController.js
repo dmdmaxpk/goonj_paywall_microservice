@@ -811,7 +811,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 				}
 			}
 		} catch(err){
-			console.log("Error while direct billing",err.message,user.msisdn);
+			console.log("Error while direct billing", err, user.msisdn);
 			dataToReturn.status = "error";
 			dataToReturn.subscriptionObj = subscriptionObj;
 			reject(dataToReturn);
