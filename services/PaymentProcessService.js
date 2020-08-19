@@ -131,8 +131,7 @@ class PaymentProcessService {
                         console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
                         setTimeout(async () => {
                             console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
-                            let response = await this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
-                            return response;
+                            this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
                         }, 300);
                     }    
                 } 
