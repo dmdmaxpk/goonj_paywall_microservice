@@ -115,6 +115,7 @@ generateMonthlyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
+    console.log("=> executing call");
     reportsRepo.getUsersNotSubscribedAfterSubscribe();
 
     //reportsRepo.getActiveBase(new Date("2020-02-07T00:00:00.000Z"), new Date("2020-07-17T00:00:00.000Z"))

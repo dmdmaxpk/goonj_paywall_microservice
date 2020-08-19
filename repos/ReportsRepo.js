@@ -1243,7 +1243,7 @@ getInactiveBase = async(from, to) => {
 
 getUsersNotSubscribedAfterSubscribe = async() => {
     let result = await billinghistoryRepo.getUsersNotSubscribedAfterSubscribe();
-    console.log("*** ALL DONE");
+    console.log("=> ALL DONE");
     await ActiveBaseWriter.writeRecords(result);
 
     var info = await transporter.sendMail({
@@ -1259,12 +1259,12 @@ getUsersNotSubscribedAfterSubscribe = async() => {
         ]
     });
 
-    console.log("*** [ActiveBaseFilePath][emailSent]",info);
+    console.log("=> [ActiveBaseFilePath][emailSent]",info);
     fs.unlink(ActiveBaseFilePath,function(err,data) {
         if (err) {
-            console.log("*** File not deleted[ActiveBaseFilePath]");
+            console.log("=> File not deleted[ActiveBaseFilePath]");
         }
-        console.log("*** File deleted [ActiveBaseFilePath]");
+        console.log("=> File deleted [ActiveBaseFilePath]");
     });
 }
 

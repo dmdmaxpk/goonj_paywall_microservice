@@ -495,6 +495,7 @@ class BillingHistoryRepository {
     }
 
     async getUsersNotSubscribedAfterSubscribe()  {
+        console.log("=> executing query");
         try{
             let result = await BillingHistory.aggregate([
                 {
