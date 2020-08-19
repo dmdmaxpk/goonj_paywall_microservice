@@ -1242,30 +1242,34 @@ getInactiveBase = async(from, to) => {
 }
 
 getUsersNotSubscribedAfterSubscribe = async() => {
-    let result = await billinghistoryRepo.getUsersNotSubscribedAfterSubscribe();
-    console.log("=> ALL DONE");
-    await ActiveBaseWriter.writeRecords(result);
+    try{
+        let result = await billinghistoryRepo.getUsersNotSubscribedAfterSubscribe();
+        console.log("=> ALL DONE");
+        await ActiveBaseWriter.writeRecords(result);
 
-    var info = await transporter.sendMail({
-        from: 'paywall@dmdmax.com.pk', // sender address
-        to:  ["paywall@dmdmax.com.pk"],
-        subject: `Users who subscribed in Jul but did subscribe in Aug`,
-        text: `This report contains users who subscribed in Jul but did subscribe in Aug`,
-        attachments:[
-            {
-                filename: ActiveBase,
-                path: ActiveBaseFilePath
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["paywall@dmdmax.com.pk"],
+            subject: `Users who subscribed in Jul but did subscribe in Aug`,
+            text: `This report contains users who subscribed in Jul but did subscribe in Aug`,
+            attachments:[
+                {
+                    filename: ActiveBase,
+                    path: ActiveBaseFilePath
+                }
+            ]
+        });
+
+        console.log("=> [ActiveBaseFilePath][emailSent]",info);
+        fs.unlink(ActiveBaseFilePath,function(err,data) {
+            if (err) {
+                console.log("=> File not deleted[ActiveBaseFilePath]");
             }
-        ]
-    });
-
-    console.log("=> [ActiveBaseFilePath][emailSent]",info);
-    fs.unlink(ActiveBaseFilePath,function(err,data) {
-        if (err) {
-            console.log("=> File not deleted[ActiveBaseFilePath]");
-        }
-        console.log("=> File deleted [ActiveBaseFilePath]");
-    });
+            console.log("=> File deleted [ActiveBaseFilePath]");
+        });
+    }catch(e){
+        console.log("=>", e);
+    }
 }
 
 getActiveBase = async(from, to) => {
