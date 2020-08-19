@@ -501,8 +501,8 @@ class BillingHistoryRepository {
                     $match:{
                         "billing_status": "Success",
                         $and:[
-                            {billing_dtm:{$gte:new Date("2020-03-01T00:00:00.000Z")}},
-                            {billing_dtm:{$lt:new Date("2020-04-30T00:00:00.000Z")}}
+                            {billing_dtm:{$gte:new Date("2020-07-01T00:00:00.000Z")}},
+                            {billing_dtm:{$lt:new Date("2020-07-31T00:00:00.000Z")}}
                         ]
                         }
                 },{
@@ -522,8 +522,8 @@ class BillingHistoryRepository {
                                                     {$ne: ["$billing_status", "Success"]},
                 
                 {$and: [
-                        {$gte: ["$billing_dtm", new Date("2020-05-01T00:00:00.000Z")]},
-                        {$lte: ["$billing_dtm", new Date("2020-07-31T00:00:00.000Z")]}
+                        {$gte: ["$billing_dtm", new Date("2020-08-01T00:00:00.000Z")]},
+                        {$lte: ["$billing_dtm", new Date("2020-08-30T00:00:00.000Z")]}
                     ]
                 }
                                                 ]

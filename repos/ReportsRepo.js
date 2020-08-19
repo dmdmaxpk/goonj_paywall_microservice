@@ -1249,8 +1249,8 @@ getUsersNotSubscribedAfterSubscribe = async() => {
     var info = await transporter.sendMail({
         from: 'paywall@dmdmax.com.pk', // sender address
         to:  ["paywall@dmdmax.com.pk"],
-        subject: `Users who subscribed in Mar, Apr but did not subscribe in May, Jun or Jul`, // Subject line
-        text: `This report contains users who subscribed in Mar, Apr but did not subscribe in May, Jun or Jul`,
+        subject: `Users who subscribed in Jul but did subscribe in Aug`,
+        text: `This report contains users who subscribed in Jul but did subscribe in Aug`,
         attachments:[
             {
                 filename: ActiveBase,
