@@ -25,7 +25,7 @@ class SubscriptionConsumer {
         let messageObject = JSON.parse(message.content);
 
         let user = messageObject.user;
-        let package = messageObject.package;
+        let mPackage = messageObject.package;
         let subscription = messageObject.subscription;
         let mcDetails = messageObject.mcDetails;
         let transaction_id = messageObject.transaction_id;
@@ -38,7 +38,7 @@ class SubscriptionConsumer {
 
                 // Success billing
                 let nextBilling = new Date();
-                nextBilling.setHours(nextBilling.getHours() + package.package_duration);
+                nextBilling.setHours(nextBilling.getHours() + mPackage.package_duration);
     
                 // Update subscription
                 let subscriptionObj = {};
@@ -48,7 +48,7 @@ class SubscriptionConsumer {
                 subscriptionObj.is_allowed_to_stream = true;
                 subscriptionObj.last_billing_timestamp = new Date();
                 subscriptionObj.next_billing_timestamp = nextBilling;
-                subscriptionObj.amount_billed_today = subscription.amount_billed_today + (mcDetails && mcDetails.micro_charge) ? mcDetails.micro_price : package.price_point_pkr;
+                subscriptionObj.amount_billed_today = subscription.amount_billed_today + (mcDetails && mcDetails.micro_charge) ? mcDetails.micro_price : mPackage.price_point_pkr;
                 subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
                 subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
                 subscriptionObj.queued = false;
@@ -62,28 +62,28 @@ class SubscriptionConsumer {
 
                 // Check for the affiliation callback
                 if(returnObject.hasOwnProperty('send_callback') && returnObject.send_callback === true){
-                    this.sendAffiliationCallback(subscription.affiliate_unique_transaction_id, subscription.affiliate_mid, user._id, subscription._id, subscription.subscriber_id, package._id, package.paywall_id);
+                    this.sendAffiliationCallback(subscription.affiliate_unique_transaction_id, subscription.affiliate_mid, user._id, subscription._id, subscription.subscriber_id, mPackage._id, mPackage.paywall_id);
                 }
 
                 if(mcDetails && mcDetails.micro_charge){
                     console.log('Micro charge success');
-                    this.createBillingHistory(user, subscription, package, returnObject.api_response, returnStatus, transaction_id, true, mcDetails.micro_price);    
+                    this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, true, mcDetails.micro_price);    
                 }else{
                     console.log('Full charge success');
-                    this.createBillingHistory(user, Full, package, returnObject.api_response, returnStatus, transaction_id, false, package.price_point_pkr);
+                    this.createBillingHistory(user, Full, mPackage, returnObject.api_response, returnStatus, transaction_id, false, mPackage.price_point_pkr);
                 }
 
                 rabbitMq.acknowledge(messageObject);
             }else if(returnStatus === 'ExcessiveBilling'){
                 // excessive billings
-                this.logExcessiveBilling(package, user, subscription);
+                this.logExcessiveBilling(mPackage, user, subscription);
                 rabbitMq.acknowledge(message);
             }else if(returnStatus === 'ExcessiveMicroBilling'){
                 // excessive micro billings
-                this.logExcessiveMicroBilling(package, user, subscription, mcDetails.micro_price);
+                this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price);
                 rabbitMq.acknowledge(message);
             }else{
-                await this.assignGracePeriod(subscription, user, package, false, returnObject.api_response, transaction_id);
+                await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
                 rabbitMq.acknowledge(messageObject);
             }
         }else{
