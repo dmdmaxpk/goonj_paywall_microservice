@@ -263,7 +263,6 @@ class PaymentProcessService {
             
             await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         } else {
-            console.log("subscription created",user.msisdn);
             subscription.subscription_status = 'billed';
             subscription.auto_renewal = true;
             subscription.is_billable_in_this_cycle = false;
@@ -283,7 +282,6 @@ class PaymentProcessService {
             }
             
             let updatedSubscription = await this.subscriptionRepo.createSubscription(subscription);
-            console.log("subscription created", updatedSubscription);
 
             // Check for the affiliation callback
             if( updatedSubscription.affiliate_unique_transaction_id && 
@@ -306,7 +304,6 @@ class PaymentProcessService {
 
         }
         // Add history record
-        console.log("Adding history record",user.msisdn);
         let history = {};
         history.micro_charge = (updatedSubscription  && updatedSubscription.try_micro_charge_in_next_cycle) ? updatedSubscription.try_micro_charge_in_next_cycle : false;
         history.user_id = user._id;
@@ -320,7 +317,6 @@ class PaymentProcessService {
         history.billing_status = "Success";
         history.operator = subscription.payment_source;
         await this.billingHistoryRepo.createBillingHistory(history);
-        console.log("Added history record",user.msisdn);
     }
 
     async sendAffiliationCallback(tid, mid, user_id, subscription_id, subscriber_id, package_id, paywall_id) {

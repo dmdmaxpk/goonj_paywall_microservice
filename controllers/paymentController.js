@@ -473,7 +473,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						try{
 							// Live paywall, subscription rules along with micro changing started
 							let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
-							console.log("subsResponse", subsResponse);
 							if(subsResponse && subsResponse.status === "charged"){
 								res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 								sendChargingMessage = true;
@@ -744,7 +743,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 			subscriptionObj.subscribed_package_id = packageObj._id;
 
 			let result = await paymentProcessService.processDirectBilling(subscriptionObj.ep_token ? undefined : otp, user, subscriptionObj, packageObj, true);
-			console.log("Direct billing processed with status ", result);
+			console.log("Direct billing processed with status ", result.message);
 			if(result.message === "success"){
 				dataToReturn.status = "charged";
 				dataToReturn.subscriptionObj = subscriptionObj;

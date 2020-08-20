@@ -33,7 +33,7 @@ refreshToken = async() => {
 updateToken = async(currentToken) => {
     try{
         await ApiTokenRepo.updateToken(currentToken);
-        console.log('Token updated: '+ (new Date()));
+        console.log('Token updated on producer - '+ (new Date()));
         config.telenor_dcb_api_token = currentToken;
         updateTokenOnWorker(currentToken);
     }catch(err){
@@ -46,13 +46,11 @@ updateTokenOnWorker = async(token) => {
     axios({
         method: 'post',
         url: config.paywall_worker_base_url + 'cron/updateToken',
-        headers: {'Content-Type': 'application/json' },
         data: form
     }).then(function(response){
         console.log('Worker token update response: ', response.data);
     }).catch(function(err){
         console.log(err);
-        reject(err);
     });
 };
 
