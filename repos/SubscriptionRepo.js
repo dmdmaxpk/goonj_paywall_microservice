@@ -355,7 +355,7 @@ class SubscriptionRepository {
     async getExpiredFromSystem(){
         console.log('=> getExpiredFromSystem');
         try{
-            let result = await BillingHistory.aggregate([
+            let result = await Subscription.aggregate([
                 {             
                     $match:{ 
                         "subscription_status" : "expired"
