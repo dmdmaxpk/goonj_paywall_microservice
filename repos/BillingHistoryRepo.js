@@ -623,7 +623,7 @@ class BillingHistoryRepository {
             ]);
             return result;
         }catch(e){
-            console.log('=>', e);
+            console.log('=> error', e);
         }
     }
 }
