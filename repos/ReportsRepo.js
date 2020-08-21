@@ -1156,13 +1156,14 @@ getTotalUserBaseTillDate = async(from, to) => {
 getExpiredBase = async() => {
     console.log('=> getExpiredBase');
     let result = await billinghistoryRepo.getExpiredFromSystem();
-    console.log('=> returned result');
+    console.log('=> returned result counts ', result.length);
     let finalResult = [];
     for(let i = 0; i < result.length; i++){
+        console.log('=>', result[i].userDetails.msisdn);
         finalResult.push({msisdn: result[i].userDetails.msisdn});
     }
 
-    console.log('=> preparing csv');
+    console.log('=> preparing csv - ', finalResult);
 
     await csvExpiredBase.writeRecords(finalResult);
     
