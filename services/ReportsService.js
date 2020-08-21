@@ -91,9 +91,9 @@ generateWeeklyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
-    reportsRepo.getInactiveBase(from, to);
+    //reportsRepo.getInactiveBase(from, to);
     //await sleep(300 * 1000); // minutes sleep
-    //reportsRepo.getExpiredBase(from, to);
+    reportsRepo.getExpiredBase();
 
     //reportsRepo.generateUsersReportWithTrialAndBillingHistory(new Date("2020-07-01T00:00:00.000Z"), new Date("2020-07-08T00:00:00.000Z"));
 }

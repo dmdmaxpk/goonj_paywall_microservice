@@ -409,6 +409,19 @@ class BillingHistoryRepository {
         }]);
         return result;
     }
+
+    async getExpiredBase (user_id) {
+        let result = await BillingHistory.aggregate([{             
+            $match:{ 
+                $or:[
+                    {"billing_status" : "expired"}, 
+                    {"billing_status" : "unsubscribe-request-recieved"}, 
+                    {"billing_status" : "unsubscribe-request-received-and-expired"}
+                ]
+            }      
+        }]);
+        return result;
+    }
     
     async getDailyFullyChargedAndPartialChargedUsers ()  {
         let result = await BillingHistory.aggregate([{
@@ -563,6 +576,54 @@ class BillingHistoryRepository {
             return result;
         }catch(err){
             console.log("=>", err);
+        }
+    }
+
+    async getExpiredFromSystem(){
+        console.log('=> getExpiredFromSystem');
+        try{
+            let result = await BillingHistory.aggregate([
+                {             
+                    $match:{ 
+                        "subscription_status" : "expired"
+                    }
+                },{
+                    $project:{
+                        "_id": 0,
+                        "subscriber_id": 1	
+                    }
+                },{
+                    $lookup:{
+                        from: "subscribers",
+                        let: {subscriber_id: "$subscriber_id" },
+                                pipeline:[{$match: {$expr: {$eq: ["$_id", "$$subscriber_id"]}}}],
+                        as: "subs"
+                    }
+                },{
+                    $unwind: "$subs"
+                },{
+                    $project:{
+                        "_id": 0,
+                        "subs.user_id": 1		
+                    }
+                },{
+                    $lookup:{
+                        from: "users",
+                        let: {user_id: "$subs.user_id"},
+                        pipeline:[{$match:{$expr:{$eq:["$_id", "$$user_id"]}}}],
+                        as: "userDetails"
+                    }
+                },{
+                    $unwind: "$userDetails"
+                },{
+                    $project:{
+                        "userDetails.msisdn": 1		
+                    }
+                }
+            ]);
+            return result;
+        }catch(e){
+            console.log('=>', e);
         }
     }
 }

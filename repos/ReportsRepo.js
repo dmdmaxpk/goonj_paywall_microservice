@@ -1153,16 +1153,25 @@ getTotalUserBaseTillDate = async(from, to) => {
     });
 }
 
-getExpiredBase = async(from, to) => {
-    let result = await usersRepo.getExpiredBase(from, to);
-    await csvExpiredBase.writeRecords(result);
+getExpiredBase = async() => {
+    console.log('=> getExpiredBase');
+    let result = await usersRepo.getExpiredFromSystem();
+    console.log('=> returned result');
+    let finalResult = [];
+    for(let i = 0; i < result.length; i++){
+        finalResult.push({msisdn: result[i].userDetails.msisdn});
+    }
 
+    console.log('=> preparing csv');
+
+    await csvExpiredBase.writeRecords(finalResult);
+    
+    console.log('=> sending email');
     var info = await transporter.sendMail({
         from: 'paywall@dmdmax.com.pk', // sender address
-        to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
-        //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
-        subject: `Paywall Expired Base`, // Subject line
-        text: `This report contains total expired base from ${new Date(from)} to ${new Date(to)}.`,
+        to:  ["farhan.ali@dmdmax.com"],
+        subject: `5. Expired Base Msisdns`, // Subject line
+        text: `This report contains total expired base i.e 7th Feb to date.`,
         attachments:[
             {
                 filename: paywallExpiredBase,
@@ -1170,12 +1179,12 @@ getExpiredBase = async(from, to) => {
             }
         ]
     });
-    console.log("[expiredBase][emailSent]",info);
+    console.log("=> [expiredBase][emailSent]",info);
     fs.unlink(paywallExpiredBaseFilePath,function(err,data) {
         if (err) {
-            console.log("File not deleted[expiredBase]");
+            console.log("=> File not deleted[expiredBase]");
         }
-        console.log("File deleted [expiredBase]");
+        console.log("=> File deleted [expiredBase]");
     });
 }
 
