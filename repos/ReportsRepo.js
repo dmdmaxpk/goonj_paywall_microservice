@@ -1155,7 +1155,7 @@ getTotalUserBaseTillDate = async(from, to) => {
 
 getExpiredBase = async() => {
     console.log('=> getExpiredBase');
-    let result = await usersRepo.getExpiredFromSystem();
+    let result = await billinghistoryRepo.getExpiredFromSystem();
     console.log('=> returned result');
     let finalResult = [];
     for(let i = 0; i < result.length; i++){
