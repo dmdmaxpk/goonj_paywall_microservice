@@ -76,11 +76,11 @@ class SubscriptionConsumer {
                 rabbitMq.acknowledge(messageObject);
             }else if(returnStatus === 'ExcessiveBilling'){
                 // excessive billings
-                this.logExcessiveBilling(mPackage, user, subscription);
+                // this.logExcessiveBilling(mPackage, user, subscription);
                 rabbitMq.acknowledge(message);
             }else if(returnStatus === 'ExcessiveMicroBilling'){
                 // excessive micro billings
-                this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price);
+                // this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price);
                 rabbitMq.acknowledge(message);
             }else{
                 await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
