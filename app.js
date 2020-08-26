@@ -92,7 +92,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(mongoSanitize());
 
-
 consumeMessageQueue = async(response) => {
     try {
         let messageObj = JSON.parse(response.content);

@@ -11,6 +11,7 @@ Desktop.ini
 
 # Linux
 .idea
+.idea/workspace.xml
 
 # IDEs
 .vscode
