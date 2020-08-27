@@ -1472,9 +1472,16 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                 number_of_success_charging: singleRecord.total_successful_chargings
             };
     
-            
+            let expiryHistory = {};
             if(singleRecord.subscription_status === 'expired'){
-                let expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
+                expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
+                console.log("=> History Fetched");
+                if(expiryHistory.length >= 2){
+                    expiryHistory.sort(function(a,b){
+                        return new Date(b.billing_dtm) - new Date(a.billing_dtm);
+                    });
+                }
+    
                 singObject.unsub_date = expiryHistory[0].billing_dtm;
             }
     
@@ -1505,7 +1512,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
             console.log("=> File deleted [randomReport]");
         });
     }catch(e){
-        console.log("=> error - ",e);
+        console.log("=> error - ",JSON.stringify(e));
     }
 }
 
