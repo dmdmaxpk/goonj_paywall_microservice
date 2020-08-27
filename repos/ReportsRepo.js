@@ -1475,13 +1475,6 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
             
             if(singleRecord.subscription_status === 'expired'){
                 let expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
-                console.log("=> History Fetched");
-                if(expiryHistory.length >= 2){
-                    expiryHistory.sort(function(a,b){
-                        return new Date(a.billing_dtm) - new Date(b.billing_dtm);
-                    });
-                }
-    
                 singObject.unsub_date = expiryHistory[0].billing_dtm;
             }
     
