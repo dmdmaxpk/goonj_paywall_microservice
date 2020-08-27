@@ -7,6 +7,7 @@ const axios = require('axios');
 // To generate token to consume telenor dcb apis
 
 refreshToken = async() => {
+    console.log("refreshToken request: ");
     try{
         let token = await BillingRepo.generateToken();
         let currentToken = await ApiTokenRepo.getToken();
@@ -42,6 +43,8 @@ updateToken = async(currentToken) => {
 }
 
 updateTokenOnWorker = async(token) => {
+    console.log("updateTokenOnWorker request: ");
+
     let form = {token: token};
     axios({
         method: 'post',
@@ -50,7 +53,7 @@ updateTokenOnWorker = async(token) => {
     }).then(function(response){
         console.log('Worker token update response: ', response.data);
     }).catch(function(err){
-        console.log(err);
+        console.log('Error: Worker server is not up and running. More: ', err.errno, ' at address :', err.address, ':', err.port);
     });
 };
 
