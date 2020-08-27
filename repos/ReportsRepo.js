@@ -1465,7 +1465,6 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
             let singleRecord = await usersRepo.getData(inputData[i]);
             if(singleRecord.length > 0){
                 singleRecord = singleRecord[0];
-                console.log("=> Fetched Data ", JSON.stringify(singleRecord));
                 let singObject = {
                     msisdn: singleRecord.msisdn,
                     acquisition_date: singleRecord.acquisition_date,
@@ -1478,7 +1477,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                     if(singleRecord.acquisition_source === 'affiliate_web'){
                         singObject.acquisition_source = 'web';
                     }else{
-                        singObject.acquisition_source = singleRecord.acquisition_mid;
+                        singObject.acquisition_source = singleRecord.acquisition_source;
                     }
                     
                 }
@@ -1486,7 +1485,6 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                 let expiryHistory = {};
                 if(singleRecord.subscription_status === 'expired'){
                     expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
-                    console.log("=> History Fetched");
                     if(expiryHistory.length >= 2){
                         expiryHistory.sort(function(a,b){
                             return new Date(b.billing_dtm) - new Date(a.billing_dtm);
