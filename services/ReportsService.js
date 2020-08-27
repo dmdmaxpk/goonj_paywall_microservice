@@ -151,7 +151,9 @@ generateMonthlyReports =  async() => {
     reportsRepo.weeklyTransactingCustomers(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);*/
 }
 
-
+generateRandomReports =  async() => {
+    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled();
+}
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -161,5 +163,6 @@ module.exports = {
     generateDailyReport: generateDailyReport,
     generateEveryThreeDaysReports: generateEveryThreeDaysReports,
     generateWeeklyReports: generateWeeklyReports,
-    generateMonthlyReports: generateMonthlyReports
+    generateMonthlyReports: generateMonthlyReports,
+    generateRandomReports: generateRandomReports
 }

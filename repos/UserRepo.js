@@ -235,6 +235,11 @@ class UserRepository {
             return null;
         }
     }
+
+    async getData(mobileNumber){
+        let record = await User.aggregate([ { $match:{ msisdn: mobileNumber } },{ $lookup:{ from: "subscribers", localField: "_id", foreignField: "user_id", as: "subscriber" } },{ $project:{ _id: 0, user_id: "$_id", msisdn: "$msisdn", subscriber_id: {     $let: {        vars: {           singleSub: { $arrayElemAt: [ '$subscriber', 0 ] },        },        in: "$$singleSub._id"     } } } },{ $lookup:{ from: "subscriptions", let: {subscriber_id: "$subscriber_id"}, pipeline:[ {"$match":{"$expr":{"$eq":["$$subscriber_id", "$subscriber_id"]}}}, {$sort: {"added_dtm": 1}} ], as: "subs" } },{ $project:{ "msisdn": 1, "user_id": 1, "subscriber_id": 1, "subscription_counts": { $size: "$subs" }, "acquisition_date": {     $let: {        vars: {           singleSub: { $arrayElemAt: [ '$subs', 0 ] }        },        in: "$$singleSub.added_dtm"     } }, "subscription_status": {     $let: {        vars: {           singleSub: { $arrayElemAt: [ '$subs', 0 ] }        },        in: "$$singleSub.subscription_status"     } }, "acquisition_source": {     $let: {        vars: {           singleSub: { $arrayElemAt: [ '$subs', 0 ] }        },        in: "$$singleSub.source"     } }, "total_successful_chargings": {     $let: {        vars: {      firstSub: { $arrayElemAt: [ '$subs', 0 ] },   secondSub: {$cond: { if: { $gte: [ "$subscription_counts", 2 ] }, then: { $arrayElemAt: [ '$subs', 1 ] }, else: {total_successive_bill_counts:0} }} },        in: { $add: [ "$$firstSub.total_successive_bill_counts", "$$secondSub.total_successive_bill_counts"] } } } } } ]);
+        return record;
+    }
 }
 
 module.exports = UserRepository;

@@ -65,6 +65,11 @@ exports.generateMonthlyReports = async (req,res) =>  {
     res.send("GenerateMonthlyReports - Executed\n");
 }
 
+exports.generateRandomReports = async (req,res) =>  {
+    reportsService.generateRandomReports();
+    res.send("GenerateRandomReports - Executed\n");
+}
+
 exports.hourlyBillingReport = async (req,res) =>  {
     await billingMonitoringService.billingInLastHour();
     res.send("hourlyBillingReport - Executed");
