@@ -70,6 +70,12 @@ let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
 let usersReportWithTrialAndBillingHistory = currentDate+"_UsersReportWithTrialAndBillingHistory.csv";
 let usersReportWithTrialAndBillingHistoryFilePath = `./${usersReportWithTrialAndBillingHistory}`;
 
+
+let randomReport = currentDate+"_RandomReport.csv";
+let randomReportFilePath = `./${randomReport}`;
+
+
+
 const csvWriter = createCsvWriter({
     path: paywallRevFilePath,
     header: [
@@ -581,6 +587,18 @@ const dailyChannelWiseTrialWriter = createCsvWriter({
         {id: 'web', title: 'Web'},
         {id: 'HE', title: 'Affiliate'},
         {id: "total",title: "Total" }
+    ]
+});
+
+
+const randomReportWriter = createCsvWriter({
+    path: randomReportFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+        {id: 'acquisition_source', title: 'App'},
+        {id: 'acquisition_date', title: 'Web'},
+        {id: 'number_of_success_charging', title: 'No of time user successfully charged'},
+        {id: "unsub_date",title: "Unsubscription Date" }
     ]
 });
 
@@ -1437,45 +1455,58 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
 }
 
 generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
+    
     console.log("=> generateReportForAcquisitionSourceAndNoOfTimeUserBilled");
     let finalResult = [];
     let inputData = ["03430875776","03445468452","03445235824","03404811033","03457075606","03487811171","03414215391","03451005178","03149494502","03422269135","03481527024","03457571470","03476882993","03455757739","03474425537","03479336134","03438880900","03428273381","03460274032","03405458115","03482210863","03447610554","03454331969","03477344114","03487724754","03403199937","03135922773","03443384250","03480609290","03448861028","03023500251","03429724165","03466518773","03169551457","03480346761","03486883673","03404820727","03496055877","03484777970","03485271965","03466476538","03459610453","03417005605","03429840915","03454549335","03457384559","03496037421","03459038280","03444055091","03410093896","03443744800","03497602705","03448679535","03481082881","03488481958","03497983508","03417664061","03453830959","03407356551","03464112627","03418018606","03445297155","03451989245","03484224839","03485270943","03418692162","03457581077","03401227327","03419790981","03469410822","03454847498","03451053380","03462156419","03479232536","03458319209","03452914560","03460178356","03409561056","03475684664","03471693905","03474893328","03443732819","03448094797","03423840772","03128612001","03452199820","03440201264","03436725887","03070153693","03414996024","03432084218","03085278849","03464157962","03452114743","03454862376","03448213708","03468959334","03436531217","03454620292","03450065303","03467737876","03449488427","03421440974","03433011347","03438765919","03424354239","03429323235","03452701714","03477368027","03469525335","03445797007","03404420315","03482842372","03453594305","03416093789","03478223025","03239823060","03457528376","03465777177","03470479162","03444346499","03447419877","03457537960","03439333675","03481712843","03475847464","03494931172","03494939497","03444109767","03468823418","03457898312","03494769522","03487653753","03437816965","03405899940","03440328970","03490219461","03465774028","03214521894","03461888184","03431381272","03457296608","03423001035","03489848076","03453464601","03488722559","03479196621","03422968995","03417535639","03455810424","03443016285","03442139178","03405137637","03445897525","03469739775","03453788358","03497307591","03434178534","03460634612","03422733454","03340013838","03475916160","03422325261","03466292882","03452373690","03416644148","03486053332","03457981802","03484020345","03426566118","03416163819","03422294391","03442848600","03407558138","03439259040","03423462289","03481671495","03472951438","03425081817","03444790106","03448985065"];
     
     for(let i = 0; i < inputData.length; i++){
         let singleRecord = await usersRepo.getData(inputData[i]);
-        console.log("=> singleRecord", JSON.stringify(singleRecord));
+        singleRecord = singleRecord[0];
+        let singObject = {
+            msisdn: singleRecord.msisdn,
+            acquisition_date: singleRecord.acquisition_date,
+            acquisition_source: singleRecord.acquisition_source,
+            number_of_success_charging: singleRecord.total_successful_chargings
+        };
 
-        let expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
-        if(expiryHistory.length >= 2){
-            expiryHistory.sort(function(a,b){
-                return new Date(a.billing_dtm) - new Date(b.billing_dtm);
-            });
+        if(singleRecord.subscription_status === 'expired'){
+            let expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
+            if(expiryHistory.length >= 2){
+                expiryHistory.sort(function(a,b){
+                    return new Date(b.billing_dtm) - new Date(a.billing_dtm);
+                });
+            }
+
+            singObject.unsub_date = expiryHistory[0].billing_dtm;
         }
+
+        finalResult.push(singObject);
         console.log("=> generateReportForAcquisitionSourceAndNoOfTimeUserBilled - ",inputData[i], JSON.stringify(expiryHistory));
     }
 
-    /*console.log("=> Sending email");
-    await usersReportWithTrialAndBillingHistoryWriter.writeRecords(finalResult);
+    console.log("=> Sending email");
+    await randomReportWriter.writeRecords(finalResult);
     let info = await transporter.sendMail({
         from: 'paywall@dmdmax.com.pk',
         to:  ["farhan.ali@dmdmax.com"],
-        subject: `Users With Trial & Billing Details`, // Subject line
-        text: `This report contains affiliate users with trial and billing details from ${new Date(from)} to ${new Date(to)}.\nNote: code 0 indicates trial and code 1 indicates subscribed directly`,
+        subject: `Complaint Data`, // Subject line
+        text: `This report contains the details of msisdns being sent us over email from Zara`,
         attachments:[
             {
-                filename: usersReportWithTrialAndBillingHistory,
-                path: usersReportWithTrialAndBillingHistoryFilePath
+                filename: randomReport,
+                path: randomReportFilePath
             }
         ]
     });
 
-    console.log("=> [usersReportWithTrialAndBillingHistory][emailSent]",info);
-    fs.unlink(usersReportWithTrialAndBillingHistoryFilePath,function(err,data) {
+    console.log("=> [randomReport][emailSent]",info);
+    fs.unlink(randomReportFilePath,function(err,data) {
         if (err) {
-            console.log("=> File not deleted[usersReportWithTrialAndBillingHistory]");
+            console.log("=> File not deleted[randomReport]");
         }
-        console.log("=> File deleted [usersReportWithTrialAndBillingHistory]");
-    });*/
+        console.log("=> File deleted [randomReport]");
+    });
 }
 
 function isDataPresent(array, user_id) {
