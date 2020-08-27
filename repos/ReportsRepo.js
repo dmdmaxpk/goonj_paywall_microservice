@@ -1443,13 +1443,15 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     
     for(let i = 0; i < inputData.length; i++){
         let singleRecord = await usersRepo.getData(inputData[i]);
+        console.log("=> singleRecord", JSON.stringify(singleRecord));
+
         let expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
         if(expiryHistory.length >= 2){
             expiryHistory.sort(function(a,b){
                 return new Date(a.billing_dtm) - new Date(b.billing_dtm);
             });
         }
-        console.log("generateReportForAcquisitionSourceAndNoOfTimeUserBilled - ",inputData[i], JSON.stringify(expiryHistory));
+        console.log("=> generateReportForAcquisitionSourceAndNoOfTimeUserBilled - ",inputData[i], JSON.stringify(expiryHistory));
     }
 
     /*console.log("=> Sending email");
