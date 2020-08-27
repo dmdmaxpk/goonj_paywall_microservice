@@ -1463,30 +1463,32 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     try{
         for(let i = 0; i < inputData.length; i++){
             let singleRecord = await usersRepo.getData(inputData[i]);
-            singleRecord = singleRecord[0];
-            console.log("=> Fetched Data ", JSON.stringify(singleRecord));
-            let singObject = {
-                msisdn: singleRecord.msisdn,
-                acquisition_date: singleRecord.acquisition_date,
-                acquisition_source: singleRecord.acquisition_source,
-                number_of_success_charging: singleRecord.total_successful_chargings
-            };
-    
-            let expiryHistory = {};
-            if(singleRecord.subscription_status === 'expired'){
-                expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
-                console.log("=> History Fetched");
-                if(expiryHistory.length >= 2){
-                    expiryHistory.sort(function(a,b){
-                        return new Date(b.billing_dtm) - new Date(a.billing_dtm);
-                    });
-                }
-    
-                singObject.unsub_date = expiryHistory[0].billing_dtm;
+            if(singleRecord.length > 0){
+                singleRecord = singleRecord[0];
+                console.log("=> Fetched Data ", JSON.stringify(singleRecord));
+                let singObject = {
+                    msisdn: singleRecord.msisdn,
+                    acquisition_date: singleRecord.acquisition_date,
+                    acquisition_source: singleRecord.acquisition_source,
+                    number_of_success_charging: singleRecord.total_successful_chargings
+                };
+        
+                let expiryHistory = {};
+                if(singleRecord.subscription_status === 'expired'){
+                    expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
+                    console.log("=> History Fetched");
+                    if(expiryHistory.length >= 2){
+                        expiryHistory.sort(function(a,b){
+                            return new Date(b.billing_dtm) - new Date(a.billing_dtm);
+                        });
+                    }
+        
+                    singObject.unsub_date = expiryHistory[0].billing_dtm;
             }
     
             finalResult.push(singObject);
             console.log("=> generateReportForAcquisitionSourceAndNoOfTimeUserBilled - ",inputData[i], JSON.stringify(expiryHistory));
+            }
         }
     
         console.log("=> Sending email");
