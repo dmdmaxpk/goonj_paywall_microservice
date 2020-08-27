@@ -237,7 +237,7 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 		let postBody = {otp: otp};
 		postBody.msisdn = msisdn;
 		let otpUser = await otpRepo.getOtp(msisdn);
-	
+
 		if(otpUser){
 			// Record already present in collection, lets check it further.
 			if(otpUser.verified === true){

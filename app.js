@@ -144,9 +144,9 @@ billingRepo.generateToken().then(async(token) => {
                 rabbitMq.createQueue(config.queueNames.subscriptionResponseDispatcher); // to consume subscription responses from worker
 
                 // Messaging queue consumer
-                rabbitMq.consumeQueue(config.queueNames.messageDispatcher, (response) => {
-                    consumeMessageQueue(response);
-                });
+                // rabbitMq.consumeQueue(config.queueNames.messageDispatcher, (response) => {
+                //     consumeMessageQueue(response);
+                // });
                 
                 // Subscription queue consumer
                 rabbitMq.consumeQueue(config.queueNames.subscriptionResponseDispatcher, (response) => {
