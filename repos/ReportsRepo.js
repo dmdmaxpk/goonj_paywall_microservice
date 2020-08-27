@@ -1505,7 +1505,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
             console.log("=> File deleted [randomReport]");
         });
     }catch(e){
-        console.log("=> error - ",JSON.stringify(e));
+        console.log("=> error - ",e);
     }
 }
 
