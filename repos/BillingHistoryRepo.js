@@ -396,7 +396,7 @@ class BillingHistoryRepository {
          return result;
     }
 
-    async getExpiryHistory (user_id) {
+    async getExpiryHistory(user_id) {
         let result = await BillingHistory.aggregate([{             
             $match:{ 
                 "user_id": user_id,

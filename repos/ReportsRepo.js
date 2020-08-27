@@ -595,8 +595,8 @@ const randomReportWriter = createCsvWriter({
     path: randomReportFilePath,
     header: [
         {id: 'msisdn', title: 'Msisdn'},
-        {id: 'acquisition_source', title: 'App'},
-        {id: 'acquisition_date', title: 'Web'},
+        {id: 'acquisition_source', title: 'Acquisition Source'},
+        {id: 'acquisition_date', title: 'Acquisition Date'},
         {id: 'number_of_success_charging', title: 'No of time user successfully charged'},
         {id: "unsub_date",title: "Unsubscription Date" }
     ]
@@ -1469,9 +1469,19 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                 let singObject = {
                     msisdn: singleRecord.msisdn,
                     acquisition_date: singleRecord.acquisition_date,
-                    acquisition_source: singleRecord.acquisition_source,
                     number_of_success_charging: singleRecord.total_successful_chargings
                 };
+
+                if(singleRecord.acquisition_mid){
+                    singObject.acquisition_source = singleRecord.acquisition_mid;
+                }else{
+                    if(singleRecord.acquisition_source === 'affiliate_web'){
+                        singObject.acquisition_source = 'web';
+                    }else{
+                        singObject.acquisition_source = singleRecord.acquisition_mid;
+                    }
+                    
+                }
         
                 let expiryHistory = {};
                 if(singleRecord.subscription_status === 'expired'){
@@ -1484,10 +1494,10 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                     }
         
                     singObject.unsub_date = expiryHistory[0].billing_dtm;
-            }
+                }
     
-            finalResult.push(singObject);
-            console.log("=> generateReportForAcquisitionSourceAndNoOfTimeUserBilled - ",inputData[i], JSON.stringify(expiryHistory));
+                finalResult.push(singObject);
+                console.log("=> Data done for item ", i);
             }
         }
     
