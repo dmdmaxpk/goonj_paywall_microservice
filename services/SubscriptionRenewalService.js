@@ -88,9 +88,12 @@ expire = async(subscription) => {
 }
 
 renewSubscription = async(subscription) => {
-    
+    console.log("renewSubscription method ",  subscription);
+
     let transactionId;
     let mcDetails = {};
+
+    console.log("try_micro_charge_in_next_cycle ", subscription.try_micro_charge_in_next_cycle, ', micro_price_point: ', subscription.micro_price_point);
 
     if(subscription.try_micro_charge_in_next_cycle === true && subscription.micro_price_point > 0){
         if(subscription.payment_source === 'easypaisa'){
@@ -98,16 +101,22 @@ renewSubscription = async(subscription) => {
         }else{
             transactionId = "GoonjMicroCharge_" + subscription._id + "_Price_" + subscription.micro_price_point + "_" + shortId.generate() + "_" + getCurrentDate();
         }
+        console.log("if  transactionId",  transactionId);
 
         mcDetails.micro_charge = true;
         mcDetails.micro_price = subscription.micro_price_point;
     }else{
+
         if(subscription.payment_source === 'easypaisa'){
             transactionId = "G-EP_"+shortId.generate();
         }else{
             transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
         }
+
+        console.log("else  transactionId",  transactionId);
     }
+
+    console.log("subscription.queued",  subscription.queued);
 
     // Add object in queueing server
     if(subscription.queued === false){
@@ -116,6 +125,8 @@ renewSubscription = async(subscription) => {
             
             let user = await userRepo.getUserBySubscriptionId(updated._id);
             let package = await packageRepo.getPackage({_id: updated.subscribed_package_id});
+
+            console.log("updated:", updated, ', user: ', user, ', package: ', package);
 
             if(user){
                 let messageObj = {};
@@ -126,6 +137,8 @@ renewSubscription = async(subscription) => {
                 messageObj.transaction_id = transactionId;
                 messageObj.method_type = 'renewSubscription';
                 messageObj.returnObject = {};
+
+                console.log("rabbitMq.addInQueue -> messageObj:", messageObj);
 
                 rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, messageObj);
                 console.log('Added: ', updated._id);
