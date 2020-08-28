@@ -88,12 +88,12 @@ expire = async(subscription) => {
 }
 
 renewSubscription = async(subscription) => {
-    console.log("renewSubscription method ",  subscription);
+    console.log("renewSubscription method:  ",  subscription);
 
     let transactionId;
     let mcDetails = {};
 
-    console.log("try_micro_charge_in_next_cycle ", subscription.try_micro_charge_in_next_cycle, ', micro_price_point: ', subscription.micro_price_point);
+    console.log("try_micro_charge_in_next_cycle: ", subscription.try_micro_charge_in_next_cycle, ', micro_price_point: ', subscription.micro_price_point);
 
     if(subscription.try_micro_charge_in_next_cycle === true && subscription.micro_price_point > 0){
         if(subscription.payment_source === 'easypaisa'){
@@ -101,7 +101,7 @@ renewSubscription = async(subscription) => {
         }else{
             transactionId = "GoonjMicroCharge_" + subscription._id + "_Price_" + subscription.micro_price_point + "_" + shortId.generate() + "_" + getCurrentDate();
         }
-        console.log("if  transactionId",  transactionId);
+        console.log("if  transactionId: ",  transactionId);
 
         mcDetails.micro_charge = true;
         mcDetails.micro_price = subscription.micro_price_point;
@@ -113,20 +113,23 @@ renewSubscription = async(subscription) => {
             transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
         }
 
-        console.log("else  transactionId",  transactionId);
+        console.log("else  transactionId: ",  transactionId);
     }
 
-    console.log("subscription.queued",  subscription.queued);
+    console.log("subscription.queued: ",  subscription.queued);
 
     // Add object in queueing server
     if(subscription.queued === false){
         let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true});
+        console.log("updated: ",  updated);
+
         if(updated){
             
             let user = await userRepo.getUserBySubscriptionId(updated._id);
-            let package = await packageRepo.getPackage({_id: updated.subscribed_package_id});
+            console.log('user: ', user);
 
-            console.log("updated:", updated, ', user: ', user, ', package: ', package);
+            let package = await packageRepo.getPackage({_id: updated.subscribed_package_id});
+            console.log('package: ', package);
 
             if(user){
                 let messageObj = {};
