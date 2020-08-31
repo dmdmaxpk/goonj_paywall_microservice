@@ -88,12 +88,8 @@ expire = async(subscription) => {
 }
 
 renewSubscription = async(subscription) => {
-    console.log("renewSubscription method:  ",  subscription);
-
     let transactionId;
     let mcDetails = {};
-
-    console.log("try_micro_charge_in_next_cycle: ", subscription.try_micro_charge_in_next_cycle, ', micro_price_point: ', subscription.micro_price_point);
 
     if(subscription.try_micro_charge_in_next_cycle === true && subscription.micro_price_point > 0){
         if(subscription.payment_source === 'easypaisa'){
@@ -106,22 +102,16 @@ renewSubscription = async(subscription) => {
         mcDetails.micro_charge = true;
         mcDetails.micro_price = subscription.micro_price_point;
     }else{
-
         if(subscription.payment_source === 'easypaisa'){
             transactionId = "G-EP_"+shortId.generate();
         }else{
             transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
         }
-
-        console.log("else  transactionId: ",  transactionId);
     }
-
-    console.log("subscription.queued: ",  subscription.queued);
 
     // Add object in queueing server
     if(subscription.queued === false){
         let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true});
-        console.log("updated: ",  updated);
 
         if(updated){
             let user = await userRepo.getUserBySubscriptionId(updated._id);
