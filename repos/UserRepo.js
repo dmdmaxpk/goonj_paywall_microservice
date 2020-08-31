@@ -37,7 +37,6 @@ class UserRepository {
 
     async getUserBySubscriptionId (subscription_id)  {
         console.log('subscription_id: ', subscription_id);
-
         let subscription = await this.subscriptionRepo.getSubscription(subscription_id);
 
         console.log('subscription.subscriber_id: ', subscription.subscriber_id);
@@ -45,6 +44,8 @@ class UserRepository {
 
         console.log('subscriber: ', subscriber);
         let user = this.getUserById(subscriber.user_id);
+        console.log('subscriber: ', subscriber);
+
         return user;
     }
 

@@ -70,7 +70,7 @@ class SubscriptionConsumer {
                     this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, true, mcDetails.micro_price);    
                 }else{
                     console.log('Full charge success');
-                    this.createBillingHistory(user, Full, mPackage, returnObject.api_response, returnStatus, transaction_id, false, mPackage.price_point_pkr);
+                    this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, false, mPackage.price_point_pkr);
                 }
 
                 rabbitMq.acknowledge(messageObject);
