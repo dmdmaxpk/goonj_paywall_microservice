@@ -320,10 +320,6 @@ class SubscriptionConsumer {
             history.price = price;
             history.micro_charge = true;
             history.discount = false;
-        }else if(discount === true){
-            history.price = price;
-            history.micro_charge = false;
-            history.discount = true;
         }else{
             history.micro_charge = false;
             history.discount = false;
