@@ -124,12 +124,8 @@ renewSubscription = async(subscription) => {
         console.log("updated: ",  updated);
 
         if(updated){
-            
             let user = await userRepo.getUserBySubscriptionId(updated._id);
-            console.log('user: ', user);
-
             let package = await packageRepo.getPackage({_id: updated.subscribed_package_id});
-            console.log('package: ', package);
 
             if(user){
                 let messageObj = {};
@@ -140,9 +136,6 @@ renewSubscription = async(subscription) => {
                 messageObj.transaction_id = transactionId;
                 messageObj.method_type = 'renewSubscription';
                 messageObj.returnObject = {};
-
-                console.log("rabbitMq.addInQueue -> messageObj:", messageObj);
-
                 rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, messageObj);
                 console.log('Added: ', updated._id);
                 return;
