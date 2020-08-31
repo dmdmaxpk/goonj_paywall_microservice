@@ -71,7 +71,7 @@ exports.hourlyBillingReport = async (req,res) =>  {
 }
 
 exports.markRenewableUsers = async (req,res) =>  {
-    console.log("Reached Marked Renewable users cron")
+    console.log("Marking renewable users")
     await subscriptionService.markRenewableUser();
     res.send("markRenewableUser - Executed");
 }

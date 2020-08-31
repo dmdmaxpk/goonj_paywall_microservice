@@ -153,17 +153,14 @@ renewSubscription = async(subscription) => {
 markRenewableUser = async() => {
     try {
         let now = moment().tz("Asia/Karachi");
-        console.log("Get Hours",now.hours());
         let hour = now.hours();
-        
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
-            console.log("Checking to run renewable cycle at - ", hour);
-
+            console.log("Checking to run renewable cycle at hour ",hour);
             let subscription_ids  = await subscriptionRepo.getSubscriptionsToMark();
-            console.log("Number of subscription in this cycle: ", subscription_ids.length);
+            console.log("Number of subscription in this cycle are ", subscription_ids.length);
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
         } else {
-            console.log("Not listed renewable cycle this hour - ", hour);
+            console.log("No renewable cycle for the hour ",hour);
         }
     } catch(err) {
         console.error(err);
