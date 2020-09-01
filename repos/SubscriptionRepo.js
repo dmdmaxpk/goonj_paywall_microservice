@@ -3,8 +3,6 @@ const Subscription = mongoose.model('Subscription');
 const moment = require("moment");
 
 class SubscriptionRepository {
-    constructor({}){
-    }
 
     async createSubscription (postData)  {
         let result = await this.getSubscriptionByPaywallId(postData.subscriber_id, postData.paywall_id);

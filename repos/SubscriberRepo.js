@@ -4,9 +4,6 @@ const Subscriber = mongoose.model('Subscriber');
 const moment = require("moment");
 
 class SubscriberRepository {
-    constructor({}) {
-
-    }
 
     async createSubscriber (postData) {
         let subscriber = new Subscriber(postData);
