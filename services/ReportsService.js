@@ -27,6 +27,8 @@ generateDailyReport = async() => {
     today.setMinutes(00);
     today.setSeconds(00);
 
+    /*
+
     
     // Revenue report
     reportsRepo.dailyReport();
@@ -35,13 +37,21 @@ generateDailyReport = async() => {
     // await subscriberRepo.removeNumberAndHistory('03458561755');
     
     
+
+
+    
+
     await sleep(180*1000);
     reportsRepo.callBacksReport();
 
     
     await sleep(180*1000);
+    
+    */
+    
     reportsRepo.dailyReturningUsers(from, to);
     
+    /*
     
     await sleep(180*1000);
     reportsRepo.dailyUnsubReport();
@@ -71,6 +81,9 @@ generateDailyReport = async() => {
 
     //await sleep(120*1000);
     //affiliateReportsRepo.gdnReport(to, today);
+
+
+    */
 }
 
 generateEveryThreeDaysReports =  async() => {

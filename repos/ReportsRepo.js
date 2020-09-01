@@ -805,6 +805,7 @@ dailyReturningUsers = async(from, to) => {
     try {
         console.log("=> DailyReturningUsers from", from, "to", to);
         let dailyReturningUsers = await billinghistoryRepo.dailyReturningUsers(from, to);
+        console.log("=> DailyReturningUsers", dailyReturningUsers);
         let dailyReturningUsersCount = dailyReturningUsers[0].totalcount;
         console.log(`=> Daily Returning Users for ${to} are ${dailyReturningUsersCount}`);
         
