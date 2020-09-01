@@ -16,6 +16,11 @@ generateDailyReport = async() => {
 
     //Day before yesterday
     var from = new Date();
+
+    if(from.getDate() === 1){
+        from.setMonth(from.getMonth() - 1);
+    }
+
     from.setDate(to.getDate() - 1);
     from.setHours(00);
     from.setMinutes(00);
