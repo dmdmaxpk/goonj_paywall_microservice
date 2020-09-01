@@ -88,12 +88,8 @@ expire = async(subscription) => {
 }
 
 renewSubscription = async(subscription) => {
-    console.log("renewSubscription method:  ",  subscription);
-
     let transactionId;
     let mcDetails = {};
-
-    console.log("try_micro_charge_in_next_cycle: ", subscription.try_micro_charge_in_next_cycle, ', micro_price_point: ', subscription.micro_price_point);
 
     if(subscription.try_micro_charge_in_next_cycle === true && subscription.micro_price_point > 0){
         if(subscription.payment_source === 'easypaisa'){
@@ -106,30 +102,20 @@ renewSubscription = async(subscription) => {
         mcDetails.micro_charge = true;
         mcDetails.micro_price = subscription.micro_price_point;
     }else{
-
         if(subscription.payment_source === 'easypaisa'){
             transactionId = "G-EP_"+shortId.generate();
         }else{
             transactionId = "GoonjFullCharge_"+subscription._id+"_"+shortId.generate()+"_"+getCurrentDate();
         }
-
-        console.log("else  transactionId: ",  transactionId);
     }
-
-    console.log("subscription.queued: ",  subscription.queued);
 
     // Add object in queueing server
     if(subscription.queued === false){
         let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true});
-        console.log("updated: ",  updated);
 
         if(updated){
-            
             let user = await userRepo.getUserBySubscriptionId(updated._id);
-            console.log('user: ', user);
-
             let package = await packageRepo.getPackage({_id: updated.subscribed_package_id});
-            console.log('package: ', package);
 
             if(user){
                 let messageObj = {};
@@ -140,9 +126,6 @@ renewSubscription = async(subscription) => {
                 messageObj.transaction_id = transactionId;
                 messageObj.method_type = 'renewSubscription';
                 messageObj.returnObject = {};
-
-                console.log("rabbitMq.addInQueue -> messageObj:", messageObj);
-
                 rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, messageObj);
                 console.log('Added: ', updated._id);
                 return;
@@ -160,17 +143,14 @@ renewSubscription = async(subscription) => {
 markRenewableUser = async() => {
     try {
         let now = moment().tz("Asia/Karachi");
-        console.log("Get Hours",now.hours());
         let hour = now.hours();
-        
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
-            console.log("Checking to run renewable cycle at - ", hour);
-
+            console.log("Checking to run renewable cycle at hour",hour);
             let subscription_ids  = await subscriptionRepo.getSubscriptionsToMark();
-            console.log("Number of subscription in this cycle: ", subscription_ids.length);
+            console.log("Number of subscription in this cycle are ", subscription_ids.length);
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
         } else {
-            console.log("Not listed renewable cycle this hour - ", hour);
+            console.log("No renewable cycle for the hour",hour);
         }
     } catch(err) {
         console.error(err);

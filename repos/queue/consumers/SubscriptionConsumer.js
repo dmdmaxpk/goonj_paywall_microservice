@@ -72,8 +72,7 @@ class SubscriptionConsumer {
                     console.log('Full charge success');
                     this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, false, mPackage.price_point_pkr);
                 }
-
-                rabbitMq.acknowledge(messageObject);
+                rabbitMq.acknowledge(message);
             }else if(returnStatus === 'ExcessiveBilling'){
                 // excessive billings
                 // this.logExcessiveBilling(mPackage, user, subscription);
@@ -84,11 +83,11 @@ class SubscriptionConsumer {
                 rabbitMq.acknowledge(message);
             }else{
                 await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
-                rabbitMq.acknowledge(messageObject);
+                rabbitMq.acknowledge(message);
             }
         }else{
             console.log('Return object not found!');
-            rabbitMq.acknowledge(messageObject);
+            rabbitMq.acknowledge(message);
         }
     }
 
@@ -327,7 +326,6 @@ class SubscriptionConsumer {
         }
         
         this.addHistory(history);
-        console.timeEnd("[timeLog][createHistory]")
     }
     
     async addHistory(history) {
