@@ -95,10 +95,7 @@ exports.sendOtp = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
-	console.log('package_id: ', package_id);
 	console.log('payment_source: ', payment_source);
-	console.log('user: ', user);
-
 	let response = {};
 	// no user
 	if(payment_source && payment_source === "easypaisa"){
@@ -124,7 +121,6 @@ exports.sendOtp = async (req, res) => {
 				if(response.operator === "telenor"){
 					try {
 						console.log('Payment - OTP - TP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
-						console.log('sendOtp - tp');
 						generateOtp(res, msisdn, user, gw_transaction_id);
 					} catch (err) {
 						res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
@@ -152,8 +148,6 @@ exports.sendOtp = async (req, res) => {
 		}
 		
 	}else{
-		console.log('payment source: ', payment_source);
-		console.log('payment operator: ', response.operator);
 		if(response.operator === 'telenor'){
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);

@@ -128,7 +128,6 @@ class SubscriptionConsumer {
         await this.subscriptionRepo.updateSubscription(subscription._id, {active:false, queued:false, is_billable_in_this_cycle: false});
     }
 
-    
     // ASSIGN GRACE PERIOD
     async assignGracePeriod(subscription, user, packageObj, is_manual_recharge, error, transaction_id) {
         let expiry_source = undefined;
@@ -337,7 +336,7 @@ class SubscriptionConsumer {
         await this.billingHistoryRepo.createBillingHistory(history);
         console.timeEnd("[timeLog][addHistory]")
     }
-    
+
     // UN-QUEUE SUBSCRIPTION
     async unQueue (subscription_id) {
         await this.subscriptionRepo.updateSubscription(subscription_id, {queued: false, priority: 0});
