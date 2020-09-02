@@ -95,7 +95,6 @@ exports.sendOtp = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
-	console.log('payment_source: ', payment_source);
 	let response = {};
 	// no user
 	if(payment_source && payment_source === "easypaisa"){

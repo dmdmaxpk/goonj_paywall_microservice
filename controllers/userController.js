@@ -52,7 +52,6 @@ exports.isgraylisted = async (req, res) => {
 	console.log("pacakge_id",package_id,msisdn);
 	if (msisdn) {
 		user = await repo.getUserByMsisdn(msisdn);
-		console.log("user",user,msisdn);
 		if(user){
 			let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 			console.log("subscriber",subscriber,msisdn);
