@@ -2,12 +2,10 @@ const env = process.env.NODE_ENV || 'development';
 
 // application gets environment from either system envs or from this file in above line.
 // Total tps is 40 for now but we need to increase this
-const telenor_message_api_tps = 3;
-const telenor_subscription_api_tps = 31;
+const max_tps = 40;
+
+const local_subscription_api_tps = 3;
 const ep_subscription_api_tps = 1;
-const telenor_subscriber_query_api_tps = 5;
-const telenor_free_mbs_api_tps = 0;
-const balance_check_api_tps = 0;
 
 const codes = {
     code_error: -1,
@@ -67,6 +65,7 @@ const he_service_pass_phrase = "fdkPmW8yOX";
 
 let config = {
     development: {
+        max_tps: max_tps,
         port: '5000',
         mongoDB: 'mongodb://localhost:27017/goonjpaywall',
         rabbitMq: 'amqp://127.0.0.1',
@@ -78,8 +77,7 @@ let config = {
         ideation_callback_url3: Ideation_call_back_url_3,
         time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
-        telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        local_subscription_api_tps: local_subscription_api_tps,
         ep_subscription_api_tps: ep_subscription_api_tps,
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         balance_check_api_tps: balance_check_api_tps,
@@ -102,6 +100,7 @@ let config = {
         paywall_worker_base_url: paywall_worker_base_url
     },
     staging: {
+        max_tps: max_tps,
         port: '5000',
         mongoDB: 'mongodb://mongodb:27017/goonjpaywall',
         rabbitMq: 'amqp://rabbitmq',
@@ -113,8 +112,7 @@ let config = {
         ideation_callback_url3: Ideation_call_back_url_3,
         time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
-        telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        local_subscription_api_tps:local_subscription_api_tps,
         ep_subscription_api_tps: ep_subscription_api_tps,
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         balance_check_api_tps: balance_check_api_tps,
@@ -137,6 +135,7 @@ let config = {
         paywall_worker_base_url: paywall_worker_base_url
     },
     production: {
+        max_tps: max_tps,
         port: process.env.PW_PORT,
         mongoDB: process.env.PW_MONGO_DB_URL,
         rabbitMq: process.env.PW_RABBIT_MQ,
@@ -149,7 +148,7 @@ let config = {
         time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
         telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        local_subscription_api_tps:local_subscription_api_tps,
         ep_subscription_api_tps: ep_subscription_api_tps,
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         balance_check_api_tps: balance_check_api_tps,
