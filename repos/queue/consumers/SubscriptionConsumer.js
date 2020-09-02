@@ -61,7 +61,7 @@ class SubscriptionConsumer {
 
 
                 // Check for the affiliation callback
-                if(subscription.affiliate_unique_transaction_id && subscription.affiliate_mid && 
+                if(subscription.affiliate_unique_transaction_id && subscription.affiliate_mid &&
                     subscription.is_affiliation_callback_executed === false &&
                     subscription.should_affiliation_callback_sent === true){
                     if((subscription.source === "HE" || subscription.source === "affiliate_web") && subscription.affiliate_mid != "1") {
@@ -109,7 +109,7 @@ class SubscriptionConsumer {
         history.paywall_id = packageObj.paywall_id;
         history.subscription_id = subscription._id;
         history.subscriber_id = subscription.subscriber_id;
-        history.transaction_id = subscriptionObj.transaction_id;
+        history.transaction_id = subscription.transaction_id;
 
         history.operator_response = {"message": `Subscription ${subscription._id} has exceeded their billing limit. Email sent.`};
         history.billing_status = "billing_exceeded";
