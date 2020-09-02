@@ -42,6 +42,7 @@ const default_package_id = "QDfC";
 
 const queueNames = {
     // producers
+    messageDispatcher: 'messageDispatcher',
     subscriptionDispatcher: 'subscriptionDispatcher',
     easypaisaDispatcher: 'easypaisaDispatcher',
     subscriberQueryDispatcher: 'subscriberQueryDispatcher',
