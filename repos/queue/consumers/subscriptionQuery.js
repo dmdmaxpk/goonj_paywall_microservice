@@ -10,9 +10,9 @@ let config = require("../../../config");
 consume = async(message) => {
     let message_content = JSON.parse(message.content);
     try {
-        console.log("consumer of subscriptionQuery",message_content);
+        
         let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.subscriberQueryDispatcher);
-        if (countThisSec < config.telenor_message_api_tps) { 
+        if (countThisSec < config.telenor_subscriber_query_api_tps) { 
             await tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
             let responseData = await billingRepo.subscriberQuery(message_content.msisdn);
             console.log("response Data",responseData);
