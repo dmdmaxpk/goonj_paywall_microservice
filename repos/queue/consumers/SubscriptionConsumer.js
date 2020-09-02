@@ -124,7 +124,8 @@ class SubscriptionConsumer {
         let billingResponse = "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt";
 
         this.createBillingHistory(user, subscription, packageObj, billingResponse, 'micro-charging-exceeded', transaction_id, true, 0);
-        await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
+        //await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
+        console.log('logExcessiveMicroBilling', subscription._id);
         await this.subscriptionRepo.updateSubscription(subscription._id, {active:false, queued:false, is_billable_in_this_cycle: false});
     }
 
