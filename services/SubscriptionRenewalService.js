@@ -97,11 +97,10 @@ renewSubscription = async(subscription) => {
         }else{
             transactionId = "GoonjMicroCharge_" + subscription._id + "_Price_" + subscription.micro_price_point + "_" + shortId.generate() + "_" + getCurrentDate();
         }
-        console.log("if  transactionId: ",  transactionId);
-
         mcDetails.micro_charge = true;
         mcDetails.micro_price = subscription.micro_price_point;
     }else{
+        mcDetails.micro_charge = false;
         if(subscription.payment_source === 'easypaisa'){
             transactionId = "G-EP_"+shortId.generate();
         }else{
