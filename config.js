@@ -4,6 +4,7 @@ const env = process.env.NODE_ENV || 'development';
 // Total tps is 40 for now but we need to increase this
 const max_tps = 40;
 
+const telenor_subscriber_query_api_tps = 3;
 const local_subscription_api_tps = 3;
 const ep_subscription_api_tps = 1;
 
@@ -66,6 +67,7 @@ const he_service_pass_phrase = "fdkPmW8yOX";
 let config = {
     development: {
         max_tps: max_tps,
+        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         port: '5000',
         mongoDB: 'mongodb://localhost:27017/goonjpaywall',
         rabbitMq: 'amqp://127.0.0.1',
@@ -98,6 +100,7 @@ let config = {
     },
     staging: {
         max_tps: max_tps,
+        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         port: '5000',
         mongoDB: 'mongodb://mongodb:27017/goonjpaywall',
         rabbitMq: 'amqp://rabbitmq',
@@ -130,6 +133,7 @@ let config = {
     },
     production: {
         max_tps: max_tps,
+        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         port: process.env.PW_PORT,
         mongoDB: process.env.PW_MONGO_DB_URL,
         rabbitMq: process.env.PW_RABBIT_MQ,
