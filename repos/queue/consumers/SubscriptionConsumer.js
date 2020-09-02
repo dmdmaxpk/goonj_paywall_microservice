@@ -61,6 +61,7 @@ class SubscriptionConsumer {
 
 
                 // Check for the affiliation callback
+                console.log('returnObject: ', returnObject);
                 if(returnObject.hasOwnProperty('send_callback') && returnObject.send_callback === true){
                     this.sendAffiliationCallback(subscription.affiliate_unique_transaction_id, subscription.affiliate_mid, user._id, subscription._id, subscription.subscriber_id, mPackage._id, mPackage.paywall_id);
                 }
@@ -105,7 +106,7 @@ class SubscriptionConsumer {
         history.paywall_id = packageObj.paywall_id;
         history.subscription_id = subscription._id;
         history.subscriber_id = subscription.subscriber_id;
-        history.transaction_id = subscriptionObj.transaction_id;
+        history.transaction_id = subscription.transaction_id;
 
         history.operator_response = {"message": `Subscription ${subscription._id} has exceeded their billing limit. Email sent.`};
         history.billing_status = "billing_exceeded";
