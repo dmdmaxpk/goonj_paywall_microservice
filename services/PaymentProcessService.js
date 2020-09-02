@@ -123,7 +123,7 @@ class PaymentProcessService {
                     } 
                 }else{
                     let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
-                    if (tpsCount < config.telenor_subscription_api_tps) {
+                    if (tpsCount < config.local_subscription_api_tps) {
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                         returnObject = await this.doProcess(otp, user, subscription, packageObj, first_time_billing);
                         return returnObject;
