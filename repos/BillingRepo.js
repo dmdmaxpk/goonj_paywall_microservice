@@ -149,9 +149,9 @@ class BillingRepository {
     
     // To Check if user is customer of telenor
     async subscriberQuery (msisdn)  {
-        await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
         let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriberQueryDispatcher);
         if(countThisSec < config.telenor_subscriber_query_api_tps){
+            await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
             console.log('SubscriberQuery - ', msisdn );
             let object = {};
             let api_response;
