@@ -83,7 +83,7 @@ class SubscriptionConsumer {
                 rabbitMq.acknowledge(message);
             }else if(returnStatus === 'ExcessiveMicroBilling'){
                 // excessive micro billings
-                this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price);
+                this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price, transaction_id);
                 rabbitMq.acknowledge(message);
             }else{
                 await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
@@ -117,7 +117,7 @@ class SubscriptionConsumer {
         this.addHistory(history);
     }
     
-    async logExcessiveMicroBilling(packageObj, user, subscription, micro_price){
+    async logExcessiveMicroBilling(packageObj, user, subscription, micro_price, transaction_id){
         let emailSubject ="Excessive MicroCharing Email";
         let emailToSend = "paywall@dmdmax.com.pk";
         let emailText = `Subscription id ${subscription._id} is trying to micro charge on a price greater than package price. Package price is ${packageObj.price_point_pkr} and system tried to charge ${micro_price}`;
