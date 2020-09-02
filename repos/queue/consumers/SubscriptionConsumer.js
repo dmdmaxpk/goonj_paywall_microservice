@@ -61,9 +61,12 @@ class SubscriptionConsumer {
 
 
                 // Check for the affiliation callback
-                console.log('returnObject: ', returnObject);
-                if(returnObject.hasOwnProperty('send_callback') && returnObject.send_callback === true){
-                    this.sendAffiliationCallback(subscription.affiliate_unique_transaction_id, subscription.affiliate_mid, user._id, subscription._id, subscription.subscriber_id, mPackage._id, mPackage.paywall_id);
+                if(subscription.affiliate_unique_transaction_id && subscription.affiliate_mid &&
+                    subscription.is_affiliation_callback_executed === false &&
+                    subscription.should_affiliation_callback_sent === true){
+                    if((subscription.source === "HE" || subscription.source === "affiliate_web") && subscription.affiliate_mid != "1") {
+                        this.sendAffiliationCallback(subscription.affiliate_unique_transaction_id, subscription.affiliate_mid, user._id, subscription._id, subscription.subscriber_id, mPackage._id, mPackage.paywall_id);
+                    }
                 }
 
                 if(mcDetails && mcDetails.micro_charge){
