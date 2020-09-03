@@ -417,6 +417,8 @@ class SubscriptionConsumer {
     
             //Send acknowldement to user
             let message = this.constants.message_after_first_successful_charge[package_id];
+            message = message.replace("%user_id%", user_id)
+            message = message.replace("%pkg_id%", package_id)
             this.messageRepo.sendSmsToUser(message, msisdn);
         }else if(subscription.consecutive_successive_bill_counts % 3 === 0){
             // Every week

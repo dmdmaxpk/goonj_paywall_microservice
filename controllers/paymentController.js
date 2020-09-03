@@ -519,12 +519,16 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					text = message;
 					text = text.replace("%trial_hours%",trial_hours);
 					text = text.replace("%price%",packageObj.display_price_point_numeric);
+					text = text.replace("%user_id%",subscriber.user_id);
+					text = text.replace("%pkg_id%",packageObj._id);
 					console.log("Subscription Message Text",text,user.msisdn);
 					sendTextMessage(text, user.msisdn);
 				} else if(sendChargingMessage === true) {
 					let trial_hours = packageObj.trial_hours;
 					let message = constants.subscription_messages_direct[packageObj._id];
 					message= message.replace("%price%",packageObj.display_price_point)
+					message= message.replace("%user_id%",subscriber.user_id)
+					message= message.replace("%pkg_id%",packageObj._id)
 					if(subscriptionObj.affiliate_mid === 'gdn'){
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
