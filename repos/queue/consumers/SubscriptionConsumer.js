@@ -420,7 +420,7 @@ class SubscriptionConsumer {
             message = message.replace("%user_id%", user_id)
             message = message.replace("%pkg_id%", package_id)
             this.messageRepo.sendSmsToUser(message, msisdn);
-        }else if(subscription.consecutive_successive_bill_counts % 3 === 0){
+        }else if(subscription.consecutive_successive_bill_counts % 7 === 0){
             // Every week
             //Send acknowledgement to user
             if (is_manual_recharge){
