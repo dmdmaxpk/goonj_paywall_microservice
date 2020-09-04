@@ -353,17 +353,10 @@ exports.subscribe = async (req, res) => {
         userObj.operator = response.operator;
         userObj.source = req.body.source ? req.body.source : "na";
 
-        try {
-            user = await userRepo.createUser(userObj);
-        }catch (e) {
-            response = e;
-        }
-
 		if(payment_source && payment_source === "easypaisa"){
 			response.operator = "easypaisa";
 		}else{
 			try{
-				console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 				response = await billingRepo.subscriberQuery(msisdn);
 			}catch(err){
 				response = err;
@@ -372,9 +365,13 @@ exports.subscribe = async (req, res) => {
 
 		if(response.operator === "telenor" || response.operator === "easypaisa"){
 			try {
+				userObj.operator = response.operator;
+				user = await userRepo.createUser(userObj);
+				console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', msisdn, ' - ', user.source, ' - ', (new Date()));
+
 				doSubscribe(req, res, user, gw_transaction_id);
 			} catch(er) {
-				res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
+				res.send({code: config.codes.code_error, message: 'Failed to subscriber user', gw_transaction_id: gw_transaction_id})
 			}
 		}else{
 			createBlockUserHistory(msisdn, req.body.affiliate_unique_transaction_id, req.body.affiliate_mid, response.api_response, req.body.source);
