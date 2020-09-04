@@ -4,8 +4,8 @@ const env = process.env.NODE_ENV || 'development';
 // Total tps is 40 for now but we need to increase this
 const max_tps = 40;
 
-const telenor_subscriber_query_api_tps = 10;
-const local_subscription_api_tps = 10;
+const telenor_subscriber_query_api_tps = 5;
+const local_subscription_api_tps = 5;
 const ep_subscription_api_tps = 1;
 
 const codes = {
