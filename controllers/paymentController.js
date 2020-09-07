@@ -101,7 +101,7 @@ exports.sendOtp = async (req, res) => {
 		response.operator = "easypaisa";
 	}else{
 		try{
-			response = await billingRepo.subscriberQuery(msisdn);
+			response = await paymentProcessService.subscriberQuery(msisdn);
 		}catch(err){
 			response = err;
 		}
@@ -357,7 +357,7 @@ exports.subscribe = async (req, res) => {
 			response.operator = "easypaisa";
 		}else{
 			try{
-				response = await billingRepo.subscriberQuery(msisdn);
+				response = await paymentProcessService.subscriberQuery(msisdn);
 			}catch(err){
 				response = err;
 			}

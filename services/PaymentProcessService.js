@@ -145,6 +145,22 @@ class PaymentProcessService {
         }
     }
 
+    async subscriberQuery(msisdn){
+        console.log("PaymentProcessService - subscriberQuery");
+        // Check if the subscription is active or blocked for some reason.
+
+        let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriberQueryDispatcher);
+        if (tpsCount < config.telenor_subscriber_query_api_tps) {
+            await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
+            return await this.billingRepository.subscriberQuery(msisdn);
+        }else{
+            console.log("TPS quota full for subscriberQuery, waiting for second to elapse - ", new Date());
+            setTimeout(async () => {
+                return await this.billingRepository.subscriberQuery(msisdn);
+            }, 500);
+        }
+    }
+
     async doProcess(otp, user, subscription, packageObj, first_time_billing){
         console.log('doProcess');
 

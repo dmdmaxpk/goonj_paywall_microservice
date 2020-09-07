@@ -64,9 +64,6 @@ mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
 var RabbitMq = require('./repos/queue/RabbitMq');
 var billingRepo = container.resolve("billingRepository");
 var tpsCountRepo = container.resolve("tpsCountRepository");
-var balanceCheckConsumer = require('./repos/queue/consumers/BalanceCheckConsumer');
-let tokenRepo = require('./repos/ApiTokenRepo');
-
 
 // let remvDupMsObj = container.resolve("removeDuplicateMsisdns");
 // remvDupMsObj.removeDuplicateMsisdns();
@@ -141,11 +138,6 @@ billingRepo.generateToken().then(async(token) => {
                 // Let's create queues
                 rabbitMq.createQueue(config.queueNames.subscriptionDispatcher); // to process subscription requests
                 rabbitMq.createQueue(config.queueNames.subscriptionResponseDispatcher); // to consume subscription responses from worker
-
-                // Messaging queue consumer
-                // rabbitMq.consumeQueue(config.queueNames.messageDispatcher, (response) => {
-                //     consumeMessageQueue(response);
-                // });
                 
                 // Subscription queue consumer
                 rabbitMq.consumeQueue(config.queueNames.subscriptionResponseDispatcher, (response) => {
