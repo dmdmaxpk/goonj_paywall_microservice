@@ -157,9 +157,8 @@ class PaymentProcessService {
         }else{
             console.log("PaymentProcessService - subscriberQuery - ELSE");
             console.log("TPS quota full for subscriberQuery, waiting for second to elapse - ", new Date());
-            setTimeout(async () => {
-                return await this.subscriberQuery(msisdn);
-            }, 5000);
+            await helper.timeout(5000);
+            return this.subscriberQuery(msisdn);
         }
     }
 
