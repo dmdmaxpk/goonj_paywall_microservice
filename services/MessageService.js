@@ -48,7 +48,6 @@ usersCheckingScript = async() => {
                 let temp = {source: user.source,tid: user.affiliate_unique_transaction_id,mid: user.affiliate_mid,dsla: userMsisdns[i]['dsla']
                     ,balance: userMsisdns[i]['balance']};
                 toWriteToCSV.push(temp);
-                console.log("temp",temp);
                 if (user.source === "HE") {
                     HECOunt++;
                 } else {

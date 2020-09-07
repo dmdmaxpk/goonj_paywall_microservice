@@ -42,7 +42,6 @@ class PaywallRepository {
                     return p.paywall_id === element._id;
                 });
                 temp.packages = filtered_packages;
-                console.log("temp",temp);
                 resultsPaywall.push(temp);
             });
             return resultsPaywall;
