@@ -151,9 +151,11 @@ class PaymentProcessService {
 
         let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriberQueryDispatcher);
         if (tpsCount < config.telenor_subscriber_query_api_tps) {
+            console.log("PaymentProcessService - subscriberQuery - IF");
             await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
             return await this.billingRepository.subscriberQuery(msisdn);
         }else{
+            console.log("PaymentProcessService - subscriberQuery - ELSE");
             console.log("TPS quota full for subscriberQuery, waiting for second to elapse - ", new Date());
             setTimeout(async () => {
                 return await this.subscriberQuery(msisdn);

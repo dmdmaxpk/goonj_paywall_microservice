@@ -358,7 +358,9 @@ exports.subscribe = async (req, res) => {
 		}else{
 			try{
 				response = await paymentProcessService.subscriberQuery(msisdn);
+				console.log("Subscriber query response received", response);
 			}catch(err){
+				console.log("Subscriber query error received", err);
 				response = err;
 			}
 		}
