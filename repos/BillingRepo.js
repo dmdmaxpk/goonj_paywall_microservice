@@ -181,9 +181,10 @@ class BillingRepository {
         }else{
             console.log("TPS quota full for subscriber query, waiting for second to elapse - ", new Date());
             setTimeout(() => {
-                console.log("calling subscriberQuery after 200 mili-seconds");
-                this.subscriberQuery(msisdn);
-            }, 200);
+                console.log("calling subscriberQuery after 500 milliseconds");
+                let response = await this.subscriberQuery(msisdn);
+                return response;
+            }, 500);
         }
     }
     
