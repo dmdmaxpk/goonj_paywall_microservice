@@ -115,11 +115,8 @@ class PaymentProcessService {
                         return returnObject;
                     }else{
                         console.log("TPS quota full for ep subscription, waiting for 1 second to elapse - ", new Date());
-                        setTimeout(async () => {
-                            console.log("Calling ep consume subscription queue after 1-seconds",user.msisdn);
-                            let response = await this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
-                            return response;
-                        }, 1000);
+                        await helper.timeout(1000);
+                        return await this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
                     } 
                 }else{
                     let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
@@ -129,11 +126,8 @@ class PaymentProcessService {
                         return returnObject;
                     }else{
                         console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
-                        setTimeout(async () => {
-                            console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
-                            let response = await this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
-                            return response;
-                        }, 300);
+                        await helper.timeout(500);
+                        return this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
                     }    
                 } 
             }else{
