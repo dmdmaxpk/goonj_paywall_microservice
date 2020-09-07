@@ -155,9 +155,8 @@ class PaymentProcessService {
             return await this.billingRepository.subscriberQuery(msisdn);
         }else{
             console.log("TPS quota full for subscriberQuery, waiting for second to elapse - ", new Date());
-            setTimeout(async () => {
-                let response = await this.subscriberQuery(msisdn);
-                return response;
+            setTimeout(() => {
+                return this.subscriberQuery(msisdn);
             }, 5000);
         }
     }
