@@ -158,7 +158,7 @@ class PaymentProcessService {
             setTimeout(async () => {
                 let response = await this.subscriberQuery(msisdn);
                 return response;
-            }, 500);
+            }, 5000);
         }
     }
 
