@@ -17,6 +17,8 @@ const subscriptionRepo = container.resolve("subscriptionRepository");
 const constants = container.resolve("constants");
 const paymentProcessService = container.resolve("paymentProcessService");
 
+const helper = require('../helper/helper');
+
 let jwt = require('jsonwebtoken');
 const { response } = require('express');
 const { resolve } = require('../configurations/container');
@@ -310,8 +312,8 @@ exports.verifyOtp = async (req, res) => {
 				let user = await userRepo.getUserByMsisdn(msisdn);
 				
 				if(user){
-					let token = jwt.sign({user_id: user._id, msisdn: msisdn}, config.secret, {expiresIn: '3 days'});
-					data.access_token = token;
+					let accessToken = helper.generateAccessToken({user_id: user._id, msisdn: msisdn});
+					data.access_token = accessToken;
 
 					let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 					if(subscriber && subscribed_package_id){
