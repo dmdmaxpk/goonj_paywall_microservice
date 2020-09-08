@@ -26,9 +26,6 @@ class RabbitMq {
             if (error) {
               callback(error);
             }
-
-            // Number of items queue will throw at a time.
-            channel.prefetch(config.max_tps);
             callback(null, channel);
         });
     }

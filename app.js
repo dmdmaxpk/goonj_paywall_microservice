@@ -89,32 +89,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(mongoSanitize());
 
-consumeMessageQueue = async(response) => {
-    try {
-        let messageObj = JSON.parse(response.content);
-        let countThisSec = await tpsCountRepo.getTPSCount(config.queueNames.messageDispatcher);
-
-        if (countThisSec < config.telenor_message_api_tps) {
-            billingRepo.sendMessage(messageObj.message, messageObj.msisdn)
-            .then(async (data) => {
-                console.log('Success:sms ',messageObj.msisdn, data);
-                await tpsCountRepo.incrementTPSCount(config.queueNames.messageDispatcher);
-                rabbitMq.acknowledge(response);
-            }).catch(error => {
-                console.log('Error: ', error.message);
-                rabbitMq.acknowledge(response);
-            });
-        } else {
-            console.log("TPS quota full for messages, waiting for second to elapse - ", new Date());
-            setTimeout(() => {
-                consumeMessageQueue(response);
-            }, 200);
-        }
-    } catch (err ) {
-        console.error(err);
-    }
-}
-
 consumeSubscriptionQueue = async(response) => {
     await subscriptionConsumer.consume(response);
 }
@@ -136,7 +110,6 @@ billingRepo.generateToken().then(async(token) => {
                 console.log('RabbitMQ connected successfully!');
                 
                 // Let's create queues
-                rabbitMq.createQueue(config.queueNames.subscriptionDispatcher); // to process subscription requests
                 rabbitMq.createQueue(config.queueNames.subscriptionResponseDispatcher); // to consume subscription responses from worker
                 
                 // Subscription queue consumer

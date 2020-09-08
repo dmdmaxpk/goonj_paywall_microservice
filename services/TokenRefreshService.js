@@ -51,7 +51,7 @@ updateTokenOnWorker = async(token) => {
     }).then(function(response){
         console.log(response.data);
     }).catch(function(err){
-        console.log('Error: Worker server is not up and running. More: ', err.errno, ' at Address :', err.address, ', Port:', err.port);
+        console.log('Error: Worker is not up and running. More: ', err.errno, ' at Address :', err.address, ', Port:', err.port);
     });
 };
 
