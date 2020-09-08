@@ -39,6 +39,6 @@ exports.getToken = (user) => {
 }
 
 generateAccessToken = (user) => {
-
+    
 }
 
