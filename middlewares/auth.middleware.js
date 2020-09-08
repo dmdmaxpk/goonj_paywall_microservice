@@ -17,7 +17,7 @@ authenticateToken = (req, res, next) => {
 
 
 generateAccessToken = (msisdn) => {
-  const accessToken = jwt.sign({msisdn: msisdn}, config.ACCESS_TOKEN_SECRET, {expiresIn: '60s'});
+  const accessToken = jwt.sign({msisdn: msisdn}, config.ACCESS_TOKEN_SECRET, {expiresIn: '2m'});
   return accessToken;
 }
 
