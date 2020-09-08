@@ -11,10 +11,6 @@ class AuthRepository {
         let result = await token.save();
         return result;
     }
-    
-    async getByUserId(user_id) {
-        return await AuthToken.findOne({user_id: user_id});
-    }
 
     async getByMsisdn(msisdn) {
         return await AuthToken.findOne({msisdn: msisdn});

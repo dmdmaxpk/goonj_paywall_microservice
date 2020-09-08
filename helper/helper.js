@@ -26,18 +26,6 @@ class Helper {
     static timeout(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-
-
-
-    static generateAccessToken(user){
-        const accessToken = jwt.sign(user, config.ACCESS_TOKEN_SECRET, {expiresIn: '5m'});
-        return accessToken;
-    }
-
-    static getRefreshToken(user){
-        const token = jwt.sign(user, config.REFRESH_TOKEN_SECRET);
-        return token;
-    }
 }
 
 module.exports = Helper;

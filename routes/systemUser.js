@@ -8,6 +8,6 @@ router.route('/login')
     .post( controller.login);
 
 router.route('/unsubscribe')
-    .post(authMiddleWare.checkToken,aclMiddleWare.checkRole, controller.unsubscribe);
+    .post(authMiddleWare.authenticateToken,aclMiddleWare.checkRole, controller.unsubscribe);
 
 module.exports = router;

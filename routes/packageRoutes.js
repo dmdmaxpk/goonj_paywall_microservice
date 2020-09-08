@@ -6,7 +6,7 @@ const authMiddelware = require('../middlewares/auth.middleware');
 
 router.route('/')
     .post(controller.post)
-    .get(authMiddelware.checkToken,controller.getAll);
+    .get(authMiddelware.authenticateToken,controller.getAll);
 
 // Update on the basis of user id
 router.route('/:id')

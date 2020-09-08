@@ -1,39 +1,33 @@
 let jwt = require('jsonwebtoken');
 const config = require('../config.js');
 
-let checkToken = (req, res, next) => {
-  let token = req.headers['x-access-token'] || req.headers['authorization']; // Express headers are auto converted to lowercase
-  if (!token) {
-    next();
-    return;
-  }
-  if (token.startsWith('Bearer ')) {
-    // Remove Bearer from string
-    token = token.slice(7, token.length);
+authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if(token == null){
+      return res.sendStatus(401);
   }
 
-  if (token) {
-    jwt.verify(token, config.secret, (err, decoded) => {
-      if (err) {
-        return res.json({
-          code: config.codes.code_auth_failed,
-          message: 'Authentication Failed'
-        });
-      } else {
-        console.log("decoded",decoded);
+  jwt.verify(token, config.ACCESS_TOKEN_SECRET, (err, decodedUser) => {
+      if(err) return res.sendStatus(403);
+      req.decoded = decodedUser;
+      next();
+  });
+}
 
-        req.decoded = decoded;
-        next();
-      }
-    });
-  } else {
-    return res.json({
-      code: config.codes.code_auth_token_not_supplied,
-      message: 'Auth token is not supplied'
-    });
-  }
-};
+
+generateAccessToken = (msisdn) => {
+  const accessToken = jwt.sign({msisdn: msisdn}, config.ACCESS_TOKEN_SECRET, {expiresIn: '2m'});
+  return accessToken;
+}
+
+getRefreshToken = (msisdn) => {
+  const token = jwt.sign({msisdn: msisdn}, config.REFRESH_TOKEN_SECRET);
+  return token;
+}
 
 module.exports = {
-  checkToken: checkToken
+  authenticateToken: authenticateToken,
+  generateAccessToken: generateAccessToken,
+  getRefreshToken: getRefreshToken
 }

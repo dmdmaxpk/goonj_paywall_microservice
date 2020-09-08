@@ -4,11 +4,11 @@ const controller = require('../controllers/otpController')
 const authMiddleWare = require('../middlewares/auth.middleware');
 
 router.route('/')
-    .post(authMiddleWare.checkToken, controller.post)
-    .get(authMiddleWare.checkToken, controller.get);
+    .post(authMiddleWare.authenticateToken, controller.post)
+    .get(authMiddleWare.authenticateToken, controller.get);
 
 // Update on the basis of user msisdn
 router.route('/:msisdn')
-    .put(authMiddleWare.checkToken, controller.put)
+    .put(authMiddleWare.authenticateToken, controller.put)
 
 module.exports = router;

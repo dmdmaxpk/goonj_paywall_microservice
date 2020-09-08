@@ -5,13 +5,13 @@ const controller = require('../controllers/authController');
 
 const authMiddleWare = require('../middlewares/auth.middleware');
 
-router.route('/token')
-    .get(authMiddleWare.checkToken, controller.paymentSources);
+router.post('/token')
+    .get(authMiddleWare.authenticateToken, controller.token);
 
-router.route('/refresh')
-    .post(authMiddleWare.checkToken, controller.sendOtp);
+router.post('/refresh')
+    .post(authMiddleWare.authenticateToken, controller.refresh);
 
-router.route('/delete')
-    .get(authMiddleWare.checkToken, controller.delete);
+router.delete('/delete')
+    .get(authMiddleWare.authenticateToken, controller.delete);
 
 module.exports = router;

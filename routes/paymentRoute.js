@@ -4,36 +4,36 @@ const controller = require('../controllers/paymentController');
 const authMiddleWare = require('../middlewares/auth.middleware');
 
 router.route('/sources')
-    .get(authMiddleWare.checkToken, controller.paymentSources);
+    .get(authMiddleWare.authenticateToken, controller.paymentSources);
 
 router.route('/otp/send')
-    .post(authMiddleWare.checkToken, controller.sendOtp);
+    .post(authMiddleWare.authenticateToken, controller.sendOtp);
 
 router.route('/delink') 
-    .post(authMiddleWare.checkToken, controller.deLink);
+    .post(authMiddleWare.authenticateToken, controller.deLink);
 
 router.route('/otp/verify')
-    .post(authMiddleWare.checkToken, controller.verifyOtp);
+    .post(authMiddleWare.authenticateToken, controller.verifyOtp);
 
 router.route('/subscribe')
-    .post(authMiddleWare.checkToken, controller.subscribe);
+    .post(authMiddleWare.authenticateToken, controller.subscribe);
 
 router.route('/unsubscribe')
-    .post(authMiddleWare.checkToken, controller.unsubscribe);
+    .post(authMiddleWare.authenticateToken, controller.unsubscribe);
 
 router.route('/status') 
-    .post(authMiddleWare.checkToken, controller.status);
+    .post(authMiddleWare.authenticateToken, controller.status);
 
 router.route('/getAllSubs')
-    .get(authMiddleWare.checkToken, controller.getAllSubscriptions);
+    .get(authMiddleWare.authenticateToken, controller.getAllSubscriptions);
 
 router.route('/recharge')
-    .post(authMiddleWare.checkToken, controller.recharge);
+    .post(authMiddleWare.authenticateToken, controller.recharge);
 
 router.route('/delete')
-    .get(authMiddleWare.checkToken, controller.delete);
+    .get(authMiddleWare.authenticateToken, controller.delete);
 
 router.route('/linkTransaction')
-    .post(authMiddleWare.checkToken, controller.linkTransaction);
+    .post(authMiddleWare.authenticateToken, controller.linkTransaction);
 
 module.exports = router;
