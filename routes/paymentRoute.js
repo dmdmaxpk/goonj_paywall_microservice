@@ -6,14 +6,12 @@ const authMiddleWare = require('../middlewares/auth.middleware');
 router.route('/sources')
     .get(authMiddleWare.authenticateToken, controller.paymentSources);
 
-router.route('/otp/send')
-    .post(authMiddleWare.authenticateToken, controller.sendOtp);
+router.route('/otp/send').post(controller.sendOtp);
 
 router.route('/delink') 
     .post(authMiddleWare.authenticateToken, controller.deLink);
 
-router.route('/otp/verify')
-    .post(authMiddleWare.authenticateToken, controller.verifyOtp);
+router.route('/otp/verify').post(controller.verifyOtp);
 
 router.route('/subscribe')
     .post(authMiddleWare.authenticateToken, controller.subscribe);

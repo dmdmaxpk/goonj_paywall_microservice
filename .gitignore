@@ -65,3 +65,4 @@ jspm_packages
 public/static/images/stills*
 .vscode/sftp.json
 .vscode/sftp.json
+requests.rest
