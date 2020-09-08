@@ -6,10 +6,19 @@ class AuthRepository {
     constructor(){
     }
 
-    async create(postData) {
+    async createOrUpdate(postData) {
+        let existingToken = await this.getByMsisdn(postData.msisdn);
+        if(existingToken){
+            this.update(postData.msisdn, postData.auth_token);
+            return;
+        }
+        
         let token = new AuthToken(postData);
-        let result = await token.save();
-        return result;
+        await token.save();
+    }
+
+    async update(msisdn, auth_token) {
+        return await AuthToken.update({msisdn: msisdn}, {$set: {auth_token: auth_token}});
     }
 
     async getByMsisdn(msisdn) {
