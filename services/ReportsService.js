@@ -79,6 +79,8 @@ generateEveryThreeDaysReports =  async() => {
 generateRandomReports =  async() => {
     reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled();
     reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled2();
+    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled3();
+    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled4();
 }
 
 generateWeeklyReports =  async() => {
