@@ -76,6 +76,10 @@ generateEveryThreeDaysReports =  async() => {
 
 }
 
+generateRandomReports =  async() => {
+    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled();
+}
+
 generateWeeklyReports =  async() => {
     
     let from = new Date();
@@ -152,5 +156,6 @@ module.exports = {
     generateDailyReport: generateDailyReport,
     generateEveryThreeDaysReports: generateEveryThreeDaysReports,
     generateWeeklyReports: generateWeeklyReports,
-    generateMonthlyReports: generateMonthlyReports
+    generateMonthlyReports: generateMonthlyReports,
+    generateRandomReports: generateRandomReports
 }
