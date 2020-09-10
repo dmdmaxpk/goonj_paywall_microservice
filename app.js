@@ -109,6 +109,9 @@ billingRepo.generateToken().then(async(token) => {
             }else{
                 console.log('RabbitMQ connected successfully!');
             
+                // Let's create queues
+                rabbitMq.createQueue(config.queueNames.subscriptionResponseDispatcher);
+
                 // Subscription queue consumer
                 rabbitMq.consumeQueue(config.queueNames.subscriptionResponseDispatcher, (response) => {
                     consumeSubscriptionQueue(response);
