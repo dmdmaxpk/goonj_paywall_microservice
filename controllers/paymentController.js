@@ -311,8 +311,8 @@ exports.verifyOtp = async (req, res) => {
 				let user = await userRepo.getUserByMsisdn(msisdn);
 				
 				if(user){
-					let accessToken = authService.generateAccessToken(msisdn);
-					data.access_token = accessToken;
+					data.access_token = authService.generateAccessToken(msisdn);
+					data.refresh_token = authService.generateRefreshToken(msisdn);
 
 					let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 					if(subscriber && subscribed_package_id){
@@ -341,15 +341,15 @@ exports.verifyOtp = async (req, res) => {
 
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
+
+	let gw_transaction_id = req.body.transaction_id;
 	let decodedUser = req.decoded;
 
 	if(decodedUser && decodedUser.msisdn){
-		let gw_transaction_id = req.body.transaction_id;
 		let payment_source = req.body.payment_source;
 	
 		let msisdn = decodedUser.msisdn;
 		let user = await userRepo.getUserByMsisdn(msisdn);
-	
 		if(!user){
 			// Means no user in DB, let's create one
 			let userObj = {}, response = {};
@@ -385,15 +385,12 @@ exports.subscribe = async (req, res) => {
 			doSubscribe(req, res, user, gw_transaction_id);
 		}
 	}else{
-		console.log('No decoded user is present');
-		res.send({code: config.codes.code_error, message: "No decoded user present", gw_transaction_id: gw_transaction_id});
+		console.log('No decoded user present');
+		res.send({code: config.codes.code_error, message: "Authentication Failure", gw_transaction_id: gw_transaction_id});
 	}
-
-	
 }
 
 doSubscribe = async(req, res, user, gw_transaction_id) => {
-	console.log('============================');
 	if(user && user.active === true){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriberByUserId (user._id);

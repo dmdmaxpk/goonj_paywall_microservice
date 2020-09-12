@@ -4,7 +4,7 @@ const router = express.Router();
 // Service Label
 router.get('/', (req, res) => res.send("User Microservice"));
 
-router.get('/auth', require('./authRoutes'));
+router.use('/auth', require('./authRoutes'));
 
 router.use('/user',    require('./userRoutes'));
 router.use('/package',    require('./packageRoutes'));

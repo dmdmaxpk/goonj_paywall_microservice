@@ -7,6 +7,7 @@ const telenor_subscriber_query_api_tps = 5;
 const local_subscription_api_tps = 5;
 const ep_subscription_api_tps = 1;
 
+const HARD_TOKEN = "I3zrSLC0eK5aKBCCmO1D.9uVrgDWfltvbthuirham.Zkd7whBHLKwMJgvt45oc.XVxPBgEBvyTB";
 const ACCESS_TOKEN_SECRET = "d213db37e96a781c5b5eee1eb000dc6edd1d9ce0264247aea073b16d7daac7efeb30b2949c9845d4549efad77556673f6a16ae81a1725c0dcbffb1c9dc13fed8";
 const REFRESH_TOKEN_SECRET = "6a097f388a863d691721261efcf53cd09e89f4e0770837c50fc4f59a33e5a146b22abb12aa37272665cead73fc5ee268608f522a2109ad98deae722328362a20";
 
@@ -100,7 +101,8 @@ let config = {
         paywall_worker_base_url: paywall_worker_base_url,
 
         ACCESS_TOKEN_SECRET: ACCESS_TOKEN_SECRET,
-        REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET
+        REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET,
+        HARD_TOKEN: HARD_TOKEN
     },
     staging: {
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
@@ -135,7 +137,8 @@ let config = {
         paywall_worker_base_url: paywall_worker_base_url,
 
         ACCESS_TOKEN_SECRET: ACCESS_TOKEN_SECRET,
-        REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET
+        REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET,
+        HARD_TOKEN: HARD_TOKEN
     },
     production: {
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
@@ -170,7 +173,8 @@ let config = {
         paywall_worker_base_url: paywall_worker_base_url,
 
         ACCESS_TOKEN_SECRET: ACCESS_TOKEN_SECRET,
-        REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET
+        REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET,
+        HARD_TOKEN: HARD_TOKEN
     }
 };
 

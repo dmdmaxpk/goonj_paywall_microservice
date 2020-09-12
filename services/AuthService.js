@@ -5,10 +5,16 @@ const authMiddleWare = require('../middlewares/auth.middleware');
 
 generateAccessToken = (msisdn) => {
     let accessToken = authMiddleWare.generateAccessToken(msisdn);
-    repo.createOrUpdate({msisdn: msisdn, auth_token: accessToken});
     return accessToken;
 }
 
+generateRefreshToken = (msisdn) => {
+    let refreshToken = authMiddleWare.getRefreshToken(msisdn);
+    repo.createOrUpdate({msisdn: msisdn, auth_token: refreshToken});
+    return refreshToken;
+}
+
 module.exports = {
-    generateAccessToken: generateAccessToken
+    generateAccessToken: generateAccessToken,
+    generateRefreshToken: generateRefreshToken
 }

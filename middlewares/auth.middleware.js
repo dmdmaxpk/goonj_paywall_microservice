@@ -9,15 +9,30 @@ authenticateToken = (req, res, next) => {
   }
 
   jwt.verify(token, config.ACCESS_TOKEN_SECRET, (err, decodedUser) => {
-      if(err) return res.sendStatus(403);
+      if(err){
+        return res.sendStatus(403);
+      }
       req.decoded = decodedUser;
       next();
   });
 }
 
+authenticateHardToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if(token == null){
+      return res.sendStatus(401);
+  }
+
+  if(config.HARD_TOKEN === token){
+    next();
+  }else{
+    return res.sendStatus(403);
+  }
+}
 
 generateAccessToken = (msisdn) => {
-  const accessToken = jwt.sign({msisdn: msisdn}, config.ACCESS_TOKEN_SECRET, {expiresIn: '2m'});
+  const accessToken = jwt.sign({msisdn: msisdn}, config.ACCESS_TOKEN_SECRET, {expiresIn: '30s'});
   return accessToken;
 }
 
@@ -29,5 +44,6 @@ getRefreshToken = (msisdn) => {
 module.exports = {
   authenticateToken: authenticateToken,
   generateAccessToken: generateAccessToken,
-  getRefreshToken: getRefreshToken
+  getRefreshToken: getRefreshToken,
+  authenticateHardToken: authenticateHardToken
 }

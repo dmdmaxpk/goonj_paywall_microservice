@@ -1,44 +1,42 @@
 const container = require("../configurations/container");
 const repo = container.resolve("authRepository");
 
+const authService = require('../services/AuthService');
+
 const jwt = require("jsonwebtoken");
 
-
-exports.token = async (req,res) =>  {
+exports.refresh = async (req, res) => {
     const refreshToken = req.body.token;
-    if(refreshToken == null){
+    if (refreshToken == null) {
         return res.sendStatus(401);
     }
 
     let token = await repo.getByAuthToken(refreshToken);
-    if(!token){
+    if (!token) {
         return res.sendStatus(403);
     }
 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-        if(err){
+        if (err) {
             return res.sendStatus(403);
         }
 
-        console.log(user);
-        const accessToken = generateAccessToken({user_id: user.user_id, msisdn: user.msisdn});
-        res.json({access_token: accessToken});
+        const at = authService.generateAccessToken(user.msisdn);
+        const rt = authService.generateRefreshToken(user.msisdn);
+
+        res.json({
+            access_token: at,
+            refresh_token: rt
+        });
     });
 }
 
-exports.refresh = async (req,res) =>  {
-
+exports.token = async (req, res) => {
+    const accessToken = authService.generateAccessToken(req.body.msisdn);
+    const refreshToken = authService.generateRefreshToken(req.body.msisdn);
+    res.send({access_token: accessToken, refresh_token: refreshToken});
 }
 
-exports.delete = async (req,res) =>  {
-    
-}
-
-exports.getToken = (user) => {
+exports.delete = async (req, res) => {
 
 }
-
-generateAccessToken = (user) => {
-    
-}
-
