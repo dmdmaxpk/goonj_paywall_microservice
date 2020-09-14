@@ -318,11 +318,11 @@ class SubscriptionRepository {
     
     async dailyTrialToBilledUsers ()  {
         let today = new Date();
-        today.setHours(today.getHours() - 24);
+        today.setHours(today.getHours() - 5);
         today.setHours(0, 0, 0, 0);
     
         let lastTenDays = new Date();
-        lastTenDays.setDate(lastTenDays.getDate() - 14);
+        lastTenDays.setDate(lastTenDays.getDate() - 13);
         lastTenDays.setHours(0, 0, 0, 0);
         console.log("Query from - ", lastTenDays, ' - to ', today);
     
