@@ -475,6 +475,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 							subscriptionObj = subsResponse.subscriptionObj;
 							packageObj = await packageRepo.getPackage({_id: subscriptionObj.subscribed_package_id});
 						}catch(err){
+							console.log("=> ", err);
 							sendTrialMessage = false;
 							sendChargingMessage = false;
 							res.send({code: config.codes.code_error, message: 'Failed to subscribe package, please try again', gw_transaction_id: gw_transaction_id});
@@ -802,7 +803,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 				}
 			}
 		} catch(err){
-			console.log("Error while direct billing",err.message,user.msisdn);
+			console.log("Error while direct billing", err, user.msisdn);
 			dataToReturn.status = "error";
 			dataToReturn.subscriptionObj = subscriptionObj;
 			reject(dataToReturn);

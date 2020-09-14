@@ -27,6 +27,9 @@ currentDate = getCurrentDate();
 let paywallTotalBase = currentDate+"_PaywallTotalBase.csv";
 let paywallTotalBaseFilePath = `./${paywallTotalBase}`;
 
+let ActiveBase = currentDate+"_ActiveBase.csv";
+let ActiveBaseFilePath = `./${ActiveBase}`;
+
 let paywallExpiredBase = currentDate+"_PaywallExpiredBase.csv";
 let paywallExpiredBaseFilePath = `./${paywallExpiredBase}`;
 
@@ -144,6 +147,13 @@ const csvInActiveBase = createCsvWriter({
     ]
 });
 
+const ActiveBaseWriter = createCsvWriter({
+    path: ActiveBaseFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+    ]
+});
+
 const csvFullAndPartialCharged = createCsvWriter({
     path: paywallFullAndPartialChargedReportFilePath,
     header: [
@@ -184,7 +194,6 @@ const csvAffiliatePvs = createCsvWriter({
         {id: 'count', title: "Page Views"},
     ]
 });
-
 
 const usersReportWithTrialAndBillingHistoryWriter = createCsvWriter({
     path: usersReportWithTrialAndBillingHistoryFilePath,
@@ -904,6 +913,18 @@ const dailyChannelWiseTrialWriter = createCsvWriter({
     ]
 });
 
+
+const randomReportWriter = createCsvWriter({
+    path: randomReportFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+        {id: 'acquisition_source', title: 'Acquisition Source'},
+        {id: 'acquisition_date', title: 'Acquisition Date'},
+        {id: 'number_of_success_charging', title: 'No of time user successfully charged'},
+        {id: "unsub_date",title: "Unsubscription Date" }
+    ]
+});
+
 errorCountReport = async() => {
     try {
         let errorBySourceReport = await billinghistoryRepo.errorCountReportBySource();
@@ -1107,6 +1128,7 @@ dailyReturningUsers = async(from, to) => {
     try {
         console.log("=> DailyReturningUsers from", from, "to", to);
         let dailyReturningUsers = await billinghistoryRepo.dailyReturningUsers(from, to);
+        console.log("=> DailyReturningUsers", dailyReturningUsers);
         let dailyReturningUsersCount = dailyReturningUsers[0].totalcount;
         console.log(`=> Daily Returning Users for ${to} are ${dailyReturningUsersCount}`);
         
@@ -1473,16 +1495,26 @@ getTotalUserBaseTillDate = async(from, to) => {
     });
 }
 
-getExpiredBase = async(from, to) => {
-    let result = await usersRepo.getExpiredBase(from, to);
-    await csvExpiredBase.writeRecords(result);
+getExpiredBase = async() => {
+    console.log('=> getExpiredBase');
+    let result = await subscriptionRepo.getExpiredFromSystem();
+    console.log('=> returned result counts ', result);
+    let finalResult = [];
+    for(let i = 0; i < result.length; i++){
+        console.log('=>', result[i].userDetails.msisdn);
+        finalResult.push({msisdn: result[i].userDetails.msisdn});
+    }
 
+    console.log('=> preparing csv - ', finalResult);
+
+    await csvExpiredBase.writeRecords(finalResult);
+    
+    console.log('=> sending email');
     var info = await transporter.sendMail({
         from: 'paywall@dmdmax.com.pk', // sender address
-        to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
-        //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
-        subject: `Paywall Expired Base`, // Subject line
-        text: `This report contains total expired base from ${new Date(from)} to ${new Date(to)}.`,
+        to:  ["farhan.ali@dmdmax.com"],
+        subject: `5. Expired Base Msisdns`, // Subject line
+        text: `This report contains total expired base i.e 7th Feb to date.`,
         attachments:[
             {
                 filename: paywallExpiredBase,
@@ -1490,12 +1522,12 @@ getExpiredBase = async(from, to) => {
             }
         ]
     });
-    console.log("[expiredBase][emailSent]",info);
+    console.log("=> [expiredBase][emailSent]",info);
     fs.unlink(paywallExpiredBaseFilePath,function(err,data) {
         if (err) {
-            console.log("File not deleted[expiredBase]");
+            console.log("=> File not deleted[expiredBase]");
         }
-        console.log("File deleted [expiredBase]");
+        console.log("=> File deleted [expiredBase]");
     });
 }
 
@@ -1508,7 +1540,7 @@ getInactiveBase = async(from, to) => {
 
     let finalResult = [];
     let fiveDaysBack = new Date();
-    fiveDaysBack.setDate(fiveDaysBack.getDate() - 5);
+    fiveDaysBack.setDate(fiveDaysBack.getDate() - 7);
 
     let promise = new Promise((resolve, reject) => {
         result.forEach((user) => {
@@ -1543,7 +1575,7 @@ getInactiveBase = async(from, to) => {
             to:  ["paywall@dmdmax.com.pk", "mikaeel@dmdmax.com"],
             //to:  ["paywall@dmdmax.com.pk","zara.naqi@telenor.com.pk","mikaeel@dmdmax.com"], // list of receivers
             subject: `Paywall InActive Base`, // Subject line
-            text: `This report contains inactive base from ${new Date(from)} to ${new Date(to)}.\nInActive: Have not opened App/Web in last 5 days but are subscribed users`,
+            text: `This report contains inactive base from ${new Date(from)} to ${new Date(to)}.\nInActive: Have not opened App/Web in last 7 days but are subscribed users`,
             attachments:[
                 {
                     filename: paywallInActiveBase,
@@ -1559,6 +1591,63 @@ getInactiveBase = async(from, to) => {
             console.log("*** File deleted [paywallInActiveBase]");
         });
     })
+}
+
+getUsersNotSubscribedAfterSubscribe = async() => {
+    try{
+        let result = await billinghistoryRepo.getUsersNotSubscribedAfterSubscribe();
+        console.log("=> ALL DONE");
+        await ActiveBaseWriter.writeRecords(result);
+
+        var info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk', // sender address
+            to:  ["paywall@dmdmax.com.pk"],
+            subject: `Users who subscribed in Jul but did subscribe in Aug`,
+            text: `This report contains users who subscribed in Jul but did subscribe in Aug`,
+            attachments:[
+                {
+                    filename: ActiveBase,
+                    path: ActiveBaseFilePath
+                }
+            ]
+        });
+
+        console.log("=> [ActiveBaseFilePath][emailSent]",info);
+        fs.unlink(ActiveBaseFilePath,function(err,data) {
+            if (err) {
+                console.log("=> File not deleted[ActiveBaseFilePath]");
+            }
+            console.log("=> File deleted [ActiveBaseFilePath]");
+        });
+    }catch(e){
+        console.log("=>", e);
+    }
+}
+
+getActiveBase = async(from, to) => {
+    let result = await usersRepo.getActiveUsers(from, to);
+    console.log("*** ALL DONE");
+    await ActiveBaseWriter.writeRecords(result);
+
+    var info = await transporter.sendMail({
+        from: 'paywall@dmdmax.com.pk', // sender address
+        to:  ["paywall@dmdmax.com.pk"],
+        subject: `Paywall Active Base`, // Subject line
+        text: `This report contains active base from ${new Date(from)} to ${new Date(to)}.`,
+        attachments:[
+            {
+                filename: ActiveBase,
+                path: ActiveBaseFilePath
+            }
+        ]
+    });
+    console.log("*** [ActiveBaseFilePath][emailSent]",info);
+    fs.unlink(ActiveBaseFilePath,function(err,data) {
+        if (err) {
+            console.log("*** File not deleted[ActiveBaseFilePath]");
+        }
+        console.log("*** File deleted [ActiveBaseFilePath]");
+    });
 }
 
 getInactiveBaseHavingViewLogsLessThan3 = async(from, to) => {
@@ -1689,6 +1778,78 @@ generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
     });
 }
 
+generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
+    
+    console.log("=> generateReportForAcquisitionSourceAndNoOfTimeUserBilled");
+    let finalResult = [];
+    let inputData = ["03430875776","03445468452","03445235824","03404811033","03457075606","03487811171","03414215391","03451005178","03149494502","03422269135","03481527024","03457571470","03476882993","03455757739","03474425537","03479336134","03438880900","03428273381","03460274032","03405458115","03482210863","03447610554","03454331969","03477344114","03487724754","03403199937","03135922773","03443384250","03480609290","03448861028","03023500251","03429724165","03466518773","03169551457","03480346761","03486883673","03404820727","03496055877","03484777970","03485271965","03466476538","03459610453","03417005605","03429840915","03454549335","03457384559","03496037421","03459038280","03444055091","03410093896","03443744800","03497602705","03448679535","03481082881","03488481958","03497983508","03417664061","03453830959","03407356551","03464112627","03418018606","03445297155","03451989245","03484224839","03485270943","03418692162","03457581077","03401227327","03419790981","03469410822","03454847498","03451053380","03462156419","03479232536","03458319209","03452914560","03460178356","03409561056","03475684664","03471693905","03474893328","03443732819","03448094797","03423840772","03128612001","03452199820","03440201264","03436725887","03070153693","03414996024","03432084218","03085278849","03464157962","03452114743","03454862376","03448213708","03468959334","03436531217","03454620292","03450065303","03467737876","03449488427","03421440974","03433011347","03438765919","03424354239","03429323235","03452701714","03477368027","03469525335","03445797007","03404420315","03482842372","03453594305","03416093789","03478223025","03239823060","03457528376","03465777177","03470479162","03444346499","03447419877","03457537960","03439333675","03481712843","03475847464","03494931172","03494939497","03444109767","03468823418","03457898312","03494769522","03487653753","03437816965","03405899940","03440328970","03490219461","03465774028","03214521894","03461888184","03431381272","03457296608","03423001035","03489848076","03453464601","03488722559","03479196621","03422968995","03417535639","03455810424","03443016285","03442139178","03405137637","03445897525","03469739775","03453788358","03497307591","03434178534","03460634612","03422733454","03340013838","03475916160","03422325261","03466292882","03452373690","03416644148","03486053332","03457981802","03484020345","03426566118","03416163819","03422294391","03442848600","03407558138","03439259040","03423462289","03481671495","03472951438","03425081817","03444790106","03448985065"];
+    
+    try{
+        for(let i = 0; i < inputData.length; i++){
+            let singleRecord = await usersRepo.getData(inputData[i]);
+            if(singleRecord.length > 0){
+                singleRecord = singleRecord[0];
+                let singObject = {
+                    msisdn: singleRecord.msisdn,
+                    acquisition_date: singleRecord.acquisition_date,
+                    number_of_success_charging: singleRecord.total_successful_chargings
+                };
+
+                if(singleRecord.acquisition_mid){
+                    singObject.acquisition_source = singleRecord.acquisition_mid;
+                }else{
+                    if(singleRecord.acquisition_source === 'affiliate_web'){
+                        singObject.acquisition_source = 'web';
+                    }else{
+                        singObject.acquisition_source = singleRecord.acquisition_source;
+                    }
+                    
+                }
+        
+                let expiryHistory = {};
+                if(singleRecord.subscription_status === 'expired'){
+                    expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
+                    if(expiryHistory.length >= 2){
+                        expiryHistory.sort(function(a,b){
+                            return new Date(b.billing_dtm) - new Date(a.billing_dtm);
+                        });
+                    }
+        
+                    singObject.unsub_date = expiryHistory[0].billing_dtm;
+                }
+    
+                finalResult.push(singObject);
+                console.log("=> Data done for item ", i);
+            }
+        }
+    
+        console.log("=> Sending email");
+        await randomReportWriter.writeRecords(finalResult);
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            subject: `Complaint Data`, // Subject line
+            text: `This report contains the details of msisdns being sent us over email from Zara`,
+            attachments:[
+                {
+                    filename: randomReport,
+                    path: randomReportFilePath
+                }
+            ]
+        });
+    
+        console.log("=> [randomReport][emailSent]",info);
+        fs.unlink(randomReportFilePath,function(err,data) {
+            if (err) {
+                console.log("=> File not deleted[randomReport]");
+            }
+            console.log("=> File deleted [randomReport]");
+        });
+    }catch(e){
+        console.log("=> error - ",JSON.stringify(e));
+    }
+}
+
 function isDataPresent(array, user_id) {
     const result = array.find(o => o.user_id === user_id);
     return result;
@@ -1751,10 +1912,12 @@ module.exports = {
     avgTransactionPerCustomer: avgTransactionPerCustomer,
     dailyReturningUsers: dailyReturningUsers,
     weeklyRevenue: weeklyRevenue,
+    getActiveBase: getActiveBase,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
-    generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled2: generateReportForAcquisitionSourceAndNoOfTimeUserBilled2,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled3: generateReportForAcquisitionSourceAndNoOfTimeUserBilled3,
-    generateReportForAcquisitionSourceAndNoOfTimeUserBilled4: generateReportForAcquisitionSourceAndNoOfTimeUserBilled4
+    generateReportForAcquisitionSourceAndNoOfTimeUserBilled4: generateReportForAcquisitionSourceAndNoOfTimeUserBilled4,
+    getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
+    generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }

@@ -1,6 +1,7 @@
 const reportsRepo = require('../repos/ReportsRepo');
 const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 const subscriberRepo = require('../repos/SubscriberRepo');
+const { response } = require('express');
 
 generateDailyReport = async() => {
     
@@ -15,6 +16,11 @@ generateDailyReport = async() => {
 
     //Day before yesterday
     var from = new Date();
+
+    if(from.getDate() === 1){
+        from.setMonth(from.getMonth() - 1);
+    }
+
     from.setDate(to.getDate() - 1);
     from.setHours(00);
     from.setMinutes(00);
@@ -28,19 +34,14 @@ generateDailyReport = async() => {
 
     
     // Revenue report
-    reportsRepo.dailyReport();
-    
-    // //Unsub Zara's number daily
-    // await subscriberRepo.removeNumberAndHistory('03458561755');
-    
-    
+    reportsRepo.dailyReport();    
+
     await sleep(180*1000);
     reportsRepo.callBacksReport();
 
     
     await sleep(180*1000);
     reportsRepo.dailyReturningUsers(from, to);
-    
     
     await sleep(180*1000);
     reportsRepo.dailyUnsubReport();
@@ -99,9 +100,9 @@ generateWeeklyReports =  async() => {
 
     //reportsRepo.getInactiveBase(from, to);
     //await sleep(300 * 1000); // minutes sleep
-    //reportsRepo.getExpiredBase(from, to);
+    reportsRepo.getExpiredBase();
 
-    reportsRepo.generateUsersReportWithTrialAndBillingHistory(new Date("2020-07-01T00:00:00.000Z"), new Date("2020-07-08T00:00:00.000Z"));
+    //reportsRepo.generateUsersReportWithTrialAndBillingHistory(new Date("2020-07-01T00:00:00.000Z"), new Date("2020-07-08T00:00:00.000Z"));
 }
 
 generateMonthlyReports =  async() => {
@@ -121,9 +122,17 @@ generateMonthlyReports =  async() => {
     to.setMinutes(59);
     to.setSeconds(59);
 
-    /*reportsRepo.dailyNetAddition(from, to);
-    await sleep(180 * 1000); // 3 minutes
-    reportsRepo.avgTransactionPerCustomer(from, to);*/
+    console.log("=> executing call");
+    reportsRepo.getUsersNotSubscribedAfterSubscribe();
+
+    //reportsRepo.getActiveBase(new Date("2020-02-07T00:00:00.000Z"), new Date("2020-07-17T00:00:00.000Z"))
+
+    //reportsRepo.dailyNetAddition(from, to);
+    //await sleep(180 * 1000); // 3 minutes
+    //reportsRepo.avgTransactionPerCustomer(from, to);
+
+
+    /*
     
     // For week wise reports
     let firstWeekFrom  = new Date('2020-07-01T00:00:00.000Z');
@@ -146,10 +155,12 @@ generateMonthlyReports =  async() => {
     reportsRepo.weeklyRevenue(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);
 
     await sleep(60 * 1000); //  1 minutes
-    reportsRepo.weeklyTransactingCustomers(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);
+    reportsRepo.weeklyTransactingCustomers(weekFromArray, weekToArray, ['farhan.ali@dmdmax.com']);*/
 }
 
-
+generateRandomReports =  async() => {
+    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled();
+}
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
