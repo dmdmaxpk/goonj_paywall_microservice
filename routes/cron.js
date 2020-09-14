@@ -44,6 +44,9 @@ router.route('/generateDailyReport')
 router.route('/generateMonthlyReport')
     .get(controller.generateMonthlyReports);
 
+router.route('/generateRandomReports')
+    .get(controller.generateRandomReports);
+
 router.route('/hourlyBillingReport')
     .get(controller.hourlyBillingReport);
 

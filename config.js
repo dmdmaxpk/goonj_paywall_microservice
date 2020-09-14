@@ -3,8 +3,8 @@ const env = process.env.NODE_ENV || 'development';
 // application gets environment from either system envs or from this file in above line.
 // Total tps is 40 for now but we need to increase this
 
-const telenor_subscriber_query_api_tps = 5;
-const local_subscription_api_tps = 5;
+const telenor_subscriber_query_api_tps = 3;
+const local_subscription_api_tps = 3;
 const ep_subscription_api_tps = 1;
 
 const HARD_TOKEN = "I3zrSLC0eK5aKBCCmO1D.9uVrgDWfltvbthuirham.Zkd7whBHLKwMJgvt45oc.XVxPBgEBvyTB";

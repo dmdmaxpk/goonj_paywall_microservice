@@ -80,7 +80,7 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true}).sort({priority:1}).limit(7200);
+        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true}).sort({priority:1}).limit(8800);
         return results;
     }
     
@@ -345,6 +345,56 @@ class SubscriptionRepository {
             }
             ]);
          return result;
+    }
+
+
+
+    async getExpiredFromSystem(){
+        console.log('=> getExpiredFromSystem');
+        try{
+            let result = await Subscription.aggregate([
+                {             
+                    $match:{ 
+                        "subscription_status" : "expired"
+                    }
+                },{
+                    $project:{
+                        "_id": 0,
+                        "subscriber_id": 1	
+                    }
+                },{
+                    $lookup:{
+                        from: "subscribers",
+                        let: {subscriber_id: "$subscriber_id" },
+                                pipeline:[{$match: {$expr: {$eq: ["$_id", "$$subscriber_id"]}}}],
+                        as: "subs"
+                    }
+                },{
+                    $unwind: "$subs"
+                },{
+                    $project:{
+                        "_id": 0,
+                        "subs.user_id": 1		
+                    }
+                },{
+                    $lookup:{
+                        from: "users",
+                        let: {user_id: "$subs.user_id"},
+                        pipeline:[{$match:{$expr:{$eq:["$_id", "$$user_id"]}}}],
+                        as: "userDetails"
+                    }
+                },{
+                    $unwind: "$userDetails"
+                },{
+                    $project:{
+                        "userDetails.msisdn": 1		
+                    }
+                }
+            ]);
+            return result;
+        }catch(e){
+            console.log('=> error', e);
+        }
     }
 }
 

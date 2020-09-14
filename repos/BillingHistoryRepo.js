@@ -396,10 +396,23 @@ class BillingHistoryRepository {
          return result;
     }
 
-    async getExpiryHistory (user_id) {
+    async getExpiryHistory(user_id) {
         let result = await BillingHistory.aggregate([{             
             $match:{ 
                 "user_id": user_id,
+                $or:[
+                    {"billing_status" : "expired"}, 
+                    {"billing_status" : "unsubscribe-request-recieved"}, 
+                    {"billing_status" : "unsubscribe-request-received-and-expired"}
+                ]
+            }      
+        }]);
+        return result;
+    }
+
+    async getExpiredBase (user_id) {
+        let result = await BillingHistory.aggregate([{             
+            $match:{ 
                 $or:[
                     {"billing_status" : "expired"}, 
                     {"billing_status" : "unsubscribe-request-recieved"}, 
@@ -489,6 +502,78 @@ class BillingHistoryRepository {
 
             console.log("=> ", result);
              return result;
+        }catch(err){
+            console.log("=>", err);
+        }
+    }
+
+    async getUsersNotSubscribedAfterSubscribe()  {
+        console.log("=> executing query");
+        try{
+            let result = await BillingHistory.aggregate([
+                {
+                    $match:{
+                        "billing_status": "Success",
+                        $and:[
+                            {billing_dtm:{$gte:new Date("2020-07-01T00:00:00.000Z")}},
+                            {billing_dtm:{$lt:new Date("2020-07-31T00:00:00.000Z")}}
+                        ]
+                        }
+                },{
+                    $group: {
+                        _id: "$user_id"
+                    }
+                },{
+                    $lookup:{
+                        from: "billinghistories",
+                        let: {user_id: "$_id" },
+                        pipeline:[
+                            {
+                                $match: {
+                                        $expr: {
+                                                $and:[
+                                                    {$eq: ["$user_id", "$$user_id"]},
+                                                    {$ne: ["$billing_status", "Success"]},
+                
+                {$and: [
+                        {$gte: ["$billing_dtm", new Date("2020-08-01T00:00:00.000Z")]},
+                        {$lte: ["$billing_dtm", new Date("2020-08-30T00:00:00.000Z")]}
+                    ]
+                }
+                                                ]
+                                        }
+                                }
+                            }
+                        ],
+                        as: 'billing_activities'	
+                    }
+                },{
+                    $project:{
+                        _id: 1,
+                        isAnyTrue: { $anyElementTrue: [ "$billing_activities" ] }	
+                    }
+                },{
+                    $match:{
+                        "isAnyTrue": true	
+                    }
+                },{
+                    $lookup:{
+                        from: "users",
+                        localField: "_id",
+                        foreignField: "_id",
+                        as: "usersdata"
+                    }
+                },{
+                    $unwind: "$usersdata"
+                },{
+                    $project: {
+                        msisdn: "$usersdata.msisdn"
+                    }
+                }
+            ]);
+
+            console.log("=> ", result);
+            return result;
         }catch(err){
             console.log("=>", err);
         }
