@@ -28,7 +28,7 @@ exports.refresh = async (req, res) => {
         res.json({
             access_token: at,
             refresh_token: rt
-        });  r 
+        });
     });
 }
 
