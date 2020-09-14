@@ -9,7 +9,7 @@ router.route('/he/token')
     .post(authMiddleWare.authenticateHardToken, controller.token);
 
 router.route('/refresh')
-    .post(authMiddleWare.authenticateToken, controller.refresh);
+    .post(controller.refresh);
 
 router.route('/delete')
     .delete(authMiddleWare.authenticateToken, controller.delete);

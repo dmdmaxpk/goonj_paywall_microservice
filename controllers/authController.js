@@ -4,20 +4,21 @@ const repo = container.resolve("authRepository");
 const authService = require('../services/AuthService');
 
 const jwt = require("jsonwebtoken");
+const config = require("../config");
 
 exports.refresh = async (req, res) => {
     const refreshToken = req.body.token;
     if (refreshToken == null) {
         return res.sendStatus(401);
     }
-
     let token = await repo.getByAuthToken(refreshToken);
     if (!token) {
         return res.sendStatus(403);
     }
 
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    jwt.verify(refreshToken, config.REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) {
+            console.log(err);
             return res.sendStatus(403);
         }
 
@@ -27,7 +28,7 @@ exports.refresh = async (req, res) => {
         res.json({
             access_token: at,
             refresh_token: rt
-        });
+        });  r 
     });
 }
 
