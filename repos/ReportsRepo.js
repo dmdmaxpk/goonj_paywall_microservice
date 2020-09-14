@@ -913,18 +913,6 @@ const dailyChannelWiseTrialWriter = createCsvWriter({
     ]
 });
 
-
-const randomReportWriter = createCsvWriter({
-    path: randomReportFilePath,
-    header: [
-        {id: 'msisdn', title: 'Msisdn'},
-        {id: 'acquisition_source', title: 'Acquisition Source'},
-        {id: 'acquisition_date', title: 'Acquisition Date'},
-        {id: 'number_of_success_charging', title: 'No of time user successfully charged'},
-        {id: "unsub_date",title: "Unsubscription Date" }
-    ]
-});
-
 errorCountReport = async() => {
     try {
         let errorBySourceReport = await billinghistoryRepo.errorCountReportBySource();
