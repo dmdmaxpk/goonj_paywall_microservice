@@ -322,7 +322,7 @@ class SubscriptionRepository {
         today.setHours(0, 0, 0, 0);
     
         let lastTenDays = new Date();
-        lastTenDays.setDate(lastTenDays.getDate() - 11);
+        lastTenDays.setDate(lastTenDays.getDate() - 14);
         lastTenDays.setHours(0, 0, 0, 0);
         console.log("Query from - ", lastTenDays, ' - to ', today);
     
