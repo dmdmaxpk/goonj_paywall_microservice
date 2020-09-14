@@ -26,14 +26,11 @@ class RabbitMq {
             if (error) {
               callback(error);
             }
-
-            // Number of items queue will throw at a time.
-            channel.prefetch(config.telenor_subscription_api_tps + config.telenor_message_api_tps + config.telenor_subscriber_query_api_tps);
             callback(null, channel);
         });
     }
 
-    initializeMesssageServer(callback) {
+    initializeMessageServer(callback) {
         this.createConnection((err,connection) => {
             if (err) {
                 console.log('connection error: ', err);

@@ -2,6 +2,7 @@ const config = require('../../../config');
 const moment = require('moment');
 var nodemailer = require('nodemailer');
 const axios = require("axios");
+const { response } = require('express');
 
 class SubscriptionConsumer {
 
@@ -21,135 +22,23 @@ class SubscriptionConsumer {
     }
 
     async consume(message) {
-        let subscriptionObj = JSON.parse(message.content);
+        let messageObject = JSON.parse(message.content);
 
-        let source = subscriptionObj.source;
-        let transaction_id = subscriptionObj.transactionId;
-        let subscription = subscriptionObj.subscription;
-        let micro_charge = subscriptionObj.micro_charge;
-        let discount = subscriptionObj.discount;
-        
-        try {
-            let label = "label " + Date.now() + Math.random() + "---" + subscription._id;
-            console.time("[timeLog][Consumer][SubscriptionConsumer]" + label);
-            // Check if the subscription is active or blocked for some reason.
-            if (subscription.active === true) {
-                
-                // Check if any user being excessive charge
-                if (subscription.amount_billed_today < config.maximum_daily_payment_limit_pkr ) {
-                    
-                    if(subscription.payment_source && subscription.payment_source === 'easypaisa'){
-                        if(subscription.ep_token){
-                            // ep token exist
-                            // Check current tps count
-                            let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.easypaisaDispatcher);
-                            if (countThisSec < config.ep_subscription_api_tps) {
-            
-                                await this.tpsCountRepo.incrementTPSCount(config.queueNames.easypaisaDispatcher);
-                                if(micro_charge){
-                                    this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
-                                }else if(discount){
-                                    this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
-                                }else{
-                                    this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
-                                }
-                                console.timeEnd("[timeLog][Consumer - ep][SubscriptionConsumer]" + label);
-                            }  else{
-                                console.log("TPS quota full for easypaisa subscription, waiting for 1 seconds to elapse - ", new Date());
-                                setTimeout(() => {
-                                    console.log("Calling ep - consume subscription queue after 2000 seconds");
-                                    this.consume(message);
-                                }, 1000);
-                            }  
-                        }else{
-                            console.log('EP token does not exist for subscription id ', subscription._id);
-                        }
-                    }else{
-                        // telenor billing
-                        // Check current tps count
-                        let countThisSec = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
-                        if (countThisSec < config.telenor_subscription_api_tps) {
+        let user = messageObject.user;
+        let mPackage = messageObject.package;
+        let subscription = messageObject.subscription;
+        let mcDetails = messageObject.mcDetails;
+        let transaction_id = messageObject.transaction_id;
+        let returnObject = messageObject.returnObject;
 
-                            await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
-                            if(micro_charge){
-                                this.tryMicroChargeAttempt(message, subscription, transaction_id, subscriptionObj.micro_price);
-                            }else if(discount){
-                                this.tryDiscountedChargeAttempt(message, subscription, transaction_id, subscriptionObj.discounted_price);
-                            }else{
-                                this.tryFullChargeAttempt(message, subscription, transaction_id, subscriptionObj.is_manual_recharge);
-                            }
-                            console.timeEnd("[timeLog][Consumer][SubscriptionConsumer]" + label);
-                        }  else{
-                            console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
-                            setTimeout(() => {
-                                console.log("Calling consume subscription queue after 200 seconds");
-                                this.consume(message);
-                            }, 200);
-                        }  
-                    }
-                }else{
-                    console.log("Excessive charging");
-                    let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
-                    let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
 
-                    await this.subscriptionRepo.markSubscriptionInactive(subscription._id);
-                    await this.unQueue(subscription._id);
-                    await this.shootExcessiveBillingEmail(subscription._id);
-    
-                    // Add history
-                    let history = {};
-                    history.user_id = user._id;
-                    history.package_id = packageObj._id;
-                    history.paywall_id = packageObj.paywall_id;
-                    history.subscription_id = subscription._id;
-                    history.subscriber_id = subscription.subscriber_id;
-                    history.transaction_id = subscriptionObj.transaction_id;
-                    
-                    if(source){
-                        history.source = source;
-                    }
+        if(returnObject){
+            let returnStatus = returnObject.status;
+            if(returnStatus === 'Success'){
 
-                    history.operator_response = {"message": `Subscription ${subscription._id} has exceeded their billing limit. Email sent.`};
-                    history.billing_status = "billing_exceeded";
-                    history.operator = 'telenor';
-                    this.addHistory(history);
-                    console.log("[SubscriptionConsumer][excessiveCharging][AmountBilled]",subscription.amount_billed_today);
-                    console.log("[SubscriptionConsumer][excessiveCharging][Limit]",config.maximum_daily_payment_limit_pkr);
-                    console.log("[SubscriptionConsumer][excessiveCharging][SubscriptionId]",subscription._id);
-                    rabbitMq.acknowledge(message);
-                }
-            } else {
-                console.log("[SubscriptionConsumer]InactiveSubscription][RabbitMQ-Acknowledge]",subscription._id);
-                rabbitMq.acknowledge(message);
-            }
-        }
-        catch(err){
-            console.log("[Subscription][consume][error]");
-            console.log(err);
-        }
-       
-    }
-    
-    // CHARGING ATTEMPTS
-    async tryFullChargeAttempt(queueMessage, subscription, transaction_id, is_manual_recharge) {
-        
-        let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
-        let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-        
-        try{
-            let response = await this.paymentProcessService.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
-            let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.api_response.data;
-            let message = response.message;
-    
-            if(message === 'Success'){
-                console.log("Billing success for subscription id:", subscription._id);
-                
-                // Save tp billing response
-                this.createBillingHistory(subscription, api_response, message, transaction_id, false, false, packageObj.price_point_pkr, packageObj);
-                
                 // Success billing
                 let nextBilling = new Date();
-                nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
+                nextBilling.setHours(nextBilling.getHours() + mPackage.package_duration);
     
                 // Update subscription
                 let subscriptionObj = {};
@@ -159,255 +48,89 @@ class SubscriptionConsumer {
                 subscriptionObj.is_allowed_to_stream = true;
                 subscriptionObj.last_billing_timestamp = new Date();
                 subscriptionObj.next_billing_timestamp = nextBilling;
-                subscriptionObj.amount_billed_today = subscription.amount_billed_today + packageObj.price_point_pkr;
+                subscriptionObj.amount_billed_today = subscription.amount_billed_today + (mcDetails && mcDetails.micro_charge) ? mcDetails.micro_price : mPackage.price_point_pkr;
                 subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
                 subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
                 subscriptionObj.queued = false;
-                subscriptionObj.priority = 0;
                 
-                let updatedSubscription = await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
-                
-                // Check for the affiliation callback
-                if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid && 
-                    updatedSubscription.is_affiliation_callback_executed === false &&
-                    updatedSubscription.should_affiliation_callback_sent === true){
-                    if((updatedSubscription.source === "HE" || updatedSubscription.source === "affiliate_web") && updatedSubscription.affiliate_mid != "1") {
-                        // Send affiliation callback
-                        this.sendAffiliationCallback(
-                            updatedSubscription.affiliate_unique_transaction_id, 
-                            updatedSubscription.affiliate_mid,
-                            user._id,
-                            subscription._id,
-                            subscription.subscriber_id,
-                            packageObj._id,
-                            packageObj.paywall_id
-                            );
-                    }
-                }
-    
-                // Send acknowledgement message
-                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, packageObj.display_price_point, is_manual_recharge,packageObj._id,user._id);
-                rabbitMq.acknowledge(queueMessage);
-            }else{
-                // Unsuccess billing. Save tp billing response
-                console.log("Billing failed for subscription id:", subscription._id);
-                await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,api_response,transaction_id);
-                rabbitMq.acknowledge(queueMessage);
-            }
-        }catch(error){
-            console.log("Billing failed for subscription id:", subscription._id);
-            if (error.response && error.response.data){
-                console.log('Error ',error.response.data);
-            }else {
-                console.log('Error billing failed: ', error);
-            }
-    
-            // TODO: Recursion not being handled.
-            if ( error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
-                    error.response.data.errorMessage === "Services of the same type cannot be processed at the same time.") ) {
-                // Consider, tps exceeded, noAcknowledge will requeue this record.
-                console.log('Sending back to queue:errorCode:',error.response.data.errorCode,subscription._id);
-                rabbitMq.noAcknowledge(queueMessage);
-                return;
-            }
-    
-            await this.assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error.response.data,transaction_id);
-            rabbitMq.acknowledge(queueMessage);
-            
-        }
-    }
-    
-    async tryDiscountedChargeAttempt (queueMessage, subscription, transaction_id, discounted_price) {
-        console.log("tryDiscountedChargeAttempt");
-        let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
-        let response = await this.billingRepo.fullChargeAttempt(user.msisdn, packageObj, transaction_id, subscription);
-        try{
-            if(packageObj.price_point_pkr > discounted_price){
-                packageObj.price_point_pkr = discounted_price;
-            }
-            let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-        
-            let api_response = response.api_response;
-            let message = api_response.data.message;
-    
-            if(message === 'Success'){
-                
-                // Save tp billing response
-                this.createBillingHistory(subscription, api_response.data, message, transaction_id, false, true, discounted_price, packageObj);
-                
-                // Success billing
-                let nextBilling = new Date();
-                nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
-    
-                // Update subscription
-                let subscriptionObj = {};
-                subscriptionObj.subscription_status = 'billed';
-                subscriptionObj.auto_renewal = true;
-                subscriptionObj.is_billable_in_this_cycle = false;
-                subscriptionObj.is_allowed_to_stream = true;
-                subscriptionObj.last_billing_timestamp = new Date();
-                subscriptionObj.next_billing_timestamp = nextBilling;
-                subscriptionObj.amount_billed_today = subscription.amount_billed_today + discounted_price;
-                subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
-                subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
-                subscriptionObj.queued = false;
-
                 // Fields for micro charging
                 subscriptionObj.try_micro_charge_in_next_cycle = false;
                 subscriptionObj.micro_price_point = 0;
                 subscriptionObj.priority = 0;
-                
-                let updatedSubscription = await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
-                
+                await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
+
+
                 // Check for the affiliation callback
-                if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid && updatedSubscription.is_affiliation_callback_executed === false){
-                    if((updatedSubscription.source === "HE" || updatedSubscription.source === "affiliate_web") && updatedSubscription.affiliate_mid != "1") {
-                        // Send affiliation callback
-                        this.sendAffiliationCallback(
-                            updatedSubscription.affiliate_unique_transaction_id, 
-                            updatedSubscription.affiliate_mid,
-                            user._id,
-                            subscription._id,
-                            subscription.subscriber_id,
-                            packageObj._id,
-                            packageObj.paywall_id
-                            );
+                if(subscription.affiliate_unique_transaction_id && subscription.affiliate_mid &&
+                    subscription.is_affiliation_callback_executed === false &&
+                    subscription.should_affiliation_callback_sent === true){
+                    if((subscription.source === "HE" || subscription.source === "affiliate_web") && subscription.affiliate_mid != "1") {
+                        this.sendAffiliationCallback(subscription.affiliate_unique_transaction_id, subscription.affiliate_mid, user._id, subscription._id, subscription.subscriber_id, mPackage._id, mPackage.paywall_id);
                     }
                 }
-    
-                // Send acknowledgement message
-                this.sendMessage(updatedSubscription, user.msisdn, packageObj.package_name, discounted_price, false,packageObj._id,user._id);
-                rabbitMq.acknowledge(queueMessage);
-            }else{
-                // Unsuccess billing. Save tp billing response
-                await this.assignGracePeriod(subscription, user, packageObj, false,api_response.data,transaction_id);
-                // this.createBillingHistory(subscription, api_response.data, "graced", transaction_id, false, true, discounted_price, packageObj);
-                rabbitMq.acknowledge(queueMessage);
-            }
-        }catch(error){
-            if (error.response && error.response.data){
-                console.log('Error ',error.response.data);
-            }else {
-                console.log('Error billing failed: ', error);
-            }
-    
-            // Consider, tps exceeded, noAcknowledge will requeue this record.
-            if ( error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
-            error.response.data.errorMessage ==="Services of the same type cannot be processed at the same time.") ){
-                console.log('Sending back to queue',error.response.data.errorCode,subscription._id);
-                rabbitMq.noAcknowledge(queueMessage);
-                return;
-            }else {
-                // Consider, payment failed for any reason. e.g no credit, number suspended etc
-                await this.unQueue(subscription._id);
-            }
-    
-            await this.assignGracePeriod(subscription, user, packageObj, false,error.response.data,transaction_id);
-            rabbitMq.acknowledge(queueMessage);
-        }
-    }
-    
-    async tryMicroChargeAttempt(queueMessage, subscription, transaction_id, micro_price) {
-        let packageObj = await this.packageRepo.getPackage({_id: subscription.subscribed_package_id});
-        let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-        try{
-            
-            if(micro_price <= packageObj.price_point_pkr){
-                
-                let response = await this.paymentProcessService.microChargeAttempt(user.msisdn, packageObj, transaction_id, micro_price, subscription);
-                let api_response = subscription.payment_source === 'easypaisa' ? response.api_response.response : response.api_response.api_response.data;
-                let message = response.message;
 
-                if(message === 'Success'){
-                    console.log("Micro Chargning success for ",subscription._id," for price ",micro_price);
-                    // Save tp billing response
-                    this.createBillingHistory(subscription, api_response, message, transaction_id, true, false, micro_price, packageObj);
-                    
-                    // Success billing
-                    let nextBilling = new Date();
-                    nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
-        
-                    // Update subscription
-                    let subscriptionObj = {};
-                    subscriptionObj.subscription_status = 'billed';
-                    subscriptionObj.auto_renewal = true;
-                    subscriptionObj.is_billable_in_this_cycle = false;
-                    subscriptionObj.is_allowed_to_stream = true;
-                    subscriptionObj.last_billing_timestamp = new Date();
-                    subscriptionObj.next_billing_timestamp = nextBilling;
-                    subscriptionObj.amount_billed_today = subscription.amount_billed_today + micro_price;
-                    subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
-                    subscriptionObj.consecutive_successive_bill_counts = ((subscription.consecutive_successive_bill_counts ? subscription.consecutive_successive_bill_counts : 0) + 1);
-                    subscriptionObj.queued = false;
-                    
-                    // Fields for micro charging
-                    subscriptionObj.try_micro_charge_in_next_cycle = false;
-                    subscriptionObj.micro_price_point = 0;
-                    subscriptionObj.priority = 0;
-
-                    let updatedSubscription = await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
-                    
-                    // Check for the affiliation callback
-                    if(updatedSubscription.affiliate_unique_transaction_id && updatedSubscription.affiliate_mid && updatedSubscription.is_affiliation_callback_executed === false){
-                        if((updatedSubscription.source === "HE" || updatedSubscription.source === "affiliate_web") && updatedSubscription.affiliate_mid != "1") {
-                            // Send affiliation callback
-                            this.sendAffiliationCallback(
-                                updatedSubscription.affiliate_unique_transaction_id, 
-                                updatedSubscription.affiliate_mid,
-                                user._id,
-                                subscription._id,
-                                subscription.subscriber_id,
-                                packageObj._id,
-                                packageObj.paywall_id
-                                );
-                        }
-                    }
-        
-                    // Send acknowledgement message
-                    this.sendMicroChargeMessage(user.msisdn, packageObj.price_point_pkr, micro_price, packageObj.package_name);
-                    rabbitMq.acknowledge(queueMessage);
+                if(mcDetails && mcDetails.micro_charge){
+                    console.log('Micro charge success');
+                    this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, true, mcDetails.micro_price);    
                 }else{
-                    // Unsuccess billing. Save tp billing response
-                    await this.assignGracePeriod(subscription, user, packageObj, false,api_response,transaction_id);
-                    rabbitMq.acknowledge(queueMessage);
+                    console.log('Full charge success');
+                    this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, false, mPackage.price_point_pkr);
                 }
+                rabbitMq.acknowledge(message);
+            }else if(returnStatus === 'ExcessiveBilling'){
+                // excessive billings
+                this.logExcessiveBilling(mPackage, user, subscription);
+                rabbitMq.acknowledge(message);
+            }else if(returnStatus === 'ExcessiveMicroBilling'){
+                // excessive micro billings
+                this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price, transaction_id);
+                rabbitMq.acknowledge(message);
             }else{
-                //TODO shoot an email
-                let emailSubject ="Excessive MicroCharing Email";
-                let emailToSend = "paywall@dmdmax.com.pk";
-                let emailText = `Subscription id ${subscription._id} is trying to micro charge on a price greater than package price. Package price is ${packageObj.price_point_pkr} and system tried to charge ${micro_price}`;
-                this.createBillingHistory(subscription, undefined, "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt", transaction_id, true, false, 0, packageObj);
-                await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
-                await this.subscriptionRepo.updateSubscription(subscription._id, {active:false, queued:false, is_billable_in_this_cycle: false});
-                rabbitMq.acknowledge(queueMessage);
+                await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
+                rabbitMq.acknowledge(message);
             }
-        }catch(error){
-            if (error.response && error.response.data){
-                console.log('Error ',error.response.data);
-            }else {
-                console.log('Error billing failed: ', error);
-            }
-    
-            // Consider, tps exceeded, noAcknowledge will requeue this record.
-            if ( error.response.data.errorCode === "500.007.08" || (error.response.data.errorCode === "500.007.05" &&
-            error.response.data.errorMessage ==="Services of the same type cannot be processed at the same time.") ){
-                console.log('Sending back to queue',error.response.data.errorCode,subscription._id);
-                rabbitMq.noAcknowledge(queueMessage);
-                return;
-            }else {
-                // Consider, payment failed for any reason. e.g no credit, number suspended etc
-                await this.unQueue(subscription._id);
-            }
-    
-            // this.createBillingHistory(subscription, error.response.data, "graced", transaction_id, true, false, micro_price, packageObj);
-            await this.assignGracePeriod(subscription, user, packageObj, false,error.response.data,transaction_id);
-            rabbitMq.acknowledge(queueMessage);
+        }else{
+            console.log('Return object not found!');
+            rabbitMq.acknowledge(message);
         }
     }
+
+    async logExcessiveBilling(packageObj, user, subscription){
+        console.log("logExcessiveBilling ");
+
+        await this.subscriptionRepo.markSubscriptionInactive(subscription._id);
+        await this.unQueue(subscription._id);
+        await this.shootExcessiveBillingEmail(subscription._id);
+
+        // Add history
+        let history = {};
+        history.user_id = user._id;
+        history.package_id = packageObj._id;
+        history.paywall_id = packageObj.paywall_id;
+        history.subscription_id = subscription._id;
+        history.subscriber_id = subscription.subscriber_id;
+        history.transaction_id = subscription.transaction_id;
+
+        history.operator_response = {"message": `Subscription ${subscription._id} has exceeded their billing limit. Email sent.`};
+        history.billing_status = "billing_exceeded";
+
+        this.addHistory(history);
+    }
     
+    async logExcessiveMicroBilling(packageObj, user, subscription, micro_price, transaction_id){
+        let emailSubject ="Excessive MicroCharing Email";
+        let emailToSend = "paywall@dmdmax.com.pk";
+        let emailText = `Subscription id ${subscription._id} is trying to micro charge on a price greater than package price. Package price is ${packageObj.price_point_pkr} and system tried to charge ${micro_price}`;
+        let billingResponse = "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt";
+
+        this.createBillingHistory(user, subscription, packageObj, billingResponse, 'micro-charging-exceeded', transaction_id, true, 0);
+        await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
+        console.log('logExcessiveMicroBilling', subscription._id);
+        await this.subscriptionRepo.updateSubscription(subscription._id, {active:false, queued:false, is_billable_in_this_cycle: false});
+    }
+
     // ASSIGN GRACE PERIOD
-    async assignGracePeriod(subscription, user, packageObj, is_manual_recharge,error,transaction_id) {
-    
+    async assignGracePeriod(subscription, user, packageObj, is_manual_recharge, error, transaction_id) {
         let expiry_source = undefined;
 
         let subscriptionObj = {};
@@ -583,12 +306,7 @@ class SubscriptionConsumer {
     }
     
     // ADD BILLING HISTORY
-    async createBillingHistory(
-        subscription, response, billingStatus, 
-        transaction_id, micro_charge, discount, price, packageObj) {
-        console.time("[timeLog][createHistory]")
-        let user = await this.userRepo.getUserBySubscriptionId(subscription._id);
-        
+    async createBillingHistory(user, subscription, packageObj, response, billingStatus, transaction_id, micro_charge, price) {
         let history = {};
         history.user_id = user._id;
         history.subscription_id = subscription._id;
@@ -605,10 +323,6 @@ class SubscriptionConsumer {
             history.price = price;
             history.micro_charge = true;
             history.discount = false;
-        }else if(discount === true){
-            history.price = price;
-            history.micro_charge = false;
-            history.discount = true;
         }else{
             history.micro_charge = false;
             history.discount = false;
@@ -616,7 +330,6 @@ class SubscriptionConsumer {
         }
         
         this.addHistory(history);
-        console.timeEnd("[timeLog][createHistory]")
     }
     
     async addHistory(history) {
@@ -624,7 +337,7 @@ class SubscriptionConsumer {
         await this.billingHistoryRepo.createBillingHistory(history);
         console.timeEnd("[timeLog][addHistory]")
     }
-    
+
     // UN-QUEUE SUBSCRIPTION
     async unQueue (subscription_id) {
         await this.subscriptionRepo.updateSubscription(subscription_id, {queued: false, priority: 0});
@@ -704,8 +417,10 @@ class SubscriptionConsumer {
     
             //Send acknowldement to user
             let message = this.constants.message_after_first_successful_charge[package_id];
+            message = message.replace("%user_id%", user_id)
+            message = message.replace("%pkg_id%", package_id)
             this.messageRepo.sendSmsToUser(message, msisdn);
-        }else if(subscription.consecutive_successive_bill_counts % 3 === 0){
+        }else if(subscription.consecutive_successive_bill_counts % 7 === 0){
             // Every week
             //Send acknowledgement to user
             if (is_manual_recharge){

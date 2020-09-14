@@ -2,12 +2,10 @@ const env = process.env.NODE_ENV || 'development';
 
 // application gets environment from either system envs or from this file in above line.
 // Total tps is 40 for now but we need to increase this
-const telenor_message_api_tps = 3;
-const telenor_subscription_api_tps = 31;
+
+const telenor_subscriber_query_api_tps = 3;
+const local_subscription_api_tps = 3;
 const ep_subscription_api_tps = 1;
-const telenor_subscriber_query_api_tps = 5;
-const telenor_free_mbs_api_tps = 0;
-const balance_check_api_tps = 0;
 
 const codes = {
     code_error: -1,
@@ -42,16 +40,21 @@ const hours_on_which_to_run_renewal_cycle = [1,5,9,13,18,21];
 const default_package_id = "QDfC";
 
 const queueNames = {
-    messageDispathcer: 'messageDispathcer',
+    // producers
+    messageDispatcher: 'messageDispatcher',
     subscriptionDispatcher: 'subscriptionDispatcher',
     easypaisaDispatcher: 'easypaisaDispatcher',
     subscriberQueryDispatcher: 'subscriberQueryDispatcher',
-    balanceCheckDispatcher: 'balanceCheckDispatcher',
-    freeMbsDispatcher: 'freeMbsDispatcher'
+
+    // consumers
+    subscriptionResponseDispatcher: 'subscriptionResponseDispatcher'
 }
 // Telenor DCB API's configs
 const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
 const telenor_dcb_api_token = '';
+
+// Worker
+const paywall_worker_base_url = 'http://127.0.0.1:5001/';
 
 //Ideation Url
 const Ideation_call_back_url = 'http://bpd.o18.click/';
@@ -62,9 +65,10 @@ const he_service_pass_phrase = "fdkPmW8yOX";
 
 let config = {
     development: {
+        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         port: '5000',
         mongoDB: 'mongodb://localhost:27017/goonjpaywall',
-        rabbitMq: 'amqp://localhost',
+        rabbitMq: 'amqp://127.0.0.1',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
         telenor_dcb_api_token: telenor_dcb_api_token,
@@ -73,12 +77,8 @@ let config = {
         ideation_callback_url3: Ideation_call_back_url_3,
         time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
-        telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        local_subscription_api_tps: local_subscription_api_tps,
         ep_subscription_api_tps: ep_subscription_api_tps,
-        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
-        balance_check_api_tps: balance_check_api_tps,
-        telenor_free_mbs_api_tps: telenor_free_mbs_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
@@ -93,9 +93,11 @@ let config = {
         emailPort: 465,
         emailSecure: true,
         default_package_id: default_package_id,
-        he_service_pass_phrase: he_service_pass_phrase
+        he_service_pass_phrase: he_service_pass_phrase,
+        paywall_worker_base_url: paywall_worker_base_url
     },
     staging: {
+        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         port: '5000',
         mongoDB: 'mongodb://mongodb:27017/goonjpaywall',
         rabbitMq: 'amqp://rabbitmq',
@@ -107,12 +109,8 @@ let config = {
         ideation_callback_url3: Ideation_call_back_url_3,
         time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
-        telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        local_subscription_api_tps:local_subscription_api_tps,
         ep_subscription_api_tps: ep_subscription_api_tps,
-        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
-        balance_check_api_tps: balance_check_api_tps,
-        telenor_free_mbs_api_tps: telenor_free_mbs_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
@@ -127,9 +125,11 @@ let config = {
         emailPort: 465,
         emailSecure: true,
         default_package_id: default_package_id,
-        he_service_pass_phrase: he_service_pass_phrase
+        he_service_pass_phrase: he_service_pass_phrase,
+        paywall_worker_base_url: paywall_worker_base_url
     },
     production: {
+        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         port: process.env.PW_PORT,
         mongoDB: process.env.PW_MONGO_DB_URL,
         rabbitMq: process.env.PW_RABBIT_MQ,
@@ -141,12 +141,8 @@ let config = {
         ideation_callback_url3: Ideation_call_back_url_3,
         time_between_billing_attempts_hours: time_between_billing_attempts_hours,
         codes: codes,
-        telenor_message_api_tps: telenor_message_api_tps,
-        telenor_subscription_api_tps: telenor_subscription_api_tps,
+        local_subscription_api_tps:local_subscription_api_tps,
         ep_subscription_api_tps: ep_subscription_api_tps,
-        telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
-        balance_check_api_tps: balance_check_api_tps,
-        telenor_free_mbs_api_tps: telenor_free_mbs_api_tps,
         trial_hours: hours_of_trial_period,
         is_trial_active: is_trial_functionality_activated,
         maximum_daily_payment_limit_pkr: maximum_daily_payment_limit_pkr,
@@ -161,7 +157,8 @@ let config = {
         emailPort: 465,
         emailSecure: true,
         default_package_id: default_package_id,
-        he_service_pass_phrase: he_service_pass_phrase
+        he_service_pass_phrase: he_service_pass_phrase,
+        paywall_worker_base_url: paywall_worker_base_url
     }
 };
 

@@ -115,23 +115,19 @@ class PaymentProcessService {
                         return returnObject;
                     }else{
                         console.log("TPS quota full for ep subscription, waiting for 1 second to elapse - ", new Date());
-                        setTimeout(async () => {
-                            console.log("Calling ep consume subscription queue after 1-seconds",user.msisdn);
-                            this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
-                        }, 1000);
+                        await helper.timeout(1000);
+                        return await this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
                     } 
                 }else{
                     let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriptionDispatcher);
-                    if (tpsCount < config.telenor_subscription_api_tps) {
+                    if (tpsCount < config.local_subscription_api_tps) {
                         await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriptionDispatcher);
                         returnObject = await this.doProcess(otp, user, subscription, packageObj, first_time_billing);
                         return returnObject;
                     }else{
                         console.log("TPS quota full for subscription, waiting for second to elapse - ", new Date());
-                        setTimeout(async () => {
-                            console.log("Calling consume subscription queue after 300 seconds",user.msisdn);
-                            this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
-                        }, 300);
+                        await helper.timeout(500);
+                        return this.processDirectBilling(otp, user, subscription, packageObj, first_time_billing);
                     }    
                 } 
             }else{
@@ -140,6 +136,23 @@ class PaymentProcessService {
             }
         }else{
             console.log("Not an active subscription");
+        }
+    }
+
+    async subscriberQuery(msisdn){
+        console.log("PaymentProcessService - subscriberQuery");
+        // Check if the subscription is active or blocked for some reason.
+
+        let tpsCount = await this.tpsCountRepo.getTPSCount(config.queueNames.subscriberQueryDispatcher);
+        if (tpsCount < config.telenor_subscriber_query_api_tps) {
+            console.log("PaymentProcessService - subscriberQuery - IF");
+            await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
+            return await this.billingRepository.subscriberQuery(msisdn);
+        }else{
+            console.log("PaymentProcessService - subscriberQuery - ELSE");
+            console.log("TPS quota full for subscriberQuery, waiting for second to elapse - ", new Date());
+            await helper.timeout(500);
+            return this.subscriberQuery(msisdn);
         }
     }
 
@@ -261,7 +274,6 @@ class PaymentProcessService {
             
             await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
         } else {
-            console.log("subscription created",user.msisdn);
             subscription.subscription_status = 'billed';
             subscription.auto_renewal = true;
             subscription.is_billable_in_this_cycle = false;
@@ -281,7 +293,6 @@ class PaymentProcessService {
             }
             
             let updatedSubscription = await this.subscriptionRepo.createSubscription(subscription);
-            console.log("subscription created", updatedSubscription);
 
             // Check for the affiliation callback
             if( updatedSubscription.affiliate_unique_transaction_id && 
@@ -304,7 +315,6 @@ class PaymentProcessService {
 
         }
         // Add history record
-        console.log("Adding history record",user.msisdn);
         let history = {};
         history.micro_charge = (updatedSubscription  && updatedSubscription.try_micro_charge_in_next_cycle) ? updatedSubscription.try_micro_charge_in_next_cycle : false;
         history.user_id = user._id;
@@ -318,7 +328,6 @@ class PaymentProcessService {
         history.billing_status = "Success";
         history.operator = subscription.payment_source;
         await this.billingHistoryRepo.createBillingHistory(history);
-        console.log("Added history record",user.msisdn);
     }
 
     async sendAffiliationCallback(tid, mid, user_id, subscription_id, subscriber_id, package_id, paywall_id) {

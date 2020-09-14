@@ -32,7 +32,7 @@ function sendMessage(otp, msisdn){
 	// Add object in queueing server
 	console.log('OTP - AddedInQueue - MSISDN - ', msisdn, ' - OTP - ', otp, ' - ', (new Date()));
 	if (messageObj.msisdn && messageObj.message) {
-		rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+		rabbitMq.addInQueue(config.queueNames.messageDispatcher, messageObj);
 	} else {
 		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
 	}
@@ -47,7 +47,7 @@ function sendTextMessage(text, msisdn){
 	// Add object in queueing server
 	console.log('Send Message - AddedInQueue - MSISDN - ', msisdn, ' - Message - ', text, ' - ', (new Date()));
 	if (messageObj.msisdn && messageObj.message) {
-		rabbitMq.addInQueue(config.queueNames.messageDispathcer, messageObj);
+		rabbitMq.addInQueue(config.queueNames.messageDispatcher, messageObj);
 	} else {
 		console.log('Critical parameters missing',messageObj.msisdn,messageObj.message);
 	}
@@ -95,17 +95,13 @@ exports.sendOtp = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
-	console.log('package_id: ', package_id);
-	console.log('payment_source: ', payment_source);
-	console.log('user: ', user);
-
 	let response = {};
 	// no user
 	if(payment_source && payment_source === "easypaisa"){
 		response.operator = "easypaisa";
 	}else{
 		try{
-			response = await billingRepo.subscriberQuery(msisdn);
+			response = await paymentProcessService.subscriberQuery(msisdn);
 		}catch(err){
 			response = err;
 		}
@@ -124,7 +120,6 @@ exports.sendOtp = async (req, res) => {
 				if(response.operator === "telenor"){
 					try {
 						console.log('Payment - OTP - TP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
-						console.log('sendOtp - tp');
 						generateOtp(res, msisdn, user, gw_transaction_id);
 					} catch (err) {
 						res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
@@ -152,8 +147,6 @@ exports.sendOtp = async (req, res) => {
 		}
 		
 	}else{
-		console.log('payment source: ', payment_source);
-		console.log('payment operator: ', response.operator);
 		if(response.operator === 'telenor'){
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);
@@ -237,7 +230,7 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 		let postBody = {otp: otp};
 		postBody.msisdn = msisdn;
 		let otpUser = await otpRepo.getOtp(msisdn);
-	
+
 		if(otpUser){
 			// Record already present in collection, lets check it further.
 			if(otpUser.verified === true){
@@ -360,31 +353,28 @@ exports.subscribe = async (req, res) => {
         userObj.operator = response.operator;
         userObj.source = req.body.source ? req.body.source : "na";
 
-        try {
-            user = await userRepo.createUser(userObj);
-        }catch (e) {
-            response = e;
-        }
-
 		if(payment_source && payment_source === "easypaisa"){
 			response.operator = "easypaisa";
 		}else{
 			try{
-				console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
-				response = await billingRepo.subscriberQuery(msisdn);
+				response = await paymentProcessService.subscriberQuery(msisdn);
 			}catch(err){
 				response = err;
 			}
 		}
 
-		if(response.operator === "telenor" || response.operator === "easypaisa"){
+		if(response && (response.operator === "telenor" || response.operator === "easypaisa")){
 			try {
+				userObj.operator = response.operator;
+				user = await userRepo.createUser(userObj);
+				console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', msisdn, ' - ', user.source, ' - ', (new Date()));
+
 				doSubscribe(req, res, user, gw_transaction_id);
 			} catch(er) {
-				res.send({code: config.codes.code_error, message: er.message, gw_transaction_id: gw_transaction_id})
+				res.send({code: config.codes.code_error, message: 'Failed to subscriber user', gw_transaction_id: gw_transaction_id})
 			}
 		}else{
-			createBlockUserHistory(msisdn, req.body.affiliate_unique_transaction_id, req.body.affiliate_mid, response.api_response, req.body.source);
+			createBlockUserHistory(msisdn, req.body.affiliate_unique_transaction_id, req.body.affiliate_mid, response ? response.api_response : "no response", req.body.source);
 			res.send({code: config.codes.code_error, message: "Not a valid Telenor number.", gw_transaction_id: gw_transaction_id });
 		}
 	}else{
@@ -473,8 +463,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 						try{
 							// Live paywall, subscription rules along with micro changing started
 							let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
-							console.log("=> ", subsResponse);
-							console.log("subsResponse", subsResponse);
 							if(subsResponse && subsResponse.status === "charged"){
 								res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', package_id: subsResponse.subscriptionObj.subscribed_package_id, gw_transaction_id: gw_transaction_id});
 								sendChargingMessage = true;
@@ -529,12 +517,16 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					text = message;
 					text = text.replace("%trial_hours%",trial_hours);
 					text = text.replace("%price%",packageObj.display_price_point_numeric);
+					text = text.replace("%user_id%",subscriber.user_id);
+					text = text.replace("%pkg_id%",packageObj._id);
 					console.log("Subscription Message Text",text,user.msisdn);
 					sendTextMessage(text, user.msisdn);
 				} else if(sendChargingMessage === true) {
 					let trial_hours = packageObj.trial_hours;
 					let message = constants.subscription_messages_direct[packageObj._id];
 					message= message.replace("%price%",packageObj.display_price_point)
+					message= message.replace("%user_id%",subscriber.user_id)
+					message= message.replace("%pkg_id%",packageObj._id)
 					if(subscriptionObj.affiliate_mid === 'gdn'){
 						message = constants.subscription_messages[subscriptionObj.affiliate_mid];
 					}
@@ -746,7 +738,7 @@ doSubscribeUsingSubscribingRuleAlongWithMicroCharging = async(otp, source, user,
 			subscriptionObj.subscribed_package_id = packageObj._id;
 
 			let result = await paymentProcessService.processDirectBilling(subscriptionObj.ep_token ? undefined : otp, user, subscriptionObj, packageObj, true);
-			console.log("Direct billing processed with status ", result);
+			console.log("Direct billing processed with status ", result.message);
 			if(result.message === "success"){
 				dataToReturn.status = "charged";
 				dataToReturn.subscriptionObj = subscriptionObj;

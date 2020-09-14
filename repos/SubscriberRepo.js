@@ -4,9 +4,6 @@ const Subscriber = mongoose.model('Subscriber');
 const moment = require("moment");
 
 class SubscriberRepository {
-    constructor({}) {
-
-    }
 
     async createSubscriber (postData) {
         let subscriber = new Subscriber(postData);
@@ -139,7 +136,6 @@ class SubscriberRepository {
     async getSubscribersToMark ()  {
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
-        console.log("endOfDay",endOfDay);
         let results = await Subscriber.find(
             {$or:[{subscription_status:'billed'},{subscription_status:'graced'},{subscription_status:'trial'}], 
             next_billing_timestamp: {$lte: endOfDay}, active: true}).select('user_id');

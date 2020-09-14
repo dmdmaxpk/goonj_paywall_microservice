@@ -3,8 +3,6 @@ const Subscription = mongoose.model('Subscription');
 const moment = require("moment");
 
 class SubscriptionRepository {
-    constructor({}){
-    }
 
     async createSubscription (postData)  {
         let result = await this.getSubscriptionByPaywallId(postData.subscriber_id, postData.paywall_id);
@@ -82,7 +80,7 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true}).sort({priority:1}).limit(8000);
+        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true}).sort({priority:1}).limit(8800);
         return results;
     }
     
@@ -202,7 +200,6 @@ class SubscriptionRepository {
     async getSubscriptionsToMark ()  {
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
-        console.log("endOfDay",endOfDay);
     
         let results = await Subscription.find(
             {$or:[{subscription_status:'billed'},{subscription_status:'graced'},{subscription_status:'trial'}], 
