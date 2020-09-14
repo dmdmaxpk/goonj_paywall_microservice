@@ -318,7 +318,7 @@ class SubscriptionRepository {
     
     async dailyTrialToBilledUsers ()  {
         let today = new Date();
-        today.setHours(today.getHours() - 5);
+        lastTenDays.setDate(lastTenDays.getDate() - 8);
         today.setHours(0, 0, 0, 0);
     
         let lastTenDays = new Date();
