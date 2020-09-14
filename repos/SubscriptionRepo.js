@@ -318,17 +318,18 @@ class SubscriptionRepository {
     
     async dailyTrialToBilledUsers ()  {
         let today = new Date();
-        today.setDate(today.getDate() - 1);
+        today.setDate(today.getDate() - 8);
         today.setHours(0, 0, 0, 0);
     
         let lastTenDays = new Date();
-        lastTenDays.setDate(lastTenDays.getDate() - 8);
+        lastTenDays.setDate(lastTenDays.getDate() - 13);
         lastTenDays.setHours(0, 0, 0, 0);
         console.log("Query from - ", lastTenDays, ' - to ', today);
     
         let result = await Subscription.aggregate([
             {
                 $match:{
+                    $or:[{source: "HE"}, {source: "affiliate_web"}],
                     $and: [{added_dtm: {$gte: new Date(lastTenDays)}}, {added_dtm: {$lt: new Date(today)}}]
                 }
             },{ 
