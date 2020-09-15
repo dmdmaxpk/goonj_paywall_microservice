@@ -80,7 +80,7 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true}).sort({priority:1}).limit(8800);
+        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true}).sort({priority:1}).limit(16000);
         return results;
     }
     
@@ -318,17 +318,18 @@ class SubscriptionRepository {
     
     async dailyTrialToBilledUsers ()  {
         let today = new Date();
-        today.setHours(today.getHours() - 24);
+        today.setDate(today.getDate() - 8);
         today.setHours(0, 0, 0, 0);
     
         let lastTenDays = new Date();
-        lastTenDays.setDate(lastTenDays.getDate() - 11);
+        lastTenDays.setDate(lastTenDays.getDate() - 13);
         lastTenDays.setHours(0, 0, 0, 0);
         console.log("Query from - ", lastTenDays, ' - to ', today);
     
         let result = await Subscription.aggregate([
             {
                 $match:{
+                    $or:[{source: "HE"}, {source: "affiliate_web"}],
                     $and: [{added_dtm: {$gte: new Date(lastTenDays)}}, {added_dtm: {$lt: new Date(today)}}]
                 }
             },{ 
@@ -346,8 +347,6 @@ class SubscriptionRepository {
             ]);
          return result;
     }
-
-
 
     async getExpiredFromSystem(){
         console.log('=> getExpiredFromSystem');
