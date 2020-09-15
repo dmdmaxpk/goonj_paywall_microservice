@@ -1855,9 +1855,10 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
 getOnlySubscriberIds = async(source, fromDate, toDate) => {
     try{
-        let ids = await subscriptionRepo.getOnlySubscriberIds(source, fromDate, toDate);
-        console.log("=> dateWiseChargingDetails - ids");
-
+        let records = await subscriptionRepo.getOnlySubscriberIds(source, fromDate, toDate);
+        console.log("=> dateWiseChargingDetails - done1");
+        let ids = getArray(records);
+        console.log("=> dateWiseChargingDetails - done2");
         let details = await billinghistoryRepo.getChargingDetails(ids, fromDate, toDate);
         console.log("=> Sending email");
         await dateWiseChargingDetailsWriter.writeRecords(details);
@@ -1888,6 +1889,15 @@ getOnlySubscriberIds = async(source, fromDate, toDate) => {
         console.log("=> Error [dateWiseChargingDetails]", e);
     }
     
+}
+
+getArray = async(records) => {
+    let ids = [];
+    for(let i = 0; i < records.length; i++){
+        console.log("Done ", i);
+        ids.push(records[i].subscriber_id);
+    }
+    return ids;
 }
 
 function isDataPresent(array, user_id) {
