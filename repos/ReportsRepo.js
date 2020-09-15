@@ -1896,7 +1896,6 @@ getOnlySubscriberIds = async(source, fromDate, toDate) => {
 getArray = async(records) => {
     let ids = [];
     for(let i = 0; i < records.length; i++){
-        console.log("=> Done ", i, records[i]);
         ids.push(records[i].subscriber_id);
     }
     return ids;
