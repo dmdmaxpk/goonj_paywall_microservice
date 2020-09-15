@@ -1953,6 +1953,7 @@ module.exports = {
     dailyReturningUsers: dailyReturningUsers,
     weeklyRevenue: weeklyRevenue,
     getActiveBase: getActiveBase,
+    getOnlySubscriberIds: getOnlySubscriberIds,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled2: generateReportForAcquisitionSourceAndNoOfTimeUserBilled2,
