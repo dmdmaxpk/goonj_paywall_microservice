@@ -72,6 +72,17 @@ let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
 let usersReportWithTrialAndBillingHistory = currentDate+"_UsersReportWithTrialAndBillingHistory.csv";
 let usersReportWithTrialAndBillingHistoryFilePath = `./${usersReportWithTrialAndBillingHistory}`;
 
+let dateWiseChargingDetails = currentDate+"_DateWiseChargingDetails.csv";
+let dateWiseChargingDetailsFilePath = `./${dateWiseChargingDetails}`;
+let dateWiseChargingDetailsWriter = createCsvWriter({
+    path: dateWiseChargingDetailsFilePath,
+    header: [
+        {id: 'date', title: 'Date'},
+        {id: "count",title: "Billing Count" }
+    ]
+});
+
+
 
 let randomReport = currentDate+"_RandomReport.csv";
 let randomReportFilePath = `./${randomReport}`;
@@ -1699,7 +1710,6 @@ getInactiveBaseHavingViewLogsLessThan3 = async(from, to) => {
     })
 }
 
-
 generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
     console.log("=> generateUsersReportWithTrialAndBillingHistory - from ", from, " to ", to);
     let finalResult = [];
@@ -1841,6 +1851,43 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     }catch(e){
         console.log("=> error - ",JSON.stringify(e));
     }
+}
+
+getOnlySubscriberIds = async(source, from, to) => {
+    try{
+        from = new Date(from);
+        to = new Date(to);
+        let ids = await subscriptionRepo.getOnlySubscriberIds(source, from, to);
+        console.log("=> dateWiseChargingDetails - 1");
+
+        let details = await billinghistoryRepo.getChargingDetails(ids, from, to);
+        console.log("=> Sending email");
+        await dateWiseChargingDetailsWriter.writeRecords(details);
+
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            subject: `Day-wise Charging Details For ${source} - ${monthNames[from.getMonth()]}`, // Subject line
+            text: `This report containg charging details of ${source}, day-wise for the month of ${monthNames[from.getMonth()]}`,
+            attachments:[
+                {
+                    filename: dateWiseChargingDetails,
+                    path: dateWiseChargingDetailsFilePath
+                }
+            ]
+        });
+
+        console.log("=> [dateWiseChargingDetails][emailSent]",info);
+        fs.unlink(dateWiseChargingDetailsFilePath,function(err,data) {
+            if (err) {
+                console.log("=> File not deleted[dateWiseChargingDetails]");
+            }
+            console.log("=> File deleted [dateWiseChargingDetails]");
+        });
+    }catch(e){
+        console.log("=> Error [dateWiseChargingDetails]", e);
+    }
+    
 }
 
 function isDataPresent(array, user_id) {
