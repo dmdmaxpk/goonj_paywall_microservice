@@ -415,7 +415,7 @@ class SubscriptionRepository {
         ]);
 
         let ids = [];
-        for(i = 0; i < data.length; i++){
+        for(let i = 0; i < data.length; i++){
             ids.push(data[i].subscriber_id);
         }
 
