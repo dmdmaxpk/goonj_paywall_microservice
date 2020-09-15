@@ -414,10 +414,11 @@ class SubscriptionRepository {
         }
         ]);
 
-        console.log("=> data fetched", data);
+        console.log("=> data fetched", data.length);
 
         let ids = [];
         for(let i = 0; i < data.length; i++){
+            console.log("Done ", i);
             ids.push(data[i].subscriber_id);
         }
 
