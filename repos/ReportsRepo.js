@@ -1860,7 +1860,7 @@ getOnlySubscriberIds = async(source, fromDate, toDate) => {
         let ids = getArray(records);
         console.log("=> dateWiseChargingDetails - done2");
         console.log(ids.length);
-        
+
         let details = await billinghistoryRepo.getChargingDetails(ids, fromDate, toDate);
         console.log("=> Sending email");
         await dateWiseChargingDetailsWriter.writeRecords(details);
@@ -1896,7 +1896,7 @@ getOnlySubscriberIds = async(source, fromDate, toDate) => {
 getArray = async(records) => {
     let ids = [];
     for(let i = 0; i < records.length; i++){
-        console.log("Done ", i);
+        console.log("=> Done ", i, records[i]);
         ids.push(records[i].subscriber_id);
     }
     return ids;
