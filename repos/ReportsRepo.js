@@ -1857,7 +1857,7 @@ getOnlySubscriberIds = async(source, fromDate, toDate) => {
     try{
         let records = await subscriptionRepo.getOnlySubscriberIds(source, fromDate, toDate);
         console.log("=> dateWiseChargingDetails - done1");
-        let ids = getArray(records);
+        let ids = await getArray(records);
         console.log("=> dateWiseChargingDetails - done2");
         console.log(ids.length);
 
