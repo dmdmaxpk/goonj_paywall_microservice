@@ -49,7 +49,7 @@ class BillingHistoryRepository {
     }
 
     async getChargingDetails(input, from, to){
-        console.log("getChargingDetails - ",input.length);
+        console.log("=> billinghistory - getChargingDetails - ",input.length);
         let data = await BillingHistory.aggregate([
         {
         
@@ -79,7 +79,7 @@ class BillingHistoryRepository {
             }
         }
         ]);
-
+        console.log("Returning data", data);
         return data;
     }
     
