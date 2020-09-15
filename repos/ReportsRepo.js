@@ -1853,22 +1853,22 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     }
 }
 
-getOnlySubscriberIds = async(source, from, to) => {
+getOnlySubscriberIds = async(source, fromDate, toDate) => {
     try{
-        from = new Date(from);
-        to = new Date(to);
-        let ids = await subscriptionRepo.getOnlySubscriberIds(source, from, to);
-        console.log("=> dateWiseChargingDetails - 1");
+        let ids = await subscriptionRepo.getOnlySubscriberIds(source, fromDate, toDate);
+        console.log("=> dateWiseChargingDetails - ids");
 
-        let details = await billinghistoryRepo.getChargingDetails(ids, from, to);
+        let details = await billinghistoryRepo.getChargingDetails(ids, fromDate, toDate);
         console.log("=> Sending email");
         await dateWiseChargingDetailsWriter.writeRecords(details);
+
+        let fromDuplicate = new Date(fromDate);
 
         let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
             to:  ["farhan.ali@dmdmax.com"],
-            subject: `Day-wise Charging Details For ${source} - ${monthNames[from.getMonth()]}`, // Subject line
-            text: `This report containg charging details of ${source}, day-wise for the month of ${monthNames[from.getMonth()]}`,
+            subject: `Day-wise Charging Details For ${source} - ${monthNames[fromDuplicate.getMonth()]}`, // Subject line
+            text: `This report containing charging details of ${source}, day-wise for the month of ${monthNames[fromDuplicate.getMonth()]}`,
             attachments:[
                 {
                     filename: dateWiseChargingDetails,

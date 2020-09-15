@@ -79,6 +79,8 @@ class BillingHistoryRepository {
             }
         }
         ]);
+
+        return data;
     }
     
     async billingInLastHour  ()  {
