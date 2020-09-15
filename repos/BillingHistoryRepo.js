@@ -58,7 +58,7 @@ class BillingHistoryRepository {
                     {billing_dtm:{$gt: new Date(from)}}, 
                     {billing_dtm:{$lt: new Date(to)}},
                 ],
-                subscription_id: {$in: input},
+                subscriber_id: {$in: input},
                 billing_status: "Success"
             }
         },{
@@ -79,7 +79,6 @@ class BillingHistoryRepository {
             }
         }
         ]);
-        console.log("Returning data", data);
         return data;
     }
     
