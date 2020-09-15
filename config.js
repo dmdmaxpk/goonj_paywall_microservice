@@ -67,6 +67,7 @@ const Ideation_call_back_url_3 = `https://postback.level23.nl/?currency=USD&hand
 const time_between_billing_attempts_hours = 8;
 const he_service_pass_phrase = "fdkPmW8yOX";
 
+
 let config = {
     development: {
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
