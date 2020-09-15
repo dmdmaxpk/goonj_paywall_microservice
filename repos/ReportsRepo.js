@@ -1859,7 +1859,7 @@ getOnlySubscriberIds = async(source, fromDate, toDate) => {
         console.log("=> dateWiseChargingDetails - done1");
         let ids = await getArray(records);
         console.log("=> dateWiseChargingDetails - done2");
-        console.log(ids);
+        console.log("=>", ids);
 
         let details = await billinghistoryRepo.getChargingDetails(ids, fromDate, toDate);
         console.log("=> Sending email");
