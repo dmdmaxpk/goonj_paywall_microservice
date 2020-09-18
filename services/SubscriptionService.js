@@ -12,6 +12,56 @@ class SubscriptionService {
         this.messageRepository = messageRepository;
     }
 
+    async expireByNumber(msisdn, slug){
+        try{
+            let user  = await this.userRepository.getUserByMsisdn(msisdn);
+            let paywall  = await this.paywallRepository.getPaywallsBySlug(slug);
+            if(user, paywall){
+                let subscriber = await this.subscriberRepository.getSubscriberByUserId(user._id);
+                if(subscriber){
+                    let subscriptions = await this.subscriptionRepository.getAllSubscriptions(subscriber._id);
+                    if (subscriptions.length > 0) {
+                        let temp = 0;
+                        for (let i =0 ; i < subscriptions.length; i++) {
+                            let subscription = subscriptions[i];
+                            if (paywall.package_ids.indexOf(subscription.subscribed_package_id) > -1){
+                                let history = {};
+                                history.user_id = subscriber.user_id;
+                                history.subscriber_id = subscription.subscriber_id;
+                                history.subscription_id = subscription._id;
+                                history.package_id = subscription.subscribed_package_id;
+                                history.paywall_id = paywall._id;
+                                history.transaction_id = transaction_id?transaction_id:"";
+                                history.operator_response = operator_response?operator_response:"";
+                                history.billing_status = 'expired';
+                                history.source = 'ccp_api';
+                                history.operator = 'telenor';
+                                await this.expireSubscription(subscription._id,paywall.paywall_name,user.msisdn,history);
+                            } else {
+                                temp++;
+                            }
+                        }
+                        if (temp === subscriptions.length) {
+                            return "Could not find subscription of user for this paywall.";
+                        } else {
+                            return "Subscription Unsubscribed";
+                        }
+                    } else {
+                        return "User has not been subscribed";
+                    }
+                }else{
+                    return "No subscriber found!"
+                }
+            }else{
+                return "Some params are missing."
+            }
+        }catch(err){
+            console.log(err);
+            return "Error";
+        }
+        
+    }
+
     async expire(subscription_id,source,operator_response,transaction_id){
         try {
             if (subscription_id){
