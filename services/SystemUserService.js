@@ -18,7 +18,7 @@ class SystemUserService {
                     resolve({data:"Incorrect credentials"});
                 }
             } catch (error){
-                reject(error);
+                resolve({data:"Incorrect Credentials"});
             }
         })
     }
