@@ -76,3 +76,29 @@ getExpiry = async(user_id) => {
 	return histories;
 	
 }
+
+login = async(user_id) => {
+	let rawHistories = await billingHistoryRepo.getExpiryHistory(user_id);
+
+	if(rawHistories.length >= 2){
+		rawHistories.sort(function(a,b){
+			return new Date(a.billing_dtm) - new Date(b.billing_dtm);
+		});
+	}
+
+	let histories = [];
+	for(let i = 0; i < rawHistories.length; i++){
+		let history = {};
+		history.package_id = rawHistories[i].package_id;
+		history.source = rawHistories[i].source;
+		history.status = rawHistories[i].billing_status;
+		history.billing_dtm = rawHistories[i].billing_dtm;
+		histories.push(history);
+	}
+
+	if(histories.length > 5){
+		return histories.slice(0, 5);
+	}
+	return histories;
+	
+}
