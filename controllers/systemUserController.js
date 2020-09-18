@@ -7,6 +7,7 @@ const subscriptionService = container.resolve("subscriptionService");
 
 // CREATE
 exports.login = async (req, res) => {
+	console.log("+++++++++++++LOGIN+++++++++++++++");
 	let gw_transaction_id = req.body.transaction_id;
 	try {
 		let username = req.body.username;
