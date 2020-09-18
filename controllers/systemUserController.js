@@ -7,13 +7,14 @@ const subscriptionService = container.resolve("subscriptionService");
 
 // CREATE
 exports.login = async (req, res) => {
-	console.log("+++++++++++++LOGIN+++++++++++++++");
+
 	let gw_transaction_id = req.body.transaction_id;
 	try {
 		let username = req.body.username;
 		let password = req.body.password;
 		let response = await systemUserService.login(username,password);
-		res.status(200).send({access_token:response, gw_transaction_id: gw_transaction_id});
+		response.gw_transaction_id = gw_transaction_id;
+		res.status(200).send(response);
 	} catch(err){
 		console.error(err.message);
 		res.status(500).json({message:err.message,gw_transaction_id: gw_transaction_id})
