@@ -94,10 +94,12 @@ exports.sendOtp = async (req, res) => {
 	let payment_source =  req.body.payment_source; 
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
+	console.log("=> USER ", JSON.stringify(user));
 
 	let response = {};
 	if(!user){
 
+		console.log("=> NOT USER ", JSON.stringify(user));
 		// no user
 		if(payment_source && payment_source === "easypaisa"){
 			response.operator = "easypaisa";
@@ -148,6 +150,7 @@ exports.sendOtp = async (req, res) => {
 		}
 		
 	}else{
+		console.log("=> USER EXIST", JSON.stringify(user));
 		if(response.operator === 'telenor'){
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);
