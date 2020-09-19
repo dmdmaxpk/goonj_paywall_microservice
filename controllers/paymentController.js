@@ -96,18 +96,19 @@ exports.sendOtp = async (req, res) => {
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
 	let response = {};
-	// no user
-	if(payment_source && payment_source === "easypaisa"){
-		response.operator = "easypaisa";
-	}else{
-		try{
-			response = await paymentProcessService.subscriberQuery(msisdn);
-		}catch(err){
-			response = err;
-		}
-	}
-
 	if(!user){
+
+		// no user
+		if(payment_source && payment_source === "easypaisa"){
+			response.operator = "easypaisa";
+		}else{
+			try{
+				response = await paymentProcessService.subscriberQuery(msisdn);
+			}catch(err){
+				response = err;
+			}
+		}
+
 		let userObj = {};
 		userObj.msisdn = msisdn;
         userObj.subscribed_package_id = 'none';
