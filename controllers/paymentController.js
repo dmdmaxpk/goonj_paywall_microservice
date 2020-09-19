@@ -909,7 +909,7 @@ exports.status = async (req, res) => {
 						is_gray_listed: result.is_gray_listed,
 						is_black_listed: result.is_black_listed,
 						queued: result.queued,
-						is_billable_in_this_cycle: false,
+						is_billable_in_this_cycle: result.is_billable_in_this_cycle,
 						is_allowed_to_stream: result.is_allowed_to_stream,
 						active: result.active,
 						next_billing_timestamp: result.next_billing_timestamp
