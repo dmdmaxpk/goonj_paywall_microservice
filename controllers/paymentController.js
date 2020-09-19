@@ -856,18 +856,18 @@ exports.recharge = async (req, res) => {
 				let packageObj = await packageRepo.getPackage({_id: package_id});
 				if(packageObj){
 					await subscriptionRepo.updateSubscription(subscription._id, {consecutive_successive_bill_counts: 0, is_manual_recharge: true});
-					console.log("Subscrib Package to be called");
-					subscribePackage(subscription, packageObj);
-					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
-				}else{
-					res.send({code: config.codes.code_error, message: 'No subscribed package found!', gw_transaction_id: gw_transaction_id});
+					let result = await paymentProcessService.processDirectBilling(undefined, user, subscription, packageObj, true);
+					if(result.message === "success"){
+						res.send({code: config.codes.code_success, message: 'Recharged successfully', gw_transaction_id: gw_transaction_id});
+					}else {
+						res.send({code: config.codes.code_error, message: 'Failed to recharge', gw_transaction_id: gw_transaction_id});
+					
 				}
 			}
+		}
 		}else{
-			res.send({code: config.codes.code_error, message: 'Something went wrong!', gw_transaction_id: gw_transaction_id});
-		}	
-	}else{
-		res.send({code: config.codes.code_error, message: 'Invalid data provided.', gw_transaction_id: gw_transaction_id});
+			res.send({code: config.codes.code_error, message: 'Invalid data provided.', gw_transaction_id: gw_transaction_id});
+		}
 	}
 }
 
