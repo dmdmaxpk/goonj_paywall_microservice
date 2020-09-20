@@ -110,7 +110,7 @@ exports.sendOtp = async (req, res) => {
 
 	if(user == null){
 
-        console.log('user if: ');
+        console.log('user if: ', response);
 
         // no user
 		let userObj = {};
