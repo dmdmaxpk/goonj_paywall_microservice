@@ -108,7 +108,7 @@ exports.sendOtp = async (req, res) => {
 		}
 	}
 
-	if(!user){
+	if(user === null){
 
         console.log('user if: ');
 
