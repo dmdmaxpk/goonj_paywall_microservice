@@ -162,7 +162,6 @@ class BillingRepository {
             }).then(function(response){
                 api_response = response.data;
                 object.api_response = api_response;
-                console.log('config.telenor_dcb_api_token: ', config.telenor_dcb_api_token);
                 if (api_response.Message === "Success" && api_response.AssetStatus === "Active") {
                     op = "telenor";
                 }else{

@@ -95,8 +95,6 @@ exports.sendOtp = async (req, res) => {
 	let msisdn = req.body.msisdn;
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
-	console.log('payment_source: ', payment_source);
-    console.log('user: ', user, typeof user);
 	let response = {};
 	if(payment_source && payment_source === "easypaisa"){
 		response.operator = "easypaisa";
@@ -109,9 +107,6 @@ exports.sendOtp = async (req, res) => {
 	}
 
 	if(user == null){
-
-        console.log('user if: ', response);
-
         // no user
 		let userObj = {};
 		userObj.msisdn = msisdn;
@@ -152,8 +147,6 @@ exports.sendOtp = async (req, res) => {
 		}
 		
 	}else{
-        console.log('user else: ');
-
 		if(payment_source === 'telenor'){
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);
@@ -238,12 +231,7 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 		let postBody = {otp: otp};
 		postBody.msisdn = msisdn;
 		let otpUser = await otpRepo.getOtp(msisdn);
-
-		console.log('optUser: ', otpUser);
 		if(otpUser){
-
-            console.log('optUser if ');
-
             // Record already present in collection, lets check it further.
 			if(otpUser.verified === true){
 				/* Means, this user is already verified by otp, probably he/she just wanted to 
@@ -252,8 +240,6 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 				
 				postBody.verified = false;
 				let record = await otpRepo.updateOtp(msisdn, postBody);
-                console.log('record: ', record);
-
                 if(record){
 					// OTP updated successfuly in collection, let's send this otp to user by adding this otp in messaging queue
 					sendMessage(record.otp, record.msisdn);
@@ -269,13 +255,9 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 			}
 		}else{
 
-            console.log('optUser else ');
-
             // Means no user present in collection, let's create one.
 			postBody.msisdn = msisdn;
 			let record = await otpRepo.createOtp(postBody);
-            console.log('record: ', record);
-
             if(record){
 				// OTP created successfuly in collection, let's send this otp to user and acknowldge him/her
 				sendMessage(record.otp, record.msisdn);
