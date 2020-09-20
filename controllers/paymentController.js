@@ -96,7 +96,7 @@ exports.sendOtp = async (req, res) => {
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
 	console.log('payment_source: ', payment_source);
-    console.log('user: ', user);
+    console.log('user: ', user, typeof user);
 	let response = {};
 	if(payment_source && payment_source === "easypaisa"){
 		response.operator = "easypaisa";
@@ -108,7 +108,7 @@ exports.sendOtp = async (req, res) => {
 		}
 	}
 
-	if(user === 'null'){
+	if(user == null){
 
         console.log('user if: ');
 
