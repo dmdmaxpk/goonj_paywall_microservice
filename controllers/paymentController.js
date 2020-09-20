@@ -114,17 +114,17 @@ exports.sendOtp = async (req, res) => {
 		userObj.source = req.body.source ? req.body.source : 'na';
 		if (response.operator === 'telenor' || response.operator === 'easypaisa'){
 			try {
-                userObj.operator = response.operator;
+                userObj.operator = payment_source;
 				user = await userRepo.createUser(userObj);
 				
-				if(response.operator === "telenor"){
+				if(payment_source === "telenor"){
 					try {
 						console.log('Payment - OTP - TP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 						generateOtp(res, msisdn, user, gw_transaction_id);
 					} catch (err) {
 						res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
 					}
-				} else if(response.operator === "easypaisa"){
+				} else if(payment_source === "easypaisa"){
 					try {
 						let record = await easypaisaPaymentService.bootOptScript(msisdn);
 						console.log('sendOtp - ep', record);
@@ -147,10 +147,10 @@ exports.sendOtp = async (req, res) => {
 		}
 		
 	}else{
-		if(user.operator === 'telenor'){
+		if(payment_source === 'telenor'){
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);
-		}else if (user.operator === 'easypaisa') {
+		}else if (payment_source === 'easypaisa') {
 
             //check EP token already exist, if yes then generate Telenor token
             console.log('Checking if EP token already exist');
