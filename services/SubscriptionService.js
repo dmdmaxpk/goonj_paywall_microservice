@@ -40,7 +40,6 @@ class SubscriptionService {
                                 history.subscription_id = subscription._id;
                                 history.package_id = subscription.subscribed_package_id;
                                 history.paywall_id = paywall._id;
-                                history.operator_response = operator_response?operator_response:"";
                                 history.billing_status = 'expired';
                                 history.source = 'ccp_api';
                                 history.operator = 'telenor';
