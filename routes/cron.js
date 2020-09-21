@@ -5,13 +5,11 @@ const migrationService = require('../services/SubscriberToSubscriptionMigration'
 
 //
 
-/*
 router.route('/markRenewableUsers')
     .get(controller.markRenewableUsers);
 
 router.route('/subscriptionRenewal')
     .get(controller.subscriptionRenewal);
-*/
 
 // router.route('/postPSLUserMigration')
 //     .get(controller.postPSLUserMigration);
@@ -22,17 +20,14 @@ router.route('/subscriptionRenewal')
 router.route('/tokenRefresh')
     .get(controller.refreshToken);
 
-/*
 router.route('/addInBillingQueue')
     .get(controller.addInBillingQueue);
-*/
 
 router.route('/tpsCountReset')
     .get(controller.tpsCountReset);
 
 router.route('/dailyAmoutReset')
     .get(controller.dailyAmoutReset);
-/*
 
 router.route('/checkLastSeenOfUsers')
     .get(controller.checkLastSeenOfUsers);
@@ -61,5 +56,4 @@ router.route('/migrate')
 router.route('/removemsisdns')
     .get(controller.removeDuplicateMsisdns);
 
-*/
 module.exports = router;
