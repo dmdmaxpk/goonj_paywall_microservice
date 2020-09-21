@@ -15,16 +15,25 @@ class SubscriptionService {
     async expireByNumber(msisdn, slug){
         try{
             let user  = await this.userRepository.getUserByMsisdn(msisdn);
+            console.log("=> 1");
             let paywall  = await this.paywallRepository.getPaywallsBySlug(slug);
-            if(user, paywall){
+            console.log("=> 2");
+            if(user && paywall){
+                console.log("=> 3");
                 let subscriber = await this.subscriberRepository.getSubscriberByUserId(user._id);
+                console.log("=> 4");
                 if(subscriber){
+                    console.log("=> 5");
                     let subscriptions = await this.subscriptionRepository.getAllSubscriptions(subscriber._id);
+                    console.log("=> 6");
                     if (subscriptions.length > 0) {
+                        console.log("=> 7");
                         let temp = 0;
                         for (let i =0 ; i < subscriptions.length; i++) {
                             let subscription = subscriptions[i];
+                            console.log("=> 8");
                             if (paywall.package_ids.indexOf(subscription.subscribed_package_id) > -1){
+                                console.log("=> 9", subscription);
                                 let history = {};
                                 history.user_id = subscriber.user_id;
                                 history.subscriber_id = subscription.subscriber_id;
@@ -56,7 +65,7 @@ class SubscriptionService {
                 return "Some params are missing."
             }
         }catch(err){
-            console.log(err);
+            console.log("=>", err);
             return "Error";
         }
         

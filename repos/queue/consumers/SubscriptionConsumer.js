@@ -35,6 +35,7 @@ class SubscriptionConsumer {
         if(returnObject){
             let returnStatus = returnObject.status;
             if(returnStatus === 'Success'){
+                rabbitMq.acknowledge(message);
 
                 // Success billing
                 let nextBilling = new Date();
@@ -76,18 +77,18 @@ class SubscriptionConsumer {
                     console.log('Full charge success');
                     this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, false, mPackage.price_point_pkr);
                 }
-                rabbitMq.acknowledge(message);
+                
             }else if(returnStatus === 'ExcessiveBilling'){
                 // excessive billings
-                this.logExcessiveBilling(mPackage, user, subscription);
                 rabbitMq.acknowledge(message);
+                this.logExcessiveBilling(mPackage, user, subscription);
             }else if(returnStatus === 'ExcessiveMicroBilling'){
                 // excessive micro billings
+                rabbitMq.acknowledge(message);
                 this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price, transaction_id);
-                rabbitMq.acknowledge(message);
             }else{
-                await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
                 rabbitMq.acknowledge(message);
+                await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
             }
         }else{
             console.log('Return object not found!');
