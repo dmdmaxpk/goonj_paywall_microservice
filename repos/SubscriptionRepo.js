@@ -395,6 +395,29 @@ class SubscriptionRepository {
             console.log('=> error', e);
         }
     }
+
+    async getOnlySubscriberIds(source, from, to){
+        let data = await Subscription.aggregate([
+        {
+            $match:{
+                source: source,
+                $and:[
+                    {added_dtm:{$gte: new Date(from)}}, 
+                    {added_dtm:{$lt: new Date(to)}},
+                ]
+            }
+        },{
+            $project: {
+                _id:0,
+                subscriber_id: 1
+            }
+        }
+        ]);
+
+        console.log("=> data fetched", data.length);
+
+        return data;
+    }
 }
 
 module.exports = SubscriptionRepository;

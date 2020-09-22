@@ -4,7 +4,6 @@ const subscriberRepo = require('../repos/SubscriberRepo');
 const { response } = require('express');
 
 generateDailyReport = async() => {
-    
     console.log("=> Generating daily reports");
 
     //Yesterday
@@ -75,13 +74,6 @@ generateDailyReport = async() => {
 
 generateEveryThreeDaysReports =  async() => {
 
-}
-
-generateRandomReports =  async() => {
-    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled();
-    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled2();
-    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled3();
-    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled4();
 }
 
 generateWeeklyReports =  async() => {
@@ -159,7 +151,11 @@ generateMonthlyReports =  async() => {
 }
 
 generateRandomReports =  async() => {
-    reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled();
+    reportsRepo.getOnlySubscriberIds("app", "2020-08-01T00:00:00.000Z", "2020-09-01T00:00:00.000Z");
+    //reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled();
+    //reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled2();
+    //reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled3();
+    //reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled4();
 }
 
 function sleep(ms) {

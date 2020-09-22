@@ -7,12 +7,14 @@ const subscriptionService = container.resolve("subscriptionService");
 
 // CREATE
 exports.login = async (req, res) => {
+
 	let gw_transaction_id = req.body.transaction_id;
 	try {
 		let username = req.body.username;
 		let password = req.body.password;
 		let response = await systemUserService.login(username,password);
-		res.status(200).send({access_token:response,gw_transaction_id: gw_transaction_id});
+		response.gw_transaction_id = gw_transaction_id;
+		res.status(200).send(response);
 	} catch(err){
 		console.error(err.message);
 		res.status(500).json({message:err.message,gw_transaction_id: gw_transaction_id})
@@ -21,9 +23,12 @@ exports.login = async (req, res) => {
 
 exports.unsubscribe = async (req, res) => {
 		try {
-			let gw_transaction_id = req.body.transaction_id; 
-			let result = await subscriptionService.expireByMsisdn(req.body.msisdn,req.body.slug,"unsub_api",undefined);
-			res.status(200).send({result,gw_transaction_id});
+			let gw_transaction_id = req.body.transaction_id;
+			let msisdn = req.body.msisdn;
+			let slug = req.body.slug;
+
+			let result = await subscriptionService.expireByNumber(msisdn, slug);
+			res.status(200).send({message: result, gw_transaction_id: gw_transaction_id});
 		} catch(err) {
 			console.log("error",err);
 			res.json({message:err,gw_transaction_id: gw_transaction_id});

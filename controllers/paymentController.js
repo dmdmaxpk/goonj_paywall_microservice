@@ -97,7 +97,6 @@ exports.sendOtp = async (req, res) => {
 	let user = await userRepo.getUserByMsisdn(msisdn);
 
 	let response = {};
-	// no user
 	if(payment_source && payment_source === "easypaisa"){
 		response.operator = "easypaisa";
 	}else{
@@ -108,24 +107,25 @@ exports.sendOtp = async (req, res) => {
 		}
 	}
 
-	if(!user){
+	if(user == null){
+        // no user
 		let userObj = {};
 		userObj.msisdn = msisdn;
         userObj.subscribed_package_id = 'none';
 		userObj.source = req.body.source ? req.body.source : 'na';
 		if (response.operator === 'telenor' || response.operator === 'easypaisa'){
 			try {
-                userObj.operator = response.operator;
+                userObj.operator = payment_source;
 				user = await userRepo.createUser(userObj);
 				
-				if(response.operator === "telenor"){
+				if(payment_source === "telenor"){
 					try {
 						console.log('Payment - OTP - TP - UserCreated - ', user.msisdn, ' - ', user.source, ' - ', (new Date()));
 						generateOtp(res, msisdn, user, gw_transaction_id);
 					} catch (err) {
 						res.send({code: config.codes.code_error, message: err.message, gw_transaction_id: gw_transaction_id })
 					}
-				} else if(response.operator === "easypaisa"){
+				} else if(payment_source === "easypaisa"){
 					try {
 						let record = await easypaisaPaymentService.bootOptScript(msisdn);
 						console.log('sendOtp - ep', record);
@@ -148,10 +148,11 @@ exports.sendOtp = async (req, res) => {
 		}
 		
 	}else{
-		if(response.operator === 'telenor'){
+		if(payment_source === 'telenor'){
 			console.log('sent otp - telenor');
 			generateOtp(res, msisdn, user, gw_transaction_id);
-		}else if (response.operator === 'easypaisa') {
+		}else if (payment_source === 'easypaisa') {
+
             //check EP token already exist, if yes then generate Telenor token
             console.log('Checking if EP token already exist');
             let epToken = await checkEPToken(package_id, user);
@@ -231,9 +232,8 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 		let postBody = {otp: otp};
 		postBody.msisdn = msisdn;
 		let otpUser = await otpRepo.getOtp(msisdn);
-
 		if(otpUser){
-			// Record already present in collection, lets check it further.
+            // Record already present in collection, lets check it further.
 			if(otpUser.verified === true){
 				/* Means, this user is already verified by otp, probably he/she just wanted to 
 				signin to another device from the same login, so let's update the record and 
@@ -241,8 +241,7 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 				
 				postBody.verified = false;
 				let record = await otpRepo.updateOtp(msisdn, postBody);
-				
-				if(record){
+                if(record){
 					// OTP updated successfuly in collection, let's send this otp to user by adding this otp in messaging queue
 					sendMessage(record.otp, record.msisdn);
 					res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
@@ -256,11 +255,11 @@ generateOtp = async(res, msisdn, user, gw_transaction_id) => {
 				res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
 			}
 		}else{
-			// Means no user present in collection, let's create one.
+
+            // Means no user present in collection, let's create one.
 			postBody.msisdn = msisdn;
 			let record = await otpRepo.createOtp(postBody);
-	
-			if(record){
+            if(record){
 				// OTP created successfuly in collection, let's send this otp to user and acknowldge him/her
 				sendMessage(record.otp, record.msisdn);
 				res.send({'code': config.codes.code_success, data: 'OTP sent', gw_transaction_id: gw_transaction_id});
@@ -863,18 +862,18 @@ exports.recharge = async (req, res) => {
 				let packageObj = await packageRepo.getPackage({_id: package_id});
 				if(packageObj){
 					await subscriptionRepo.updateSubscription(subscription._id, {consecutive_successive_bill_counts: 0, is_manual_recharge: true});
-					console.log("Subscrib Package to be called");
-					subscribePackage(subscription, packageObj);
-					res.send({code: config.codes.code_in_billing_queue, message: 'In queue for billing!', gw_transaction_id: gw_transaction_id});
-				}else{
-					res.send({code: config.codes.code_error, message: 'No subscribed package found!', gw_transaction_id: gw_transaction_id});
+					let result = await paymentProcessService.processDirectBilling(undefined, user, subscription, packageObj, true);
+					if(result.message === "success"){
+						res.send({code: config.codes.code_success, message: 'Recharged successfully', gw_transaction_id: gw_transaction_id});
+					}else {
+						res.send({code: config.codes.code_error, message: 'Failed to recharge', gw_transaction_id: gw_transaction_id});
+					
 				}
 			}
+		}
 		}else{
-			res.send({code: config.codes.code_error, message: 'Something went wrong!', gw_transaction_id: gw_transaction_id});
-		}	
-	}else{
-		res.send({code: config.codes.code_error, message: 'Invalid data provided.', gw_transaction_id: gw_transaction_id});
+			res.send({code: config.codes.code_error, message: 'Invalid data provided.', gw_transaction_id: gw_transaction_id});
+		}
 	}
 }
 
@@ -916,6 +915,7 @@ exports.status = async (req, res) => {
 						is_gray_listed: result.is_gray_listed,
 						is_black_listed: result.is_black_listed,
 						queued: result.queued,
+						is_billable_in_this_cycle: false,
 						is_allowed_to_stream: result.is_allowed_to_stream,
 						active: result.active,
 						next_billing_timestamp: result.next_billing_timestamp

@@ -72,6 +72,17 @@ let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
 let usersReportWithTrialAndBillingHistory = currentDate+"_UsersReportWithTrialAndBillingHistory.csv";
 let usersReportWithTrialAndBillingHistoryFilePath = `./${usersReportWithTrialAndBillingHistory}`;
 
+let dateWiseChargingDetails = currentDate+"_DateWiseChargingDetails.csv";
+let dateWiseChargingDetailsFilePath = `./${dateWiseChargingDetails}`;
+let dateWiseChargingDetailsWriter = createCsvWriter({
+    path: dateWiseChargingDetailsFilePath,
+    header: [
+        {id: 'date', title: 'Date'},
+        {id: "count",title: "Billing Count" }
+    ]
+});
+
+
 
 let randomReport = currentDate+"_RandomReport.csv";
 let randomReportFilePath = `./${randomReport}`;
@@ -1699,7 +1710,6 @@ getInactiveBaseHavingViewLogsLessThan3 = async(from, to) => {
     })
 }
 
-
 generateUsersReportWithTrialAndBillingHistory = async(from, to) => {
     console.log("=> generateUsersReportWithTrialAndBillingHistory - from ", from, " to ", to);
     let finalResult = [];
@@ -1843,6 +1853,53 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     }
 }
 
+getOnlySubscriberIds = async(source, fromDate, toDate) => {
+    try{
+        let records = await subscriptionRepo.getOnlySubscriberIds(source, fromDate, toDate);
+        console.log("=> dateWiseChargingDetails - done1");
+        let ids = await getArray(records);
+        console.log("=> dateWiseChargingDetails - done2");
+        let details = await billinghistoryRepo.getChargingDetails(ids, fromDate, toDate);
+
+        console.log("=> Sending email");
+        await dateWiseChargingDetailsWriter.writeRecords(details);
+
+        let fromDuplicate = new Date(fromDate);
+
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            subject: `Day-wise Charging Details For ${source} - ${monthNames[fromDuplicate.getMonth()]}`, // Subject line
+            text: `This report containing charging details of ${source}, day-wise for the month of ${monthNames[fromDuplicate.getMonth()]}`,
+            attachments:[
+                {
+                    filename: dateWiseChargingDetails,
+                    path: dateWiseChargingDetailsFilePath
+                }
+            ]
+        });
+
+        console.log("=> [dateWiseChargingDetails][emailSent]",info);
+        fs.unlink(dateWiseChargingDetailsFilePath,function(err,data) {
+            if (err) {
+                console.log("=> File not deleted[dateWiseChargingDetails]");
+            }
+            console.log("=> File deleted [dateWiseChargingDetails]");
+        });
+    }catch(e){
+        console.log("=> Error [dateWiseChargingDetails]", e);
+    }
+    
+}
+
+getArray = async(records) => {
+    let ids = [];
+    for(let i = 0; i < records.length; i++){
+        ids.push(records[i].subscriber_id);
+    }
+    return ids;
+}
+
 function isDataPresent(array, user_id) {
     const result = array.find(o => o.user_id === user_id);
     return result;
@@ -1906,6 +1963,7 @@ module.exports = {
     dailyReturningUsers: dailyReturningUsers,
     weeklyRevenue: weeklyRevenue,
     getActiveBase: getActiveBase,
+    getOnlySubscriberIds: getOnlySubscriberIds,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled2: generateReportForAcquisitionSourceAndNoOfTimeUserBilled2,

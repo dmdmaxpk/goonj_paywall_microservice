@@ -47,6 +47,40 @@ class BillingHistoryRepository {
             ]);
         return result;
     }
+
+    async getChargingDetails(input, from, to){
+        console.log("=> billinghistory - getChargingDetails - ",input.length);
+        let data = await BillingHistory.aggregate([
+        {
+        
+            $match:{
+                $and:[
+                    {billing_dtm:{$gt: new Date(from)}}, 
+                    {billing_dtm:{$lt: new Date(to)}},
+                ],
+                subscriber_id: {$in: input},
+                billing_status: "Success"
+            }
+        },{
+            $group:{
+                _id: {"day": {"$dayOfMonth" : "$billing_dtm"}, "month": { "$month" : "$billing_dtm" },
+                            "year":{ $year: "$billing_dtm" }},
+                count: {$sum: 1}	
+            }
+        },{
+            $project:{
+                _id: 0,
+                date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+                count: "$count"
+            }
+        },{
+            $sort:{
+                date: 1	
+            }
+        }
+        ]);
+        return data;
+    }
     
     async billingInLastHour  ()  {
         let todayOneHourAgo = new Date(); //step 1 

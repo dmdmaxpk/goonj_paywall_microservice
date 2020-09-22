@@ -35,6 +35,7 @@ class SubscriptionConsumer {
         if(returnObject){
             let returnStatus = returnObject.status;
             if(returnStatus === 'Success'){
+                rabbitMq.acknowledge(message);
 
                 // Success billing
                 let nextBilling = new Date();
@@ -76,18 +77,18 @@ class SubscriptionConsumer {
                     console.log('Full charge success');
                     this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, false, mPackage.price_point_pkr);
                 }
-                rabbitMq.acknowledge(message);
+                
             }else if(returnStatus === 'ExcessiveBilling'){
                 // excessive billings
-                this.logExcessiveBilling(mPackage, user, subscription);
                 rabbitMq.acknowledge(message);
+                this.logExcessiveBilling(mPackage, user, subscription);
             }else if(returnStatus === 'ExcessiveMicroBilling'){
                 // excessive micro billings
+                rabbitMq.acknowledge(message);
                 this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price, transaction_id);
-                rabbitMq.acknowledge(message);
             }else{
-                await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
                 rabbitMq.acknowledge(message);
+                await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
             }
         }else{
             console.log('Return object not found!');
@@ -144,6 +145,7 @@ class SubscriptionConsumer {
             nextBillingDate.setHours(nextBillingDate.getHours() + config.time_between_billing_attempts_hours);
             
             subscriptionObj.subscription_status = 'graced';
+            subscriptionObj.is_allowed_to_stream = false;
             subscriptionObj.next_billing_timestamp = nextBillingDate;
             subscriptionObj.date_on_which_user_entered_grace_period = new Date();
             subscriptionObj.is_billable_in_this_cycle = false;
@@ -153,9 +155,9 @@ class SubscriptionConsumer {
             
             historyStatus="graced";
             //Send acknowldement to user
-            let link = 'https://www.goonj.pk/goonjplus/open';
-            let message = "You've been awarded a grace period of "+packageObj.streamable_grace_hours+" hours. Click below link to open Goonj.\n"+link
-            this.messageRepo.sendSmsToUser(message, user.msisdn);
+            // let link = 'https://www.goonj.pk/goonjplus/open';
+            // let message = "You've been awarded a grace period of "+packageObj.streamable_grace_hours+" hours. Click below link to open Goonj.\n"+link
+            // this.messageRepo.sendSmsToUser(message, user.msisdn);
 
         }else if(subscription.subscription_status === 'graced' && subscription.auto_renewal === true){
             // Already in grace, check if given time has been passed in grace, stop streaming
@@ -215,12 +217,6 @@ class SubscriptionConsumer {
                     hours = hoursSpentInGracePeriod;
                 }
                 console.log("Hours since last payment", hours);
-                if (hours > packageObj.streamable_grace_hours && subscription.is_allowed_to_stream === true) {
-                    // Stop the stream
-                    subscriptionObj.is_allowed_to_stream = false;
-                    historyStatus = "graced_and_stream_stopped";
-                }
-
                 subscriptionObj.try_micro_charge_in_next_cycle = false;
                 subscriptionObj.micro_price_point = 0;
                 subscriptionObj.priority = 0;
