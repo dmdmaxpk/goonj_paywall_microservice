@@ -19,8 +19,7 @@ router.route('/subscribe')
 router.route('/unsubscribe')
     .post(authMiddleWare.authenticateToken, controller.unsubscribe);
 
-router.route('/status') 
-    .post(authMiddleWare.authenticateToken, controller.status);
+router.route('/status').post(controller.status);
 
 router.route('/getAllSubs')
     .get(authMiddleWare.authenticateToken, controller.getAllSubscriptions);
