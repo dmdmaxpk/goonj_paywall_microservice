@@ -348,6 +348,7 @@ exports.subscribe = async (req, res) => {
 		let payment_source = req.body.payment_source;
 	
 		let msisdn = decodedUser.msisdn;
+		console.log("Decoded Msisdn: ", msisdn);
 		let user = await userRepo.getUserByMsisdn(msisdn);
 		if(!user){
 			// Means no user in DB, let's create one
@@ -544,7 +545,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					console.log("Not sending message",user.msisdn);
 				}
 			}else {
-				console.log("Active Subscription",subscription.active);
 				if(subscription.active === true){
 					// Pass subscription through following checks before pushing into queue
 					await viewLogRepo.createViewLog(user._id, subscription._id);

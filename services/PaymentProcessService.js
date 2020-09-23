@@ -159,7 +159,6 @@ class PaymentProcessService {
     }
 
     async doProcess(otp, user, subscription, packageObj, first_time_billing){
-        console.log('doProcess');
 
         let returnObject = {};
         console.log("processDirectBilling - OTP - ", otp, ' - Source - ', subscription.payment_source);
