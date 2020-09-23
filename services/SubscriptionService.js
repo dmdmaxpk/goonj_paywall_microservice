@@ -41,6 +41,8 @@ class SubscriptionService {
                     if(subscriptionsToUnsubscribe.length > 0){
                         let unsubscribed = 0;
                         for (let i =0 ; i < subscriptionsToUnsubscribe.length; i++) {
+                            let subscription = subscriptions[i];
+                            
                             let history = {};
                             history.user_id = subscriber.user_id;
                             history.subscriber_id = subscription.subscriber_id;
@@ -50,15 +52,15 @@ class SubscriptionService {
                             history.billing_status = 'expired';
                             history.source = 'ccp_api';
                             history.operator = 'telenor';
-                            let record = await this.expireSubscription(subscription._id, paywall.paywall_name, user.msisdn, history);
+                            this.expireSubscription(subscription._id, paywall.paywall_name, user.msisdn, history);
                             unsubscribed += 1;
                         }
 
-                        if(subscriptionsToUnsubscribe.length > unsubscribed){
+                        if(subscriptionsToUnsubscribe.length === unsubscribed){
                             if(slug === "all"){
-                                return "All subscriptions has unsubscribed successfully!"
+                                return "All subscriptions has unsubscribed successfully!";
                             }else{
-                                return "Requested subscriptions has unsubscribed!"
+                                return "Requested subscriptions has unsubscribed!";
                             }
                         }else{
                             return "Failed to unsubscribe!"
