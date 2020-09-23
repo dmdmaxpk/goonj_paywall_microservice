@@ -1,5 +1,4 @@
 const config = require("../config");
-const { unsubscribe } = require("../controllers/systemUserController");
 
 class SubscriptionService {
     constructor({subscriptionRepository,billingHistoryRepository,packageRepository,
@@ -52,7 +51,7 @@ class SubscriptionService {
                             history.source = 'ccp_api';
                             history.operator = 'telenor';
                             let record = await this.expireSubscription(subscription._id, paywall.paywall_name, user.msisdn, history);
-                            unsubscribe+=1;
+                            unsubscribed += 1;
                         }
 
                         if(subscriptionsToUnsubscribe.length > unsubscribed){
