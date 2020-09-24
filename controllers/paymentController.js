@@ -102,7 +102,9 @@ exports.sendOtp = async (req, res) => {
 	}else{
 		try{
 			response = await paymentProcessService.subscriberQuery(msisdn);
+			console.log("SUBSCRIBER QUERY RESPONSE - OTP", response);
 		}catch(err){
+			console.log("SUBSCRIBER QUERY ERROR - OTP", err);
 			response = err;
 		}
 	}
@@ -362,7 +364,9 @@ exports.subscribe = async (req, res) => {
 			}else{
 				try{
 					response = await paymentProcessService.subscriberQuery(msisdn);
+					console.log("SUBSCRIBER QUERY RESPONSE - SUBSCRIBE", response);
 				}catch(err){
+					console.log("SUBSCRIBER QUERY ERROR - SUBSCRIBE", err);
 					response = err;
 				}
 			}
