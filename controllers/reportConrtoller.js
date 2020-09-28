@@ -129,19 +129,13 @@ exports.billing_stats = async (req,res) =>  {
     dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
 
     let requests = await billingHistoryRepo.getBillingStats(todayStart, todayEnd);
-    console.log("=> billing_stats ", requests);
-    data.push({'Todays success requests till the time': requests[0].count});
-    data.push({'Todays failed requests till the time': requests[1].count});
+    data.push({'Todays success requests till the time': requests[0].count, 'Todays failed requests till the time': requests[1].count});
 
     requests = await billingHistoryRepo.getBillingStats(yesterdayStart, yesterdayEnd);
-    console.log("=> billing_stats ", requests);
-    data.push({'Yesterdays success requests till the time': requests[0].count});
-    data.push({'Yesterdays failed requests till the time': requests[1].count});
+    data.push({'Yesterdays success requests till the time': requests[0].count, 'Yesterdays failed requests till the time': requests[1].count});
 
     requests = await billingHistoryRepo.getBillingStats(dayBeforeYesterdayStart, dayBeforeYesterdayEnd);
-    console.log("=> billing_stats ", requests);
-    data.push({'Day before yesterdays success requests till the time': requests[0].count});
-    data.push({'Day before yesterday failed requests till the time': requests[1].count});
+    data.push({'Day before yesterdays success requests till the time': requests[0].count, 'Day before yesterday failed requests till the time': requests[1].count});
 
     console.log("=> ", data);
     res.send(data);
