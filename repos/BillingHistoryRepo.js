@@ -105,7 +105,7 @@ class BillingHistoryRepository {
                     _id: "$billing_status",
                     count: {$sum:1}
                 }
-            }], {allowDiskUse:true});
+            }]);
         return data;
     }
     
