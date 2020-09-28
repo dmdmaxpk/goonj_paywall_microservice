@@ -81,6 +81,33 @@ class BillingHistoryRepository {
         ]);
         return data;
     }
+
+    async getBillingStats(from, to){
+        console.log("=> getBillingStats");
+        let data = await BillingHistory.aggregate([
+            {
+                $match:{
+                    $or:[
+                        {"billing_status": "Success"}, 
+                        {"operator_response.errorMessage": "The account balance is insufficient."}	
+                    ],
+                    $and:[
+                        {billing_dtm:{$gt: new Date(from)}}, 
+                        {billing_dtm:{$lt: new Date(to)}}
+                    ]
+                }
+            },{
+                $project:{
+                    "billing_status": "$operator_response.errorMessage"	
+                }
+            },{
+                $group:{
+                    _id: "$billing_status",
+                    count: {$sum:1}
+                }
+            }], {allowDiskUse:true});
+        return data;
+    }
     
     async billingInLastHour  ()  {
         let todayOneHourAgo = new Date(); //step 1 
