@@ -83,7 +83,7 @@ class BillingHistoryRepository {
     }
 
     async getBillingStats(from, to){
-        console.log("=> getBillingStats");
+        console.log("=> getBillingStats - ", from, " - to - ", to);
         let data = await BillingHistory.aggregate([
             {
                 $match:{
