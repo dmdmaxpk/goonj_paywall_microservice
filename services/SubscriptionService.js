@@ -63,28 +63,24 @@ class SubscriptionService {
                         }
 
                         if(subscriptionsToUnsubscribe.length === unsubscribed){
-                            if(slug === "all"){
-                                return "All subscriptions has unsubscribed successfully!";
-                            }else{
-                                return "Requested subscriptions has unsubscribed!";
-                            }
+                            return "Requested subscriptions has unsubscribed!";
                         }else{
                             return "Failed to unsubscribe!"
                         }
                     }else{
                         if(alreadyUnsubscribed > 0){
-                            return "Already unsubscribed!";
+                            return "Dear customer, you are not a subscribed user";
                         }else{
-                            return "No active subscription found against this user!";
+                            return "This service is not active at your number";
                         }
                     }
 
                 }else{
-                    return "No subscriber exist!";    
+                    return "This service is not active at your number";    
                 }
                 
             }else{
-                return "This user doesn't exist!"
+                return "This service is not active at your number"
             }
         }catch(err){
             console.log("=>", err);
