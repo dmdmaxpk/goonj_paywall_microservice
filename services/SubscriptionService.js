@@ -21,9 +21,15 @@ class SubscriptionService {
                 let subscriber = await this.subscriberRepository.getSubscriberByUserId(user._id);
                 if(subscriber){
                     let subscriptions = await this.subscriptionRepository.getAllSubscriptions(subscriber._id);
+                    let alreadyUnsubscribed = 0;
+
                     if(slug && slug === "all"){
                         for (let i =0 ; i < subscriptions.length; i++) {
-                            subscriptionsToUnsubscribe.push(subscriptions[i]);
+                            if(subscriptions.subscription_status === 'expired'){
+                                alreadyUnsubscribed += 1;   
+                            }else{
+                                subscriptionsToUnsubscribe.push(subscriptions[i]);
+                            }
                         }
                     }else if(slug && (slug === "live" || slug === "comedy")){
                         let paywall  = await this.paywallRepository.getPaywallsBySlug(slug);
@@ -66,7 +72,11 @@ class SubscriptionService {
                             return "Failed to unsubscribe!"
                         }
                     }else{
-                        return "No active subscription found against this user!";        
+                        if(alreadyUnsubscribed > 0){
+                            return "Already unsubscribed!";
+                        }else{
+                            return "No active subscription found against this user!";
+                        }
                     }
 
                 }else{

@@ -22,15 +22,15 @@ exports.login = async (req, res) => {
 }
 
 exports.unsubscribe = async (req, res) => {
-		try {
-			let gw_transaction_id = req.body.transaction_id;
-			let msisdn = req.body.msisdn;
-			let slug = req.body.slug;
+	try {
+		let gw_transaction_id = req.body.transaction_id;
+		let msisdn = req.body.msisdn;
+		let slug = req.body.slug;
 
-			let result = await subscriptionService.expireByNumber(msisdn, slug);
-			res.status(200).send({message: result, gw_transaction_id: gw_transaction_id});
-		} catch(err) {
-			console.log("error",err);
-			res.json({message:err,gw_transaction_id: gw_transaction_id});
-		} 
+		let result = await subscriptionService.expireByNumber(msisdn, slug);
+		res.status(200).send({message: result, gw_transaction_id: gw_transaction_id});
+	} catch(err) {
+		console.log("error",err);
+		res.json({message:err,gw_transaction_id: gw_transaction_id});
+	} 
 }
