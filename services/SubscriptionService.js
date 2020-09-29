@@ -25,7 +25,7 @@ class SubscriptionService {
 
                     if(slug && slug === "all"){
                         for (let i =0 ; i < subscriptions.length; i++) {
-                            if(subscriptions.subscription_status === 'expired'){
+                            if(subscriptions[i].subscription_status === 'expired'){
                                 alreadyUnsubscribed += 1;   
                             }else{
                                 subscriptionsToUnsubscribe.push(subscriptions[i]);
