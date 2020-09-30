@@ -109,7 +109,7 @@ exports.sendOtp = async (req, res) => {
 		}
 	}
 
-	if(user == null){
+	if(!user){
         // no user
 		let userObj = {};
 		userObj.msisdn = msisdn;
