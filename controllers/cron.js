@@ -41,7 +41,7 @@ exports.purgeDueToInActivity = async (req,res) =>  {
         let latestViewLog = await viewLogsRepo.getLatestViewLog(lastSixtyDaysChargedUsers[i]._id);
         let latestDtm = new Date(latestViewLog.added_dtm);
 
-        if(latestDtm.getTime() < from.getDime()){
+        if(latestDtm.getTime() < from.getTime()){
             // Means, this user should be purged;
             console.log("=> Purge: ", latestViewLog.user_id);
             purgeCount += 1;
