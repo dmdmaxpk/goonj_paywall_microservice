@@ -8,7 +8,12 @@ const grayListService = require('../services/GrayListService');
 const reportsService = require('../services/ReportsService');
 const billingMonitoringService = require('../services/BillingMonitoringService');
 const messageService = require('../services/MessageService');
+const BillingHistoryRepository = require("../repos/BillingHistoryRepo");
+const billingHistoryRepo = new BillingHistoryRepository();
+
 const subscriptionRepository = container.resolve("subscriptionRepository");
+
+const viewLogsRepo = require('../repos/ViewLogRepo');
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
@@ -18,6 +23,38 @@ exports.subscriptionRenewal = async (req,res) =>  {
 exports.refreshToken = async (req,res) =>  {
     await tokenRefreshService.refreshToken();
     res.send("Token Refresh - Executed");
+}
+
+exports.purgeDueToInActivity = async (req,res) =>  {
+    let from = new Date();
+    from.setDate(from.getDate() - 60);
+
+    let to = new Date();
+
+    let lastSixtyDaysChargedUsers = await billingHistoryRepo.getLastSixtyDaysChargedUsers(from, to);
+    console.log("=> lastSixtyDaysChargedUsers ", lastSixtyDaysChargedUsers.length);
+
+    let purgeCount = 0;
+    let notPurgeCount = 0;
+
+    for(let i = 0; i < lastSixtyDaysChargedUsers.length; i++){
+        let latestViewLog = viewLogsRepo.getLatestViewLog(lastSixtyDaysChargedUsers[i]._id);
+        let latestDtm = new Date(latestViewLog.added_dtm);
+
+        if(latestDtm.getTime() < from.getDime()){
+            // Means, this user should be purged;
+            console.log("Purge: ", latestViewLog.user_id);
+            purgeCount += 1;
+        }else{
+            // No need to purge
+            console.log("Don't Purge: ", latestViewLog.user_id);
+            notPurgeCount += 1;
+        }
+    }
+
+    console.log("Purge Count: ", purgeCount);
+    console.log("Not Purge Count: ", notPurgeCount);
+    res.send("PurgeDueToInActivity - Executed\n");
 }
 
 exports.addInBillingQueue = async (req,res) =>  {
