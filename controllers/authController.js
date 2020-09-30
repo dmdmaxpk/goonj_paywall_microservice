@@ -11,6 +11,7 @@ exports.refresh = async (req, res) => {
     if (refreshToken == null) {
         return res.sendStatus(401);
     }
+    console.log("Token for refresh: ", refreshToken);
     let token = await repo.getByAuthToken(refreshToken);
     if (!token) {
         return res.sendStatus(403);
