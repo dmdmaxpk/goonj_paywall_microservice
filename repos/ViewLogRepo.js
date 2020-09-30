@@ -20,7 +20,7 @@ createViewLog = async(userId, subscriptionId) => {
 getLatestViewLog =async(userId) => {
     try {
         console.log("=> getLatestViewLog");
-        let result = await ViewLog.findOne({user_id: userId}).sort({added_dtm: -1});
+        let result = await ViewLog.findOne({user_id: userId}).sort({added_dtm: -1}).limit(1);
         return result;
     } catch(error) {
         console.log("=> error", error);
