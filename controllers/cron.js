@@ -29,6 +29,7 @@ exports.purgeDueToInActivity = async (req,res) =>  {
     let from = new Date();
     from.setDate(from.getDate() - 10);
 
+
     let to = new Date();
 
     let lastSixtyDaysChargedUsers = await billingHistoryRepo.getLastSixtyDaysChargedUsers(from, to);
