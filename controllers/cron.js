@@ -65,10 +65,18 @@ exports.purgeDueToInActivity = async (req,res) =>  {
         }
     }
 
-    await userRepo.updateMany(purgerIds);
-    console.log("=> Purge Count: ", purgeCount);
-    console.log("=> Not Purge Count: ", notPurgeCount);
-    console.log("=> Not Found Count: ", notFound);
+    try{
+        console.log("=>", purgerIds);
+        let data = await userRepo.updateMany(purgerIds);
+        console.log("=> data", data);
+
+        console.log("=> Purge Count: ", purgeCount);
+        console.log("=> Not Purge Count: ", notPurgeCount);
+        console.log("=> Not Found Count: ", notFound);
+    }catch(err){
+        console.log("=> purgerIds - error", err);
+    }
+    
 }
 
 exports.addInBillingQueue = async (req,res) =>  {
