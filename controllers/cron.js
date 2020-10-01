@@ -26,8 +26,10 @@ exports.refreshToken = async (req,res) =>  {
 }
 
 exports.purgeDueToInActivity = async (req,res) =>  {
+    res.send("PurgeDueToInActivity - Executed\n");
     let from = new Date();
-    from.setDate(from.getDate() - 10);
+    from.setDate(from.getDate() - 50);
+
     let to = new Date();
     let lastSixtyDaysChargedUsers = await billingHistoryRepo.getLastSixtyDaysChargedUsers(from, to);
     console.log("=> lastSixtyDaysChargedUsers ", lastSixtyDaysChargedUsers.length);
@@ -36,11 +38,15 @@ exports.purgeDueToInActivity = async (req,res) =>  {
     let notPurgeCount = 0;
     let notFound = 0;
 
+    let lastSeenCutOffDate = new Date();
+    lastSixtyDaysChargedUsers.setDate(lastSeenCutOffDate.getDate() - 60);
+
     for(let i = 0; i < lastSixtyDaysChargedUsers.length; i++){
         let latestViewLog = await viewLogsRepo.getLatestViewLog(lastSixtyDaysChargedUsers[i]._id);
         if(latestViewLog){
             let latestDtm = new Date(latestViewLog.added_dtm);
-            if(latestDtm.getTime() < from.getTime()){
+
+            if(latestDtm.getTime() < lastSeenCutOffDate.getTime()){
                 // Means, this user should be purged;
                 console.log("=> Purge: ", latestViewLog.user_id);
                 purgeCount += 1;
@@ -58,7 +64,6 @@ exports.purgeDueToInActivity = async (req,res) =>  {
     console.log("=> Purge Count: ", purgeCount);
     console.log("=> Not Purge Count: ", notPurgeCount);
     console.log("=> Not Found Count: ", notFound);
-    res.send("PurgeDueToInActivity - Executed\n");
 }
 
 exports.addInBillingQueue = async (req,res) =>  {
