@@ -11,9 +11,13 @@ const messageService = require('../services/MessageService');
 const BillingHistoryRepository = require("../repos/BillingHistoryRepo");
 const billingHistoryRepo = new BillingHistoryRepository();
 
+const userRepo = container.resolve("userRepository");
+
+
 const subscriptionRepository = container.resolve("subscriptionRepository");
 
 const viewLogsRepo = require('../repos/ViewLogRepo');
+const UserRepository = require("../repos/UserRepo");
 
 exports.subscriptionRenewal = async (req,res) =>  {
     await subscriptionService.subscriptionRenewal();
@@ -28,7 +32,7 @@ exports.refreshToken = async (req,res) =>  {
 exports.purgeDueToInActivity = async (req,res) =>  {
     res.send("PurgeDueToInActivity - Executed\n");
     let from = new Date();
-    from.setDate(from.getDate() - 50);
+    from.setDate(from.getDate() - 60);
 
     let to = new Date();
     let lastSixtyDaysChargedUsers = await billingHistoryRepo.getLastSixtyDaysChargedUsers(from, to);
@@ -38,29 +42,30 @@ exports.purgeDueToInActivity = async (req,res) =>  {
     let notPurgeCount = 0;
     let notFound = 0;
 
-    let lastSeenCutOffDate = new Date();
-    lastSixtyDaysChargedUsers.setDate(lastSeenCutOffDate.getDate() - 60);
+    let purgerIds = [];
 
     for(let i = 0; i < lastSixtyDaysChargedUsers.length; i++){
         let latestViewLog = await viewLogsRepo.getLatestViewLog(lastSixtyDaysChargedUsers[i]._id);
         if(latestViewLog){
             let latestDtm = new Date(latestViewLog.added_dtm);
 
-            if(latestDtm.getTime() < lastSeenCutOffDate.getTime()){
+            if(latestDtm.getTime() < from.getTime()){
                 // Means, this user should be purged;
-                console.log("=> Purge: ", latestViewLog.user_id);
+                console.log("=> Purge:", latestViewLog.user_id);
                 purgeCount += 1;
+                purgerIds.push(latestViewLog.user_id);
             }else{
                 // No need to purge
-                console.log("=> Don't Purge: ", latestViewLog.user_id);
+                console.log("=> Don't Purge:", latestViewLog.user_id);
                 notPurgeCount += 1;
             }
         }else{
-            console.log("=> record not found ", latestViewLog);
+            console.log("=> Record not found", lastSixtyDaysChargedUsers[i]._id);
             notFound += 1;
         }
     }
 
+    await userRepo.updateMany(purgerIds);
     console.log("=> Purge Count: ", purgeCount);
     console.log("=> Not Purge Count: ", notPurgeCount);
     console.log("=> Not Found Count: ", notFound);
