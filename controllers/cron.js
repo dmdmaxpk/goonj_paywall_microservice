@@ -27,7 +27,7 @@ exports.refreshToken = async (req,res) =>  {
 
 exports.purgeDueToInActivity = async (req,res) =>  {
     let from = new Date();
-    from.setDate(from.getDate() - 60);
+    from.setDate(from.getDate() - 10);
 
     let to = new Date();
 
