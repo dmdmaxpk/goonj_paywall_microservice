@@ -36,24 +36,30 @@ exports.purgeDueToInActivity = async (req,res) =>  {
 
     let purgeCount = 0;
     let notPurgeCount = 0;
+    let notFound = 0;
 
     for(let i = 0; i < lastSixtyDaysChargedUsers.length; i++){
         let latestViewLog = await viewLogsRepo.getLatestViewLog(lastSixtyDaysChargedUsers[i]._id);
-        let latestDtm = new Date(latestViewLog.added_dtm);
-
-        if(latestDtm.getTime() < from.getTime()){
-            // Means, this user should be purged;
-            console.log("=> Purge: ", latestViewLog.user_id);
-            purgeCount += 1;
+        if(latestViewLog){
+            let latestDtm = new Date(latestViewLog.added_dtm);
+            if(latestDtm.getTime() < from.getTime()){
+                // Means, this user should be purged;
+                console.log("=> Purge: ", latestViewLog.user_id);
+                purgeCount += 1;
+            }else{
+                // No need to purge
+                console.log("=> Don't Purge: ", latestViewLog.user_id);
+                notPurgeCount += 1;
+            }
         }else{
-            // No need to purge
-            console.log("=> Don't Purge: ", latestViewLog.user_id);
-            notPurgeCount += 1;
+            console.log("=> record not found ", latestViewLog);
+            notFound += 1;
         }
     }
 
     console.log("=> Purge Count: ", purgeCount);
     console.log("=> Not Purge Count: ", notPurgeCount);
+    console.log("=> Not Found Count: ", notFound);
     res.send("PurgeDueToInActivity - Executed\n");
 }
 
