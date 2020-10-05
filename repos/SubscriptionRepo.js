@@ -316,7 +316,7 @@ class SubscriptionRepository {
         }
     }
     
-    async dailyTrialToBilledUsers ()  {
+    async dailyTrialToBilledUsers (from, to)  {
         let today = new Date();
         today.setDate(today.getDate() - 8);
         today.setHours(0, 0, 0, 0);
@@ -329,7 +329,6 @@ class SubscriptionRepository {
         let result = await Subscription.aggregate([
             {
                 $match:{
-                    $or:[{source: "HE"}, {source: "affiliate_web"}],
                     $and: [{added_dtm: {$gte: new Date(lastTenDays)}}, {added_dtm: {$lt: new Date(today)}}]
                 }
             },{ 
