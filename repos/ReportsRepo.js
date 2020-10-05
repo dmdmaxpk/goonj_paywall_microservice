@@ -1307,15 +1307,16 @@ dailyTrialToBilledUsers = async() => {
         let dayBeforeYesterday = new Date();
         dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
         dayBeforeYesterday.setHours(0, 0, 0, 0);
-        console.log("Query from - ", dayBeforeYesterday, ' - to ', yesterday);
+        console.log("=> Query from - ", dayBeforeYesterday, ' - to ', yesterday);
 
         let trialToBilled = await subscriptionRepo.dailyTrialToBilledUsers(dayBeforeYesterday, yesterday);
-        
+        console.log("=> ", JSON.stringify(trialToBilled));
+
         let totalSum = 0;
         for (let i = 0; i < trialToBilled.length; i++){
             totalSum += trialToBilled[i].sum;
         }
-        console.log("=> sending email");
+        console.log("=> sending email ", totalSum);
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
