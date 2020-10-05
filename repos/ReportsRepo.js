@@ -1314,7 +1314,7 @@ dailyTrialToBilledUsers = async() => {
 
         let totalSum = 0;
         for (let i = 0; i < trialToBilled.length; i++){
-            totalSum += trialToBilled[i].sum;
+            totalSum += trialToBilled[i].count;
         }
         console.log("=> sending email ", totalSum);
 
