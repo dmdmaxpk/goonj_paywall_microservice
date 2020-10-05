@@ -1320,8 +1320,7 @@ dailyTrialToBilledUsers = async() => {
 
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["farhan.ali@dmdmax.com"],
-            //to:  ["paywall@dmdmax.com.pk", "nauman@dmdmax.com", "mikaeel@dmdmax.com"],
+            to:  ["paywall@dmdmax.com.pk", "nauman@dmdmax.com", "mikaeel@dmdmax.com"],
             subject: 'Trial To Billed Users',
             text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${dayBeforeYesterday} to ${yesterday}.\n\nTrial: ${dayBeforeYesterday}\nBilled: ${yesterday}\nCount: ${totalSum}`
         });
