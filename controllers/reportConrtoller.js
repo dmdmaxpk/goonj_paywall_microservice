@@ -99,3 +99,46 @@ exports.req_count = async (req,res) =>  {
     res.send(data);
 }
 
+exports.billing_stats = async (req,res) =>  {
+
+    let data = [];
+
+    let todayStart = new Date();
+    todayStart.setHours(00);
+    todayStart.setMinutes(00);
+    todayStart.setSeconds(00);
+    let todayEnd = new Date();
+
+    let yesterdayStart = new Date();
+    yesterdayStart.setDate(todayStart.getDate() - 1);
+    yesterdayStart.setHours(00);
+    yesterdayStart.setMinutes(00);
+    yesterdayStart.setSeconds(00);
+
+    let yesterdayEnd = new Date();
+    yesterdayEnd.setDate(todayStart.getDate() - 1);
+
+    let dayBeforeYesterdayStart = new Date();
+    dayBeforeYesterdayStart.setDate(todayStart.getDate() - 2);
+    dayBeforeYesterdayStart.setHours(00);
+    dayBeforeYesterdayStart.setMinutes(00);
+    dayBeforeYesterdayStart.setSeconds(00);
+
+
+    let dayBeforeYesterdayEnd = new Date();
+    dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
+
+    let requests = await billingHistoryRepo.getBillingStats(todayStart, todayEnd);
+    data.push({'Todays success requests till the time': requests[0].count, 'Todays failed requests till the time': requests[1].count});
+
+    requests = await billingHistoryRepo.getBillingStats(yesterdayStart, yesterdayEnd);
+    data.push({'Yesterdays success requests till the time': requests[0].count, 'Yesterdays failed requests till the time': requests[1].count});
+
+    requests = await billingHistoryRepo.getBillingStats(dayBeforeYesterdayStart, dayBeforeYesterdayEnd);
+    data.push({'Day before yesterdays success requests till the time': requests[0].count, 'Day before yesterday failed requests till the time': requests[1].count});
+
+    console.log("=> ", data);
+    res.send(data);
+}
+
+

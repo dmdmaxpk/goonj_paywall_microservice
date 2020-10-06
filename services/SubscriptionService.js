@@ -15,58 +15,77 @@ class SubscriptionService {
     async expireByNumber(msisdn, slug){
         try{
             let user  = await this.userRepository.getUserByMsisdn(msisdn);
-            console.log("=> 1");
-            let paywall  = await this.paywallRepository.getPaywallsBySlug(slug);
-            console.log("=> 2");
-            if(user && paywall){
-                console.log("=> 3");
+            let subscriptionsToUnsubscribe = [];
+            
+            if(user){
                 let subscriber = await this.subscriberRepository.getSubscriberByUserId(user._id);
-                console.log("=> 4");
                 if(subscriber){
-                    console.log("=> 5");
                     let subscriptions = await this.subscriptionRepository.getAllSubscriptions(subscriber._id);
-                    console.log("=> 6");
-                    if (subscriptions.length > 0) {
-                        console.log("=> 7");
-                        let temp = 0;
+                    let alreadyUnsubscribed = 0;
+
+                    if(slug && slug === "all"){
                         for (let i =0 ; i < subscriptions.length; i++) {
-                            let subscription = subscriptions[i];
-                            console.log("=> 8");
-                            if (paywall.package_ids.indexOf(subscription.subscribed_package_id) > -1){
-                                console.log("=> 9", subscription);
-                                let history = {};
-                                history.user_id = subscriber.user_id;
-                                history.subscriber_id = subscription.subscriber_id;
-                                history.subscription_id = subscription._id;
-                                history.package_id = subscription.subscribed_package_id;
-                                history.paywall_id = paywall._id;
-                                history.billing_status = 'expired';
-                                history.source = 'ccp_api';
-                                history.operator = 'telenor';
-                                await this.expireSubscription(subscription._id,paywall.paywall_name,user.msisdn,history);
-                            } else {
-                                temp++;
+                            if(subscriptions[i].subscription_status === 'expired'){
+                                alreadyUnsubscribed += 1;   
+                            }else{
+                                subscriptionsToUnsubscribe.push(subscriptions[i]);
                             }
                         }
-                        if (temp === subscriptions.length) {
-                            return "Could not find subscription of user for this paywall.";
-                        } else {
-                            return "Subscription Unsubscribed";
+                    }else if(slug && (slug === "live" || slug === "comedy")){
+                        let paywall  = await this.paywallRepository.getPaywallsBySlug(slug);
+                        for (let i =0 ; i < subscriptions.length; i++) {
+                            let subscription = subscriptions[i];
+                            if (paywall.package_ids.indexOf(subscription.subscribed_package_id) > -1){
+                                // Unsubscribe this
+                                subscriptionsToUnsubscribe.push(subscription);
+                            }
                         }
-                    } else {
-                        return "User has not been subscribed";
+                    }else{
+                        return "Invalid slug provided!";    
                     }
+
+                    if(subscriptionsToUnsubscribe.length > 0){
+                        let unsubscribed = 0;
+                        for (let i =0 ; i < subscriptionsToUnsubscribe.length; i++) {
+                            let subscription = subscriptions[i];
+                            
+                            let history = {};
+                            history.user_id = subscriber.user_id;
+                            history.subscriber_id = subscription.subscriber_id;
+                            history.subscription_id = subscription._id;
+                            history.package_id = subscription.subscribed_package_id;
+                            history.paywall_id = paywall._id;
+                            history.billing_status = 'expired';
+                            history.source = 'ccp_api';
+                            history.operator = 'telenor';
+                            this.expireSubscription(subscription._id, paywall.paywall_name, user.msisdn, history);
+                            unsubscribed += 1;
+                        }
+
+                        if(subscriptionsToUnsubscribe.length === unsubscribed){
+                            return "Requested subscriptions has unsubscribed!";
+                        }else{
+                            return "Failed to unsubscribe!"
+                        }
+                    }else{
+                        if(alreadyUnsubscribed > 0){
+                            return "Dear customer, you are not a subscribed user";
+                        }else{
+                            return "This service is not active at your number";
+                        }
+                    }
+
                 }else{
-                    return "No subscriber found!"
+                    return "This service is not active at your number";    
                 }
+                
             }else{
-                return "Some params are missing."
+                return "This service is not active at your number"
             }
         }catch(err){
             console.log("=>", err);
             return "Error";
         }
-        
     }
 
     async expire(subscription_id,source,operator_response,transaction_id){

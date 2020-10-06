@@ -1299,93 +1299,33 @@ function isMultipleDatePresent(array, date1ToFind) {
 dailyTrialToBilledUsers = async() => {
     try {
         console.log("=> dailyTrialToBilledUsers");
-        let trialToBilled = await subscriptionRepo.dailyTrialToBilledUsers();
-        let trialToBilledUsers = [];
 
-        trialToBilled.forEach(element => {
-            let trialDate = undefined;
-            let BreakException = {};
+        let yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(0, 0, 0, 0);
+    
+        let dayBeforeYesterday = new Date();
+        dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
+        dayBeforeYesterday.setHours(0, 0, 0, 0);
+        console.log("=> Query from - ", dayBeforeYesterday, ' - to ', yesterday);
 
-            console.log("=> dailyTrialToBilledUsers 2");
-            try{
-                console.log("=> dailyTrialToBilledUsers 3");
-                element.usershistory.forEach(subElement => {
-                    if(subElement.billing_status === 'trial'){
-                        trialDate = new Date(subElement.billing_dtm);
-                        trialDate.setHours(0, 0, 0, 0);
-                    }else if(subElement.billing_status === 'Success'){
-                        let billingDate = new Date(subElement.billing_dtm);
-                        billingDate.setHours(0, 0, 0, 0);
+        let trialToBilled = await subscriptionRepo.dailyTrialToBilledUsers(dayBeforeYesterday, yesterday);
+        console.log("=> ", JSON.stringify(trialToBilled));
 
-                        var trialNextDay = new Date(trialDate);
-                        trialNextDay.setDate(trialNextDay.getDate() + 1);
+        let totalSum = 0;
+        for (let i = 0; i < trialToBilled.length; i++){
+            totalSum += trialToBilled[i].count;
+        }
+        console.log("=> sending email ", totalSum);
 
-                        if(trialNextDay.getTime() === billingDate.getTime()){
-                            // Means user is billed right after next day of trial
-                            let currentObj = isMultipleDatePresent(trialToBilledUsers, trialDate);
-                            if(currentObj){
-                                currentObj.msisdn.push({"msisdn":element.msisdn});
-                                currentObj.total = (currentObj.total + 1);
-                            }else{
-                                //console.log('trialToBilledUsers', trialDate, ' --- ', trialNextDay, ' --- ', billingDate);
-                                let object = {};
-                                object.trial_date = trialDate;
-                                object.billed_date = billingDate;
-                                object.msisdn = [{"msisdn":element.msisdn}];
-                                object.total = 1;
-                                trialToBilledUsers.push(object);
-                            }
-                            throw BreakException;
-                        }
-                    }
-                });
-            }catch(e){
-                if(e !== BreakException)
-                    throw e;
-            }
-        });
-
-        console.log("=> dailyTrialToBilledUsers 4");
-
-        let today = new Date();
-        today.setHours(today.getHours() - 24);
-        today.setHours(0, 0, 0, 0);
-
-        let lastTenDays = new Date();
-        lastTenDays.setDate(lastTenDays.getDate() - 11);
-        lastTenDays.setHours(0, 0, 0, 0);
-
-        trialToBilledUsers.forEach(element => {
-            element.msisdn = JSON.stringify(element.msisdn);
-        });
-        console.log("=> dailyTrialToBilledUsers 5");
-
-        let trialToBilledUserToWr = trialToBilledUsers.sort(function (a,b){
-            return   b['trial_date'] - a['trial_date'];
-        })
-
-        console.log("=> sending email");
-        await csvTrialToBilledUsers.writeRecords(trialToBilledUserToWr);
         var info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["farhan.ali@dmdmax.com"],
-            //to:  ["paywall@dmdmax.com.pk", "nauman@dmdmax.com", "mikaeel@dmdmax.com"], // list of receivers
+            to:  ["paywall@dmdmax.com.pk", "nauman@dmdmax.com", "mikaeel@dmdmax.com"],
             subject: 'Trial To Billed Users',
-            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${lastTenDays} to ${today}.\nNote: You can ignore the current date row.`, // plain text bodyday
-            attachments:[
-                {
-                    filename: paywallTrialToBilledUsers,
-                    path: paywallTrialToBilledUsersFilePath
-                }
-            ]
+            text: `This report (generated at ${(new Date()).toDateString()}) contains count of users who are directly billed after trial from ${dayBeforeYesterday} to ${yesterday}.\n\nTrial: ${dayBeforeYesterday}\nBilled: ${yesterday}\nCount: ${totalSum}`
         });
+
         console.log("=> [trialToBilledUsers][emailSent]", info);
-        fs.unlink(paywallTrialToBilledUsersFilePath,function(err,data) {
-            if (err) {
-                console.log("=> File not deleted");
-            }
-            console.log("data");
-        });
     } catch (error) {
         console.error(error);
     }

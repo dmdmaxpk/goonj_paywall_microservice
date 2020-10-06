@@ -81,6 +81,33 @@ class BillingHistoryRepository {
         ]);
         return data;
     }
+
+    async getBillingStats(from, to){
+        console.log("=> getBillingStats - ", from, " - to - ", to);
+        let data = await BillingHistory.aggregate([
+            {
+                $match:{
+                    $or:[
+                        {"billing_status": "Success"}, 
+                        {"operator_response.errorMessage": "The account balance is insufficient."}	
+                    ],
+                    $and:[
+                        {billing_dtm:{$gt: new Date(from)}}, 
+                        {billing_dtm:{$lt: new Date(to)}}
+                    ]
+                }
+            },{
+                $project:{
+                    "billing_status": "$operator_response.errorMessage"	
+                }
+            },{
+                $group:{
+                    _id: "$billing_status",
+                    count: {$sum:1}
+                }
+            }]);
+        return data;
+    }
     
     async billingInLastHour  ()  {
         let todayOneHourAgo = new Date(); //step 1 
@@ -607,6 +634,30 @@ class BillingHistoryRepository {
             ]);
 
             console.log("=> ", result);
+            return result;
+        }catch(err){
+            console.log("=>", err);
+        }
+    }
+
+    async getLastSixtyDaysChargedUsers(from, to)  {
+        console.log("=> getLastSixtyDaysChargedUsers");
+        try{
+            let result = await BillingHistory.aggregate([
+            {
+                $match:{
+                    billing_status: "Success",
+                    $and:[
+                        {billing_dtm:{$gt: new Date(from)}}, 
+                        {billing_dtm:{$lt: new Date(to)}}
+                    ]	
+                }
+            },{
+                $group:{
+                    _id: "$user_id"	
+                }
+            }]);
+            
             return result;
         }catch(err){
             console.log("=>", err);

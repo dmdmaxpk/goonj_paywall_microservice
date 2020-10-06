@@ -31,6 +31,7 @@ const userSchema = new Schema({
         type: String
     },
     should_remove: Boolean, // temporary field
+    should_purge: Boolean, // temporary field
     active: { type: Boolean, default: true, index: true }
 }, { strict: true });
 

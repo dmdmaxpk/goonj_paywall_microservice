@@ -15,4 +15,7 @@ router.route('/rev')
 router.route('/req-count')
     .get(controller.req_count)
 
+router.route('/billing/stats')
+    .get(controller.billing_stats)
+
 module.exports = router;

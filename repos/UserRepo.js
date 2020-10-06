@@ -60,7 +60,7 @@ class UserRepository {
     }
 
     async updateMany(ids)  {
-        let data = await User.updateMany({"_id": {$in:ids }},{$set:{should_remove: true}});
+        let data = await User.updateMany({"_id": {$in:ids }},{$set:{should_purge: true}});
         return data;
     }
 

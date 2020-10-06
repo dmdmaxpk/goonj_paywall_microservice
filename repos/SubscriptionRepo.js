@@ -80,7 +80,7 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true}).sort({priority:1}).limit(16000);
+        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true}).sort({priority:1}).limit(20000);
         return results;
     }
     
@@ -316,36 +316,94 @@ class SubscriptionRepository {
         }
     }
     
-    async dailyTrialToBilledUsers ()  {
-        let today = new Date();
-        today.setDate(today.getDate() - 8);
-        today.setHours(0, 0, 0, 0);
-    
-        let lastTenDays = new Date();
-        lastTenDays.setDate(lastTenDays.getDate() - 13);
-        lastTenDays.setHours(0, 0, 0, 0);
-        console.log("Query from - ", lastTenDays, ' - to ', today);
-    
+    async dailyTrialToBilledUsers (from ,to)  {    
         let result = await Subscription.aggregate([
-            {
-                $match:{
-                    $or:[{source: "HE"}, {source: "affiliate_web"}],
-                    $and: [{added_dtm: {$gte: new Date(lastTenDays)}}, {added_dtm: {$lt: new Date(today)}}]
-                }
-            },{ 
-                $sort : { 
-                    added_dtm : -1
-                }
-            },{
-                $lookup:{
-                    from: "billinghistories",
-                    localField: "subscriber_id",
-                    foreignField: "subscriber_id",
-                    as: "usershistory"
-                }
+        {
+            $match:{
+                $and:[
+                    {added_dtm:{$gt: new Date(from)}}, 
+                    {added_dtm:{$lt: new Date(to)}}
+                ]
             }
-            ]);
-         return result;
+        },{
+            $project:{
+                _id: 0,
+                subscriber_id: 1,
+            }
+        },{
+            $lookup:{
+                from: "billinghistories",
+                let: {subscriber_id: "$subscriber_id"},
+                pipeline:[
+                                    {
+                                        $match: {
+                                                $expr: {
+                                $and:[
+                                                        {$eq: ["$subscriber_id", "$$subscriber_id"]},
+                                                        {$eq: ["$billing_status", "trial"]}
+                                ]
+                                                }
+                                        }
+                                    }
+                        ],
+                as: "history"
+            }
+        },{
+            $unwind: "$history"
+        },{
+            $project:{
+                _id: 0,
+                "package_id": "$history.package_id",
+                "subscriber_id": "$history.subscriber_id",
+                "history.billing_dtm": 1
+            }
+        },{
+            $project:{
+                "package_id": "$package_id",
+                "subscriber_id": "$subscriber_id",
+                "trial_dt": "$history.billing_dtm"
+            }
+        },{
+            $project:{
+                "package_id": "$package_id",
+                "subscriber_id": "$subscriber_id",
+                "trial_date": {"$dayOfMonth" : "$trial_dt"}
+            }
+        },{
+            $lookup:{
+                from: "billinghistories",
+                let: {subscriber_id: "$subscriber_id", trial_date: "$trial_date"},
+                pipeline:[
+                                    {
+                                        $match: {
+                                                $expr: {
+                                $and:[
+                                                    {$eq: ["$subscriber_id","$$subscriber_id"]},
+                                                    {$eq: ["$billing_status","Success"]},
+                                {$eq: [{"$dayOfMonth":"$billing_dtm"}, {$add:["$$trial_date",1]}]}
+                                ]
+                                                }
+                                        }
+                                    }
+                        ],
+                as: "history"
+            }
+        },{
+            $project:{
+                    package_id: "$package_id",
+                historySize: {$size: "$history"}	
+            }
+        },{
+            $match:{
+                "historySize": {$gt: 0}	
+            }
+        },{
+            $group:{
+                _id: "$package_id",
+                count: {$sum: 1}	
+            }
+        }]);
+        return result;
     }
 
     async getExpiredFromSystem(){
