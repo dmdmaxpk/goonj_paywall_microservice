@@ -639,6 +639,30 @@ class BillingHistoryRepository {
             console.log("=>", err);
         }
     }
+
+    async getLastSixtyDaysChargedUsers(from, to)  {
+        console.log("=> getLastSixtyDaysChargedUsers");
+        try{
+            let result = await BillingHistory.aggregate([
+            {
+                $match:{
+                    billing_status: "Success",
+                    $and:[
+                        {billing_dtm:{$gt: new Date(from)}}, 
+                        {billing_dtm:{$lt: new Date(to)}}
+                    ]	
+                }
+            },{
+                $group:{
+                    _id: "$user_id"	
+                }
+            }]);
+            
+            return result;
+        }catch(err){
+            console.log("=>", err);
+        }
+    }
 }
 
 

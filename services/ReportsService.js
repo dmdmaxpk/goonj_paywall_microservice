@@ -53,8 +53,8 @@ generateDailyReport = async() => {
     reportsRepo.dailyFullAndPartialChargedUsers();
     
 
-    //await sleep(120*1000);
-    //reportsRepo.dailyTrialToBilledUsers();
+    await sleep(120*1000);
+    reportsRepo.dailyTrialToBilledUsers();
     
     
     await sleep(180*1000);
