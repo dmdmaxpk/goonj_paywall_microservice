@@ -9,13 +9,13 @@ const config = require("../config");
 exports.refresh = async (req, res) => {
     const refreshToken = req.body.token;
     if (refreshToken == null) {
-        return res.sendStatus(401);
+        return res.send({code: 401, message: 'Un-Authorized'});
     }
     console.log("Token for refresh: ", refreshToken);
     let token = await repo.getByAuthToken(refreshToken);
     console.log("Token for refresh 1:", token);
     if (!token || token === null || (token && token === 'null')) {
-        return res.sendStatus(403);
+        return res.send({code: 403, message: 'Forbidden'});
     }
 
     console.log("Token for refresh 2:", "going to verify");
@@ -23,7 +23,7 @@ exports.refresh = async (req, res) => {
         if (err) {
             console.log("Token for refresh 3:", "--- non - verified----");
             console.log(err);
-            return res.sendStatus(403);
+            return res.send({code: 403, message: 'Forbidden'});
         }
 
         console.log("Token for refresh 4:", "---verified----");
