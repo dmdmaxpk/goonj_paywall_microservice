@@ -19,6 +19,9 @@ router.route('/subscribe')
 router.route('/unsubscribe')
     .post(authMiddleWare.authenticateToken, controller.unsubscribe);
 
+router.route('/ccd-unsubscribe')
+    .post(authMiddleWare.authenticateCcdToken, controller.unsubscribe);
+
 router.route('/status').post(controller.status);
 
 router.route('/getAllSubs')
