@@ -22,7 +22,7 @@ router.route('/unsubscribe')
 router.route('/status').post(controller.status);
 
 router.route('/getAllSubs')
-    .get(authMiddleWare.authenticateToken, controller.getAllSubscriptions);
+    .get(authMiddleWare.authenticateCcdToken, controller.getAllSubscriptions);
 
 router.route('/recharge')
     .post(authMiddleWare.authenticateToken, controller.recharge);
