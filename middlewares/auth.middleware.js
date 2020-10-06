@@ -5,12 +5,12 @@ authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if(token == null){
-      return res.sendStatus(401);
+      return res.send({code: 401, message: "Un-Authorized"});
   }
 
   jwt.verify(token, config.ACCESS_TOKEN_SECRET, (err, decodedUser) => {
       if(err){
-        return res.sendStatus(403);
+        return res.send({code: 403, message: "Forbidden"});
       }
       req.decoded = decodedUser;
       next();
