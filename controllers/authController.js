@@ -13,19 +13,24 @@ exports.refresh = async (req, res) => {
     }
     console.log("Token for refresh: ", refreshToken);
     let token = await repo.getByAuthToken(refreshToken);
+    console.log("Token for refresh 1:", token);
     if (!token) {
         return res.sendStatus(403);
     }
 
+    console.log("Token for refresh 2:", "going to verify");
     jwt.verify(refreshToken, config.REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) {
+            console.log("Token for refresh 3:", "--- non - verified----");
             console.log(err);
             return res.sendStatus(403);
         }
 
+        console.log("Token for refresh 4:", "---verified----");
         const at = authService.generateAccessToken(user.msisdn);
         const rt = authService.generateRefreshToken(user.msisdn);
 
+        console.log("Token for refresh 5:", "response send");
         res.json({
             access_token: at,
             refresh_token: rt
