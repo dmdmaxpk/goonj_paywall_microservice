@@ -5,8 +5,8 @@ authenticateToken = (req, res, next) => {
   console.log("HEADERS", JSON.stringify(req.headers));
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  console.log("TOKEN: ", token);
-  if(token === null){
+  console.log("TOKEN:", token);
+  if(!token){
       return res.send({code: 401, message: "Un-Authorized"});
   }
 
