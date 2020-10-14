@@ -239,7 +239,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     });
 
     readInterface.on('line', function(line) {
-        let line = line.replace('92', '0');
+        line = line.replace('92', '0');
         console.log(line);
     });
     
