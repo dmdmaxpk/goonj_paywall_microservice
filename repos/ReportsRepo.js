@@ -244,9 +244,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
                 let user = await usersRepo.getUserByMsisdn(inputData[i]);
                 if(user){
-                    console.log("### User Found");
                     let dou = await viewLogsRepo.getDaysOfUse(user._id);
-                    console.log("### DOU", dou);
                     if(dou && dou.length > 0){
                         singObject.dou = dou[0].count;
                     }else{
@@ -255,10 +253,8 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
                     let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
                     if(subscriber){
-                        console.log("### Subscriber Found");
                         let subscriptions = await subscriptionRepo.getAllSubscriptions(subscriber._id);
                         if(subscriptions){
-                            console.log("### Subscription Found");
                             let addedDtm = subscriptions[0].added_dtm;
                             let totalSuccessTransactions = 0;
                             
@@ -276,6 +272,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                             }
 
                             finalResult.push(singObject);
+                            console.log("### Done ", i);
 
                         }else{
                             console.log("### No subscriptions found for", inputData[i]);    
