@@ -254,7 +254,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                     let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
                     if(subscriber){
                         let subscriptions = await subscriptionRepo.getAllSubscriptions(subscriber._id);
-                        if(subscriptions){
+                        if(subscriptions && subscriptions.length > 0){
                             let addedDtm = subscriptions[0].added_dtm;
                             let totalSuccessTransactions = 0;
                             
