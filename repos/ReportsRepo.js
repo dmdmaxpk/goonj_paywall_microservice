@@ -243,7 +243,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                 }
 
                 let user = await usersRepo.getUserByMsisdn(inputData[i]);
-                if(singleRecord){
+                if(user){
                     let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
                     if(subscriber){
                         let subscriptions = await subscriptionRepo.getAllSubscriptions(subscriber._id);
@@ -308,7 +308,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
             console.log("###  File deleted [randomReport]");
         });
     }catch(e){
-        console.log("### error - ",JSON.stringify(e));
+        console.log("### error - ", e);
     }
 }
 
