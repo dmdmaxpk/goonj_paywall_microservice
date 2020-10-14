@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const readline = require('readline');
 const container = require("../configurations/container");
-const Subscriber = mongoose.model('Subscriber');
 const Subscription = mongoose.model('Subscription');
 const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
@@ -12,13 +11,13 @@ const csvParser = require('csv-parser');
 
 const billinghistoryRepo = container.resolve('billingHistoryRepository');
 const subscriptionRepo = container.resolve('subscriptionRepository');
+const subscriberRepo = container.resolve('subscriberRepository');
 
 var nodemailer = require('nodemailer');
 var usersRepo = container.resolve('userRepository');
 var viewLogsRepo = require('../repos/ViewLogRepo');
 
 var pageViews = require('../controllers/PageViews');
-const SubscriberRepository = require('./SubscriberRepo');
 const path = require('path');
 
 
@@ -192,8 +191,8 @@ const randomReportWriter = createCsvWriter({
         {id: 'msisdn', title: 'Msisdn'},
         {id: 'acquisition_source', title: 'Acquisition Source'},
         {id: 'acquisition_date', title: 'Acquisition Date'},
-        {id: 'number_of_success_charging', title: 'No of time user successfully charged'},
-        {id: "unsub_date",title: "Unsubscription Date" }
+        {id: 'number_of_success_charging', title: 'Number of Success Charging'},
+        {id: "dou",title: "DOU" }
     ]
 });
 
@@ -239,40 +238,47 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
         for(let i = 0; i < inputData.length; i++){
             if(inputData[i] && inputData[i].length === 11){
-                let singleRecord = await usersRepo.getData(inputData[i]);
-                if(singleRecord.length > 0){
-                    singleRecord = singleRecord[0];
-                    let singObject = {
-                        msisdn: singleRecord.msisdn,
-                        acquisition_date: singleRecord.acquisition_date,
-                        number_of_success_charging: singleRecord.total_successful_chargings
-                    };
-    
-                    if(singleRecord.acquisition_mid){
-                        singObject.acquisition_source = singleRecord.acquisition_mid;
-                    }else{
-                        if(singleRecord.acquisition_source === 'affiliate_web'){
-                            singObject.acquisition_source = 'web';
+                let singObject = {
+                    msisdn: inputData[i]
+                }
+
+                let user = await usersRepo.getUserByMsisdn(inputData[i]);
+                if(singleRecord){
+                    let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
+                    if(subscriber){
+                        let subscriptions = await subscriptionRepo.getAllSubscriptions(subscriber._id);
+                        if(subscriptions){
+                            let addedDtm = subscriptions[0].added_dm;
+                            let totalSuccessTransactions = 0;
+                            
+                            for(let sub = 0; sub < subscriptions.length; sub++){
+                                totalSuccessTransactions += subscriptions[sub].total_successive_bill_counts;
+                            }
+
+                            singObject.acquisition_date = addedDtm;
+                            singObject.number_of_success_charging = totalSuccessTransactions;
+
+                            if(subscriptions[0].affiliate_mid){
+                                singObject.acquisition_source = subscriptions[0].affiliate_mid;
+                            }else{
+                                singObject.acquisition_source = subscriptions[0].source;
+                            }
+
+                            let dou = await viewLogsRepo.getDaysOfUse(user._id);
+                            if(dou){
+                                singObject.dou = dou.count;
+                            }else{
+                                singObject.dou = 0;
+                            }
+
                         }else{
-                            singObject.acquisition_source = singleRecord.acquisition_source;
+                            console.log("### No subscriptions found for", inputData[i]);    
                         }
-                        
+                    }else{
+                        console.log("### No subscriber found for", inputData[i]);    
                     }
-            
-                    let expiryHistory = {};
-                    if(singleRecord.subscription_status === 'expired'){
-                        expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
-                        if(expiryHistory.length >= 2){
-                            expiryHistory.sort(function(a,b){
-                                return new Date(b.billing_dtm) - new Date(a.billing_dtm);
-                            });
-                        }
-            
-                        singObject.unsub_date = expiryHistory[0].billing_dtm;
-                    }
-        
-                    finalResult.push(singObject);
-                    console.log("### Data done for item ", i);
+                }else{
+                    console.log("### No user found for", inputData[i]);
                 }
             }else{
                 console.log("### Invalid number or number length");
