@@ -232,7 +232,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     let finalResult = [];
 
     try{
-        var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
+        var jsonPath = path.join(__dirname, '..', 'msisdns2.txt');
         let inputData = await readFileSync(jsonPath);    
         console.log("### Input Data Length: ", inputData.length);
 
@@ -244,11 +244,22 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
                 let user = await usersRepo.getUserByMsisdn(inputData[i]);
                 if(user){
+                    console.log("### User Found");
+                    let dou = await viewLogsRepo.getDaysOfUse(user._id);
+                    console.log("### DOU", dou);
+                    if(dou && dou.length > 0){
+                        singObject.dou = dou[0].count;
+                    }else{
+                        singObject.dou = 0;
+                    }
+
                     let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
                     if(subscriber){
+                        console.log("### Subscriber Found");
                         let subscriptions = await subscriptionRepo.getAllSubscriptions(subscriber._id);
                         if(subscriptions){
-                            let addedDtm = subscriptions[0].added_dm;
+                            console.log("### Subscription Found");
+                            let addedDtm = subscriptions[0].added_dtm;
                             let totalSuccessTransactions = 0;
                             
                             for(let sub = 0; sub < subscriptions.length; sub++){
@@ -264,12 +275,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                                 singObject.acquisition_source = subscriptions[0].source;
                             }
 
-                            let dou = await viewLogsRepo.getDaysOfUse(user._id);
-                            if(dou){
-                                singObject.dou = dou.count;
-                            }else{
-                                singObject.dou = 0;
-                            }
+                            finalResult.push(singObject);
 
                         }else{
                             console.log("### No subscriptions found for", inputData[i]);    
