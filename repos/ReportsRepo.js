@@ -232,23 +232,11 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     console.log("=> generateReportForAcquisitionSourceAndNoOfTimeUserBilled");
     let finalResult = [];
 
-    var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
-    const readInterface = readline.createInterface({
-        input: fs.createReadStream(jsonPath)
-    });
-
-    let inputData = [];
-    let counter = 0;
-    readInterface.on('line', function(line) {
-        line = line.replace('92', '0');
-        inputData.push(line);
-        counter += 1;
-        console.log("### read ", counter);
-    });
-    
-    console.log("### Input Data Length: ", inputData.length);
-
     try{
+        var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
+        let inputData = await readFileSync(jsonPath);    
+        console.log("### Input Data Length: ", inputData.length);
+
         for(let i = 0; i < inputData.length; i++){
             if(inputData[i] && inputData[i].length === 11){
                 let singleRecord = await usersRepo.getData(inputData[i]);
@@ -316,6 +304,30 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     }catch(e){
         console.log("### error - ",JSON.stringify(e));
     }
+}
+
+readFileSync = async (jsonPath) => {
+    return new Promise((resolve, reject) => {
+        try{
+            const readInterface = readline.createInterface({
+                input: fs.createReadStream(jsonPath)
+            });
+            let inputData = [];
+            let counter = 0;
+            readInterface.on('line', function(line) {
+                line = line.replace('92', '0');
+                inputData.push(line);
+                counter += 1;
+                console.log("### read", counter);
+            });
+    
+            readInterface.on('close', function(line) {
+                resolve(inputData);
+            });
+        }catch(e){
+            reject(e);
+        }
+    });
 }
 
 dailyReport = async(mode = 'prod') => {
