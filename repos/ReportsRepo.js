@@ -19,7 +19,7 @@ var viewLogsRepo = require('../repos/ViewLogRepo');
 
 var pageViews = require('../controllers/PageViews');
 const SubscriberRepository = require('./SubscriberRepo');
-const { resolve } = require('path');
+const path = require('path');
 
 
 let currentDate = null;
@@ -232,90 +232,90 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     console.log("=> generateReportForAcquisitionSourceAndNoOfTimeUserBilled");
     let finalResult = [];
 
+    var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
     const readInterface = readline.createInterface({
-        input: fs.createReadStream('../msisdns.txt'),
-        output: process.stdout,
-        console: false
+        input: fs.createReadStream(jsonPath)
     });
 
+    let inputData = [];
+    let counter = 0;
     readInterface.on('line', function(line) {
         line = line.replace('92', '0');
-        console.log(line);
+        inputData.push(line);
+        counter += 1;
+        console.log("### read ", counter);
     });
     
+    console.log("### Input Data Length: ", inputData.length);
 
-    // let inputData = [
-    //     "03450790688" ,"03432661690" ,"03476265307" ,"03456774270" ,"03474911158" ,"03457088218" ,"03457206163" ,"03482106235" ,"03426571684" ,"03464623291" ,"03422924227" ,"03486822415" ,"03149494502" ,"03485331411" ,"03465141621" ,"03005687996" ,"03462674858" ,"03441166540" ,"03336743544" ,"03410435320" ,"03477340179" ,"03416679788" ,"03434983754" ,"03440040777" ,"03474623540" ,"03490463595" ,"03434783233" ,"03445619808" ,"03446044024" ,"03446587584" ,"03460274032" ,"03424628987" ,"03474987665" ,"03426344126" ,"03457176446" ,"03457029192" ,"03491495323" ,"03452221669" ,"03023527081" ,"03402064958" ,"03445792127" ,"03481160493" ,"03403062200" ,"03458824167" ,"03104080035" ,"03472355291" ,"03423970755" ,"03496229459" ,"03449117733" ,"03442324274" ,"03439700460" ,"03465125703" ,"03456162916" ,"03414120620" ,"03429908046" ,"03414442223" ,"03418885806" ,"03442120436" ,"03439634540" ,"03486411671" ,"03430766527" ,"03440029882" ,"03444677345" ,"03428120159" ,"03406941112" ,"03456123208" ,"03403329003" ,"03455332600" ,"03488381727" ,"03489057090" ,"03333730403" ,"03340747990" ,"03445199769" ,"03425540045" ,"03435669319" ,"03427737877" ,"03424454314" ,"03478177183" ,"03467522555" ,"03429612735" ,"03338003571" ,"03400800910" ,"03410312802" ,"03422697530" ,"03450248066" ,"03143778496" ,"03427615313" ,"03457757455" ,"03404283052" ,"03339848584" ,"03459500510" ,"03457613627" ,"03468704861" ,"03454842301" ,"03470879091" ,"03450414559" ,"03468865082" ,"03463914390" ,"03433083576" ,"03476991906" ,"03457465839" ,"03415545870" ,"03473240359" ,"03075055976" ,"03433287683" ,"03423361471" ,"03435125392" ,"03474169245" ,"03411505785" ,"03485796955" ,"03412003347" ,"03433929700" ,"03451279623" ,"03443710150" ,"03449598878" ,"03425474706" ,"03447354002" ,"03417789728" ,"03316700613" ,"03454091869" ,"03407884510" ,"03445701439" ,"03455848154" ,"03436856203" ,"03012443737" ,"03474169245" ,"03470095574" ,"03463954829" ,"03401113657" ,"03496398324" ,"03467357430" ,"03446405515" ,"03464994843" ,"03433030385" ,"03468233366" ,"03456745709" ,"03427774042" ,"03413342174" ,"03414494026" ,"03464054728" ,"03455056732" ,"03465676615" ,"03407884510" ,"03417601690" ,"03459000463" ,"03453778628" ,"03493468913" ,"03413511963" ,"03426060865" ,"03452656576" ,"03438236720" ,"03433416660" ,"03424218440" ,"03435050801" ,"03497548146" ,"03400905081" ,"03466024167" ,"03413332097" ,"03404090941" ,"03469567865" ,"03086339564" ,"03467083157" ,"03454816379" ,"03457396411" ,"03443885884" ,"03491990708" ,"03458827762" ,"03468978682" ,"03434206403" ,"03012443737" ,"03456578520" ,"03497508662" ,"03455269652" ,"03335605421" ,"03457513061" ,"03480430239" ,"03432153930" ,"03418631071" ,"03454615599" ,"03480605437" ,"03461463138" ,"03469402697" ,"03433011959" ,"03495788291" ,"03403199007" ,"03443888663" ,"03454659729" ,"03481910416" ,"03470891193" ,"03426277481" ,"03406348671" ,"03406322632" ,"03430786505" ,"03467996997" ,"03494344403" ,"03438966771" ,"03442919910" ,"03464289166" ,"03469680692" ,"03470305457" ,"03464289166" ,"03408047309" ,"03441258430" ,"03437603159" ,"03439455786" ,"03481986380" ,"03442366638" ,"03466248909" ,"03461727970" ,"03464289166" ,"03469853808" ,"03439874146" ,"03429376042" ,"03481013518" ,"03454098665" ,"03008814055" ,"03453630582" ,"03426958780" ,"03487373768" ,"03441153102" ,"03410622297" ,"03459740842" ,"03430300036" ,"03425646070" ,"03453623819" ,"03116614726" ,"03465107187" ,"03232671501" ,"03336738150" ,"03450622770" ,"03468266782" ,"03359010910" ,"03498901799" ,"03454171157" ,"03456001254" ,"03490989287" ,"03404991409" ,"03446351669" ,"03495491300" ,"03460233835" ,"03461356116" ,"03484155037" ,"03463599774" ,"03459386833" ,"03433056782" ,"03414545529" ,"03429991834" ,"03484543054" ,"03415061981" ,"03421587139" ,"03490477037" ,"03404125432" ,"03454416002" ,"03425352479" ,"03351425001" ,"03484134664" ,"03462567001" ,"03174563947" ,"03435965196" ,"03454835105" ,"03419793614" ,"03462628275" ,"03478402313" ,"03443919200" ,"03418700439" ,"03407207121" ,"03490558521" ,"03479340151" ,"03486072066" ,"03457131978" ,"03410730000" ,"03009155791" ,"03427445206" ,"03427770970" ,"03467086816" ,"03450564975" ,"03476538066" ,"03314131952" ,"03224489614" ,"03474311783" ,"03444501386" ,"03457273051" ,"03456635033" ,"03482300431" ,"03469896476" ,"03434244334" ,"03436051668" ,"03433971658" ,"03430448836" ,"03477581592" ,"03468061728" ,"03433632068" ,"03438023927" ,"03441084498" ,"03413495394" ,"03423427037" ,"03442867873" ,"03434244334" ,"03452412243" ,"03437828942" ,"03464402766" ,"03421540201" ,"03474365378" ,"03409623882" ,"03445355705" ,"03430018095" ,"03441700649" ,"03441182687" ,"03497069243" ,"03452297283" ,"03467485214" ,"03446016068" ,"03430270325" ,"03454938304" ,"03458176344" ,"03478090551" ,"03450915511" ,"03458763042" ,"03457898680" ,"03413847691" ,"03007756523" ,"03427729722" ,"03469114698" ,"03496866147" ,"03462004911" ,"03441487521" ,"03457008544" ,"03496014499" ,"03472335243" ,"03419512309" ,"03479164429" ,"03477314547" ,"03446714161" ,"03453670353" ,"03446105404" ,"03472629109" ,"03414093912" ,"03417126429" ,"03459333801" ,"03434479187" ,"03438966513" ,"03478881659" ,"03449370224" ,"03445413455" ,"03479715215" ,"03454943091" ,"03440579411"
-    // ];
+    try{
+        for(let i = 0; i < inputData.length; i++){
+            if(inputData[i] && inputData[i].length === 11){
+                let singleRecord = await usersRepo.getData(inputData[i]);
+                if(singleRecord.length > 0){
+                    singleRecord = singleRecord[0];
+                    let singObject = {
+                        msisdn: singleRecord.msisdn,
+                        acquisition_date: singleRecord.acquisition_date,
+                        number_of_success_charging: singleRecord.total_successful_chargings
+                    };
     
-    // try{
-    //     for(let i = 0; i < inputData.length; i++){
-    //         if(inputData[i] && inputData[i].length === 11){
-    //             let singleRecord = await usersRepo.getData(inputData[i]);
-    //             if(singleRecord.length > 0){
-    //                 singleRecord = singleRecord[0];
-    //                 let singObject = {
-    //                     msisdn: singleRecord.msisdn,
-    //                     acquisition_date: singleRecord.acquisition_date,
-    //                     number_of_success_charging: singleRecord.total_successful_chargings
-    //                 };
-    
-    //                 if(singleRecord.acquisition_mid){
-    //                     singObject.acquisition_source = singleRecord.acquisition_mid;
-    //                 }else{
-    //                     if(singleRecord.acquisition_source === 'affiliate_web'){
-    //                         singObject.acquisition_source = 'web';
-    //                     }else{
-    //                         singObject.acquisition_source = singleRecord.acquisition_source;
-    //                     }
+                    if(singleRecord.acquisition_mid){
+                        singObject.acquisition_source = singleRecord.acquisition_mid;
+                    }else{
+                        if(singleRecord.acquisition_source === 'affiliate_web'){
+                            singObject.acquisition_source = 'web';
+                        }else{
+                            singObject.acquisition_source = singleRecord.acquisition_source;
+                        }
                         
-    //                 }
+                    }
             
-    //                 let expiryHistory = {};
-    //                 if(singleRecord.subscription_status === 'expired'){
-    //                     expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
-    //                     if(expiryHistory.length >= 2){
-    //                         expiryHistory.sort(function(a,b){
-    //                             return new Date(b.billing_dtm) - new Date(a.billing_dtm);
-    //                         });
-    //                     }
+                    let expiryHistory = {};
+                    if(singleRecord.subscription_status === 'expired'){
+                        expiryHistory = await billinghistoryRepo.getExpiryHistory(singleRecord.user_id);
+                        if(expiryHistory.length >= 2){
+                            expiryHistory.sort(function(a,b){
+                                return new Date(b.billing_dtm) - new Date(a.billing_dtm);
+                            });
+                        }
             
-    //                     singObject.unsub_date = expiryHistory[0].billing_dtm;
-    //                 }
+                        singObject.unsub_date = expiryHistory[0].billing_dtm;
+                    }
         
-    //                 finalResult.push(singObject);
-    //                 console.log("=> Data done for item ", i);
-    //             }
-    //         }else{
-    //             console.log("=> Invalid number or number length");
-    //         }
-    //     }
+                    finalResult.push(singObject);
+                    console.log("### Data done for item ", i);
+                }
+            }else{
+                console.log("### Invalid number or number length");
+            }
+        }
     
-    //     console.log("=> Sending email");
-    //     await randomReportWriter.writeRecords(finalResult);
-    //     let info = await transporter.sendMail({
-    //         from: 'paywall@dmdmax.com.pk',
-    //         to:  ["farhan.ali@dmdmax.com"],
-    //         subject: `Complaint Data`, // Subject line
-    //         text: `This report contains the details of msisdns being sent us over email from Zara`,
-    //         attachments:[
-    //             {
-    //                 filename: randomReport,
-    //                 path: randomReportFilePath
-    //             }
-    //         ]
-    //     });
+        console.log("### Sending email");
+        await randomReportWriter.writeRecords(finalResult);
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            subject: `Complaint Data`, // Subject line
+            text: `This report contains the details of msisdns being sent us over email from Zara`,
+            attachments:[
+                {
+                    filename: randomReport,
+                    path: randomReportFilePath
+                }
+            ]
+        });
     
-    //     console.log("=> [randomReport][emailSent]",info);
-    //     fs.unlink(randomReportFilePath,function(err,data) {
-    //         if (err) {
-    //             console.log("=> File not deleted[randomReport]");
-    //         }
-    //         console.log("=> File deleted [randomReport]");
-    //     });
-    // }catch(e){
-    //     console.log("=> error - ",JSON.stringify(e));
-    // }
+        console.log("###  [randomReport][emailSent]",info);
+        fs.unlink(randomReportFilePath,function(err,data) {
+            if (err) {
+                console.log("###  File not deleted[randomReport]");
+            }
+            console.log("###  File deleted [randomReport]");
+        });
+    }catch(e){
+        console.log("### error - ",JSON.stringify(e));
+    }
 }
 
 dailyReport = async(mode = 'prod') => {
