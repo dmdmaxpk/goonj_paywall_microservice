@@ -232,7 +232,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     let finalResult = [];
 
     try{
-        var jsonPath = path.join(__dirname, '..', 'msisdns2.txt');
+        var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
         let inputData = await readFileSync(jsonPath);    
         console.log("### Input Data Length: ", inputData.length);
 
