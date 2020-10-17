@@ -412,8 +412,9 @@ dailyReport = async(mode = 'prod') => {
         console.log("=> dailyReport 4.1");
         let totalSubscriberStats = await Subscription.countDocuments({ "added_dtm": { "$gte": reportStartDate ,$lt: myToday  },active:true } );
         console.log("=> dailyReport 4.2 - ", totalSubscriberStats);
-        let totalExpiredCount = await BillingHistory.countDocuments({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
-        console.log("=> dailyReport 5 - ", totalExpiredCount);
+        
+        let totalExpiredCount = 0; /*await BillingHistory.countDocuments({"billing_dtm": { "$gte": reportStartDate ,$lt: myToday  },billing_status: "expired"} );
+        console.log("=> dailyReport 5 - ", totalExpiredCount);*/
 
         let billingStats = await BillingHistory.aggregate([
                 { $match: { "billing_status": {$in : ["Success","expired"]}, "billing_dtm": { "$gte": reportStartDate ,$lt: myToday  } } },
