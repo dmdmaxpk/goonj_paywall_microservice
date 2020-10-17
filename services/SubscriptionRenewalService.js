@@ -110,7 +110,7 @@ renewSubscription = async(subscription) => {
 
     // Add object in queueing server
     if(subscription.queued === false){
-        let package = await packageRepo.getPackage({_id: updated.subscribed_package_id});
+        let package = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
         subscriptionRepo.updateSubscription(subscription._id, {queued: true});
 
         let user = await userRepo.getUserBySubscriberId(subscription.subscriber_id);
