@@ -42,6 +42,12 @@ class UserRepository {
         return user;
     }
 
+    async getUserBySubscriberId (subscriber_id)  {
+        let subscriber = await this.subscriberRepo.getSubscriber(subscriber_id);
+        let user = this.getUserById(subscriber.user_id);
+        return user;
+    }
+
     async getUserById  (id)  {
         let result = await User.findOne({_id: id});
         return result;
