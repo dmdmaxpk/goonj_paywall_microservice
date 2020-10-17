@@ -350,7 +350,8 @@ dailyReport = async(mode = 'prod') => {
 
         let dayBeforeYesterday = new Date(today.getFullYear(),today.getMonth(),today.getDate(),0,0,0);
         dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
-        let reportStartDate = new Date("2020-02-07T00:00:00.672Z");
+        let reportStartDate = new Date("2020-07-01T00:00:00.672Z");
+
         let susbcriberStats = await Subscription.aggregate([
             {
                 "$match": 
