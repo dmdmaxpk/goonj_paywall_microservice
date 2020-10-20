@@ -147,7 +147,9 @@ class PaymentProcessService {
         if (tpsCount < config.telenor_subscriber_query_api_tps) {
             console.log("PaymentProcessService - subscriberQuery - IF");
             await this.tpsCountRepo.incrementTPSCount(config.queueNames.subscriberQueryDispatcher);
-            return await this.billingRepository.subscriberQuery(msisdn);
+            let subscriberQueryResult = await this.billingRepository.subscriberQuery(msisdn);
+            console.log(subscriberQueryResult);
+            return subscriberQueryResult;
         }else{
             console.log("PaymentProcessService - subscriberQuery - ELSE");
             console.log("TPS quota full for subscriberQuery, waiting for second to elapse - ", new Date());
@@ -157,7 +159,6 @@ class PaymentProcessService {
     }
 
     async doProcess(otp, user, subscription, packageObj, first_time_billing){
-        console.log('doProcess');
 
         let returnObject = {};
         console.log("processDirectBilling - OTP - ", otp, ' - Source - ', subscription.payment_source);

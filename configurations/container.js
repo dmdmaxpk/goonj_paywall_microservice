@@ -20,6 +20,8 @@ const ChargingAttemptRepository = require('../repos/ChargingAttemptRepo');
 const PaywallRepository = require('../repos/PaywallRepo');
 const MigrationRepository = require('../repos/MigrationRepository');
 
+const AuthRepository = require('../repos/AuthRepository');
+
 // Services
 const PaywallService = require('../services/PaywallService');
 const SubscriptionService = require('../services/SubscriptionService');
@@ -50,6 +52,8 @@ container.register({
     userRepository: awilix.asClass(UserRepository).singleton(),
     chargingAttemptRepository: awilix.asClass(ChargingAttemptRepository).singleton(),
     migrationRepository: awilix.asClass(MigrationRepository).singleton(),
+
+    authRepository: awilix.asClass(AuthRepository).singleton(),
   
 
     //SErvices

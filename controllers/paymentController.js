@@ -12,10 +12,11 @@ const shortId = require('shortid');
 const messageRepo = container.resolve("messageRepository");
 const blockUsersRepo = require('../repos/BlockedUsersRepo');
 
-const billingRepo = container.resolve("billingRepository");
 const subscriptionRepo = container.resolve("subscriptionRepository");
 const constants = container.resolve("constants");
 const paymentProcessService = container.resolve("paymentProcessService");
+
+const authService = require('../services/AuthService');
 
 let jwt = require('jsonwebtoken');
 const { response } = require('express');
@@ -101,12 +102,14 @@ exports.sendOtp = async (req, res) => {
 	}else{
 		try{
 			response = await paymentProcessService.subscriberQuery(msisdn);
+			console.log("SUBSCRIBER QUERY RESPONSE - OTP", response);
 		}catch(err){
+			console.log("SUBSCRIBER QUERY ERROR - OTP", err);
 			response = err;
 		}
 	}
 
-	if(user == null){
+	if(!user){
         // no user
 		let userObj = {};
 		userObj.msisdn = msisdn;
@@ -129,7 +132,7 @@ exports.sendOtp = async (req, res) => {
 						let record = await easypaisaPaymentService.bootOptScript(msisdn);
 						console.log('sendOtp - ep', record);
 						if (record.code === 0)
-							res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
+							res.send({code: config.codes.code_success, message: record.message, access_token: authService.generateAccessToken(msisdn), refresh_token: authService.generateRefreshToken(msisdn), gw_transaction_id: gw_transaction_id});
 						else
 							res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
 					}catch (e) {
@@ -162,7 +165,7 @@ exports.sendOtp = async (req, res) => {
 				console.log('sent otp - ep as no ep-token exist');
 				let record = await easypaisaPaymentService.bootOptScript(msisdn);
 				if (record.code === 0)
-					res.send({code: config.codes.code_success, message: record.message, gw_transaction_id: gw_transaction_id});
+					res.send({code: config.codes.code_success, message: record.message, access_token: authService.generateAccessToken(msisdn), refresh_token: authService.generateRefreshToken(msisdn), gw_transaction_id: gw_transaction_id});
 				else
 					res.send({code: config.codes.code_error, message: "Failed to send OTP", gw_transaction_id: gw_transaction_id });
 			}
@@ -309,8 +312,8 @@ exports.verifyOtp = async (req, res) => {
 				let user = await userRepo.getUserByMsisdn(msisdn);
 				
 				if(user){
-					let token = jwt.sign({user_id: user._id, msisdn: msisdn}, config.secret, {expiresIn: '3 days'});
-					data.access_token = token;
+					data.access_token = authService.generateAccessToken(msisdn);
+					data.refresh_token = authService.generateRefreshToken(msisdn);
 
 					let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
 					if(subscriber && subscribed_package_id){
@@ -339,50 +342,59 @@ exports.verifyOtp = async (req, res) => {
 
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
+
 	let gw_transaction_id = req.body.transaction_id;
-	let payment_source = req.body.payment_source;
+	let decodedUser = req.decoded;
 
-	let msisdn = req.body.msisdn;
-	let user = await userRepo.getUserByMsisdn(msisdn);
-
-	if(!user){
-		// Means no user in DB, let's create one
-        let userObj = {}, response = {};
-        userObj.msisdn = msisdn;
-        userObj.operator = response.operator;
-        userObj.source = req.body.source ? req.body.source : "na";
-
-		if(payment_source && payment_source === "easypaisa"){
-			response.operator = "easypaisa";
-		}else{
-			try{
-				response = await paymentProcessService.subscriberQuery(msisdn);
-			}catch(err){
-				response = err;
+	if(decodedUser && decodedUser.msisdn){
+		let payment_source = req.body.payment_source;
+	
+		let msisdn = decodedUser.msisdn;
+		console.log("Decoded Msisdn: ", msisdn);
+		let user = await userRepo.getUserByMsisdn(msisdn);
+		if(!user){
+			// Means no user in DB, let's create one
+			let userObj = {}, response = {};
+			userObj.msisdn = msisdn;
+			userObj.operator = response.operator;
+			userObj.source = req.body.source ? req.body.source : "na";
+	
+			if(payment_source && payment_source === "easypaisa"){
+				response.operator = "easypaisa";
+			}else{
+				try{
+					response = await paymentProcessService.subscriberQuery(msisdn);
+					console.log("SUBSCRIBER QUERY RESPONSE - SUBSCRIBE", response);
+				}catch(err){
+					console.log("SUBSCRIBER QUERY ERROR - SUBSCRIBE", err);
+					response = err;
+				}
 			}
-		}
-
-		if(response && (response.operator === "telenor" || response.operator === "easypaisa")){
-			try {
-				userObj.operator = response.operator;
-				user = await userRepo.createUser(userObj);
-				console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', msisdn, ' - ', user.source, ' - ', (new Date()));
-
-				doSubscribe(req, res, user, gw_transaction_id);
-			} catch(er) {
-				res.send({code: config.codes.code_error, message: 'Failed to subscriber user', gw_transaction_id: gw_transaction_id})
+	
+			if(response && (response.operator === "telenor" || response.operator === "easypaisa")){
+				try {
+					userObj.operator = response.operator;
+					user = await userRepo.createUser(userObj);
+					console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', msisdn, ' - ', user.source, ' - ', (new Date()));
+	
+					doSubscribe(req, res, user, gw_transaction_id);
+				} catch(er) {
+					res.send({code: config.codes.code_error, message: 'Failed to subscriber user', gw_transaction_id: gw_transaction_id})
+				}
+			}else{
+				createBlockUserHistory(msisdn, req.body.affiliate_unique_transaction_id, req.body.affiliate_mid, response ? response.api_response : "no response", req.body.source);
+				res.send({code: config.codes.code_error, message: "Not a valid Telenor number.", gw_transaction_id: gw_transaction_id });
 			}
 		}else{
-			createBlockUserHistory(msisdn, req.body.affiliate_unique_transaction_id, req.body.affiliate_mid, response ? response.api_response : "no response", req.body.source);
-			res.send({code: config.codes.code_error, message: "Not a valid Telenor number.", gw_transaction_id: gw_transaction_id });
+			doSubscribe(req, res, user, gw_transaction_id);
 		}
 	}else{
-		doSubscribe(req, res, user, gw_transaction_id);
+		console.log('No decoded user present');
+		res.send({code: config.codes.code_error, message: "Authentication Failure", gw_transaction_id: gw_transaction_id});
 	}
 }
 
 doSubscribe = async(req, res, user, gw_transaction_id) => {
-	console.log('============================');
 	if(user && user.active === true){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriberByUserId (user._id);
@@ -537,7 +549,6 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					console.log("Not sending message",user.msisdn);
 				}
 			}else {
-				console.log("Active Subscription",subscription.active);
 				if(subscription.active === true){
 					// Pass subscription through following checks before pushing into queue
 					await viewLogRepo.createViewLog(user._id, subscription._id);

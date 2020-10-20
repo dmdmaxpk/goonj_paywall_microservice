@@ -22,9 +22,7 @@ class PaywallRepository {
 
     async getPaywallsBySlug(slug){
         if (slug) {
-            console.log("slug",slug);
             let paywall = await Paywall.findOne({active: true,slug: slug });
-            console.log("paywall",paywall);
             return paywall;
         } else {
             return undefined;

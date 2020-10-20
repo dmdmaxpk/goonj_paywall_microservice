@@ -1,3 +1,5 @@
+const config = require("../config");
+const jwt = require('jsonwebtoken');
 
 //Helper class - define all basic functions
 class Helper {

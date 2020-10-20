@@ -110,30 +110,26 @@ renewSubscription = async(subscription) => {
 
     // Add object in queueing server
     if(subscription.queued === false){
-        let updated = await subscriptionRepo.updateSubscription(subscription._id, {queued: true});
+        let package = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
+        subscriptionRepo.updateSubscription(subscription._id, {queued: true});
 
-        if(updated){
-            let user = await userRepo.getUserBySubscriptionId(updated._id);
-            let package = await packageRepo.getPackage({_id: updated.subscribed_package_id});
-
-            if(user){
-                let messageObj = {};
-                messageObj.user = user;
-                messageObj.package = package;
-                messageObj.subscription = subscription;
-                messageObj.mcDetails = mcDetails;
-                messageObj.transaction_id = transactionId;
-                messageObj.method_type = 'renewSubscription';
-                messageObj.returnObject = {};
-                rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, messageObj);
-                console.log('Added: ', updated._id);
-                return;
-            }else{
-                console.log('No user exist for subscription id ', updated._id);
-            }
+        let user = await userRepo.getUserBySubscriberId(subscription.subscriber_id);
+        if(user){
+            let messageObj = {};
+            messageObj.user = user;
+            messageObj.package = package;
+            messageObj.subscription = subscription;
+            messageObj.mcDetails = mcDetails;
+            messageObj.transaction_id = transactionId;
+            messageObj.method_type = 'renewSubscription';
+            messageObj.returnObject = {};
+            rabbitMq.addInQueue(config.queueNames.subscriptionDispatcher, messageObj);
+            console.log('Added: ', subscription._id);
+            return;
         }else{
-            console.log('Failed to updated subscription after adding in queue.');
+            console.log('No user exist for subscription id ', subscription._id);
         }
+        
     }else{
         console.log("The subscription", subscription._id, " is already queued");
     }

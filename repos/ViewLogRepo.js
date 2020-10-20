@@ -36,9 +36,37 @@ getNumberOfViewLogs =async(userId) => {
     }
 }
 
+getDaysOfUse = async(userId) => {
+    try{
+        let result = await ViewLog.aggregate([
+        {
+            $match:{
+                user_id: userId	
+            }
+        },{
+            $group:{
+                _id: {"day": {"$dayOfMonth" : "$added_dtm"}, "month": { "$month" : "$added_dtm" },
+                            "year":{ $year: "$added_dtm" }}	
+            }
+        },{
+            $project:{
+                _id: 0,
+                date: {"$dateFromParts": { year: "$_id.year","month":"$_id.month","day":"$_id.day" }},
+            }
+        },{
+            $count: "count"
+        }
+        ]);
+        return result;
+    }catch(e){
+        console.log(e);
+    }
+}
+
 
 module.exports = {
     createViewLog: createViewLog,
     getLatestViewLog: getLatestViewLog,
-    getNumberOfViewLogs: getNumberOfViewLogs
+    getNumberOfViewLogs: getNumberOfViewLogs,
+    getDaysOfUse: getDaysOfUse
 }
