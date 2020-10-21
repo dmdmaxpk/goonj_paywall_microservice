@@ -31,13 +31,16 @@ authenticateCcdToken = (req, res, next) => {
   }
 
   if (token) {
+    console.log("### TOKEN AVAILABLE");
     jwt.verify(token, config.secret, (err, decoded) => {
       if (err) {
+        console.log("### ERROR");
         return res.json({
           code: config.codes.code_auth_failed,
           message: 'Authentication Failed'
         });
       } else {
+        console.log("### ELSE 1");
         console.log("decoded",decoded);
 
         req.decoded = decoded;
@@ -45,6 +48,7 @@ authenticateCcdToken = (req, res, next) => {
       }
     });
   } else {
+    console.log("### ELSE 2");
     return res.json({
       code: config.codes.code_auth_token_not_supplied,
       message: 'Auth token is not supplied'
