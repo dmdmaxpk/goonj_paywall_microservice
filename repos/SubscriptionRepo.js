@@ -37,6 +37,11 @@ class SubscriptionRepository {
         return result;
     }
 
+    async getQueuedCount(subscriber_id)  {
+        let result = await Subscription.countDocuments({queued:true});
+        return result;
+    }
+
     async getAllSubscriptionsByDate(from, to)  {
         console.log("=> Subs from ", from, "to", to);
         let result = await Subscription.aggregate([
