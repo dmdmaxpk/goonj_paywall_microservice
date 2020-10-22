@@ -173,7 +173,7 @@ monitorRabbitMq = async() => {
     axios({method: 'get',url: 'http://127.0.0.1:15672/api/overview'})
     .then(function(response){
         response = response.data;
-        console.log('***', JSON.stringify(response));
+        console.log('###', JSON.stringify(response));
         //let deliveryRate = response.message_stats.deliver_get.rate;
     }).catch(function(err){
         console.log(err);
