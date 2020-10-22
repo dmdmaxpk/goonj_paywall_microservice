@@ -175,7 +175,8 @@ monitorRabbitMq = async() => {
     if(queuedCount >= 25000){
         // shoot email
         await sendEmail(queuedCount);
-
+    }else{
+        console.log("### Current queued subscriptions are ",queuedCount);
     }
 }
 
