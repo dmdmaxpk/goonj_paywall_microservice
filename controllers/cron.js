@@ -10,7 +10,7 @@ const billingMonitoringService = require('../services/BillingMonitoringService')
 const messageService = require('../services/MessageService');
 const BillingHistoryRepository = require("../repos/BillingHistoryRepo");
 const billingHistoryRepo = new BillingHistoryRepository();
-
+const axios = require('axios');
 const userRepo = container.resolve("userRepository");
 
 
@@ -162,4 +162,20 @@ exports.removeDuplicateMsisdns = async (req,res) =>  {
     console.log("=> removeDuplicateMsisdns")
     removeDuplicateMsisdns.removeDuplicateMsisdns();
     res.send("removeDuplicateMsisdns - Executed\n");
+}
+
+exports.rabbitMqMonitoring = async (req,res) =>  {
+    monitorRabbitMq();
+    res.send("*** rabbitMqMonitoring - Executed");
+}
+
+monitorRabbitMq = async() => {
+    axios({method: 'get',url: 'http://127.0.0.1:15672/api/overview'})
+    .then(function(response){
+        response = response.data;
+        console.log('***', JSON.stringify(response));
+        //let deliveryRate = response.message_stats.deliver_get.rate;
+    }).catch(function(err){
+        console.log(err);
+    });
 }

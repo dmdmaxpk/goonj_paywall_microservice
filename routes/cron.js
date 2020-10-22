@@ -11,13 +11,10 @@ router.route('/markRenewableUsers')
 router.route('/subscriptionRenewal')
     .get(controller.subscriptionRenewal);
 
-// router.route('/postPSLUserMigration')
-//     .get(controller.postPSLUserMigration);
+router.route('/rabbitMqMonitoring')
+    .get(controller.rabbitMqMonitoring);
 
-// router.route('/postPSLPOnlyUserMigration')
-//     .get(controller.postPSLOnlyUserMigration);
-
-router.route('/tokenRefresh')
+    router.route('/tokenRefresh')
     .get(controller.refreshToken);
 
 router.route('/purgeDueToInActivity')
