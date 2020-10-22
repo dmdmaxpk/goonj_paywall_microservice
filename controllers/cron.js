@@ -165,8 +165,8 @@ exports.removeDuplicateMsisdns = async (req,res) =>  {
 }
 
 exports.rabbitMqMonitoring = async (req,res) =>  {
-    monitorRabbitMq();
-    res.send("*** rabbitMqMonitoring - Executed");
+    await monitorRabbitMq();
+    res.send("### rabbitMqMonitoring - Executed");
 }
 
 monitorRabbitMq = async() => {
@@ -176,6 +176,6 @@ monitorRabbitMq = async() => {
         console.log('###', JSON.stringify(response));
         //let deliveryRate = response.message_stats.deliver_get.rate;
     }).catch(function(err){
-        console.log(err);
+        console.log("### error", err);
     });
 }
