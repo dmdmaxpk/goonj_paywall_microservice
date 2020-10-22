@@ -171,5 +171,29 @@ exports.rabbitMqMonitoring = async (req,res) =>  {
 
 monitorRabbitMq = async() => {
     let queuedCount = await subscriptionRepository.getQueuedCount();
-    console.log("### queued: ", queuedCount);
+    if(queuedCount > 25000){
+        // shoot email
+        await sendEmail();
+
+    }
+}
+
+sendEmail = async() => {
+    var nodemailer = require('nodemailer');
+    var transporter = nodemailer.createTransport({
+        host: "mail.dmdmax.com.pk",
+        port: 465,
+        secure: true, // true for 465, false for other ports
+        auth: {
+          user: 'reports@goonj.pk', // generated ethereal user
+          pass: 'YiVmeCPtzJn39Mu' // generated ethereal password
+        }
+    });
+
+    await transporter.sendMail({
+        from: 'paywall@dmdmax.com.pk',
+        to:  ["paywall@dmdmax.com.pk"],
+        subject: `Current Queue Count`,
+        text: `Queued subscriptions count is greater than 25k, please check on priority`
+    });
 }
