@@ -170,6 +170,6 @@ exports.rabbitMqMonitoring = async (req,res) =>  {
 }
 
 monitorRabbitMq = async() => {
-    let queuedCount = subscriptionRepository.getQueuedCount();
+    let queuedCount = await subscriptionRepository.getQueuedCount();
     console.log("### queued: ", queuedCount);
 }
