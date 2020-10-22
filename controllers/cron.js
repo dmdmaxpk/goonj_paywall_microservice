@@ -178,7 +178,7 @@ monitorRabbitMq = async() => {
     }
 }
 
-sendEmail = async() => {
+sendEmail = async(queuedCount) => {
     var nodemailer = require('nodemailer');
     var transporter = nodemailer.createTransport({
         host: "mail.dmdmax.com.pk",
@@ -194,6 +194,6 @@ sendEmail = async() => {
         from: 'paywall@dmdmax.com.pk',
         to:  ["paywall@dmdmax.com.pk"],
         subject: `Current Queue Count`,
-        text: `Queued subscriptions count is greater than 25k, please check on priority`
+        text: `Queued subscriptions count is ${queuedCount}, please check on priority`
     });
 }
