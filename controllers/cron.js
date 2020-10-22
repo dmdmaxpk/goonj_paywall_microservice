@@ -166,10 +166,11 @@ exports.removeDuplicateMsisdns = async (req,res) =>  {
 
 exports.rabbitMqMonitoring = async (req,res) =>  {
     await monitorRabbitMq();
-    res.send("### rabbitMqMonitoring - Executed");
+    res.send("RabbitMqMonitoring - Executed\n");
 }
 
 monitorRabbitMq = async() => {
+    console.log("### monitorRabbitMq");
     let queuedCount = await subscriptionRepository.getQueuedCount();
     if(queuedCount >= 25000){
         // shoot email
