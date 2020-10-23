@@ -340,8 +340,7 @@ getReportForHeOrWifi = async() => {
 
         for(let i = 0; i < inputData.length; i++){
             if(inputData[i] && inputData[i].length > 0){
-                let msisdn = "0" + inputData[i];
-                console.log("Msisdn:", msisdn);
+                console.log("### Msisdn:", msisdn);
 
                 let singObject = {
                     msisdn: msisdn
@@ -354,7 +353,7 @@ getReportForHeOrWifi = async() => {
                         //OTP verified
                         singObject.source = "otp";
                     }else{
-                        singObject.source = "wifi";
+                        singObject.source = "he";
                     }
                     finalResult.push(singObject);
                 }else{
@@ -370,7 +369,7 @@ getReportForHeOrWifi = async() => {
         let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
             to:  ["farhan.ali@dmdmax.com"],
-            subject: `Wifi or HE`, // Subject line
+            subject: `OTP or HE`, // Subject line
             text: `This report contains the details of msisdns being sent us over email from Zara`,
             attachments:[
                 {
@@ -401,7 +400,12 @@ readFileSync = async (jsonPath) => {
             let inputData = [];
             let counter = 0;
             readInterface.on('line', function(line) {
-                line = line.replace('92', '0');
+                if(line.startsWith("92")){
+                    line = line.replace('92', '0');
+                }else if(line.startsWith("3")){
+                    line = "0" + line;
+                }
+
                 inputData.push(line);
                 counter += 1;
                 console.log("### read", counter);
