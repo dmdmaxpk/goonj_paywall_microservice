@@ -35,8 +35,7 @@ class SubscriptionConsumer {
         if(returnObject){
             let returnStatus = returnObject.status;
             if(returnStatus === 'Success'){
-                rabbitMq.acknowledge(message);
-
+                
                 // Success billing
                 let nextBilling = new Date();
                 nextBilling.setHours(nextBilling.getHours() + mPackage.package_duration);
@@ -59,7 +58,7 @@ class SubscriptionConsumer {
                 subscriptionObj.micro_price_point = 0;
                 subscriptionObj.priority = 0;
                 await this.subscriptionRepo.updateSubscription(subscription._id, subscriptionObj);
-
+                rabbitMq.acknowledge(message);
 
                 // Check for the affiliation callback
                 if(subscription.affiliate_unique_transaction_id && subscription.affiliate_mid &&
@@ -87,8 +86,8 @@ class SubscriptionConsumer {
                 rabbitMq.acknowledge(message);
                 this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price, transaction_id);
             }else{
-                rabbitMq.acknowledge(message);
                 await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
+                rabbitMq.acknowledge(message);
             }
         }else{
             console.log('Return object not found!');
