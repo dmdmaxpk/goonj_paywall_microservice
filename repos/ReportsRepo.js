@@ -339,16 +339,16 @@ getReportForHeOrWifi = async() => {
         console.log("### Input Data Length: ", inputData.length);
 
         for(let i = 0; i < inputData.length; i++){
-            if(inputData[i] && inputData[i].length > 0){
-                console.log("### Msisdn:", msisdn);
+            if(inputData[i] && inputData[i].length === 11){
+                console.log("### Msisdn:", inputData[i]);
 
                 let singObject = {
-                    msisdn: msisdn
+                    msisdn: inputData[i]
                 }
 
-                let user = await usersRepo.getUserByMsisdn(msisdn);
+                let user = await usersRepo.getUserByMsisdn(inputData[i]);
                 if(user){
-                    let otp = await otpRepo.getOtp(msisdn);
+                    let otp = await otpRepo.getOtp(inputData[i]);
                     if(otp && otp.verified === true){
                         //OTP verified
                         singObject.source = "otp";
@@ -357,7 +357,7 @@ getReportForHeOrWifi = async() => {
                     }
                     finalResult.push(singObject);
                 }else{
-                    console.log("### No user found for", msisdn);
+                    console.log("### No user found for", inputData[i]);
                 }
             }else{
                 console.log("### Invalid number or number length");
