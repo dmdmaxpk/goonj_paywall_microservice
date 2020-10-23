@@ -340,12 +340,7 @@ getReportForHeOrWifi = async() => {
 
         for(let i = 0; i < inputData.length; i++){
             if(inputData[i] && inputData[i].length > 0){
-                let msisdn = inputData[i];
-                if(msisdn.startsWith("92")){
-                    msisdn = msisdn.replace("92", "0");
-                }else if(msisdn.startsWith("3")){
-                    msisdn = "0" + msisdn;
-                }
+                let msisdn = "0" + inputData[i];
                 console.log("Msisdn:", msisdn);
 
                 let singObject = {
@@ -386,12 +381,12 @@ getReportForHeOrWifi = async() => {
         });
     
         console.log("###  [randomReport][emailSent]",info);
-        // fs.unlink(wifiOrHeReportFP,function(err,data) {
-        //     if (err) {
-        //         console.log("###  File not deleted[randomReport]");
-        //     }
-        //     console.log("###  File deleted [randomReport]");
-        // });
+        fs.unlink(wifiOrHeReportFP,function(err,data) {
+            if (err) {
+                console.log("###  File not deleted[randomReport]");
+            }
+            console.log("###  File deleted [randomReport]");
+        });
     }catch(e){
         console.log("### error - ", e);
     }
