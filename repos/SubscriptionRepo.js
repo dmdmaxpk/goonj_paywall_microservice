@@ -85,7 +85,7 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(18000);
+        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(16000);
         return results;
     }
     
