@@ -208,7 +208,7 @@ class SubscriptionRepository {
     
         let results = await Subscription.find(
             {$or:[{subscription_status:'billed'},{subscription_status:'graced'},{subscription_status:'trial'}], 
-            next_billing_timestamp: {$lte: endOfDay}, active: true}).select('_id');
+            next_billing_timestamp: {$lte: endOfDay}, active: true, is_billable_in_this_cycle:false}).select('_id');
         
             let subscription_ids = results.map(subscription => {
             return subscription._id;
