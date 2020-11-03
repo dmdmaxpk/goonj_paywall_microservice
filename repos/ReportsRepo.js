@@ -364,7 +364,7 @@ getNextBillingDtm = async() => {
         let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
             to:  ["farhan.ali@dmdmax.com"],
-            subject: `Msisdns & Next Billing Timestamp - Comedy Daily`, // Subject line
+            subject: `Msisdns & Next Billing Timestamp - Comedy Weekly`, // Subject line
             text: `This report contains the details of msisdns & next billing timestamp for comedy daily`,
             attachments:[
                 {
