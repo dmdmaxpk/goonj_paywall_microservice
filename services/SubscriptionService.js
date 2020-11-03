@@ -12,7 +12,7 @@ class SubscriptionService {
         this.messageRepository = messageRepository;
     }
 
-    async expireByNumber(msisdn, slug){
+    async expireByNumber(msisdn, slug, source){
         try{
             let user  = await this.userRepository.getUserByMsisdn(msisdn);
             let subscriptionsToUnsubscribe = [];
@@ -56,7 +56,7 @@ class SubscriptionService {
                             history.package_id = subscription.subscribed_package_id;
                             history.paywall_id = paywall._id;
                             history.billing_status = 'expired';
-                            history.source = 'ccp_api';
+                            history.source = source ? source : 'ccp_api';
                             history.operator = 'telenor';
                             this.expireSubscription(subscription._id, paywall.paywall_name, user.msisdn, history);
                             unsubscribed += 1;
