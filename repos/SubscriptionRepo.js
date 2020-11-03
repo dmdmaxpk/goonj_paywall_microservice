@@ -460,12 +460,12 @@ class SubscriptionRepository {
     }
 
     async getComedyWeeklySubscriptions(){
-        let subscriptions = await Subscription.find({subscribed_package_id: "QDfI", active: true});
+        let subscriptions = await Subscription.find({subscribed_package_id: "QDfI", active: true, $or: [{subscription_status: "billed"}, {subscription_status: "graced"}]});
         return subscriptions;
     }
 
     async getComedyDailySubscriptions(){
-        let subscriptions = await Subscription.find({subscribed_package_id: "QDfH", active: true});
+        let subscriptions = await Subscription.find({subscribed_package_id: "QDfH", active: true, $or: [{subscription_status: "billed"}, {subscription_status: "graced"}]});
         return subscriptions;
     }
 

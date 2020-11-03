@@ -346,7 +346,7 @@ getNextBillingDtm = async() => {
 
     try{
 
-        let subscriptions = await subscriptionRepo.getComedyDailySubscriptions();
+        let subscriptions = await subscriptionRepo.getComedyWeeklySubscriptions();
         console.log("### Input Data Length: ", subscriptions.length);
         for(let i = 0; i < subscriptions.length; i++){
             let user = await usersRepo.getUserBySubscriptionId(subscriptions[i]._id);
