@@ -38,8 +38,11 @@ class UserRepository {
     async getUserBySubscriptionId (subscription_id)  {
         let subscription = await this.subscriptionRepo.getSubscription(subscription_id);
         let subscriber = await this.subscriberRepo.getSubscriber(subscription.subscriber_id);
-        let user = this.getUserById(subscriber.user_id);
-        return user;
+        if(subscriber){
+            let user = this.getUserById(subscriber.user_id);
+            return user;
+        }
+        return undefined;
     }
 
     async getUserBySubscriberId (subscriber_id)  {
