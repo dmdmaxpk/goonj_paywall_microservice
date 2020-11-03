@@ -82,6 +82,30 @@ exports.isgraylisted = async (req, res) => {
 	}
 }
 
+exports.markBlackListed = async (req, res) => {
+	let msisdn = req.body.msisdn;
+	let user = await repo.getUserByMsisdn(msisdn);
+	if(user){
+		if(!user.is_black_listed){
+			try{
+				let result = await repo.updateUser(msisdn, {is_black_listed:true});
+				if(result){
+					await repo.updateUser(msisdn, {is_black_listed:true});
+					res.send({'code': config.codes.code_success, data: 'Successfully Blacklisted'});
+				}else{
+					res.send({'code': config.codes.code_error, data: 'Failed to black-list this user'});
+				}
+			}catch(e){
+				res.send({'code': config.codes.code_error, data: 'Failed to black-list this user'});
+			}
+		}else{
+			res.send({'code': config.codes.code_error, data: 'This user is already black-listed'});
+		}
+	}else{
+		res.send({'code': config.codes.code_data_not_found, data: 'No user found against this msisdn'});
+	}
+}
+
 // UPDATE
 exports.put = async (req, res) => {
 	let result = undefined ;

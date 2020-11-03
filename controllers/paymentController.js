@@ -386,7 +386,12 @@ exports.subscribe = async (req, res) => {
 				res.send({code: config.codes.code_error, message: "Not a valid Telenor number.", gw_transaction_id: gw_transaction_id });
 			}
 		}else{
-			doSubscribe(req, res, user, gw_transaction_id);
+			if(user.is_black_listed){
+				console.log('The user is blacklisted');
+				res.send({code: config.codes.code_error, message: "The user is blacklisted", gw_transaction_id: gw_transaction_id});
+			}else{
+				doSubscribe(req, res, user, gw_transaction_id);
+			}
 		}
 	}else{
 		console.log('No decoded user present');
