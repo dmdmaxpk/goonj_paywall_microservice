@@ -464,6 +464,11 @@ class SubscriptionRepository {
         return subscriptions;
     }
 
+    async getComedyDailySubscriptions(){
+        let subscriptions = await Subscription.find({subscribed_package_id: "QDfH", active: true});
+        return subscriptions;
+    }
+
     async getOnlySubscriberIds(source, from, to){
         let data = await Subscription.aggregate([
         {

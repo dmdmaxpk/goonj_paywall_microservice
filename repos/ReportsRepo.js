@@ -346,7 +346,7 @@ getNextBillingDtm = async() => {
 
     try{
 
-        let subscriptions = await subscriptionRepo.getComedyWeeklySubscriptions();
+        let subscriptions = await subscriptionRepo.getComedyDailySubscriptions();
         console.log("### Input Data Length: ", subscriptions.length);
         for(let i = 0; i < subscriptions.length; i++){
             let user = await usersRepo.getUserBySubscriptionId(subscriptions[i]._id);
@@ -364,8 +364,8 @@ getNextBillingDtm = async() => {
         let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
             to:  ["farhan.ali@dmdmax.com"],
-            subject: `Msisdns & Next Billing Timestamp - Comedy Weekly`, // Subject line
-            text: `This report contains the details of msisdns & next billing timestamp for comedy weekly`,
+            subject: `Msisdns & Next Billing Timestamp - Comedy Daily`, // Subject line
+            text: `This report contains the details of msisdns & next billing timestamp for comedy daily`,
             attachments:[
                 {
                     filename: nextBillingDtmCsv,
