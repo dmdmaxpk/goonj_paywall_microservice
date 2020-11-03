@@ -72,6 +72,17 @@ let affiliatePvsFilePath = `./${affiliatePvs}`;
 let dailyNetAdditionCsv = currentDate+"_DailyNetAdditions.csv";
 let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
 
+let nextBillingDtmCsv = currentDate+"_NextBillingDtm.csv";
+let nextBillingDtmFilePath = `./${nextBillingDtmCsv}`;
+let nextBillingDtmCsvWriter = createCsvWriter({
+    path: nextBillingDtmFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+        {id: "next_billing",title: "Next Billing Datetime" }
+    ]
+});
+
+
 let usersReportWithTrialAndBillingHistory = currentDate+"_UsersReportWithTrialAndBillingHistory.csv";
 let usersReportWithTrialAndBillingHistoryFilePath = `./${usersReportWithTrialAndBillingHistory}`;
 
@@ -323,6 +334,52 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                 console.log("###  File not deleted[randomReport]");
             }
             console.log("###  File deleted [randomReport]");
+        });
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+getNextBillingDtm = async() => {
+    console.log("### getNextBillingDtm");
+    let finalResult = [];
+
+    try{
+
+        let subscriptions = await subscriptionRepo.getComedyWeeklySubscriptions();
+        console.log("### Input Data Length: ", subscriptions.length);
+        for(let i = 0; i < subscriptions.length; i++){
+            let user = await usersRepo.getUserBySubscriptionId(subscriptions[i]._id);
+
+            if(user){
+                let singleObject = {};
+                singleObject.msisdn = user.msisdn;
+                singleObject.next_billing = subscriptions[i].next_billing_timestamp;
+                finalResult.push(singleObject);
+            }
+        }
+    
+        console.log("### Sending email");
+        await nextBillingDtmCsvWriter.writeRecords(finalResult);
+        let info = await transporter.sendMail({
+            from: 'paywall@dmdmax.com.pk',
+            to:  ["farhan.ali@dmdmax.com"],
+            subject: `Msisdns & Next Billing Timestamp - Comedy Weekly`, // Subject line
+            text: `This report contains the details of msisdns & next billing timestamp for comedy weekly`,
+            attachments:[
+                {
+                    filename: nextBillingDtmCsv,
+                    path: nextBillingDtmFilePath
+                }
+            ]
+        });
+    
+        console.log("###  [nextBillingDtmFilePath][emailSent]",info);
+        fs.unlink(nextBillingDtmFilePath,function(err,data) {
+            if (err) {
+                console.log("###  File not deleted[nextBillingDtmFilePath]");
+            }
+            console.log("###  File deleted [nextBillingDtmFilePath]");
         });
     }catch(e){
         console.log("### error - ", e);
@@ -1716,6 +1773,7 @@ module.exports = {
     getActiveBase: getActiveBase,
     getOnlySubscriberIds: getOnlySubscriberIds,
     getReportForHeOrWifi: getReportForHeOrWifi,
+    getNextBillingDtm: getNextBillingDtm,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
