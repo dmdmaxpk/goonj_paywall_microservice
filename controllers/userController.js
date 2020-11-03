@@ -46,21 +46,17 @@ exports.get = async (req, res) => {
 exports.isgraylisted = async (req, res) => {
 	let gw_transaction_id = req.query.transaction_id;
 	let package_id = req.query.package_id;
-
 	let { msisdn  } = req.params;
-	console.log("msisdn",msisdn);
-	console.log("pacakge_id",package_id,msisdn);
 	if (msisdn) {
 		user = await repo.getUserByMsisdn(msisdn);
 		if(user){
 			let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
-			console.log("subscriber",subscriber,msisdn);
 			if (subscriber) {
 				let result;
 				if(package_id){
 					result = await subscriptionRepository.getSubscriptionByPackageId(subscriber._id, package_id);
 				}
-				console.log("result",result,msisdn);
+				
 				if (result) {
 					res.send({code: config.codes.code_success, subscription_status: result.subscription_status,
 						is_gray_listed: result.is_gray_listed, gw_transaction_id: gw_transaction_id});

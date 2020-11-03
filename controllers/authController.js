@@ -11,9 +11,8 @@ exports.refresh = async (req, res) => {
     if (refreshToken == null) {
         return res.send({code: 401, message: 'Un-Authorized'});
     }
-    console.log("Token for refresh: ", refreshToken);
+
     let token = await repo.getByAuthToken(refreshToken);
-    console.log("Token for refresh 1:", token);
     if (!token || token === null || (token && token === 'null')) {
         return res.send({code: 403, message: 'Forbidden'});
     }
