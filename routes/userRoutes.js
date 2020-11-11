@@ -3,6 +3,9 @@ const router = express.Router();
 const userController = require('../controllers/userController')
 
 
+router.route('/')
+    .get(userController.get);
+
 router.route('/graylist/:msisdn')
     .get(userController.isgraylisted);
 
