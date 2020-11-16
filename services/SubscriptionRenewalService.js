@@ -172,10 +172,13 @@ mark = async() => {
         let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(chunkSize, skip);
         console.log("==> Fetched "+subscription_ids.length+" skipped "+skip);
         subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
-        if(i < totalChunks){
-            skip+=chunkSize;
-        }
+        skip+=chunkSize;
     }
+
+    //Reminders
+    let subscriptionIds  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(reminders, skip);
+    console.log("==> Fetched reminders "+subscriptionIds.length+" skipped "+skip);
+    subscriptionRepo.setAsBillableInNextCycle(subscriptionIds);
 }
 
 
