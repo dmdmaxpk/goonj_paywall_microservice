@@ -8,6 +8,9 @@ const migrationService = require('../services/SubscriberToSubscriptionMigration'
 router.route('/markRenewableUsers')
     .get(controller.markRenewableUsers);
 
+router.route('/markRenewableUserForcefully')
+    .get(controller.markRenewableUserForcefully);
+
 router.route('/subscriptionRenewal')
     .get(controller.subscriptionRenewal);
 
