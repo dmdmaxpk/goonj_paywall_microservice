@@ -170,18 +170,18 @@ mark = async() => {
 
     let skip = 0;
     for(let i = 0; i < totalChunks; i++){
-        let response = await getPromise(chunkSize, skip);
+        let response = await getMarkUsersPromise(chunkSize, skip);
         console.log("==>", response);
         skip+=chunkSize;
     }
 
     //Reminders
-    let response = await getPromise(reminders, skip);
+    let response = await getMarkUsersPromise(reminders, skip);
     console.log("==> reminder", response);
     console.log("==> Done!");
 }
 
-getPromise = (limit, skip) =>{
+getMarkUsersPromise = (limit, skip) =>{
     return new Promise(async(resolve, reject) => {
         let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, skip);
         if(subscription_ids.length > 0){
