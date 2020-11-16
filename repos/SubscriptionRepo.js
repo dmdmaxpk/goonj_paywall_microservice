@@ -231,7 +231,7 @@ class SubscriptionRepository {
                 ], 
                 next_billing_timestamp: {$lte: endOfDay}, 
                 active: true, 
-                is_billable_in_this_cycle:false}).limit(limit).skip(skip).select('_id');
+                is_billable_in_this_cycle:false}).skip(skip).limit(limit).select('_id');
         
         let subscription_ids = results.map(subscription => {
             return subscription._id;
