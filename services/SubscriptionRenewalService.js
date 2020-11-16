@@ -186,9 +186,9 @@ getPromise = (limit, skip) =>{
         let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, skip);
         if(subscription_ids.length > 0){
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
-            resolve(limit, " marked as billable!");
+            resolve(limit+" marked as billable!");
         }else{
-            reject("Failed to mark, length is ", subscription_ids.length);
+            reject("Failed to mark, length is "+subscription_ids.length);
         }
     });
 }
