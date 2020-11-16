@@ -201,8 +201,8 @@ class SubscriptionRepository {
     //         console.log(`The MSISDN ${msisdn} failed to delete records`);
     //     }
     // }
-    
-    async getSubscriptionsToMark ()  {
+
+    async getSubscriptionsToMark()  {
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
     
@@ -212,6 +212,23 @@ class SubscriptionRepository {
             {subscription_status:'trial'}], 
             next_billing_timestamp: {$lte: endOfDay}, 
             active: true, is_billable_in_this_cycle:false}).select('_id');
+        
+            let subscription_ids = results.map(subscription => {
+            return subscription._id;
+        });
+        return subscription_ids;
+    }
+    
+    async getSubscriptionsToMarkWithLimitAndOffset(limit, skip)  {
+        let now = moment();
+        let endOfDay = now.endOf('day').tz("Asia/Karachi");
+    
+        let results = await Subscription.find(
+            {$or:[{subscription_status:'billed'},
+            {subscription_status:'graced'},
+            {subscription_status:'trial'}], 
+            next_billing_timestamp: {$lte: endOfDay}, 
+            active: true, is_billable_in_this_cycle:false}).limit(limit).skip(skip).select('_id');
         
             let subscription_ids = results.map(subscription => {
             return subscription._id;

@@ -162,7 +162,26 @@ markRenewableUserForcefully = async() => {
 
 mark = async() => {
     let totalCount  = await subscriptionRepo.getCountOfSubscriptionToMark();
-    console.log(totalCount);
+    console.log("==> Total count "+totalCount);
+
+    let chunkSize = 10000;
+    let totalChunks = totalCount / chunkSize;
+    let reminders = totalCount % chunkSize;
+    console.log("==> Total chunks "+totalChunks+" - total reminders "+reminders);
+
+
+    let skip = 0;
+
+    for(let i = 0; i < totalChunks; i++){
+        let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(chunkSize, skip);
+        console.log("==> Fetched "+subscription_ids.length+" skipped "+skip);
+        skip+=chunkSize;
+    }
+
+    // Reminder
+    let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(reminders, skip);
+    console.log("==> Fetched "+subscription_ids.length+" skipped "+skip);
+    console.leog("==> Then end!");
 }
 
 
