@@ -182,7 +182,7 @@ mark = async() => {
 }
 
 getPromise = (limit, skip) =>{
-    return new Promise(resolve, reject => {
+    return new Promise(async(resolve, reject) => {
         let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, skip);
         if(subscription_ids.length > 0){
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
