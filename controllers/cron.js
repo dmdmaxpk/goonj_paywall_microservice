@@ -20,7 +20,7 @@ const viewLogsRepo = require('../repos/ViewLogRepo');
 const UserRepository = require("../repos/UserRepo");
 
 exports.subscriptionRenewal = async (req,res) =>  {
-    await subscriptionService.subscriptionRenewal();
+    subscriptionService.subscriptionRenewal();
     res.send("Subscription renewal - Executed");
 }
 

@@ -140,10 +140,8 @@ markRenewableUser = async() => {
         let now = moment().tz("Asia/Karachi");
         let hour = now.hours();
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
-            console.log("Checking to run renewable cycle at hour",hour);
-            let subscription_ids  = await subscriptionRepo.getSubscriptionsToMark();
-            console.log("Number of subscription in this cycle are ", subscription_ids.length);
-            await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
+            console.log("Executing cycle at ",hour," hour");
+            mark();
         } else {
             console.log("No renewable cycle for the hour",hour);
         }
@@ -169,22 +167,15 @@ mark = async() => {
     let reminders = totalCount % chunkSize;
     console.log("==> Total chunks "+totalChunks+" - total reminders "+reminders);
 
-
     let skip = 0;
-
     for(let i = 0; i < totalChunks; i++){
         let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(chunkSize, skip);
         console.log("==> Fetched "+subscription_ids.length+" skipped "+skip);
-        
+        subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
         if(i < totalChunks){
             skip+=chunkSize;
         }
     }
-
-    // Reminder
-    let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(reminders, skip);
-    console.log("==> Fetched "+subscription_ids.length+" skipped "+skip);
-    console.leog("==> Then end!");
 }
 
 
