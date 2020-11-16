@@ -152,6 +152,19 @@ markRenewableUser = async() => {
     }
 }
 
+markRenewableUserForcefully = async() => {
+    try {
+        mark();
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+mark = async() => {
+    let totalCount  = await subscriptionRepo.getCountOfSubscriptionToMark();
+    console.log(totalCount);
+}
+
 
 
 
@@ -188,5 +201,6 @@ module.exports = {
     // runJob: runJob,
     subscriptionRenewal: subscriptionRenewal,
     markRenewableUser: markRenewableUser,
+    markRenewableUserForcefully: markRenewableUserForcefully,
     addSubscription: addSubscription
 }
