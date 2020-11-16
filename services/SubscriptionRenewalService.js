@@ -6,6 +6,7 @@ const shortId = require('shortid');
 const subscriptionRepo = container.resolve("subscriptionRepository");
 const packageRepo = container.resolve("packageRepository");
 const moment = require('moment');
+const { resolve } = require("../configurations/container");
 
 
 subscriptionRenewal = async() => {
@@ -169,17 +170,27 @@ mark = async() => {
 
     let skip = 0;
     for(let i = 0; i < totalChunks; i++){
-        let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(chunkSize, skip);
-        console.log("==> Fetched "+subscription_ids.length+" skipped "+skip);
-        await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
+        let response = await getPromise(chunkSize, skip);
+        console.log("==>", response);
         skip+=chunkSize;
     }
 
     //Reminders
-    let subscriptionIds  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(reminders, skip);
-    console.log("==> Fetched reminders "+subscriptionIds.length+" skipped "+skip);
-    await subscriptionRepo.setAsBillableInNextCycle(subscriptionIds);
+    let response = await getPromise(reminders, skip);
+    console.log("==> reminder", response);
     console.log("==> Done!");
+}
+
+getPromise = (limit, skip) =>{
+    return new Promise(resolve, reject => {
+        let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, skip);
+        if(subscription_ids.length > 0){
+            await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
+            resolve(limit, " marked as billable!");
+        }else{
+            reject("Failed to mark, length is ", subscription_ids.length);
+        }
+    });
 }
 
 

@@ -233,7 +233,6 @@ class SubscriptionRepository {
                 active: true, 
                 is_billable_in_this_cycle:false}).limit(limit).skip(skip).select('_id');
         
-        console.log("==>>> RESULT ", results.length);
         let subscription_ids = results.map(subscription => {
             return subscription._id;
         });
