@@ -175,7 +175,10 @@ mark = async() => {
     for(let i = 0; i < totalChunks; i++){
         let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(chunkSize, skip);
         console.log("==> Fetched "+subscription_ids.length+" skipped "+skip);
-        skip+=chunkSize;
+        
+        if(i !== totalChunks){
+            skip+=chunkSize;
+        }
     }
 
     // Reminder
