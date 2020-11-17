@@ -191,7 +191,7 @@ getMarkUsersPromise = (limit, lastId) =>{
         if(subscription_ids.length > 0){
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
             console.log("==> ", subscription_ids.length, "marked as billable");
-            resolve(subscription_ids[limit-1]);
+            resolve(subscription_ids[subscription_ids.length-1]);
         }else{
             reject("Failed to mark, length is "+subscription_ids.length);
         }
