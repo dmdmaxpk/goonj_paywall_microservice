@@ -163,7 +163,7 @@ mark = async() => {
     let totalCount  = await subscriptionRepo.getCountOfSubscriptionToMark();
     console.log("==> Total count "+totalCount);
 
-    let chunkSize = 10000;
+    let chunkSize = 100000;
     let totalChunks = totalCount / chunkSize;
     let reminders = totalCount % chunkSize;
     console.log("==> Total chunks "+totalChunks+" - total reminders "+reminders);
