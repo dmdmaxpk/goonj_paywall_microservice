@@ -227,6 +227,7 @@ class SubscriptionRepository {
 
         if(lastId){
             whereClause = {
+                _id: {$gt: lastId},
                 $or:[
                     {subscription_status:'billed'},
                     {subscription_status:'graced'},
@@ -238,7 +239,6 @@ class SubscriptionRepository {
             }
         }else{
             whereClause = {
-                _id: {$gt: lastId},
                 $or:[
                     {subscription_status:'billed'},
                     {subscription_status:'graced'},
