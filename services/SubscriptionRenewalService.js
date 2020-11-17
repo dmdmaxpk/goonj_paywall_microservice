@@ -163,30 +163,34 @@ mark = async() => {
     let totalCount  = await subscriptionRepo.getCountOfSubscriptionToMark();
     console.log("==> Total count "+totalCount);
 
-    let chunkSize = 100000;
+    let chunkSize = 10000;
     let totalChunks = totalCount / chunkSize;
     let reminders = totalCount % chunkSize;
     console.log("==> Total chunks "+totalChunks+" - total reminders "+reminders);
 
-    let skip = 0;
+    let lastId = undefined;
     for(let i = 0; i < totalChunks; i++){
-        let response = await getMarkUsersPromise(chunkSize, skip);
-        console.log("==>", response);
-        skip+=chunkSize;
+        try{
+            let response = await getMarkUsersPromise(chunkSize, lastId);
+            lastId = response;
+            console.log("==>",i,' - ', response);
+        }catch(e){
+            console.log("==> error - ", e);
+        }
     }
 
     //Reminders
-    let response = await getMarkUsersPromise(reminders, skip);
+    let response = await getMarkUsersPromise(reminders, lastId);
     console.log("==> reminder", response);
     console.log("==> Done!");
 }
 
-getMarkUsersPromise = (limit, skip) =>{
+getMarkUsersPromise = (limit, lastId) =>{
     return new Promise(async(resolve, reject) => {
-        let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, skip);
+        let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, lastId);
         if(subscription_ids.length > 0){
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
-            resolve(limit+" marked as billable!");
+            resolve(subscription_ids[limit-1]);
         }else{
             reject("Failed to mark, length is "+subscription_ids.length);
         }

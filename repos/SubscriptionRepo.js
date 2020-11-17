@@ -219,20 +219,38 @@ class SubscriptionRepository {
         return subscription_ids;
     }
     
-    async getSubscriptionsToMarkWithLimitAndOffset(limit, skip)  {
+    async getSubscriptionsToMarkWithLimitAndOffset(limit, lastId)  {
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
     
-        let results = await Subscription.find(
-            {$or:[
+        let whereClause = "";
+
+        if(lastId){
+            whereClause = {
+                $or:[
                     {subscription_status:'billed'},
                     {subscription_status:'graced'},
                     {subscription_status:'trial'}
                 ], 
                 next_billing_timestamp: {$lte: endOfDay}, 
                 active: true, 
-                is_billable_in_this_cycle:false}).skip(skip).limit(limit).select('_id');
-        
+                is_billable_in_this_cycle:false
+            }
+        }else{
+            whereClause = {
+                _id: {$gt: lastId},
+                $or:[
+                    {subscription_status:'billed'},
+                    {subscription_status:'graced'},
+                    {subscription_status:'trial'}
+                ], 
+                next_billing_timestamp: {$lte: endOfDay}, 
+                active: true, 
+                is_billable_in_this_cycle:false
+            }
+        }
+
+        let results = await Subscription.find(whereClause).limit(limit).select('_id');
         let subscription_ids = results.map(subscription => {
             return subscription._id;
         });
