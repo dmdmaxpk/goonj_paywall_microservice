@@ -188,12 +188,13 @@ mark = async() => {
 getMarkUsersPromise = (limit, lastId) =>{
     return new Promise(async(resolve, reject) => {
         let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, lastId);
-        if(subscription_ids.length > 0){
+        //console.log("==> Length: ", subscription_ids.length);
+        if(subscription_ids && subscription_ids.length > 0){
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
-            console.log("==> ", subscription_ids.length, "marked as billable");
             resolve(subscription_ids[subscription_ids.length-1]);
         }else{
             reject("Failed to mark, length is "+subscription_ids.length);
+            resolve(undefined);
         }
     });
 }
