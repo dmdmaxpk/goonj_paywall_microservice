@@ -175,7 +175,7 @@ mark = async() => {
             lastId = response;
             console.log("==>",i,' - ', response);
         }catch(e){
-            console.log("==> error - ", e);
+            console.log("==>",i, ' error - ', e);
         }
     }
 
@@ -193,7 +193,7 @@ getMarkUsersPromise = (limit, lastId) =>{
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
             resolve(subscription_ids[subscription_ids.length-1]);
         }else{
-            reject("Failed to mark, length is "+subscription_ids.length);
+            console.log("Failed to mark, length is "+subscription_ids.length);
             resolve(undefined);
         }
     });
