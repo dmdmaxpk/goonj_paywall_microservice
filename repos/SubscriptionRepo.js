@@ -271,6 +271,11 @@ class SubscriptionRepository {
 
         return count;
     }
+
+    async getBillableInCycleCount(){
+        let count = await Subscription.count({is_billable_in_this_cycle: true});
+        return count;
+    }
     
     async setAsBillableInNextCycle (subscription_ids)  {
         await Promise.all([

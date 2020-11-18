@@ -7,6 +7,7 @@ const subscriptionRepo = container.resolve("subscriptionRepository");
 const packageRepo = container.resolve("packageRepository");
 const moment = require('moment');
 const { resolve } = require("../configurations/container");
+const emailService = container.resolve("emailService");
 
 
 subscriptionRenewal = async() => {
@@ -142,7 +143,8 @@ markRenewableUser = async() => {
         let hour = now.hours();
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
             console.log("Executing cycle at ",hour," hour");
-            mark();
+            await mark();
+            validate();
         } else {
             console.log("No renewable cycle for the hour",hour);
         }
@@ -183,6 +185,22 @@ mark = async() => {
     let response = await getMarkUsersPromise(reminders, lastId);
     console.log("==> reminder", response);
     console.log("==> Done!");
+}
+
+validate = async() => {
+    let countThreshold = 400000;
+    let totalCount = await subscriptionRepo.getBillableInCycleCount();
+    console.log("==> Total Billable in cycle count is " + totalCount);
+
+    if(totalCount < countThreshold){
+        let subject = 'Total Billable Cycle count lower than expected';
+        let text = `Total Billable cycle count is ${totalCount}, which is lower than threshold ${countThreshold}. Please check as soon as possible!`
+        let email= ['paywall@dmdmax.com.pk'];
+
+        emailService.sendEmail(subject, text, email);
+
+        console.log('Email alert Sent!');
+    }
 }
 
 getMarkUsersPromise = (limit, lastId) =>{
