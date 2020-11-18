@@ -195,9 +195,9 @@ validate = async() => {
     console.log("==> Total billable in cycle count is " + totalCount);
 
     if(totalCount < countThreshold){
-        let subject = 'Total Billable Cycle count lower than expected';
-        let text = `Total Billable cycle count is ${totalCount}, which is lower than threshold ${countThreshold}. Please check as soon as possible!`
-        let email= ['paywall@dmdmax.com.pk'];
+        let subject = 'Billing Cycle Count Lower Than Expected';
+        let text = `Total billable cycle count is ${totalCount}, which is lower than threshold ${countThreshold}. Please check as soon as possible!`
+        let email= ['paywall@dmdmax.com.pk', 'mikaeel@dmdmax.com', 'usama.shamim@dmdmax.com'];
         emailService.sendEmail(subject, text, email);
         console.log('==> Email alert Sent!');
     }
