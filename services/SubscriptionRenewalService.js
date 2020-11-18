@@ -188,21 +188,21 @@ mark = async() => {
 }
 
 validate = async() => {
+    console.log("==> validating...");
+
     let countThreshold = 400000;
     let totalCount = await subscriptionRepo.getBillableInCycleCount();
-    console.log("==> Total Billable in cycle count is " + totalCount);
+    console.log("==> Total billable in cycle count is " + totalCount);
 
     if(totalCount < countThreshold){
         let subject = 'Total Billable Cycle count lower than expected';
         let text = `Total Billable cycle count is ${totalCount}, which is lower than threshold ${countThreshold}. Please check as soon as possible!`
         let email= ['paywall@dmdmax.com.pk'];
-
         emailService.sendEmail(subject, text, email);
-
-        console.log('Email alert Sent!');
+        console.log('==> Email alert Sent!');
     }
     else{
-        console.log('Total billable cycle count seems alright!');
+        console.log('==> Total billable cycle count seems alright!');
     }
 }
 

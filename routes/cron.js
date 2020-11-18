@@ -3,8 +3,6 @@ const router = express.Router();
 const controller = require('../controllers/cron');
 const migrationService = require('../services/SubscriberToSubscriptionMigration');
 
-//
-
 router.route('/markRenewableUsers')
     .get(controller.markRenewableUsers);
 
