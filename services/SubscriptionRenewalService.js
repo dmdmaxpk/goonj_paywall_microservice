@@ -201,6 +201,9 @@ validate = async() => {
 
         console.log('Email alert Sent!');
     }
+    else{
+        console.log('Total billable cycle count seems alright!');
+    }
 }
 
 getMarkUsersPromise = (limit, lastId) =>{
