@@ -20,7 +20,7 @@ const viewLogsRepo = require('../repos/ViewLogRepo');
 const UserRepository = require("../repos/UserRepo");
 
 exports.subscriptionRenewal = async (req,res) =>  {
-    await subscriptionService.subscriptionRenewal();
+    subscriptionService.subscriptionRenewal();
     res.send("Subscription renewal - Executed");
 }
 
@@ -137,13 +137,13 @@ exports.hourlyBillingReport = async (req,res) =>  {
 exports.markRenewableUsers = async (req,res) =>  {
     console.log("Marking renewable users")
     subscriptionService.markRenewableUser();
-    res.send("MarkRenewableUser - Executed");
+    res.send("MarkRenewableUser - Executed\n");
 }
 
 exports.markRenewableUserForcefully = async (req,res) =>  {
     console.log("Marking renewable users forcefully")
     subscriptionService.markRenewableUserForcefully();
-    res.send("MarkRenewableUserForcefully - Executed");
+    res.send("MarkRenewableUserForcefully - Executed\n");
 }
 
 exports.sendReportsEveryThreeDays = async (req,res) =>  {

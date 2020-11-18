@@ -85,7 +85,7 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(20000);
+        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(14000);
         return results;
     }
     
@@ -201,8 +201,8 @@ class SubscriptionRepository {
     //         console.log(`The MSISDN ${msisdn} failed to delete records`);
     //     }
     // }
-    
-    async getSubscriptionsToMark ()  {
+
+    async getSubscriptionsToMark()  {
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
     
@@ -218,8 +218,46 @@ class SubscriptionRepository {
         });
         return subscription_ids;
     }
+    
+    async getSubscriptionsToMarkWithLimitAndOffset(limit, lastId)  {
+        let now = moment();
+        let endOfDay = now.endOf('day').tz("Asia/Karachi");
+    
+        let whereClause = "";
 
-    async getCountOfSubscriptionToMark ()  {
+        if(lastId){
+            whereClause = {
+                _id: {$gt: lastId},
+                $or:[
+                    {subscription_status:'billed'},
+                    {subscription_status:'graced'},
+                    {subscription_status:'trial'}
+                ], 
+                next_billing_timestamp: {$lte: endOfDay}, 
+                active: true, 
+                is_billable_in_this_cycle:false
+            }
+        }else{
+            whereClause = {
+                $or:[
+                    {subscription_status:'billed'},
+                    {subscription_status:'graced'},
+                    {subscription_status:'trial'}
+                ], 
+                next_billing_timestamp: {$lte: endOfDay}, 
+                active: true, 
+                is_billable_in_this_cycle:false
+            }
+        }
+
+        let results = await Subscription.find(whereClause).limit(limit).select('_id');
+        let subscription_ids = results.map(subscription => {
+            return subscription._id;
+        });
+        return subscription_ids;
+    }
+
+    async getCountOfSubscriptionToMark(){
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
     

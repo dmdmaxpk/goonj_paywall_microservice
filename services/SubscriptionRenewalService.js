@@ -6,6 +6,7 @@ const shortId = require('shortid');
 const subscriptionRepo = container.resolve("subscriptionRepository");
 const packageRepo = container.resolve("packageRepository");
 const moment = require('moment');
+const { resolve } = require("../configurations/container");
 
 
 subscriptionRenewal = async() => {
@@ -140,10 +141,8 @@ markRenewableUser = async() => {
         let now = moment().tz("Asia/Karachi");
         let hour = now.hours();
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
-            console.log("Checking to run renewable cycle at hour",hour);
-            let subscription_ids  = await subscriptionRepo.getSubscriptionsToMark();
-            console.log("Number of subscription in this cycle are ", subscription_ids.length);
-            await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
+            console.log("Executing cycle at ",hour," hour");
+            mark();
         } else {
             console.log("No renewable cycle for the hour",hour);
         }
@@ -162,7 +161,42 @@ markRenewableUserForcefully = async() => {
 
 mark = async() => {
     let totalCount  = await subscriptionRepo.getCountOfSubscriptionToMark();
-    console.log(totalCount);
+    console.log("==> Total count "+totalCount);
+
+    let chunkSize = 10000;
+    let totalChunks = totalCount / chunkSize;
+    let reminders = totalCount % chunkSize;
+    console.log("==> Total chunks "+totalChunks+" - total reminders "+reminders);
+
+    let lastId = undefined;
+    for(let i = 0; i < totalChunks; i++){
+        try{
+            let response = await getMarkUsersPromise(chunkSize, lastId);
+            lastId = response;
+            console.log("==>",i,' - ', response);
+        }catch(e){
+            console.log("==>",i, ' error - ', e);
+        }
+    }
+
+    //Reminders
+    let response = await getMarkUsersPromise(reminders, lastId);
+    console.log("==> reminder", response);
+    console.log("==> Done!");
+}
+
+getMarkUsersPromise = (limit, lastId) =>{
+    return new Promise(async(resolve, reject) => {
+        let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, lastId);
+        //console.log("==> Length: ", subscription_ids.length);
+        if(subscription_ids && subscription_ids.length > 0){
+            await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
+            resolve(subscription_ids[subscription_ids.length-1]);
+        }else{
+            console.log("Failed to mark, length is "+subscription_ids.length);
+            resolve(undefined);
+        }
+    });
 }
 
 
