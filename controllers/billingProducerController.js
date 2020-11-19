@@ -1,16 +1,36 @@
 const container = require("../configurations/container");
 const BillingHistoryRepository = require("../repos/BillingHistoryRepo");
 const billingHistoryRepo = new BillingHistoryRepository();
+const APITokenRepository = require("../repos/APITokenRepo");
 const userRepo = container.resolve("userRepository");
 const subscriberRepo = container.resolve("subscriberRepository");
 const subscriptionRepo = container.resolve("subscriptionRepository");
 const packageRepo = container.resolve("packageRepository");
 
+exports.createToken = async (req,res) =>  {
+    console.log("Create Token");
+    let body = req.body;
+    let result = await APITokenRepository.createToken(body.postData);
+    res.send(result);
+}
+
+exports.getToken = async (req,res) =>  {
+    console.log("Get Token");
+    let result = await APITokenRepository.getToken();
+    res.send(result);
+}
+
+exports.updateToken = async (req,res) =>  {
+    console.log("Create Token");
+    let body = req.body;
+    let result = await APITokenRepository.updateToken(body.postBody);
+    res.send(result);
+}
 
 exports.createBillingHistory = async (req,res) =>  {
     console.log("Create Billing History");
     let body = req.body;
-    let result = await billingHistoryRepo.createBillingHistory(body);
+    let result = await billingHistoryRepo.createBillingHistory(body.postData);
     res.send(result);
 }
 
@@ -52,6 +72,6 @@ exports.updateSubscription = async (req,res) =>  {
 exports.getPackage = async (req,res) =>  {
     console.log("Get Package By ID");
     let query = req.query;
-    let result = await packageRepo.getPackage(query);
+    let result = await packageRepo.getPackage(query.query);
     res.send(result);
 }
