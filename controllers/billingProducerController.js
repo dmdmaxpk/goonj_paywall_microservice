@@ -58,7 +58,7 @@ exports.getSubscription = async (req,res) =>  {
 exports.getRenewableSubscriptions = async (req,res) =>  {
     console.log("Get Renewable Subscriptions");
     let result = await subscriptionRepo.getRenewableSubscriptions();
-    console.log(result);
+    // console.log(result);
     res.send(result);
 }
 
@@ -71,7 +71,7 @@ exports.updateSubscription = async (req,res) =>  {
 
 exports.getPackage = async (req,res) =>  {
     console.log("Get Package By ID");
-    let query = req.query;
-    let result = await packageRepo.getPackage(query.query);
+    let query = req.body;
+    let result = await packageRepo.getPackage(query);
     res.send(result);
 }
