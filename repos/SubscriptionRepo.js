@@ -114,6 +114,20 @@ class SubscriptionRepository {
         }
     }
 
+    async updateAllSubscriptions (subscriptionArray, postData)  {
+        postData.last_modified = new Date();
+        try {
+            const result = await Subscription.updateMany(
+                {_id: {$in: subscriptionArray}},
+                { $set: postData  }
+            )
+            console.log("updated subs result", result);
+        } catch(error) {
+            console.log(error);
+            return error;
+        }
+    }
+
     async updateMany(subscriber_ids)  {
         let data = await Subscription.updateMany({"subscriber_id": {$in:subscriber_ids }},{$set:{should_remove: true}});
         return data;

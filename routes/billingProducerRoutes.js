@@ -29,6 +29,9 @@ router.route('/getRenewableSubscriptions')
 router.route('/updateSubscription')
     .post(controller.updateSubscription);
 
+router.route('/updateAllSubscription')
+    .post(controller.updateAllSubscriptions);
+
 router.route('/getPackage')
     .post(controller.getPackage);
 
