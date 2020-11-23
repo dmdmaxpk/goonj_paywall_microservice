@@ -1,7 +1,7 @@
 const container = require("../configurations/container");
 const BillingHistoryRepository = require("../repos/BillingHistoryRepo");
 const billingHistoryRepo = new BillingHistoryRepository();
-const APITokenRepository = require("../repos/APITokenRepo");
+const APITokenRepository = require("../repos/ApiTokenRepo");
 const userRepo = container.resolve("userRepository");
 const subscriberRepo = container.resolve("subscriberRepository");
 const subscriptionRepo = container.resolve("subscriptionRepository");

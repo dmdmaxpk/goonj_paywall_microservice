@@ -6,8 +6,9 @@ class PaywallRepository {
         this.packageRepository = packageRepository;
     }
 
-    async getAllPaywalls(){
-        let paywalls = await Paywall.find({active: true});
+    async getAllPaywalls(query){
+        query.active = true;
+        let paywalls = await Paywall.find(query);
         return paywalls;
     }
 
@@ -31,8 +32,9 @@ class PaywallRepository {
 
     async getPaywallsAndPackages() {
         try {
-            let packages = await this.packageRepository.getAllPackages({});
-            let paywalls = await this.getAllPaywalls();
+            let query = {slug: "live"}
+            let packages = await this.packageRepository.getAllPackages(query);
+            let paywalls = await this.getAllPaywalls(query);
             let resultsPaywall = [];
             paywalls.forEach(element => {
                 let temp = JSON.parse(JSON.stringify(element) );
