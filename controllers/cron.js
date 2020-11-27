@@ -141,8 +141,13 @@ exports.markRenewableUsers = async (req,res) =>  {
 }
 
 exports.markRenewableUserForcefully = async (req,res) =>  {
-    console.log("Marking renewable users forcefully")
-    subscriptionService.markRenewableUserForcefully();
+    console.log("Marking renewable users forcefully");
+    let limit = 0;
+    if(req.query){
+        limit = req.query.limit;
+    }
+
+    subscriptionService.markRenewableUserForcefully(limit);
     res.send("MarkRenewableUserForcefully - Executed\n");
 }
 

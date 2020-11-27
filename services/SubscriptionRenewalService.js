@@ -143,7 +143,7 @@ markRenewableUser = async() => {
         let hour = now.hours();
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
             console.log("Executing cycle at ",hour," hour");
-            await mark();
+            await mark(0);
             validate();
         } else {
             console.log("No renewable cycle for the hour",hour);
@@ -153,16 +153,21 @@ markRenewableUser = async() => {
     }
 }
 
-markRenewableUserForcefully = async() => {
+markRenewableUserForcefully = async(limit) => {
     try {
-        mark();
+        mark(limit);
     } catch(err) {
         console.error(err);
     }
 }
 
-mark = async() => {
-    let totalCount  = await subscriptionRepo.getCountOfSubscriptionToMark();
+mark = async(limit) => {
+    let totalCount = limit;
+
+    if(!totalCount ||  (totalCount && totalCount === 0)){
+        await subscriptionRepo.getCountOfSubscriptionToMark();
+    } 
+
     console.log("==> Total count "+totalCount);
 
     let chunkSize = 10000;
