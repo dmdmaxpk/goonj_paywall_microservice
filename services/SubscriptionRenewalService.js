@@ -153,21 +153,16 @@ markRenewableUser = async() => {
     }
 }
 
-markRenewableUserForcefully = async(limit) => {
+markRenewableUserForcefully = async() => {
     try {
-        mark(limit);
+        mark();
     } catch(err) {
         console.error(err);
     }
 }
 
-mark = async(limit) => {
-    let totalCount = limit;
-
-    if(!totalCount ||  (totalCount && totalCount === 0)){
-        await subscriptionRepo.getCountOfSubscriptionToMark();
-    } 
-
+mark = async() => {
+    let totalCount = await subscriptionRepo.getCountOfSubscriptionToMark();
     console.log("==> Total count "+totalCount);
 
     let chunkSize = 10000;
