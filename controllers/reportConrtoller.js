@@ -8,7 +8,9 @@ const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 
 const container = require("../configurations/container");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
+const revenueStatisticsService = container.resolve("revenueStatisticsService");
 
+const moment = require('moment');
 
 exports.gdn_report = async (req,res) =>  {
     affiliateReportsRepo.gdnReport(true);
@@ -141,4 +143,47 @@ exports.billing_stats = async (req,res) =>  {
     res.send(data);
 }
 
+exports.revenue_stats = async (req,res) =>  {
+    //Today - Start and end date
+    let todayStart = new Date();
+    let todayEnd = new Date();
+    todayStart.setHours(00);
+    todayStart.setMinutes(00);
+    todayStart.setSeconds(00);
+    let todayRevenueStats = await revenueStatisticsService.getRevenueStatsDateWise(todayStart, todayEnd);
+    console.log('todayRevenueStats - stringify: ', JSON.stringify(todayRevenueStats));
 
+
+    //Yesterday - Start and end date
+    let yesterdayStart = new Date();
+    let yesterdayEnd = new Date();
+    yesterdayStart.setDate(todayStart.getDate() - 1);
+    yesterdayStart.setHours(00);
+    yesterdayStart.setMinutes(00);
+    yesterdayStart.setSeconds(00);
+    yesterdayEnd.setDate(todayStart.getDate() - 1);
+    let yesterdayRevenueStats = await revenueStatisticsService.getRevenueStatsDateWise(yesterdayStart, yesterdayEnd);
+    console.log('yesterdayRevenueStats - stringify: ', JSON.stringify(yesterdayRevenueStats));
+
+
+    //A day before Yesterday - Start and end date
+    let dayBeforeYesterdayStart = new Date();
+    let dayBeforeYesterdayEnd = new Date();
+    dayBeforeYesterdayStart.setDate(todayStart.getDate() - 2);
+    dayBeforeYesterdayStart.setHours(00);
+    dayBeforeYesterdayStart.setMinutes(00);
+    dayBeforeYesterdayStart.setSeconds(00);
+    dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
+    let dayBeforeYesterdayRevenueStats = await revenueStatisticsService.getRevenueStatsDateWise(dayBeforeYesterdayStart, dayBeforeYesterdayEnd);
+    console.log('dayBeforeYesterdayRevenueStats - stringify: ', JSON.stringify(dayBeforeYesterdayRevenueStats));
+
+
+    let revenueStats = {
+        todayRevenueStats : todayRevenueStats,
+        yesterdayRevenueStats : yesterdayRevenueStats,
+        dayBeforeYesterdayRevenueStats : dayBeforeYesterdayRevenueStats,
+    };
+
+    console.log('revenueStats - stringify: ', JSON.stringify(revenueStats));
+    res.send(revenueStats);
+};
