@@ -1,3 +1,4 @@
+const moment = require('moment');
 
 class RevenueStatisticsService {
     constructor({billingHistoryRepository}){
