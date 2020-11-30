@@ -181,6 +181,7 @@ exports.revenue_stats = async (req,res) =>  {
         {"dbyesterday" : dayBeforeYesterdayRevenueStats}
     ];
 
-    console.log('\n\nrevenueStats - stringify: ', stats);
-    res.json(JSON.parse(JSON.stringify(stats)));
+    console.log('revenueStats - stringify: ', stats);
+    res.status(200).json({data: JSON.parse(JSON.stringify(stats))});
+    //res.send(JSON.parse(JSON.stringify(stats)));
 };
