@@ -52,7 +52,7 @@ class RevenueStatisticsService {
         for (let i = 0; i< statusWise.length; i++){
             if (statusWise[i]._id === 'Success')
                 successful.successful_charged = statusWise[i].total;
-            else if (statusWise[i]._id === 'unsubscribe-request-received-and-expired')
+            else if (statusWise[i]._id === 'expired')
                 unsubscribed.unsubscribe_requests = statusWise[i].total;
         }
         dataArr.push(successful);
