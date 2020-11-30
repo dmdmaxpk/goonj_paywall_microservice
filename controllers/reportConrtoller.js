@@ -5,12 +5,9 @@ const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
 const grayListService = require('../services/GrayListService');
 const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 
-
 const container = require("../configurations/container");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const revenueStatisticsService = container.resolve("revenueStatisticsService");
-
-const moment = require('moment');
 
 exports.gdn_report = async (req,res) =>  {
     affiliateReportsRepo.gdnReport(true);
@@ -181,7 +178,7 @@ exports.revenue_stats = async (req,res) =>  {
     let revenueStats = {
         "todayRevenueStats" : todayRevenueStats,
         "yesterdayRevenueStats" : yesterdayRevenueStats,
-        "dayBeforeYesterdayRevenueStats" : dayBeforeYesterdayRevenueStats,
+        "dayBeforeYesterdayRevenueStats" : dayBeforeYesterdayRevenueStats
     };
 
     console.log('revenueStats - stringify: ', JSON.stringify(revenueStats));
