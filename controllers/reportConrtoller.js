@@ -182,5 +182,5 @@ exports.revenue_stats = async (req,res) =>  {
     };
 
     console.log('revenueStats - stringify: ', JSON.stringify(revenueStats));
-    res.json(revenueStats);
+    res.end(revenueStats);
 };
