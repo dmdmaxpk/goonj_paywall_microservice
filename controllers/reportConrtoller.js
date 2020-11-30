@@ -181,9 +181,9 @@ exports.revenue_stats = async (req,res) =>  {
     let revenueStats = {
         "todayRevenueStats" : todayRevenueStats,
         "yesterdayRevenueStats" : yesterdayRevenueStats,
-        "dayBeforeYesterdayRevenueStats" : dayBeforeYesterdayRevenueStats,
+        "dayBeforeYesterdayRevenueStats" : dayBeforeYesterdayRevenueStats
     };
 
     console.log('revenueStats - stringify: ', JSON.stringify(revenueStats));
-    res.json(JSON.stringify(revenueStats));
+    res.send(revenueStats);
 };
