@@ -37,7 +37,7 @@ class RevenueStatisticsService {
         let requestCount =  await this.billingHistoryRepo.getBillingRequestCountInDateRange(from, to);
         if (requestCount.length > 0){
             requestCount = requestCount[0];
-            responseArr.push({"total_requests": requestCount.total})
+            dataArr.push({"total_requests": requestCount.total})
         }
         else{
             dataArr.push({"total_requests": 0})
