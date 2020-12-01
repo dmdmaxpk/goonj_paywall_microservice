@@ -141,13 +141,18 @@ exports.billing_stats = async (req,res) =>  {
 }
 
 exports.revenue_stats = async (req,res) =>  {
-    let revenueStats;
+    let revenueStats = [];
     let today = new Date();
     today.setHours(00);
     today.setMinutes(00);
     today.setSeconds(00);
 
-    if (req.day === 'today'){
+    console.log('req: ', req);
+    console.log('req.day: ', req.day);
+    console.log('req.query: ', req.query);
+    console.log('req.query.day: ', req.query.day);
+    if (req.query.day === 'today'){
+        console.log('1: ');
 
         //Today - Start and end date
         let todayStart = new Date();
@@ -156,9 +161,10 @@ exports.revenue_stats = async (req,res) =>  {
         todayStart.setMinutes(00);
         todayStart.setSeconds(00);
         revenueStats = await revenueStatisticsService.getRevenueStatsDateWise(todayStart, todayEnd);
-        console.log('todayRevenueStats - stringify: ', revenueStats);
+        console.log('todayRevenueStats: ', revenueStats);
     }
-    else if(req.day === 'yesterday'){
+    else if(req.query.day === 'yesterday'){
+        console.log('2: ');
 
         //Yesterday - Start and end date
         let yesterdayStart = new Date();
@@ -169,9 +175,10 @@ exports.revenue_stats = async (req,res) =>  {
         yesterdayStart.setSeconds(00);
         yesterdayEnd.setDate(today.getDate() - 1);
         revenueStats = await revenueStatisticsService.getRevenueStatsDateWise(yesterdayStart, yesterdayEnd);
-        console.log('yesterdayRevenueStats - stringify: ', revenueStats);
+        console.log('yesterdayRevenueStats: ', revenueStats);
     }
-    else if(req.day === 'datBeforeYesterday'){
+    else if(req.query.day === 'datBeforeYesterday'){
+        console.log('3: ');
 
         //A day before Yesterday - Start and end date
         let dayBeforeYesterdayStart = new Date();
@@ -185,7 +192,7 @@ exports.revenue_stats = async (req,res) =>  {
         console.log('dayBeforeYesterdayRevenueStats - stringify: ', revenueStats);
     }
 
-    console.log('revenueStats - stringify: ', revenueStats);
+    console.log('revenueStats: ', revenueStats);
     res.end({code: 1, data: revenueStats});
 
     // let stats = [
