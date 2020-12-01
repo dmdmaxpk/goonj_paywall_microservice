@@ -147,9 +147,6 @@ exports.revenue_stats = async (req,res) =>  {
     today.setMinutes(00);
     today.setSeconds(00);
 
-    console.log('req: ', req);
-    console.log('req.day: ', req.day);
-    console.log('req.query: ', req.query);
     console.log('req.query.day: ', req.query.day);
     if (req.query.day === 'today'){
         console.log('1: ');
