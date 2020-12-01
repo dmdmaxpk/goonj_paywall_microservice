@@ -14,11 +14,14 @@ exports.getPackage = async (req,res) =>  {
 
 exports.getOnlyRenewableSubscriptions = async (req,res) =>  {
     let result = await subscriptionRepo.getRenewableSubscriptions();
+    let toBeSubscribed = [];
     for(let i = 0; i < result.length; i++){
         if(result[i].auto_renewal === true){
             let user = await userRepo.getUserBySubscriptionId(result[i]._id);
             if(user){
-                result[i].userObj = user;
+                let newObj = result[i];
+                newObj.userObj = user;
+                toBeSubscribed.push(newObj);
             }else{
                 console.log('=> No user object found for subscription ', result[i]._id);
             }
@@ -26,7 +29,7 @@ exports.getOnlyRenewableSubscriptions = async (req,res) =>  {
             expire(result[i]);
         }
     }
-    res.send(result);
+    res.send(toBeSubscribed);
 }
 
 // Expire users
