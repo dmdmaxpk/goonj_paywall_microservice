@@ -193,7 +193,7 @@ exports.revenue_stats = async (req,res) =>  {
     }
 
     console.log('revenueStats: ', revenueStats);
-    res.end({code: 1, data: revenueStats});
+    res.send({code: 1, data: revenueStats});
 
     // let stats = [
     //     {"today": todayRevenueStats},
