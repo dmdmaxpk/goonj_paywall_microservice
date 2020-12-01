@@ -19,10 +19,8 @@ exports.getOnlyRenewableSubscriptions = async (req,res) =>  {
         if(result[i].auto_renewal === true){
             let user = await userRepo.getUserBySubscriberId(result[i].subscriber_id);
             if(user){
-                console.log("=> User Added")
                 let newObj = JSON.parse(JSON.stringify(result[i]));
                 newObj.userObj = user;
-                console.log(newObj);
                 toBeSubscribed.push(newObj);
             }else{
                 console.log('=> No user object found for subscription ', result[i]._id);
