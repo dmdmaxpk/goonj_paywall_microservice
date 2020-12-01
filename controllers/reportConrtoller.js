@@ -156,7 +156,7 @@ exports.revenue_stats = async (req,res) =>  {
         todayStart.setMinutes(00);
         todayStart.setSeconds(00);
         revenueStats = await revenueStatisticsService.getRevenueStatsDateWise(todayStart, todayEnd);
-        console.log('todayRevenueStats - stringify: ', JSON.stringify(revenueStats));
+        console.log('todayRevenueStats - stringify: ', revenueStats);
     }
     else if(req.day === 'yesterday'){
 
@@ -169,7 +169,7 @@ exports.revenue_stats = async (req,res) =>  {
         yesterdayStart.setSeconds(00);
         yesterdayEnd.setDate(today.getDate() - 1);
         revenueStats = await revenueStatisticsService.getRevenueStatsDateWise(yesterdayStart, yesterdayEnd);
-        console.log('yesterdayRevenueStats - stringify: ', JSON.stringify(revenueStats));
+        console.log('yesterdayRevenueStats - stringify: ', revenueStats);
     }
     else if(req.day === 'datBeforeYesterday'){
 
@@ -182,10 +182,10 @@ exports.revenue_stats = async (req,res) =>  {
         dayBeforeYesterdayStart.setSeconds(00);
         dayBeforeYesterdayEnd.setDate(today.getDate() - 2);
         revenueStats = await revenueStatisticsService.getRevenueStatsDateWise(dayBeforeYesterdayStart, dayBeforeYesterdayEnd);
-        console.log('dayBeforeYesterdayRevenueStats - stringify: ', JSON.stringify(revenueStats));
+        console.log('dayBeforeYesterdayRevenueStats - stringify: ', revenueStats);
     }
 
-    console.log('revenueStats - stringify: ', JSON.stringify(revenueStats));
+    console.log('revenueStats - stringify: ', revenueStats);
     res.end({code: 1, data: revenueStats});
 
     // let stats = [
