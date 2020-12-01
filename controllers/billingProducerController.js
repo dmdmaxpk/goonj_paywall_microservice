@@ -16,7 +16,7 @@ exports.getOnlyRenewableSubscriptions = async (req,res) =>  {
     let result = await subscriptionRepo.getRenewableSubscriptions();
     for(let i = 0; i < result.length; i++){
         if(result[i].auto_renewal === true){
-            let user = await userRepo.getUserBySubscriptionId(subscription._id);
+            let user = await userRepo.getUserBySubscriptionId(result[i]._id);
             if(user){
                 result[i].userObj = user;
             }else{
