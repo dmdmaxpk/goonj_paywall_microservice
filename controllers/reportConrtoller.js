@@ -141,7 +141,6 @@ exports.billing_stats = async (req,res) =>  {
 }
 
 exports.revenue_stats = async (req,res) =>  {
-
     let revenueStats;
     let today = new Date();
     today.setHours(00);
@@ -188,4 +187,14 @@ exports.revenue_stats = async (req,res) =>  {
 
     console.log('revenueStats - stringify: ', JSON.stringify(revenueStats));
     res.end({code: 1, data: revenueStats});
+
+    // let stats = [
+    //     {"today": todayRevenueStats},
+    //     {"yesterday" : yesterdayRevenueStats},
+    //     {"dbyesterday" : dayBeforeYesterdayRevenueStats}
+    // ];
+
+    // console.log('revenueStats - stringify: ', stats);
+    // res.status(200).json({data: JSON.parse(JSON.stringify(stats))});
+    // //res.send(JSON.parse(JSON.stringify(stats)));
 };
