@@ -542,6 +542,68 @@ class BillingHistoryRepository {
         }
     }
 
+    async getBillingStatsStatusWseInDateRange (from, to)  {
+        try{
+            let result = await BillingHistory.aggregate([
+                { $match: {
+                        $and:[
+                            {"billing_dtm":{$gt: new Date(from)}},
+                            {"billing_dtm":{$lte: new Date(to)}}
+                        ]
+                    }},
+                { $group: {
+                        _id: "$billing_status", total: { $sum: 1 }
+                    }}
+            ]);
+            return result;
+        }catch(err){
+            console.log("getBillingStatsStatusWseInDateRange - err =>", err);
+        }
+    }
+
+    async getBillingInsufficientBalanceInDateRange (from, to)  {
+        try{
+            let result = await BillingHistory.aggregate([
+                { $match: {
+                        "operator_response.errorMessage": "The account balance is insufficient.",
+                        $and:[
+                            {"billing_dtm":{$gt: new Date(from)}},
+                            {"billing_dtm":{$lte: new Date(to)}}
+                        ]
+                    }},
+                { $group: {
+                        _id: null, total: { $sum: 1 }
+                    }}
+            ]);
+            return result;
+        }catch(err){
+            console.log("getBillingInsufficientBalanceInDateRange - err =>", err);
+        }
+    }
+
+    async getBillingRequestCountInDateRange (from, to)  {
+        try{
+            let result = await BillingHistory.aggregate([
+                { $match: {
+                        $or:[
+                            {billing_status: "Success"},
+                            {billing_status: "graced"}
+                        ],
+                        $and:[
+                            {"billing_dtm":{$gt: new Date(from)}},
+                            {"billing_dtm":{$lte: new Date(to)}}
+                        ]
+                    }},
+                { $group: {
+                        _id: null, total: { $sum: 1 }
+                    }}
+            ]);
+            return result;
+        }catch(err){
+            console.log("getBillingRequestCountInDateRange - err =>", err);
+        }
+    }
+
     async getRequests(from, to)  {
         try{
             let result = await BillingHistory.aggregate([

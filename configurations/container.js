@@ -29,6 +29,7 @@ const TelenorBillingService = require('../services/TelenorBillingService');
 const SystemUserService = require('../services/SystemUserService');
 const EasypaisaPaymentService = require('../services/EasypaisaPaymentService');
 const PaymentProcessService = require('../services/PaymentProcessService');
+const RevenueStatisticsService = require('../services/RevenueStatisticsService');
 
 const Constants = require('./constants');
 //scripts
@@ -64,6 +65,7 @@ container.register({
     subscriptionService : awilix.asClass(SubscriptionService).singleton(),
     easypaisaPaymentService: awilix.asClass(EasypaisaPaymentService).singleton(),
     paymentProcessService: awilix.asClass(PaymentProcessService).singleton(),
+    revenueStatisticsService: awilix.asClass(RevenueStatisticsService).singleton(),
 
     //scripts
     removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdnsScript).singleton(),

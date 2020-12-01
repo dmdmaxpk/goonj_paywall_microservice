@@ -5,10 +5,9 @@ const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
 const grayListService = require('../services/GrayListService');
 const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 
-
 const container = require("../configurations/container");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
-
+const revenueStatisticsService = container.resolve("revenueStatisticsService");
 
 exports.gdn_report = async (req,res) =>  {
     affiliateReportsRepo.gdnReport(true);
@@ -141,4 +140,65 @@ exports.billing_stats = async (req,res) =>  {
     res.send(data);
 }
 
+exports.revenue_stats = async (req,res) =>  {
+    let revenueStats = [];
+    let today = new Date();
+    today.setHours(00);
+    today.setMinutes(00);
+    today.setSeconds(00);
 
+    console.log('req.query.day: ', req.query.day);
+    if (req.query.day === 'today'){
+        console.log('1: ');
+
+        //Today - Start and end date
+        let todayStart = new Date();
+        let todayEnd = new Date();
+        todayStart.setHours(00);
+        todayStart.setMinutes(00);
+        todayStart.setSeconds(00);
+        revenueStats = await revenueStatisticsService.getRevenueStatsDateWise(todayStart, todayEnd);
+        console.log('todayRevenueStats: ', revenueStats);
+    }
+    else if(req.query.day === 'yesterday'){
+        console.log('2: ');
+
+        //Yesterday - Start and end date
+        let yesterdayStart = new Date();
+        let yesterdayEnd = new Date();
+        yesterdayStart.setDate(today.getDate() - 1);
+        yesterdayStart.setHours(00);
+        yesterdayStart.setMinutes(00);
+        yesterdayStart.setSeconds(00);
+        yesterdayEnd.setDate(today.getDate() - 1);
+        revenueStats = await revenueStatisticsService.getRevenueStatsDateWise(yesterdayStart, yesterdayEnd);
+        console.log('yesterdayRevenueStats: ', revenueStats);
+    }
+    else if(req.query.day === 'datBeforeYesterday'){
+        console.log('3: ');
+
+        //A day before Yesterday - Start and end date
+        let dayBeforeYesterdayStart = new Date();
+        let dayBeforeYesterdayEnd = new Date();
+        dayBeforeYesterdayStart.setDate(today.getDate() - 2);
+        dayBeforeYesterdayStart.setHours(00);
+        dayBeforeYesterdayStart.setMinutes(00);
+        dayBeforeYesterdayStart.setSeconds(00);
+        dayBeforeYesterdayEnd.setDate(today.getDate() - 2);
+        revenueStats = await revenueStatisticsService.getRevenueStatsDateWise(dayBeforeYesterdayStart, dayBeforeYesterdayEnd);
+        console.log('dayBeforeYesterdayRevenueStats - stringify: ', revenueStats);
+    }
+
+    console.log('revenueStats: ', revenueStats);
+    res.send({code: 1, data: revenueStats});
+
+    // let stats = [
+    //     {"today": todayRevenueStats},
+    //     {"yesterday" : yesterdayRevenueStats},
+    //     {"dbyesterday" : dayBeforeYesterdayRevenueStats}
+    // ];
+
+    // console.log('revenueStats - stringify: ', stats);
+    // res.status(200).json({data: JSON.parse(JSON.stringify(stats))});
+    // //res.send(JSON.parse(JSON.stringify(stats)));
+};
