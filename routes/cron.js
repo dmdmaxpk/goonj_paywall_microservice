@@ -9,8 +9,8 @@ router.route('/markRenewableUsers')
 router.route('/markRenewableUserForcefully')
     .get(controller.markRenewableUserForcefully);
 
-// router.route('/subscriptionRenewal')
-//     .get(controller.subscriptionRenewal);
+router.route('/subscriptionRenewal')
+    .get(controller.subscriptionRenewal);
 
 router.route('/rabbitMqMonitoring')
     .get(controller.rabbitMqMonitoring);

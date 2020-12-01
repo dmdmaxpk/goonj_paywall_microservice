@@ -12,7 +12,7 @@ class PackageRepository {
         return result;
     }
     
-    async getPackage (query) {
+    async getPackage(query) {
         query.active = true;
         let result = await Package.find(query);
         if(result && result.length == 1){
@@ -21,13 +21,13 @@ class PackageRepository {
         return undefined;
     }
     
-    async getAllPackages  (query) {
+    async getAllPackages(query) {
         query.active = true;
         let result = await Package.find(query);
         return result;
     }
     
-    async updatePackage  (id, postData) {
+    async updatePackage(id, postData) {
         const query = { _id: id };
         postBody.last_modified = new Date();
         
