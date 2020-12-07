@@ -59,7 +59,7 @@ app.use(logger('combined', {skip: skipLog}));
 app.use(swStats.getMiddleware({}));
 
 // Middlewares
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '5120kb'}));  //5MB
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(mongoSanitize());
 
