@@ -1016,10 +1016,8 @@ exports.unsubscribe = async (req, res) => {
 	
 	if(user){
 		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
-		if(subscriber && package_id){
-			
+		if(subscriber){
 			let subscriptions = [];
-
 			if(package_id){
 				let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
 				subscriptions.push(subscription);
@@ -1089,7 +1087,7 @@ exports.unsubscribe = async (req, res) => {
 				res.send({code: config.codes.code_error, message: 'No subscription found!', gw_transaction_id: gw_transaction_id});	
 			}
 		}else{
-			res.send({code: config.codes.code_error, message: 'No subscriber found or package detail is missing!', gw_transaction_id: gw_transaction_id});	
+			res.send({code: config.codes.code_error, message: 'No subscriber found!', gw_transaction_id: gw_transaction_id});	
 		}
 	}else{
 		res.send({code: config.codes.code_error, message: 'Invalid user/msisdn provided.', gw_transaction_id: gw_transaction_id});
