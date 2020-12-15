@@ -85,7 +85,7 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(14000);
+        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(12000);
         return results;
     }
     
@@ -108,6 +108,20 @@ class SubscriptionRepository {
                 let subscription = await this.getSubscription(subscription_id);
                 return subscription;
             }
+        } catch(error) {
+            console.log(error);
+            return error;
+        }
+    }
+
+    async updateAllSubscriptions (subscriptionArray, postData)  {
+        postData.last_modified = new Date();
+        try {
+            const result = await Subscription.updateMany(
+                {_id: {$in: subscriptionArray}},
+                { $set: postData  }
+            )
+            console.log("updated subs result", result);
         } catch(error) {
             console.log(error);
             return error;
