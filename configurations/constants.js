@@ -9,8 +9,8 @@ class Constants {
             gdn: `Apko Goonj TV activate kr dia gaya ha. Jub chahien Jaib se Mobile nikalien aur TOP LIVE TV Channels deikhen.`
         },
         this.subscription_messages_direct = {
-            QDfC: `Goonj Live TV Rs %price%/d subscribe kar diya gya hai. Service khatam krnay k liye link par click karein www.goonj.pk/unsubscribe?proxy=%user_id%&pg=%pkg_id%`,
-            QDfG: `Goonj Live TV Rs %price%/wk subscribe kar diya gya hai. Service khatam krnay k liye link par click karein www.goonj.pk/unsubscribe?proxy=%user_id%&pg=%pkg_id%`,
+            QDfC: `Goonj Live TV Rs %price%/d subscribe kar diya gya hai. Service khatam krnay k liye link par click karein www.goonj.pk/unsubscribe?proxy=%user_id%&amppg=%pkg_id%`,
+            QDfG: `Goonj Live TV Rs %price%/wk subscribe kar diya gya hai. Service khatam krnay k liye link par click karein www.goonj.pk/unsubscribe?proxy=%user_id%&amppg=%pkg_id%`,
             QDfH: `Goonj Comedy Rs%price% mein subscribe kar di gaye hai. Service dekhne k liye goonj.pk or unsub k liye call 03401832782`,
             QDfI: `Goonj Comedy Rs%price% mein subscribe kar di gaye hai. Service dekhne k liye goonj.pk or unsub k liye call 03401832782`,
         },
