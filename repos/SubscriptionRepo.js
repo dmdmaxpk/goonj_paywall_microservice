@@ -552,6 +552,19 @@ class SubscriptionRepository {
 
         return data;
     }
+
+    async getPreRenwalSubscriptions(){
+        var date = new Date();
+        let datDate = new Date();
+        // add a day
+        date = date.setDate(date.getDate() + 1);
+        datDate = datDate.setDate(datDate.getDate() + 2)
+        
+        let subs = await Subscription.aggregate([
+            { $match: {  next_billing_timestamp: { $gte: new Date(date), $lte: new Date(datDate) }, subscription_status: {$in: ['billed', 'graced'] }, auto_renewal: true, subscribed_package_id: { $in: ['QDfG'] } } }
+        ]);
+        return subs;
+    }
 }
 
 module.exports = SubscriptionRepository;

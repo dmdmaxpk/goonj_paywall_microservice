@@ -57,4 +57,7 @@ router.route('/migrate')
 router.route('/removemsisdns')
     .get(controller.removeDuplicateMsisdns);
 
+router.route('/preRenewalSubscriptions')
+    .get(controller.preRenewalSubscriptions);
+
 module.exports = router;

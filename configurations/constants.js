@@ -2,16 +2,15 @@
 class Constants {
     constructor({}) {
         this.subscription_messages = {
-            
             QDfC: `Free %trial_hours%hrs Goonj tv trial activate kar dia gya hai.Top channels dekhny k liye www.goonj.pk aur unsub k liye call 03401832782`,
             QDfG: `Free %trial_hours%hrs Goonj tv trial activate kar dia gya hai.Top channels dekhny k liye www.goonj.pk aur unsub k liye call 03401832782`,                            
             QDfH: `Your Goonj TV subscription for Comedy Portal has been activated at Rs.%price%/day. Thankyou for watching Goonj Comedy`,
             QDfI: `Your Goonj TV subscription for Comedy Portal has been activated at Rs.%price%/week. Thankyou for watching Goonj Comedy`,
-            gdn:`Apko Goonj TV activate kr dia gaya ha. Jub chahien Jaib se Mobile nikalien aur TOP LIVE TV Channels deikhen.`
+            gdn: `Apko Goonj TV activate kr dia gaya ha. Jub chahien Jaib se Mobile nikalien aur TOP LIVE TV Channels deikhen.`
         },
         this.subscription_messages_direct = {
-            QDfC: `Goonj Live TV Rs %price%/d subscribe kar diya gya hai. TV dekhnay k liye www.goonj.pk aur unsub k liye call 03401832782`,
-            QDfG: `Goonj Live TV Rs %price%/wk subscribe kar diya gya hai. TV dekhnay k liye www.goonj.pk aur unsub k liye call 03401832782`,
+            QDfC: `Goonj Live TV Rs %price%/d subscribe kar diya gya hai. Service khatam krnay k liye link par click karein www.goonj.pk/unsubscribe?proxy=%user_id%&pg=%pkg_id%`,
+            QDfG: `Goonj Live TV Rs %price%/wk subscribe kar diya gya hai. Service khatam krnay k liye link par click karein www.goonj.pk/unsubscribe?proxy=%user_id%&pg=%pkg_id%`,
             QDfH: `Goonj Comedy Rs%price% mein subscribe kar di gaye hai. Service dekhne k liye goonj.pk or unsub k liye call 03401832782`,
             QDfI: `Goonj Comedy Rs%price% mein subscribe kar di gaye hai. Service dekhne k liye goonj.pk or unsub k liye call 03401832782`,
         },
