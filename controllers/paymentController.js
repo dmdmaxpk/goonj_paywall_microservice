@@ -477,6 +477,26 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					// And for non, package will be weekly, so: weekly > micro > trial
 					if(packageObj.paywall_id === "ghRtjhT7"){
 						try{
+							// No micro charge for daily affiliate subscriptions
+							if(packageObj._id === 'QDfC' && subscriptionObj.should_affiliation_callback_sent){
+								try {
+									let result = await paymentProcessService.processDirectBilling(req.body.otp? req.body.otp : undefined, user, subscriptionObj, packageObj,true);
+									console.log("Direct Billing processed",result,user.msisdn);
+									if(result && result.message === "success"){
+										res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
+													gw_transaction_id: gw_transaction_id});
+										sendChargingMessage = true;
+									}else{
+										res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
+												gw_transaction_id: gw_transaction_id});
+									}
+								} catch(err){
+									console.log("Error while direct billing first time",err.message,user.msisdn);
+									res.send({code: config.codes.code_error, message: 'Failed to subscribe package, please try again', gw_transaction_id: gw_transaction_id});
+								}
+								return;
+							}
+
 							// Live paywall, subscription rules along with micro changing started
 							let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
 							if(subsResponse && subsResponse.status === "charged"){
