@@ -478,7 +478,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					if(packageObj.paywall_id === "ghRtjhT7"){
 						try{
 							// No micro charge for daily affiliate subscriptions
-							if(packageObj._id === 'QDfC' && subscriptionObj.should_affiliation_callback_sent){
+							if(packageObj._id === 'QDfC' && req.body.affiliate_mid === 'aff3a'){
 								try {
 									let result = await paymentProcessService.processDirectBilling(req.body.otp? req.body.otp : undefined, user, subscriptionObj, packageObj,true);
 									console.log("Direct Billing processed",result,user.msisdn);
@@ -487,8 +487,11 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 													gw_transaction_id: gw_transaction_id});
 										sendChargingMessage = true;
 									}else{
-										res.send({code: config.codes.code_error, message: 'Failed to subscribe.', 
-												gw_transaction_id: gw_transaction_id});
+										let trial = await activateTrial(req.body.otp? req.body.otp : undefined, req.body.source, user, subscriber, packageObj, subscriptionObj);
+										if(trial === "done"){
+											res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+											sendMessage = true;
+										}
 									}
 								} catch(err){
 									console.log("Error while direct billing first time",err.message,user.msisdn);
