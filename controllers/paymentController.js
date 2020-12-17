@@ -461,7 +461,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					if(trial === "done"){
 						console.log("1 trial activated");
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
-						// sendMessage = true;
+						sendTrialMessage = true;
 					}
 				}else{
 					// TODO process billing directly and create subscription
@@ -490,7 +490,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 										let trial = await activateTrial(req.body.otp? req.body.otp : undefined, req.body.source, user, subscriber, packageObj, subscriptionObj);
 										if(trial === "done"){
 											res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
-											// sendMessage = true;
+											sendTrialMessage = true;
 										}
 									}
 								} catch(err){
@@ -746,6 +746,7 @@ activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj
 	subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
 	subscriptionObj.subscription_status = 'trial';
 	subscriptionObj.is_allowed_to_stream = true;
+	subscriptionObj.should_affiliation_callback_sent = false;
 	let subscription = await subscriptionRepo.createSubscription(subscriptionObj);
 
 	
