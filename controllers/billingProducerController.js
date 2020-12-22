@@ -20,20 +20,19 @@ exports.getOnlyRenewableSubscriptions = async (req,res) =>  {
     for(let i = 0; i < result.length; i++){
         if(result[i].auto_renewal === true){
             console.log("###", i);
-            let user = await userRepo.getUserBySubscriberId(result[i].subscriber_id);
-            if(user){
-                console.log("### user found!");
-                try{
+            try{
+                let user = await userRepo.getUserBySubscriberId(result[i].subscriber_id);
+                if(user){
+                    console.log("### user found!");
                     let newObj = JSON.parse(JSON.stringify(result[i]));
                     newObj.userObj = user;
                     toBeSubscribed.push(newObj);
-                }catch(e){
-                    console.log("### - catch", e);
-                    console.log("###", user);
+                }else{
+                    console.log("### user not found");
+                    console.log('=> No user object found for subscription ', result[i]._id);
                 }
-            }else{
-                console.log("### user not found");
-                console.log('=> No user object found for subscription ', result[i]._id);
+            }catch(e){
+                console.log("### - catch", e);
             }
         }else{
             console.log("### expired");
