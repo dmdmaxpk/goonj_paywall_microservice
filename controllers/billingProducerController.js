@@ -23,9 +23,14 @@ exports.getOnlyRenewableSubscriptions = async (req,res) =>  {
             let user = await userRepo.getUserBySubscriberId(result[i].subscriber_id);
             if(user){
                 console.log("### user found!");
-                let newObj = JSON.parse(JSON.stringify(result[i]));
-                newObj.userObj = user;
-                toBeSubscribed.push(newObj);
+                try{
+                    let newObj = JSON.parse(JSON.stringify(result[i]));
+                    newObj.userObj = user;
+                    toBeSubscribed.push(newObj);
+                }catch(e){
+                    console.log("### - catch", e);
+                    console.log("###", user);
+                }
             }else{
                 console.log("### user not found");
                 console.log('=> No user object found for subscription ', result[i]._id);
