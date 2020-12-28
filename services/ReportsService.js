@@ -153,8 +153,9 @@ generateMonthlyReports =  async() => {
 generateRandomReports =  async() => {
     //reportsRepo.getOnlySubscriberIds("app", "2020-08-01T00:00:00.000Z", "2020-09-01T00:00:00.000Z");
     //reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled();
-    reportsRepo.getNextBillingDtm();
+    //reportsRepo.getNextBillingDtm();
     //reportsRepo.getReportForHeOrWifi();
+    reportsRepo.expireBaseAndBlackList();
 }
 
 function sleep(ms) {

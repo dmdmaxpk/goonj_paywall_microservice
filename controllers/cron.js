@@ -1,6 +1,7 @@
 const container = require("../configurations/container");
 const removeDuplicateMsisdns = container.resolve("removeDuplicateMsisdns");
 const subscriptionService = require('../services/SubscriptionRenewalService');
+const preRenewalService = require('../services/PreRenewalService');
 const tokenRefreshService = require('../services/TokenRefreshService');
 const tpsCountService = require('../services/TpsCountService');
 const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
@@ -20,7 +21,7 @@ const viewLogsRepo = require('../repos/ViewLogRepo');
 const UserRepository = require("../repos/UserRepo");
 
 exports.subscriptionRenewal = async (req,res) =>  {
-    subscriptionService.subscriptionRenewal();
+    //subscriptionService.subscriptionRenewal();
     res.send("Subscription renewal - Executed");
 }
 
@@ -204,4 +205,9 @@ sendEmail = async(queuedCount) => {
         subject: `Current Queue Count`,
         text: `Queued subscriptions count is ${queuedCount}, please check on priority`
     });
+}
+
+exports.preRenewalSubscriptions = async (req,res) =>  {
+    preRenewalService.getPreRenewalSubscriptions();
+    res.send("Pre renewal service - Executed");
 }

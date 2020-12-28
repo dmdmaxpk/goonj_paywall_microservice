@@ -4,34 +4,6 @@ const bodyParser = require('body-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const mongoose = require('mongoose');
 
-console.log('***************************************');
-const cluster = require('cluster');
-const numCPUs = require('os').cpus().length;
-
-console.log('=============================:numCPUs: ', numCPUs);
-
-if (cluster.isMaster) {
-    masterProcess();
-} else {
-    childProcess();
-}
-
-function masterProcess() {
-    console.log(`=============================:Master ${process.pid} is running`);
-    console.log('=============================:isMaster: yes');
-    // createChannel(), assertQueue(), sendToQueue() - RabbitMQ
-    // this.createQueue(); all the types of create queues
-}
-
-function childProcess() {
-    console.log(`=============================:Worker ${process.pid} started...`);
-    console.log('=============================:isWorker: yes');
-    // consumeQueue() - RabbitMQ workers
-    // this.consumeQueue(connection); all the type of consume queues
-}
-
-console.log('***************************************');
-
 // Import database models
 require('./models/User');
 require('./models/Package');
@@ -60,7 +32,7 @@ const tokenRefreshService = require('./services/TokenRefreshService');
 
 
 // Connection to Database
-mongoose.connect(config.mongoDB);
+mongoose.connect(config.mongoDB, {useUnifiedTopology: true, useCreateIndex: true, useNewUrlParser: true});
 mongoose.connection.on('error', err => console.error(`Error: ${err.message}`));
 
 var RabbitMq = require('./repos/queue/RabbitMq');
@@ -87,7 +59,7 @@ app.use(logger('combined', {skip: skipLog}));
 app.use(swStats.getMiddleware({}));
 
 // Middlewares
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '5120kb'}));  //5MB
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(mongoSanitize());
 
@@ -132,7 +104,4 @@ app.use('/', require('./routes/index'));
 let { port } = config;
 app.listen(port, () => {
     console.log(`APP running on port ${port}`);
-
-    //let service = require('./services/ReportsService');
-    //service.generateDailyReport();
 });

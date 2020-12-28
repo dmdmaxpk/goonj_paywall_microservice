@@ -19,6 +19,8 @@ router.route('/subscribe')
 router.route('/unsubscribe')
     .post(authMiddleWare.authenticateToken, controller.unsubscribe);
 
+router.route('/sms-unsub').post(controller.unsubscribe);
+
 router.route('/ccd-unsubscribe')
     .post(authMiddleWare.authenticateCcdToken, controller.unsubscribe);
 

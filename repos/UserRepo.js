@@ -73,6 +73,11 @@ class UserRepository {
         return data;
     }
 
+    async blacklistMany(ids)  {
+        let data = await User.updateMany({"_id": {$in:ids }},{$set:{is_black_listed: true}});
+        return data;
+    }
+
     async updateUserById (user_id, postData)  {
         const query = { _id: user_id };
         postData.last_modified = new Date();

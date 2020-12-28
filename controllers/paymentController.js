@@ -461,7 +461,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					if(trial === "done"){
 						console.log("1 trial activated");
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
-						sendMessage = true;
+						sendTrialMessage = true;
 					}
 				}else{
 					// TODO process billing directly and create subscription
@@ -477,6 +477,29 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					// And for non, package will be weekly, so: weekly > micro > trial
 					if(packageObj.paywall_id === "ghRtjhT7"){
 						try{
+							// No micro charge for daily affiliate subscriptions
+							if(packageObj._id === 'QDfC' && req.body.affiliate_mid === 'aff3a'){
+								try {
+									let result = await paymentProcessService.processDirectBilling(req.body.otp? req.body.otp : undefined, user, subscriptionObj, packageObj,true);
+									console.log("Direct Billing processed",result,user.msisdn);
+									if(result && result.message === "success"){
+										res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
+													gw_transaction_id: gw_transaction_id});
+										sendChargingMessage = true;
+									}else{
+										let trial = await activateTrial(req.body.otp? req.body.otp : undefined, req.body.source, user, subscriber, packageObj, subscriptionObj);
+										if(trial === "done"){
+											res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+											sendTrialMessage = true;
+										}
+									}
+								} catch(err){
+									console.log("Error while direct billing first time",err.message,user.msisdn);
+									res.send({code: config.codes.code_error, message: 'Failed to subscribe package, please try again', gw_transaction_id: gw_transaction_id});
+								}
+								return;
+							}
+
 							// Live paywall, subscription rules along with micro changing started
 							let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
 							if(subsResponse && subsResponse.status === "charged"){
@@ -723,6 +746,7 @@ activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj
 	subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
 	subscriptionObj.subscription_status = 'trial';
 	subscriptionObj.is_allowed_to_stream = true;
+	subscriptionObj.should_affiliation_callback_sent = false;
 	let subscription = await subscriptionRepo.createSubscription(subscriptionObj);
 
 	
@@ -1008,23 +1032,32 @@ exports.unsubscribe = async (req, res) => {
 	let source = req.body.source;
 	let package_id = req.body.package_id;
 
-	if(!package_id){
-		package_id = config.default_package_id;
-	}
-
 	if (user_id) {
 		user = await userRepo.getUserById(user_id);
-	}else{
+	}else if(msisdn){
 		user = await userRepo.getUserByMsisdn(msisdn);
 	}
 	
 	if(user){
 		let subscriber = await subscriberRepo.getSubscriberByUserId(user._id);
-		if(subscriber && package_id){
-			let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
-			if(subscription){
-				let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
-				let result = await subscriptionRepo.updateSubscription(subscription._id, 
+		if(subscriber){
+			let subscriptions = [];
+			if(package_id){
+				let subscription = await subscriptionRepo.getSubscriptionByPackageId(subscriber._id, package_id);
+				subscriptions.push(subscription);
+			}else{
+				subscriptions = await subscriptionRepo.getAllSubscriptions(subscriber._id);
+			}
+
+
+			let unSubCount = 0;
+
+			if(subscriptions.length > 0){
+				for(let i = 0; i < subscriptions.length; i++){
+					let subscription = subscriptions[i];
+
+					let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
+					let result = await subscriptionRepo.updateSubscription(subscription._id, 
 					{
 						auto_renewal: false, 
 						consecutive_successive_bill_counts: 0,
@@ -1038,46 +1071,50 @@ exports.unsubscribe = async (req, res) => {
 						priority: 0,
 						amount_billed_today: 0
 					});
-				
-				let history = {};
-				history.user_id = user._id;
-				history.paywall_id = packageObj.paywall_id;
-				history.package_id = packageObj._id;
-				history.subscriber_id = subscription.subscriber_id;
-				history.subscription_id = subscription._id;
-				history.billing_status = 'unsubscribe-request-received-and-expired';
-				history.source = source ? source : "na";
-				history.operator = user.operator;
-				result = await billingHistoryRepo.createBillingHistory(history);
-
-				// send SMS to user
-				let smsText = `Apki Goonj TV per ${packageObj.package_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
-				messageRepo.sendSmsToUser(smsText,user.msisdn);
-
-				if(result){
-					if(subscription.marketing_source && subscription.marketing_source !== 'none'){
-						
-						// This user registered from a marketer, let's put this user in gray list
-						result = await subscriptionRepo.updateSubscription(subscription._id, {is_gray_listed: true});
-						result = await userRepo.updateUser(msisdn, {is_gray_listed: true});
-						if(result){
-							res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});	
+					
+					let history = {};
+					history.user_id = user._id;
+					history.paywall_id = packageObj.paywall_id;
+					history.package_id = packageObj._id;
+					history.subscriber_id = subscription.subscriber_id;
+					history.subscription_id = subscription._id;
+					history.billing_status = 'unsubscribe-request-received-and-expired';
+					history.source = source ? source : "na";
+					history.operator = user.operator;
+					result = await billingHistoryRepo.createBillingHistory(history);
+	
+					if(result){
+						if(subscription.marketing_source && subscription.marketing_source !== 'none'){
+							
+							// This user registered from a marketer, let's put this user in gray list
+							result = await subscriptionRepo.updateSubscription(subscription._id, {is_gray_listed: true});
+							result = await userRepo.updateUser(msisdn, {is_gray_listed: true});
+							if(result){
+								unSubCount += 1;
+							}
+						}else{
+							unSubCount += 1;
 						}
-					}else{
-						res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});	
 					}
+				}
+
+				if(unSubCount === subscriptions.length){
+					// send sms
+					let smsText = `Apki Goonj TV ki subscriptions khatm kr di gai han. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
+					messageRepo.sendSmsToUser(smsText,user.msisdn);
+
+					res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});
 				}else{
 					res.send({code: config.codes.code_error, message: 'Failed to unsubscribe', gw_transaction_id: gw_transaction_id});	
 				}
-
 			}else{
 				res.send({code: config.codes.code_error, message: 'No subscription found!', gw_transaction_id: gw_transaction_id});	
 			}
 		}else{
-			res.send({code: config.codes.code_error, message: 'No subscriber found or package detail is missing!', gw_transaction_id: gw_transaction_id});	
+			res.send({code: config.codes.code_error, message: 'No subscriber found!', gw_transaction_id: gw_transaction_id});	
 		}
 	}else{
-		res.send({code: config.codes.code_error, message: 'Invalid msisdn provided.', gw_transaction_id: gw_transaction_id});
+		res.send({code: config.codes.code_error, message: 'Invalid user/msisdn provided.', gw_transaction_id: gw_transaction_id});
 	}
 }
 
