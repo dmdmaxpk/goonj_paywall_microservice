@@ -89,7 +89,7 @@ class SubscriptionRepository {
         let aggregation = Subscription.aggregate([
             {
                 $sample: {
-                    size: 100000
+                    size: 200000
                 }
             },{
                 $match:{
