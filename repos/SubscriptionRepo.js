@@ -104,12 +104,9 @@ class SubscriptionRepository {
             },{
                 $limit: 12000
             }
-        ]);
-        aggregation.options = { allowDiskUse: true }; 
-        aggregation.exec((data) => {
-            console.log(data);
-            return data;
-        });
+        ]).allowDiskUse(true);
+        let results = await aggregation.exec();
+        return results;
     }
     
     async getBilledSubscriptions ()  {
