@@ -103,8 +103,6 @@ class SubscriptionRepository {
                 }
             },{
                 $limit: 12000
-            },{
-                $count: 'count'
             }
         ]);
         
