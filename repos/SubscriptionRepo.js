@@ -89,7 +89,7 @@ class SubscriptionRepository {
         let aggregation = Subscription.aggregate([
             {
                 $sample: {
-                    size: 200000
+                    size: 400000
                 }
             },{
                 $match:{
@@ -102,7 +102,7 @@ class SubscriptionRepository {
                     priority:1
                 }
             },{
-                $limit: 12000
+                $limit: 60000
             }
         ]).allowDiskUse(true);
         let results = await aggregation.exec();
