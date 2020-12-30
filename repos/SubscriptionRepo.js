@@ -575,7 +575,7 @@ class SubscriptionRepository {
         datDate = datDate.setDate(datDate.getDate() + 2)
         
         let subs = await Subscription.aggregate([
-            { $match: {  next_billing_timestamp: { $gte: new Date(date), $lte: new Date(datDate) }, subscription_status: {$in: ['billed', 'graced'] }, auto_renewal: true, subscribed_package_id: { $in: ['QDfG'] } } }
+            { $match: {  next_billing_timestamp: { $gte: new Date(date), $lte: new Date(datDate) }, subscription_status: {$in: ['billed'] }, auto_renewal: true, subscribed_package_id: { $in: ['QDfG'] } } }
         ]);
         return subs;
     }
