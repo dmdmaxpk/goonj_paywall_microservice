@@ -102,7 +102,7 @@ class SubscriptionRepository {
                     priority:1
                 }
             },{
-                $limit: 60000
+                $limit: 13000
             }
         ]).allowDiskUse(true);
         let results = await aggregation.exec();
