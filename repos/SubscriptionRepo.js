@@ -86,7 +86,7 @@ class SubscriptionRepository {
     
     async getRenewableSubscriptions  ()  {
         //let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(12000);
-        let results = await Subscription.aggregate([
+        let aggregation = Subscription.aggregate([
             {
                 $sample: {
                     size: 100000
@@ -104,9 +104,12 @@ class SubscriptionRepository {
             },{
                 $limit: 12000
             }
-        ], {allowDiskUse:true});
-        
-        return results;
+        ]);
+        aggregation.options = { allowDiskUse: true }; 
+        aggregation.exec((data) => {
+            console.log(data);
+            return data;
+        });
     }
     
     async getBilledSubscriptions ()  {
