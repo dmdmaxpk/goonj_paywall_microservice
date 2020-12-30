@@ -104,7 +104,7 @@ class SubscriptionRepository {
             },{
                 $limit: 12000
             }
-        ]);
+        ], {allowDiskUse:true});
         
         return results;
     }
