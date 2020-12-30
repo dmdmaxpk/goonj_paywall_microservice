@@ -20,6 +20,7 @@ var viewLogsRepo = require('../repos/ViewLogRepo');
 var pageViews = require('../controllers/PageViews');
 const path = require('path');
 
+const axios = require('axios');
 
 const otpRepo = require('../repos/OTPRepo');
 
@@ -335,6 +336,41 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
             }
             console.log("###  File deleted [randomReport]");
         });
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+expireBaseAndBlackList = async() => {
+    console.log("### expireBaseAndBlackList");
+
+    try{
+        var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
+        let inputData = await readFileSync(jsonPath);    
+        console.log("### Input Data Length: ", inputData.length);
+        let blacklistIds = [];
+        for(let i = 0; i < inputData.length; i++){
+            if(inputData[i] && inputData[i].length === 11){
+                let user = await usersRepo.getUserByMsisdn(inputData[i]);
+                if(user){
+                    let unSubObject = {};
+                    unSubObject.transaction_id = 'random-transaction-id';
+                    unSubObject.msisdn = user.msisdn;
+                    unSubObject.source = 'tp-on-demand-via-email';
+
+                    axios.post('http://127.0.0.1:5000/payment/sms-unsub', unSubObject);
+                    console.log('### Axios call send for msisdn ', user.msisdn);
+                    blacklistIds.push(user._id);
+                }else{
+                    console.log("### No user found for", inputData[i]);
+                }
+            }else{
+                console.log("### Invalid number or number length");
+            }
+        }
+    
+        let blacklistResult = await usersRepo.blacklistMany(blacklistIds);
+        console.log("### Blacklisted: ", blacklistResult);
     }catch(e){
         console.log("### error - ", e);
     }
@@ -1774,6 +1810,7 @@ module.exports = {
     getOnlySubscriberIds: getOnlySubscriberIds,
     getReportForHeOrWifi: getReportForHeOrWifi,
     getNextBillingDtm: getNextBillingDtm,
+    expireBaseAndBlackList: expireBaseAndBlackList,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,

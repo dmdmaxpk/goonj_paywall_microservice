@@ -13,22 +13,30 @@ exports.getPackage = async (req,res) =>  {
 }
 
 exports.getOnlyRenewableSubscriptions = async (req,res) =>  {
+    console.log("### - getOnlyRenewableSubscriptions");
     let result = await subscriptionRepo.getRenewableSubscriptions();
+    console.log("### Length", result.length);
     let toBeSubscribed = [];
     for(let i = 0; i < result.length; i++){
         if(result[i].auto_renewal === true){
-            let user = await userRepo.getUserBySubscriberId(result[i].subscriber_id);
-            if(user){
-                let newObj = JSON.parse(JSON.stringify(result[i]));
-                newObj.userObj = user;
-                toBeSubscribed.push(newObj);
-            }else{
-                console.log('=> No user object found for subscription ', result[i]._id);
+            try{
+                let user = await userRepo.getUserBySubscriberId(result[i].subscriber_id);
+                if(user){
+                    let newObj = JSON.parse(JSON.stringify(result[i]));
+                    newObj.userObj = user;
+                    toBeSubscribed.push(newObj);
+                }else{
+                    console.log('=> No user object found for subscription ', result[i]._id);
+                }
+            }catch(e){
+                console.log("### - catch", e);
             }
         }else{
+            console.log("### expired");
             expire(result[i]);
         }
     }
+    console.log("### sending report");
     res.send(toBeSubscribed);
 }
 
@@ -48,7 +56,7 @@ expire = async(subscription) => {
     });
 
 
-    let packageObj = await packageRepo.getPackages({_id: subscription.subscribed_package_id});
+    let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
     let user = await userRepo.getUserBySubscriptionId(subscription._id);
 
     let history = {};

@@ -461,7 +461,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					if(trial === "done"){
 						console.log("1 trial activated");
 						res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
-						sendMessage = true;
+						sendTrialMessage = true;
 					}
 				}else{
 					// TODO process billing directly and create subscription
@@ -477,6 +477,29 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 					// And for non, package will be weekly, so: weekly > micro > trial
 					if(packageObj.paywall_id === "ghRtjhT7"){
 						try{
+							// No micro charge for daily affiliate subscriptions
+							if(packageObj._id === 'QDfC' && req.body.affiliate_mid === 'aff3a'){
+								try {
+									let result = await paymentProcessService.processDirectBilling(req.body.otp? req.body.otp : undefined, user, subscriptionObj, packageObj,true);
+									console.log("Direct Billing processed",result,user.msisdn);
+									if(result && result.message === "success"){
+										res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', 
+													gw_transaction_id: gw_transaction_id});
+										sendChargingMessage = true;
+									}else{
+										let trial = await activateTrial(req.body.otp? req.body.otp : undefined, req.body.source, user, subscriber, packageObj, subscriptionObj);
+										if(trial === "done"){
+											res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+											sendTrialMessage = true;
+										}
+									}
+								} catch(err){
+									console.log("Error while direct billing first time",err.message,user.msisdn);
+									res.send({code: config.codes.code_error, message: 'Failed to subscribe package, please try again', gw_transaction_id: gw_transaction_id});
+								}
+								return;
+							}
+
 							// Live paywall, subscription rules along with micro changing started
 							let subsResponse = await doSubscribeUsingSubscribingRuleAlongWithMicroCharging(req.body.otp, req.body.source, user, subscriber, packageObj, subscriptionObj);
 							if(subsResponse && subsResponse.status === "charged"){
@@ -723,6 +746,7 @@ activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj
 	subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
 	subscriptionObj.subscription_status = 'trial';
 	subscriptionObj.is_allowed_to_stream = true;
+	subscriptionObj.should_affiliation_callback_sent = false;
 	let subscription = await subscriptionRepo.createSubscription(subscriptionObj);
 
 	

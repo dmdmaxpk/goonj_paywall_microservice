@@ -85,7 +85,27 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(12000);
+        //let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(12000);
+        let aggregation = Subscription.aggregate([
+            {
+                $sample: {
+                    size: 600000
+                }
+            },{
+                $match:{
+                    is_billable_in_this_cycle: true, 
+                    active: true, 
+                    queued:false
+                }
+            },{
+                $sort:{
+                    priority:1
+                }
+            },{
+                $limit: 13000
+            }
+        ]).allowDiskUse(true);
+        let results = await aggregation.exec();
         return results;
     }
     
