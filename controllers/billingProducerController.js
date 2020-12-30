@@ -59,7 +59,7 @@ expire = async(subscription) => {
     });
 
 
-    let packageObj = await packageRepo.getPackages({_id: subscription.subscribed_package_id});
+    let packageObj = await packageRepo.getPackage({_id: subscription.subscribed_package_id});
     let user = await userRepo.getUserBySubscriptionId(subscription._id);
 
     let history = {};
