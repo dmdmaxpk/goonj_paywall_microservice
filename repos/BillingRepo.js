@@ -43,7 +43,7 @@ class BillingRepository {
     
     // This function is used to process billing without queuing the record
     async processDirectBilling (msisdn, packageObj, transaction_id)  {
-        let transactionId = 'hardcode_ms';//transaction_id;
+        let transactionId = msisdn+"_"+this.getRandomInt(100000);//transaction_id;
         let form = {
             "correlationID": transactionId,
             "msisdn": msisdn
@@ -70,7 +70,7 @@ class BillingRepository {
     
     // Full charge request
     async fullChargeAttempt (msisdn, packageObj, transactionId, subscription)  {
-        transactionId = 'hardcode_ms';
+        transactionId = msisdn+"_"+this.getRandomInt(100000);
         let subscriptionObj = {};
         subscriptionObj.packageObj = packageObj;
         subscriptionObj.msisdn = msisdn;
@@ -110,7 +110,7 @@ class BillingRepository {
     
     // Micro charge request
     async microChargeAttempt (msisdn, packageObj, transactionId, price, subscription) {
-        transactionId = 'hardcode_ms';
+        transactionId = msisdn+"_"+this.getRandomInt(100000);
         let subscriptionObj = {};
         subscriptionObj.packageObj = packageObj;
         subscriptionObj.msisdn = msisdn;
@@ -226,7 +226,11 @@ class BillingRepository {
                 reject(err);
             });
         })
-    };
+    }
+
+    getRandomInt(max) {
+        return Math.floor(Math.random() * Math.floor(max));
+    }
 }
 // To generate token to consume telenor dcb apis
 
