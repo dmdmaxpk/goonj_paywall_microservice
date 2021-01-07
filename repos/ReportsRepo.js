@@ -291,7 +291,8 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                             //     totalSuccessTransactions += subscriptions[sub].total_successive_bill_counts;
                             // }
 
-                            let totalSuccessTransactions = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2020-12-01T00:00:00.000Z", "2020-12-31T00:00:00.000Z");
+                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2020-12-01T00:00:00.000Z", "2020-12-31T00:00:00.000Z");
+                            let totalSuccessTransactions = totalSuccessTransactionsInDec[0].count;
 
                             singObject.subs_count = subsCount;
                             singObject.acquisition_date = addedDtm;
