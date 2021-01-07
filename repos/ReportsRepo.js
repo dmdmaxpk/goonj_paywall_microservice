@@ -207,6 +207,7 @@ const randomReportWriter = createCsvWriter({
     path: randomReportFilePath,
     header: [
         {id: 'msisdn', title: 'Msisdn'},
+        {id: 'subs_count', title: 'Number Of Subscriptions'},
         {id: 'acquisition_source', title: 'Acquisition Source'},
         {id: 'acquisition_date', title: 'Acquisition Date'},
         {id: 'number_of_success_charging', title: 'Number of Success Charging'},
@@ -270,7 +271,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
                 let user = await usersRepo.getUserByMsisdn(inputData[i]);
                 if(user){
-                    let dou = await viewLogsRepo.getDaysOfUse(user._id);
+                    let dou = await viewLogsRepo.getDaysOfUseInDateRange(user._id, "2020-12-01T00:00:00.000Z", "2020-12-31T00:00:00.000Z");
                     if(dou && dou.length > 0){
                         singObject.dou = dou[0].count;
                     }else{
@@ -282,12 +283,17 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                         let subscriptions = await subscriptionRepo.getAllSubscriptions(subscriber._id);
                         if(subscriptions && subscriptions.length > 0){
                             let addedDtm = subscriptions[0].added_dtm;
-                            let totalSuccessTransactions = 0;
-                            
-                            for(let sub = 0; sub < subscriptions.length; sub++){
-                                totalSuccessTransactions += subscriptions[sub].total_successive_bill_counts;
-                            }
+                            let subsCount = subscriptions.length;
 
+                            // let totalSuccessTransactions = 0;
+                            
+                            // for(let sub = 0; sub < subscriptions.length; sub++){
+                            //     totalSuccessTransactions += subscriptions[sub].total_successive_bill_counts;
+                            // }
+
+                            let totalSuccessTransactions = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2020-12-01T00:00:00.000Z", "2020-12-31T00:00:00.000Z");
+
+                            singObject.subs_count = subsCount;
                             singObject.acquisition_date = addedDtm;
                             singObject.number_of_success_charging = totalSuccessTransactions;
 
