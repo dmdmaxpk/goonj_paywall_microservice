@@ -260,16 +260,17 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
     try{
         var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
-        let inputData = await readFileSync(jsonPath);    
+        let inputData = await readFileSyncCustom(jsonPath);    
         console.log("### Input Data Length: ", inputData.length);
 
         for(let i = 0; i < inputData.length; i++){
-            if(inputData[i] && inputData[i].length === 11){
+            if(inputData[i][0] && inputData[i][0].length === 11){
                 let singObject = {
-                    msisdn: inputData[i]
+                    msisdn: inputData[i][0],
+                    date: inputData[i][1]
                 }
 
-                let user = await usersRepo.getUserByMsisdn(inputData[i]);
+                let user = await usersRepo.getUserByMsisdn(inputData[i][0]);
                 if(user){
                     let dou = await viewLogsRepo.getDaysOfUseInDateRange(user._id, "2020-12-01T00:00:00.000Z", "2020-12-31T00:00:00.000Z");
                     if(dou && dou.length > 0){
@@ -291,7 +292,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                             //     totalSuccessTransactions += subscriptions[sub].total_successive_bill_counts;
                             // }
 
-                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2020-12-01T00:00:00.000Z", "2020-12-31T00:00:00.000Z");
+                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, inputData[i][1] + "T00:00:00.000Z", inputData[i][1] + "T23:59:59.000Z");
                             let totalSuccessTransactions = totalSuccessTransactionsInDec[0].count;
 
                             singObject.subs_count = subsCount;
@@ -308,13 +309,13 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                             console.log("### Done ", i);
 
                         }else{
-                            console.log("### No subscriptions found for", inputData[i]);    
+                            console.log("### No subscriptions found for", inputData[i][0]);    
                         }
                     }else{
-                        console.log("### No subscriber found for", inputData[i]);    
+                        console.log("### No subscriber found for", inputData[i][0]);    
                     }
                 }else{
-                    console.log("### No user found for", inputData[i]);
+                    console.log("### No user found for", inputData[i][0]);
                 }
             }else{
                 console.log("### Invalid number or number length");
@@ -325,7 +326,8 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
         await randomReportWriter.writeRecords(finalResult);
         let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["farhan.ali@dmdmax.com"],
+            to:  ["taha@dmdmax.com"],
+            // to:  ["farhan.ali@dmdmax.com"],
             subject: `Complaint Data`, // Subject line
             text: `This report contains the details of msisdns being sent us over email from Zara`,
             attachments:[
@@ -509,6 +511,38 @@ readFileSync = async (jsonPath) => {
                 inputData.push(line);
                 counter += 1;
                 console.log("### read", counter);
+            });
+    
+            readInterface.on('close', function(line) {
+                resolve(inputData);
+            });
+        }catch(e){
+            reject(e);
+        }
+    });
+}
+
+readFileSyncCustom = async (jsonPath) => {
+    return new Promise((resolve, reject) => {
+        try{
+            const readInterface = readline.createInterface({
+                input: fs.createReadStream(jsonPath)
+            });
+            let inputData = [];
+            let counter = 0;
+            readInterface.on('line', function(line) {
+                let singleLine = line.split('\t');
+                let num = singleLine[0];
+                let date = singleLine[1]
+                if(num.startsWith("92")){
+                    num = num.replace('92', '0');
+                }else if(num.startsWith("3")){
+                    num = "0" + num;
+                }
+
+                inputData.push([num, date]);
+                counter += 1;
+                // console.log("### read", counter);
             });
     
             readInterface.on('close', function(line) {
