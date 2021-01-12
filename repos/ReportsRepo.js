@@ -292,7 +292,8 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                             //     totalSuccessTransactions += subscriptions[sub].total_successive_bill_counts;
                             // }
 
-                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, inputData[i][1] + "T00:00:00.000Z", inputData[i][1] + "T23:59:59.000Z");
+                            // let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, inputData[i][1] + "T00:00:00.000Z", inputData[i][1] + "T23:59:59.000Z");
+                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2021-01-07T00:00:00.000Z", "2021-01-12T00:00:00.000Z");
                             let totalSuccessTransactions = totalSuccessTransactionsInDec.length > 0 ? totalSuccessTransactionsInDec[0].count : 0;
 
                             singObject.subs_count = subsCount;
