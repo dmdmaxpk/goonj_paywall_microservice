@@ -209,6 +209,7 @@ const randomReportWriter = createCsvWriter({
         {id: 'msisdn', title: 'Msisdn'},
         {id: 'subs_count', title: 'Number Of Subscriptions'},
         {id: 'acquisition_source', title: 'Acquisition Source'},
+        {id: 'act_date', title: 'Activation Date'},
         {id: 'acquisition_date', title: 'Acquisition Date'},
         {id: 'number_of_success_charging', title: 'Number of Success Charging'},
         {id: "dou",title: "DOU" }
@@ -266,8 +267,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
         for(let i = 0; i < inputData.length; i++){
             if(inputData[i][0] && inputData[i][0].length === 11){
                 let singObject = {
-                    msisdn: inputData[i][0],
-                    date: inputData[i][1]
+                    msisdn: inputData[i][0]
                 }
 
                 let user = await usersRepo.getUserByMsisdn(inputData[i][0]);
@@ -297,6 +297,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
                             singObject.subs_count = subsCount;
                             singObject.acquisition_date = addedDtm;
+                            singObject.act_date = inputData[i][1];
                             singObject.number_of_success_charging = totalSuccessTransactions;
 
                             if(subscriptions[0].affiliate_mid){
@@ -326,7 +327,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
         await randomReportWriter.writeRecords(finalResult);
         let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["taha@dmdmax.com"],
+            to:  ["taha@dmdmax.com", "farhan.ali@dmdmax.com"],
             // to:  ["farhan.ali@dmdmax.com"],
             subject: `Complaint Data`, // Subject line
             text: `This report contains the details of msisdns being sent us over email from Zara`,
