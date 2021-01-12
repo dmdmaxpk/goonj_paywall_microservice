@@ -179,7 +179,7 @@ exports.rabbitMqMonitoring = async (req,res) =>  {
 monitorRabbitMq = async() => {
     console.log("### monitorRabbitMq");
     let queuedCount = await subscriptionRepository.getQueuedCount();
-    if(queuedCount >= 25000){
+    if(queuedCount >= 35000){
         // shoot email
         await sendEmail(queuedCount);
     }else{

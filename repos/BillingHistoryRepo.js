@@ -295,6 +295,22 @@ class BillingHistoryRepository {
         return result;
     }
 
+    async numberOfTransactionsOfSpecificSubscriber(subscriber_id, from, to) {
+        let result = await BillingHistory.aggregate([
+            {
+                $match:{
+                    "subscriber_id": subscriber_id,
+                    "billing_status": "Success",
+                    $and: [
+                        {billing_dtm:{$gte:new Date(from)}}, 
+                        {billing_dtm:{$lte:new Date(to)}}
+                    ]
+                }
+            },{$count:"count"}
+            ]);
+        return result;
+    }
+
     async totalUniqueTransactingUsers (from, to) {
         console.log("=> totalUniqueTransactingUsers from ", from, "to", to);
         let result = await BillingHistory.aggregate([

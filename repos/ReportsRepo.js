@@ -207,7 +207,9 @@ const randomReportWriter = createCsvWriter({
     path: randomReportFilePath,
     header: [
         {id: 'msisdn', title: 'Msisdn'},
+        {id: 'subs_count', title: 'Number Of Subscriptions'},
         {id: 'acquisition_source', title: 'Acquisition Source'},
+        {id: 'act_date', title: 'Activation Date'},
         {id: 'acquisition_date', title: 'Acquisition Date'},
         {id: 'number_of_success_charging', title: 'Number of Success Charging'},
         {id: "dou",title: "DOU" }
@@ -259,18 +261,18 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
     try{
         var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
-        let inputData = await readFileSync(jsonPath);    
+        let inputData = await readFileSyncCustom(jsonPath);    
         console.log("### Input Data Length: ", inputData.length);
 
         for(let i = 0; i < inputData.length; i++){
-            if(inputData[i] && inputData[i].length === 11){
+            if(inputData[i][0] && inputData[i][0].length === 11){
                 let singObject = {
-                    msisdn: inputData[i]
+                    msisdn: inputData[i][0]
                 }
 
-                let user = await usersRepo.getUserByMsisdn(inputData[i]);
+                let user = await usersRepo.getUserByMsisdn(inputData[i][0]);
                 if(user){
-                    let dou = await viewLogsRepo.getDaysOfUse(user._id);
+                    let dou = await viewLogsRepo.getDaysOfUseInDateRange(user._id, "2020-12-01T00:00:00.000Z", "2020-12-31T00:00:00.000Z");
                     if(dou && dou.length > 0){
                         singObject.dou = dou[0].count;
                     }else{
@@ -282,13 +284,21 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                         let subscriptions = await subscriptionRepo.getAllSubscriptions(subscriber._id);
                         if(subscriptions && subscriptions.length > 0){
                             let addedDtm = subscriptions[0].added_dtm;
-                            let totalSuccessTransactions = 0;
-                            
-                            for(let sub = 0; sub < subscriptions.length; sub++){
-                                totalSuccessTransactions += subscriptions[sub].total_successive_bill_counts;
-                            }
+                            let subsCount = subscriptions.length;
 
+                            // let totalSuccessTransactions = 0;
+                            
+                            // for(let sub = 0; sub < subscriptions.length; sub++){
+                            //     totalSuccessTransactions += subscriptions[sub].total_successive_bill_counts;
+                            // }
+
+                            // let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, inputData[i][1] + "T00:00:00.000Z", inputData[i][1] + "T23:59:59.000Z");
+                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2021-01-07T00:00:00.000Z", "2021-01-12T00:00:00.000Z");
+                            let totalSuccessTransactions = totalSuccessTransactionsInDec.length > 0 ? totalSuccessTransactionsInDec[0].count : 0;
+
+                            singObject.subs_count = subsCount;
                             singObject.acquisition_date = addedDtm;
+                            singObject.act_date = inputData[i][1];
                             singObject.number_of_success_charging = totalSuccessTransactions;
 
                             if(subscriptions[0].affiliate_mid){
@@ -301,13 +311,13 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                             console.log("### Done ", i);
 
                         }else{
-                            console.log("### No subscriptions found for", inputData[i]);    
+                            console.log("### No subscriptions found for", inputData[i][0]);    
                         }
                     }else{
-                        console.log("### No subscriber found for", inputData[i]);    
+                        console.log("### No subscriber found for", inputData[i][0]);    
                     }
                 }else{
-                    console.log("### No user found for", inputData[i]);
+                    console.log("### No user found for", inputData[i][0]);
                 }
             }else{
                 console.log("### Invalid number or number length");
@@ -318,7 +328,8 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
         await randomReportWriter.writeRecords(finalResult);
         let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["farhan.ali@dmdmax.com"],
+            to:  ["taha@dmdmax.com", "farhan.ali@dmdmax.com"],
+            // to:  ["farhan.ali@dmdmax.com"],
             subject: `Complaint Data`, // Subject line
             text: `This report contains the details of msisdns being sent us over email from Zara`,
             attachments:[
@@ -502,6 +513,38 @@ readFileSync = async (jsonPath) => {
                 inputData.push(line);
                 counter += 1;
                 console.log("### read", counter);
+            });
+    
+            readInterface.on('close', function(line) {
+                resolve(inputData);
+            });
+        }catch(e){
+            reject(e);
+        }
+    });
+}
+
+readFileSyncCustom = async (jsonPath) => {
+    return new Promise((resolve, reject) => {
+        try{
+            const readInterface = readline.createInterface({
+                input: fs.createReadStream(jsonPath)
+            });
+            let inputData = [];
+            let counter = 0;
+            readInterface.on('line', function(line) {
+                let singleLine = line.split('\t');
+                let num = singleLine[0];
+                let date = singleLine[1]
+                if(num.startsWith("92")){
+                    num = num.replace('92', '0');
+                }else if(num.startsWith("3")){
+                    num = "0" + num;
+                }
+
+                inputData.push([num, date]);
+                counter += 1;
+                // console.log("### read", counter);
             });
     
             readInterface.on('close', function(line) {

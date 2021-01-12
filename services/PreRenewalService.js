@@ -4,6 +4,7 @@ const subscriberRepo = container.resolve("subscriberRepository");
 const subscriptionService = container.resolve("subscriptionService");
 const userRepo = container.resolve("userRepository");
 const config = require('../config')
+const messageRepository = container.resolve("messageRepository");
 
 getPreRenewalSubscriptions = async() => {
     try {
@@ -21,7 +22,7 @@ getPreRenewalSubscriptions = async() => {
                 let user = await userRepo.getUserById(subscriber.user_id);
                 let message = `Kal ap k bal. se Goonj TV renewal k Rs15 charge kiye jayein gey. Unsub k liye goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${preRenewalSubscriptions[i].subscribed_package_id}. Istemal k liye goonj.pk`;
                 console.log("msisdn", user._id, message)
-                this.messageRepository.sendSmsToUser(message,user.msisdn);
+                messageRepository.sendSmsToUser(message,user.msisdn);
             } catch (err){
                 console.log("[UnableToSendMessage]:",preRenewalSubscriptions[i]._id)
             }
