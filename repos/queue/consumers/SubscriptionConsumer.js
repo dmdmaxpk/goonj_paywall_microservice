@@ -96,11 +96,10 @@ class SubscriptionConsumer {
     }
 
     async logExcessiveBilling(packageObj, user, subscription){
-        console.log("logExcessiveBilling ");
-
+        
         await this.subscriptionRepo.markSubscriptionInactive(subscription._id);
         await this.unQueue(subscription._id);
-        await this.shootExcessiveBillingEmail(subscription._id);
+        this.shootExcessiveBillingEmail(subscription._id);
 
         // Add history
         let history = {};
@@ -335,7 +334,7 @@ class SubscriptionConsumer {
 
     // UN-QUEUE SUBSCRIPTION
     async unQueue (subscription_id) {
-        await this.subscriptionRepo.updateSubscription(subscription_id, {queued: false, priority: 0});
+        await this.subscriptionRepo.updateSubscription(subscription_id, {queued: false, is_billable_in_this_cycle:false, priority: 0});
     }
     
     // SHOOT EMAIL
@@ -344,8 +343,8 @@ class SubscriptionConsumer {
             let emailSubject = `User Billing Exceeded`;
             let emailText = `Subscription id ${subscription_id} has exceeded its billing limit. Please check on priority.`;
             let emailToSend = `paywall@dmdmax.com.pk`;
-            let response = await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
-            console.log("response",response);
+            this.emailService.sendEmail(emailSubject,emailText,emailToSend);
+            console.log('Excessive billing email initiated for subscription id ',subscription_id);
         } catch(err){
             console.error(err);
         }   
