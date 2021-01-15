@@ -97,9 +97,9 @@ class SubscriptionConsumer {
 
     async logExcessiveBilling(packageObj, user, subscription){
         
-        await this.subscriptionRepo.markSubscriptionInactive(subscription._id);
+        // await this.subscriptionRepo.markSubscriptionInactive(subscription._id);
         await this.unQueue(subscription._id);
-        this.shootExcessiveBillingEmail(subscription._id);
+        // this.shootExcessiveBillingEmail(subscription._id);
 
         // Add history
         let history = {};
