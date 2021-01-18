@@ -71,7 +71,7 @@ const he_service_pass_phrase = "fdkPmW8yOX";
 let config = {
     development: {
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
-        port: '5000',
+        port: '5001',
         mongoDB: 'mongodb://localhost:27017/goonjpaywall',
         rabbitMq: 'amqp://127.0.0.1',
         queueNames: queueNames,
@@ -107,7 +107,7 @@ let config = {
     },
     staging: {
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
-        port: '5000',
+        port: '5001',
         mongoDB: 'mongodb://mongodb:27017/goonjpaywall',
         rabbitMq: 'amqp://rabbitmq',
         queueNames: queueNames,
