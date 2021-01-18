@@ -1,5 +1,6 @@
 const config = require('../config');
 const container = require('../configurations/container');
+const helper = require('../helper/helper');
 
 const userRepo = container.resolve("userRepository");
 const subscriberRepo = container.resolve("subscriberRepository");
@@ -101,4 +102,29 @@ login = async(user_id) => {
 	}
 	return histories;
 	
+}
+
+exports.updateTimeStamps = async (req, res) => {
+	console.log('updateTimeStamps: ');
+
+	// Success billing
+	let serverDate = new Date();
+	console.log('serverDate: ', serverDate);
+
+	let localDate = helper.setDateWithTimezone(serverDate);
+	console.log('localDate: ', localDate);
+
+	let nextBilling = localDate.setHours(localDate.getHours() + 24);
+
+	let obj = {
+		"original_billing_timestamp": serverDate,
+		"last_billing_timestamp": localDate,
+		"next_billing_timestamp": nextBilling,
+		"test": 'Azam',
+	}
+
+	let id = 'iUzwyLAmEDe-';
+	let rawSubscriptions = await subscriptionRepo.updateOrCreate(id, obj);
+	console.log('rawSubscriptions: ', rawSubscriptions);
+	res.send({status: 200});
 }

@@ -21,6 +21,7 @@ require('./models/Migration');
 require('./models/SystemUser');
 require('./models/DuplicateMsisdn');
 require('./models/AuthToken');
+require('./models/DateTest');
 
 const config = require('./config');
 const swStats = require('swagger-stats');
