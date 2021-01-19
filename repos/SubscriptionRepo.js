@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Subscription = mongoose.model('Subscription');
-const DateTest = mongoose.model('DateTest');
 const moment = require("moment");
 
 class SubscriptionRepository {
@@ -16,16 +15,6 @@ class SubscriptionRepository {
             result = await subscription.save();
             return result;
         }
-    }
-    
-    async updateOrCreate (id, postData)  {
-        console.log('postData: ', postData, id);
-
-        // const result = await DateTest.updateOne({_id: id}, postData);
-        //
-        let dateTest = new DateTest(postData);
-        let result = await dateTest.save();
-        return result;
     }
 
     async getSubscription (subscription_id)  {
