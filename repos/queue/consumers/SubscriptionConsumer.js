@@ -40,9 +40,14 @@ class SubscriptionConsumer {
                 
                 // Success billing
                 let serverDate = new Date();
+                console.log('serverDate: ', serverDate);
+
                 let localDate = helper.setDateWithTimezone(serverDate);
+                console.log('localDate: ', localDate);
+
                 let nextBilling = _.clone(localDate);
                 nextBilling = nextBilling.setHours(nextBilling.getHours() + mPackage.package_duration);
+                console.log('nextBilling: ', nextBilling);
 
                 // Update subscription
                 let subscriptionObj = {};
