@@ -42,7 +42,7 @@ class SubscriptionConsumer {
                 let serverDate = new Date();
                 let localDate = helper.setDateWithTimezone(serverDate);
                 let nextBilling = _.clone(localDate);
-                nextBilling = nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
+                nextBilling = nextBilling.setHours(nextBilling.getHours() + mPackage.package_duration);
 
                 // Update subscription
                 let subscriptionObj = {};
