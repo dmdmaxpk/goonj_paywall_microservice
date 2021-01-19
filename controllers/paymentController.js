@@ -22,6 +22,7 @@ let jwt = require('jsonwebtoken');
 const { response } = require('express');
 const { resolve } = require('../configurations/container');
 const { use } = require('../routes');
+const helper = require('../helper/helper');
 
 
 function sendMessage(otp, msisdn){
@@ -743,7 +744,23 @@ activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj
 		}
 	}
 
-	subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
+	// Success billing
+
+
+	let serverDate = new Date();
+	console.log('*****************    activateTrial   Start  ***************: ');
+	console.log('serverDate: ', serverDate);
+
+	let localDate = helper.setDateWithTimezone(serverDate);
+	console.log('localDate: ', localDate);
+
+	let nextBilling = localDate.setHours(localDate.getHours() + trial_hours);
+
+	console.log('*****************    activateTrial   end  ***************: ');
+
+	// subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
+	subscriptionObj.last_billing_timestamp = localDate;
+	subscriptionObj.next_billing_timestamp = nextBilling;
 	subscriptionObj.subscription_status = 'trial';
 	subscriptionObj.is_allowed_to_stream = true;
 	subscriptionObj.should_affiliation_callback_sent = false;

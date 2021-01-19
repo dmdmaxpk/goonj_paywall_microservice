@@ -250,18 +250,28 @@ class PaymentProcessService {
     async billingSuccess (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
 
         // Success billing
-        let nextBilling = new Date();
-        nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
+        let serverDate = new Date();
+        console.log('*****************    billingSuccess - Start  ***************: ');
+        console.log('serverDate: ', serverDate);
+
+        let localDate = helper.setDateWithTimezone(serverDate);
+        console.log('localDate: ', localDate);
+
+        let nextBilling = localDate.setHours(localDate.getHours() + packageObj.package_duration);
+
+        console.log('*****************    billingSuccess - End  ***************: ');
+
 
         let updatedSubscription = undefined;
         if (!first_time_billing) {
              // Update subscription
+
             let subscriptionObj = {};
             subscriptionObj.subscription_status = 'billed';
             subscriptionObj.auto_renewal = true;
             subscriptionObj.is_billable_in_this_cycle = false;
             subscriptionObj.is_allowed_to_stream = true;
-            subscriptionObj.last_billing_timestamp = new Date();
+            subscriptionObj.last_billing_timestamp = localDate;
             subscriptionObj.next_billing_timestamp = nextBilling;
             subscriptionObj.amount_billed_today =  (subscription.amount_billed_today + packageObj.price_point_pkr);
             subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
@@ -279,7 +289,7 @@ class PaymentProcessService {
             subscription.auto_renewal = true;
             subscription.is_billable_in_this_cycle = false;
             subscription.is_allowed_to_stream = true;
-            subscription.last_billing_timestamp = new Date();
+            subscription.last_billing_timestamp = localDate;
             subscription.next_billing_timestamp = nextBilling;
             subscription.amount_billed_today =  (subscription.amount_billed_today + packageObj.price_point_pkr);
             subscription.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
