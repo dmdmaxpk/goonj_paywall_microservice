@@ -40,7 +40,7 @@ const maximum_daily_payment_limit_pkr = 20;
 const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 720; // 2 weeks
-const hours_on_which_to_run_renewal_cycle = [1,5,9,13,17,21];
+const hours_on_which_to_run_renewal_cycle = [1,5,8,12,15,19,22];
 const default_package_id = "QDfC";
 
 const queueNames = {
