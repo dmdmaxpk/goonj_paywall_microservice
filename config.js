@@ -58,7 +58,7 @@ const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
 const telenor_dcb_api_token = '';
 
 // Worker
-const paywall_worker_base_url = 'http://127.0.0.1:5002/';
+const paywall_worker_base_url = 'http://127.0.0.1:5001/';
 
 //Ideation Url
 const Ideation_call_back_url = 'http://bpd.o18.click/';
