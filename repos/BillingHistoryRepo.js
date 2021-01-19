@@ -3,7 +3,7 @@ const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
 const Subscription = mongoose.model('Subscription');
 const config = require('../config');
-const helper = require('../../../helper/helper');
+const helper = require('../helper/helper');
 const  _ = require('lodash');
 
 class BillingHistoryRepository {
