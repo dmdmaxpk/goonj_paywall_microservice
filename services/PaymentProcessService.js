@@ -2,6 +2,7 @@ const config = require('../config');
 const helper = require('./../helper/helper');
 const { resolve } = require('../configurations/container');
 const axios = require('axios');
+const  _ = require('lodash');
 
 class PaymentProcessService {
     constructor({billingRepository, easypaisaPaymentService, telenorBillingService, 
@@ -257,7 +258,7 @@ class PaymentProcessService {
         let localDate = helper.setDateWithTimezone(serverDate);
         console.log('localDate: ', localDate);
 
-        let nextBilling = localDate;
+        let nextBilling = _.clone(localDate);
         nextBilling = nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
 
         console.log('*****************    billingSuccess - End  ***************: ');
