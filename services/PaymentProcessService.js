@@ -257,7 +257,8 @@ class PaymentProcessService {
         let localDate = helper.setDateWithTimezone(serverDate);
         console.log('localDate: ', localDate);
 
-        let nextBilling = localDate.setHours(localDate.getHours() + packageObj.package_duration);
+        let nextBilling = localDate;
+        nextBilling = nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
 
         console.log('*****************    billingSuccess - End  ***************: ');
 

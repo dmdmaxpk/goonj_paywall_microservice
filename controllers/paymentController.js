@@ -754,7 +754,8 @@ activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj
 	let localDate = helper.setDateWithTimezone(serverDate);
 	console.log('localDate: ', localDate);
 
-	let nextBilling = localDate.setHours(localDate.getHours() + trial_hours);
+	let nextBilling = localDate;
+	nextBilling = nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
 
 	console.log('*****************    activateTrial   end  ***************: ');
 
