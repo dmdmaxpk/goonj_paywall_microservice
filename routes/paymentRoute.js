@@ -14,7 +14,7 @@ router.route('/delink')
 router.route('/otp/verify').post(controller.verifyOtp);
 
 router.route('/subscribe')
-    .post(authMiddleWare.authenticateToken, controller.subscribe);
+    .post(controller.subscribe);
 
 router.route('/unsubscribe')
     .post(authMiddleWare.authenticateToken, controller.unsubscribe);
