@@ -23,6 +23,7 @@ const { response } = require('express');
 const { resolve } = require('../configurations/container');
 const { use } = require('../routes');
 const helper = require('../helper/helper');
+const  _ = require('lodash');
 
 
 function sendMessage(otp, msisdn){
@@ -748,16 +749,9 @@ activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj
 
 
 	let serverDate = new Date();
-	console.log('*****************    activateTrial   Start  ***************: ');
-	console.log('serverDate: ', serverDate);
-
 	let localDate = helper.setDateWithTimezone(serverDate);
-	console.log('localDate: ', localDate);
-
-	let nextBilling = localDate;
-	nextBilling = nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
-
-	console.log('*****************    activateTrial   end  ***************: ');
+	let nextBilling = _.clone(localDate);
+	nextBilling = nextBilling.setHours(nextBilling.getHours() + trial_hours);
 
 	// subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
 	subscriptionObj.last_billing_timestamp = localDate;

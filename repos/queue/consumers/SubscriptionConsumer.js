@@ -4,6 +4,7 @@ var nodemailer = require('nodemailer');
 const axios = require("axios");
 const { response } = require('express');
 const helper = require('../../../helper/helper');
+const  _ = require('lodash');
 
 class SubscriptionConsumer {
 
@@ -39,13 +40,10 @@ class SubscriptionConsumer {
                 
                 // Success billing
                 let serverDate = new Date();
-                console.log('serverDate: ', serverDate);
-
                 let localDate = helper.setDateWithTimezone(serverDate);
-                console.log('localDate: ', localDate);
+                let nextBilling = _.clone(localDate);
+                nextBilling = nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
 
-                let nextBilling = localDate.setHours(localDate.getHours() + mPackage.package_duration);
-    
                 // Update subscription
                 let subscriptionObj = {};
                 subscriptionObj.subscription_status = 'billed';

@@ -252,17 +252,9 @@ class PaymentProcessService {
 
         // Success billing
         let serverDate = new Date();
-        console.log('*****************    billingSuccess - Start  ***************: ');
-        console.log('serverDate: ', serverDate);
-
         let localDate = helper.setDateWithTimezone(serverDate);
-        console.log('localDate: ', localDate);
-
         let nextBilling = _.clone(localDate);
         nextBilling = nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
-
-        console.log('*****************    billingSuccess - End  ***************: ');
-
 
         let updatedSubscription = undefined;
         if (!first_time_billing) {
