@@ -328,7 +328,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
         await randomReportWriter.writeRecords(finalResult);
         let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["taha@dmdmax.com", "farhan.ali@dmdmax.com"],
+            to:  ["taha@dmdmax.com", "farhan.ali@dmdmax.com", "muhammad.azam@dmdmax.com"],
             // to:  ["farhan.ali@dmdmax.com"],
             subject: `Complaint Data`, // Subject line
             text: `This report contains the details of msisdns being sent us over email from Zara`,
