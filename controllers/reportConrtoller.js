@@ -65,32 +65,37 @@ exports.rev_report = async (req,res) =>  {
 }
 
 exports.req_count = async (req,res) =>  {
+    console.log('*************   req_count   *****************');
 
     let data = [];
+    let serverDate = new Date();
+    let localDate = helper.setDateWithTimezone(serverDate);
+    console.log('serverDate: ', serverDate);
+    console.log('localDate: ', localDate);
 
-    let todayStart = new Date();
+    let todayStart = _.clone(localDate);
     todayStart.setHours(00);
     todayStart.setMinutes(00);
     todayStart.setSeconds(00);
-    let todayEnd = new Date();
+    let todayEnd = _.clone(localDate);
 
-    let yesterdayStart = new Date();
+    let yesterdayStart = _.clone(localDate);
     yesterdayStart.setDate(todayStart.getDate() - 1);
     yesterdayStart.setHours(00);
     yesterdayStart.setMinutes(00);
     yesterdayStart.setSeconds(00);
 
-    let yesterdayEnd = new Date();
+    let yesterdayEnd = _.clone(localDate);
     yesterdayEnd.setDate(todayStart.getDate() - 1);
 
-    let dayBeforeYesterdayStart = new Date();
+    let dayBeforeYesterdayStart = _.clone(localDate);
     dayBeforeYesterdayStart.setDate(todayStart.getDate() - 2);
     dayBeforeYesterdayStart.setHours(00);
     dayBeforeYesterdayStart.setMinutes(00);
     dayBeforeYesterdayStart.setSeconds(00);
 
 
-    let dayBeforeYesterdayEnd = new Date();
+    let dayBeforeYesterdayEnd = _.clone(localDate);
     dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
 
     let requests = await billingHistoryRepo.getRequests(todayStart, todayEnd);
