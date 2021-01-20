@@ -32,23 +32,23 @@ exports.rev_report = async (req,res) =>  {
     let todayEnd = _.clone(localDate);
 
     let yesterdayStart = new Date();
-    yesterdayStart.setDate(todayStart.getDate() - 1);
+    yesterdayStart.setDate(serverDate.getDate() - 1);
     yesterdayStart.setHours(00);
     yesterdayStart.setMinutes(00);
     yesterdayStart.setSeconds(00);
 
     let yesterdayEnd = new Date();
-    yesterdayEnd.setDate(todayStart.getDate() - 1);
+    yesterdayEnd.setDate(serverDate.getDate() - 1);
 
     let dayBeforeYesterdayStart = new Date();
-    dayBeforeYesterdayStart.setDate(todayStart.getDate() - 2);
+    dayBeforeYesterdayStart.setDate(serverDate.getDate() - 2);
     dayBeforeYesterdayStart.setHours(00);
     dayBeforeYesterdayStart.setMinutes(00);
     dayBeforeYesterdayStart.setSeconds(00);
 
 
     let dayBeforeYesterdayEnd = new Date();
-    dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
+    dayBeforeYesterdayEnd.setDate(serverDate.getDate() - 2);
 
 
     let revenue = await billingHistoryRepo.getRevenueInDateRange(todayStart, todayEnd);
