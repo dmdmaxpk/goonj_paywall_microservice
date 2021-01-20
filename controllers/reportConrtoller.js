@@ -17,31 +17,37 @@ exports.gdn_report = async (req,res) =>  {
 }
 
 exports.rev_report = async (req,res) =>  {
+    console.log('*************   rev_report   *****************');
 
     let data = [];
-    let todayStart = new Date();
+    let serverDate = new Date();
+    let localDate = helper.setDateWithTimezone(serverDate);
+    console.log('serverDate: ', serverDate);
+    console.log('localDate: ', localDate);
+
+    let todayStart = _.clone(localDate);
     todayStart.setHours(00);
     todayStart.setMinutes(00);
     todayStart.setSeconds(00);
-    let todayEnd = new Date();
+    let todayEnd = _.clone(localDate);
 
-    let yesterdayStart = new Date();
+    let yesterdayStart = _.clone(localDate);
     yesterdayStart.setDate(todayStart.getDate() - 1);
     yesterdayStart.setHours(00);
     yesterdayStart.setMinutes(00);
     yesterdayStart.setSeconds(00);
 
-    let yesterdayEnd = new Date();
+    let yesterdayEnd = _.clone(localDate);
     yesterdayEnd.setDate(todayStart.getDate() - 1);
 
-    let dayBeforeYesterdayStart = new Date();
+    let dayBeforeYesterdayStart = _.clone(localDate);
     dayBeforeYesterdayStart.setDate(todayStart.getDate() - 2);
     dayBeforeYesterdayStart.setHours(00);
     dayBeforeYesterdayStart.setMinutes(00);
     dayBeforeYesterdayStart.setSeconds(00);
 
 
-    let dayBeforeYesterdayEnd = new Date();
+    let dayBeforeYesterdayEnd = _.clone(localDate);
     dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
 
 
@@ -147,13 +153,9 @@ exports.revenue_stats = async (req,res) =>  {
 
     let revenueStats = [];
     let serverDate = new Date();
-    console.log('serverDate: ', serverDate);
-
     let localDate = helper.setDateWithTimezone(serverDate);
-    console.log('localDate: ', localDate);
 
     let today = _.clone(localDate);
-
     today.setHours(00);
     today.setMinutes(00);
     today.setSeconds(00);
