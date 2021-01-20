@@ -70,8 +70,8 @@ getDaysOfUseInDateRange = async(userId, from, to) => {
             $match:{
                 user_id: userId,
                 $and:[
-                    {added_dm:{$gte: new Date(from)}}, 
-                    {added_dm:{$lte: new Date(to)}}
+                    {added_dtm:{$gte: new Date(from)}},
+                    {added_dtm:{$lte: new Date(to)}}
                 ]
             }
         },{
