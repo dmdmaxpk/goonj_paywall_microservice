@@ -261,16 +261,16 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
     try{
         var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
-        let inputData = await readFileSyncCustom(jsonPath);    
+        let inputData = await readFileSync(jsonPath);    
         console.log("### Input Data Length: ", inputData.length);
 
         for(let i = 0; i < inputData.length; i++){
-            if(inputData[i][0] && inputData[i][0].length === 11){
+            if(inputData[i] && inputData[i].length === 11){
                 let singObject = {
-                    msisdn: inputData[i][0]
+                    msisdn: inputData[i]
                 }
 
-                let user = await usersRepo.getUserByMsisdn(inputData[i][0]);
+                let user = await usersRepo.getUserByMsisdn(inputData[i]);
                 if(user){
                     let dou = await viewLogsRepo.getDaysOfUseInDateRange(user._id, "2020-12-01T00:00:00.000Z", "2020-12-31T00:00:00.000Z");
                     if(dou && dou.length > 0){
