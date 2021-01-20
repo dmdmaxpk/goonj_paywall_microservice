@@ -4,10 +4,13 @@ const tpsCountService = require('../services/TpsCountService');
 const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
 const grayListService = require('../services/GrayListService');
 const affiliateReportsRepo = require('../repos/affiliateReportRepo');
+const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 
 const container = require("../configurations/container");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const revenueStatisticsService = container.resolve("revenueStatisticsService");
+const helper = require('../helper/helper');
+const  _ = require('lodash');
 
 exports.gdn_report = async (req,res) =>  {
     affiliateReportsRepo.gdnReport(true);
@@ -142,7 +145,10 @@ exports.billing_stats = async (req,res) =>  {
 
 exports.revenue_stats = async (req,res) =>  {
     let revenueStats = [];
-    let today = new Date();
+    let serverDate = new Date();
+    let localDate = helper.setDateWithTimezone(serverDate);
+    let today = _.clone(localDate);
+
     today.setHours(00);
     today.setMinutes(00);
     today.setSeconds(00);
@@ -152,8 +158,9 @@ exports.revenue_stats = async (req,res) =>  {
         console.log('1: ');
 
         //Today - Start and end date
-        let todayStart = new Date();
-        let todayEnd = new Date();
+        let todayStart = _.clone(localDate);
+        let todayEnd = _.clone(localDate);
+
         todayStart.setHours(00);
         todayStart.setMinutes(00);
         todayStart.setSeconds(00);
@@ -164,8 +171,9 @@ exports.revenue_stats = async (req,res) =>  {
         console.log('2: ');
 
         //Yesterday - Start and end date
-        let yesterdayStart = new Date();
-        let yesterdayEnd = new Date();
+        let yesterdayStart = _.clone(localDate);
+        let yesterdayEnd = _.clone(localDate);
+
         yesterdayStart.setDate(today.getDate() - 1);
         yesterdayStart.setHours(00);
         yesterdayStart.setMinutes(00);
@@ -178,8 +186,9 @@ exports.revenue_stats = async (req,res) =>  {
         console.log('3: ');
 
         //A day before Yesterday - Start and end date
-        let dayBeforeYesterdayStart = new Date();
-        let dayBeforeYesterdayEnd = new Date();
+        let dayBeforeYesterdayStart = _.clone(localDate);
+        let dayBeforeYesterdayEnd = _.clone(localDate);
+
         dayBeforeYesterdayStart.setDate(today.getDate() - 2);
         dayBeforeYesterdayStart.setHours(00);
         dayBeforeYesterdayStart.setMinutes(00);
