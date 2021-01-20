@@ -143,18 +143,25 @@ exports.billing_stats = async (req,res) =>  {
 }
 
 exports.revenue_stats = async (req,res) =>  {
+    console.log('*************   revenue_stats   *****************');
+
     let revenueStats = [];
     let serverDate = new Date();
+    console.log('serverDate: ', serverDate);
+
     let localDate = helper.setDateWithTimezone(serverDate);
+    console.log('localDate: ', localDate);
+
     let today = _.clone(localDate);
 
     today.setHours(00);
     today.setMinutes(00);
     today.setSeconds(00);
+    console.log('today: ', today);
 
     console.log('req.query.day: ', req.query.day);
     if (req.query.day === 'today'){
-        console.log('1: ');
+        console.log('today******************: ');
 
         //Today - Start and end date
         let todayStart = _.clone(localDate);
@@ -167,7 +174,7 @@ exports.revenue_stats = async (req,res) =>  {
         console.log('todayRevenueStats: ', revenueStats);
     }
     else if(req.query.day === 'yesterday'){
-        console.log('2: ');
+        console.log('yesterday*****************: ');
 
         //Yesterday - Start and end date
         let yesterdayStart = _.clone(localDate);
@@ -182,7 +189,7 @@ exports.revenue_stats = async (req,res) =>  {
         console.log('yesterdayRevenueStats: ', revenueStats);
     }
     else if(req.query.day === 'datBeforeYesterday'){
-        console.log('3: ');
+        console.log('datBeforeYesterday******************: ');
 
         //A day before Yesterday - Start and end date
         let dayBeforeYesterdayStart = _.clone(localDate);
