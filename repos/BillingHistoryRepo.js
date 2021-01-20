@@ -11,17 +11,11 @@ class BillingHistoryRepository {
     }
 
     async createBillingHistory  (postData)  {
-        console.log('********** createBillingHistory  **********');
-
-        let billingHistory = new BillingHistory(postData);
-
         // Success billing
         let serverDate = new Date();
-        console.log('serverDate: ', serverDate);
-
         let localDate = helper.setDateWithTimezone(serverDate);
-        console.log('localDate: ', localDate);
 
+        let billingHistory = new BillingHistory(postData);
         billingHistory.billing_dtm = _.clone(localDate);
         let result = await billingHistory.save();
         return result;

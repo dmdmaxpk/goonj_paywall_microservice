@@ -1,11 +1,5 @@
-const subscriptionService = require('../services/SubscriptionRenewalService');
-const tokenRefreshService = require('../services/TokenRefreshService');
-const tpsCountService = require('../services/TpsCountService');
-const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
-const grayListService = require('../services/GrayListService');
-const affiliateReportsRepo = require('../repos/affiliateReportRepo');
-
 const container = require("../configurations/container");
+const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
 const revenueStatisticsService = container.resolve("revenueStatisticsService");
 const helper = require('../helper/helper');
@@ -17,13 +11,9 @@ exports.gdn_report = async (req,res) =>  {
 }
 
 exports.rev_report = async (req,res) =>  {
-    console.log('*************   rev_report   *****************');
-
     let data = [];
     let serverDate = new Date();
     let localDate = helper.setDateWithTimezone(serverDate);
-    console.log('serverDate: ', serverDate);
-    console.log('localDate: ', localDate);
 
     let todayStart = _.clone(localDate);
     todayStart.setHours(00);
@@ -65,13 +55,9 @@ exports.rev_report = async (req,res) =>  {
 }
 
 exports.req_count = async (req,res) =>  {
-    console.log('*************   req_count   *****************');
-
     let data = [];
     let serverDate = new Date();
     let localDate = helper.setDateWithTimezone(serverDate);
-    console.log('serverDate: ', serverDate);
-    console.log('localDate: ', localDate);
 
     let todayStart = _.clone(localDate);
     todayStart.setHours(00);
@@ -112,33 +98,34 @@ exports.req_count = async (req,res) =>  {
 }
 
 exports.billing_stats = async (req,res) =>  {
-
     let data = [];
+    let serverDate = new Date();
+    let localDate = helper.setDateWithTimezone(serverDate);
 
-    let todayStart = new Date();
+    let todayStart = _.clone(localDate);
     todayStart.setHours(00);
     todayStart.setMinutes(00);
     todayStart.setSeconds(00);
-    let todayEnd = new Date();
+    let todayEnd = _.clone(localDate);
 
     let yesterdayStart = new Date();
-    yesterdayStart.setDate(todayStart.getDate() - 1);
+    yesterdayStart.setDate(serverDate.getDate() - 1);
     yesterdayStart.setHours(00);
     yesterdayStart.setMinutes(00);
     yesterdayStart.setSeconds(00);
 
     let yesterdayEnd = new Date();
-    yesterdayEnd.setDate(todayStart.getDate() - 1);
+    yesterdayEnd.setDate(serverDate.getDate() - 1);
 
     let dayBeforeYesterdayStart = new Date();
-    dayBeforeYesterdayStart.setDate(todayStart.getDate() - 2);
+    dayBeforeYesterdayStart.setDate(serverDate.getDate() - 2);
     dayBeforeYesterdayStart.setHours(00);
     dayBeforeYesterdayStart.setMinutes(00);
     dayBeforeYesterdayStart.setSeconds(00);
 
 
     let dayBeforeYesterdayEnd = new Date();
-    dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
+    dayBeforeYesterdayEnd.setDate(serverDate.getDate() - 2);
 
     let requests = await billingHistoryRepo.getBillingStats(todayStart, todayEnd);
     data.push({'Todays success requests till the time': requests[0].count, 'Todays failed requests till the time': requests[1].count});
@@ -154,8 +141,6 @@ exports.billing_stats = async (req,res) =>  {
 }
 
 exports.revenue_stats = async (req,res) =>  {
-    console.log('*************   revenue_stats   *****************');
-
     let revenueStats = [];
     let serverDate = new Date();
     let localDate = helper.setDateWithTimezone(serverDate);
@@ -164,13 +149,9 @@ exports.revenue_stats = async (req,res) =>  {
     today.setHours(00);
     today.setMinutes(00);
     today.setSeconds(00);
-    console.log('today: ', today);
-
     console.log('req.query.day: ', req.query.day);
-    if (req.query.day === 'today'){
-        console.log('today******************: ');
 
-        //Today - Start and end date
+    if (req.query.day === 'today'){
         let todayStart = _.clone(localDate);
         let todayEnd = _.clone(localDate);
 
@@ -181,9 +162,6 @@ exports.revenue_stats = async (req,res) =>  {
         console.log('todayRevenueStats: ', revenueStats);
     }
     else if(req.query.day === 'yesterday'){
-        console.log('yesterday*****************: ');
-
-        //Yesterday - Start and end date
         let yesterdayStart = new Date();
         let yesterdayEnd = new Date();
 
@@ -196,9 +174,6 @@ exports.revenue_stats = async (req,res) =>  {
         console.log('yesterdayRevenueStats: ', revenueStats);
     }
     else if(req.query.day === 'datBeforeYesterday'){
-        console.log('datBeforeYesterday******************: ');
-
-        //A day before Yesterday - Start and end date
         let dayBeforeYesterdayStart = new Date();
         let dayBeforeYesterdayEnd = new Date();
 
