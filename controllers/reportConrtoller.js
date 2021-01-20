@@ -160,6 +160,7 @@ exports.revenue_stats = async (req,res) =>  {
         todayStart.setSeconds(00);
         revenueStats = await revenueStatisticsService.getRevenueStatsDateWise(todayStart, todayEnd);
         console.log('todayRevenueStats: ', revenueStats);
+
     }
     else if(req.query.day === 'yesterday'){
         let yesterdayStart = _.clone(localDate);
