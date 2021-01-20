@@ -31,23 +31,23 @@ exports.rev_report = async (req,res) =>  {
     todayStart.setSeconds(00);
     let todayEnd = _.clone(localDate);
 
-    let yesterdayStart = _.clone(localDate);
+    let yesterdayStart = new Date();
     yesterdayStart.setDate(todayStart.getDate() - 1);
     yesterdayStart.setHours(00);
     yesterdayStart.setMinutes(00);
     yesterdayStart.setSeconds(00);
 
-    let yesterdayEnd = _.clone(localDate);
+    let yesterdayEnd = new Date();
     yesterdayEnd.setDate(todayStart.getDate() - 1);
 
-    let dayBeforeYesterdayStart = _.clone(localDate);
+    let dayBeforeYesterdayStart = new Date();
     dayBeforeYesterdayStart.setDate(todayStart.getDate() - 2);
     dayBeforeYesterdayStart.setHours(00);
     dayBeforeYesterdayStart.setMinutes(00);
     dayBeforeYesterdayStart.setSeconds(00);
 
 
-    let dayBeforeYesterdayEnd = _.clone(localDate);
+    let dayBeforeYesterdayEnd = new Date();
     dayBeforeYesterdayEnd.setDate(todayStart.getDate() - 2);
 
 
