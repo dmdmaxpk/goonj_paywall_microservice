@@ -379,7 +379,12 @@ exports.subscribe = async (req, res) => {
 					user = await userRepo.createUser(userObj);
 					console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', msisdn, ' - ', user.source, ' - ', (new Date()));
 	
-					doSubscribe(req, res, user, gw_transaction_id);
+					if(user && user.is_black_listed){
+						console.log('The user is blacklisted');
+						res.send({code: config.codes.code_error, message: "The user is blacklisted", gw_transaction_id: gw_transaction_id});
+					}else{
+						doSubscribe(req, res, user, gw_transaction_id);
+					}
 				} catch(er) {
 					res.send({code: config.codes.code_error, message: 'Failed to subscriber user', gw_transaction_id: gw_transaction_id})
 				}
