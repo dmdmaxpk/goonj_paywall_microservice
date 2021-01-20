@@ -4,7 +4,6 @@ const tpsCountService = require('../services/TpsCountService');
 const checkLastSeenOfUsersService = require('../services/CheckLastSeenOfUsers');
 const grayListService = require('../services/GrayListService');
 const affiliateReportsRepo = require('../repos/affiliateReportRepo');
-const affiliateReportsRepo = require('../repos/affiliateReportRepo');
 
 const container = require("../configurations/container");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
