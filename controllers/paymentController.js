@@ -402,7 +402,7 @@ exports.subscribe = async (req, res) => {
 }
 
 doSubscribe = async(req, res, user, gw_transaction_id) => {
-	if(user && user.active === true){
+	if(user && user.active === true && user.is_black_listed === false){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriberByUserId (user._id);
 
