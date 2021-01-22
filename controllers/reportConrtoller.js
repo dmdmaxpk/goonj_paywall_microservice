@@ -30,14 +30,14 @@ exports.rev_report = async (req,res) =>  {
     let yesterdayEnd = _.clone(localDate);
     yesterdayEnd.setDate(localDate.getDate() - 1);
 
-    let dayBeforeYesterdayStart = new Date();
+    let dayBeforeYesterdayStart = _.clone(localDate);
     dayBeforeYesterdayStart.setDate(serverDate.getDate() - 2);
     dayBeforeYesterdayStart.setHours(00);
     dayBeforeYesterdayStart.setMinutes(00);
     dayBeforeYesterdayStart.setSeconds(00);
 
 
-    let dayBeforeYesterdayEnd = new Date();
+    let dayBeforeYesterdayEnd = _.clone(localDate);
     dayBeforeYesterdayEnd.setDate(serverDate.getDate() - 2);
 
 
@@ -74,14 +74,14 @@ exports.req_count = async (req,res) =>  {
     let yesterdayEnd = _.clone(localDate);
     yesterdayEnd.setDate(localDate.getDate() - 1);
 
-    let dayBeforeYesterdayStart = new Date();
+    let dayBeforeYesterdayStart = _.clone(localDate);
     dayBeforeYesterdayStart.setDate(serverDate.getDate() - 2);
     dayBeforeYesterdayStart.setHours(00);
     dayBeforeYesterdayStart.setMinutes(00);
     dayBeforeYesterdayStart.setSeconds(00);
 
 
-    let dayBeforeYesterdayEnd = new Date();
+    let dayBeforeYesterdayEnd = _.clone(localDate);
     dayBeforeYesterdayEnd.setDate(serverDate.getDate() - 2);
 
     let requests = await billingHistoryRepo.getRequests(todayStart, todayEnd);
@@ -117,14 +117,14 @@ exports.billing_stats = async (req,res) =>  {
     let yesterdayEnd = _.clone(localDate);
     yesterdayEnd.setDate(localDate.getDate() - 1);
 
-    let dayBeforeYesterdayStart = new Date();
+    let dayBeforeYesterdayStart = _.clone(localDate);
     dayBeforeYesterdayStart.setDate(serverDate.getDate() - 2);
     dayBeforeYesterdayStart.setHours(00);
     dayBeforeYesterdayStart.setMinutes(00);
     dayBeforeYesterdayStart.setSeconds(00);
 
 
-    let dayBeforeYesterdayEnd = new Date();
+    let dayBeforeYesterdayEnd = _.clone(localDate);
     dayBeforeYesterdayEnd.setDate(serverDate.getDate() - 2);
 
     let requests = await billingHistoryRepo.getBillingStats(todayStart, todayEnd);
@@ -175,8 +175,8 @@ exports.revenue_stats = async (req,res) =>  {
         console.log('yesterdayRevenueStats: ', revenueStats);
     }
     else if(req.query.day === 'datBeforeYesterday'){
-        let dayBeforeYesterdayStart = new Date();
-        let dayBeforeYesterdayEnd = new Date();
+        let dayBeforeYesterdayStart = _.clone(localDate);
+        let dayBeforeYesterdayEnd = _.clone(localDate);
 
         dayBeforeYesterdayStart.setDate(serverDate.getDate() - 2);
         dayBeforeYesterdayStart.setHours(00);
