@@ -22,6 +22,8 @@ let jwt = require('jsonwebtoken');
 const { response } = require('express');
 const { resolve } = require('../configurations/container');
 const { use } = require('../routes');
+const helper = require('../helper/helper');
+const  _ = require('lodash');
 
 
 function sendMessage(otp, msisdn){
@@ -377,7 +379,12 @@ exports.subscribe = async (req, res) => {
 					user = await userRepo.createUser(userObj);
 					console.log('Payment - Subscriber - UserCreated - ', response.operator, ' - ', msisdn, ' - ', user.source, ' - ', (new Date()));
 	
-					doSubscribe(req, res, user, gw_transaction_id);
+					if(user && user.is_black_listed){
+						console.log('The user is blacklisted');
+						res.send({code: config.codes.code_error, message: "The user is blacklisted", gw_transaction_id: gw_transaction_id});
+					}else{
+						doSubscribe(req, res, user, gw_transaction_id);
+					}
 				} catch(er) {
 					res.send({code: config.codes.code_error, message: 'Failed to subscriber user', gw_transaction_id: gw_transaction_id})
 				}
@@ -400,7 +407,7 @@ exports.subscribe = async (req, res) => {
 }
 
 doSubscribe = async(req, res, user, gw_transaction_id) => {
-	if(user && user.active === true){
+	if(user && user.active === true && user.is_black_listed === false){
 		// User available in DB
 		let subscriber = await subscriberRepo.getSubscriberByUserId (user._id);
 
@@ -743,7 +750,17 @@ activateTrial = async(otp, source, user, subscriber, packageObj, subscriptionObj
 		}
 	}
 
-	subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
+	// Success billing
+
+
+	let serverDate = new Date();
+	let localDate = helper.setDateWithTimezone(serverDate);
+	let nextBilling = _.clone(localDate);
+	nextBilling = nextBilling.setHours(nextBilling.getHours() + trial_hours);
+
+	// subscriptionObj.next_billing_timestamp = nexBilling.setHours (nexBilling.getHours() + trial_hours );
+	subscriptionObj.last_billing_timestamp = localDate;
+	subscriptionObj.next_billing_timestamp = nextBilling;
 	subscriptionObj.subscription_status = 'trial';
 	subscriptionObj.is_allowed_to_stream = true;
 	subscriptionObj.should_affiliation_callback_sent = false;

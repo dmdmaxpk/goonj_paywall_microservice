@@ -26,6 +26,12 @@ class Helper {
     static timeout(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+
+    static setDateWithTimezone(date){
+        let newDate = date.toLocaleString("en-US", {timeZone: "Asia/Karachi"});
+        newDate = new Date(newDate);
+        return newDate;
+    }
 }
 
 module.exports = Helper;

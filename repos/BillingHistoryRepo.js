@@ -3,13 +3,20 @@ const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
 const Subscription = mongoose.model('Subscription');
 const config = require('../config');
+const helper = require('../helper/helper');
+const  _ = require('lodash');
 
 class BillingHistoryRepository {
     constructor(){
     }
 
     async createBillingHistory  (postData)  {
+        // Success billing
+        let serverDate = new Date();
+        let localDate = helper.setDateWithTimezone(serverDate);
+
         let billingHistory = new BillingHistory(postData);
+        billingHistory.billing_dtm = _.clone(localDate);
         let result = await billingHistory.save();
         return result;
     }

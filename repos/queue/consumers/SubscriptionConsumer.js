@@ -3,6 +3,8 @@ const moment = require('moment');
 var nodemailer = require('nodemailer');
 const axios = require("axios");
 const { response } = require('express');
+const helper = require('../../../helper/helper');
+const  _ = require('lodash');
 
 class SubscriptionConsumer {
 
@@ -37,16 +39,18 @@ class SubscriptionConsumer {
             if(returnStatus === 'Success'){
                 
                 // Success billing
-                let nextBilling = new Date();
-                nextBilling.setHours(nextBilling.getHours() + mPackage.package_duration);
-    
+                let serverDate = new Date();
+                let localDate = helper.setDateWithTimezone(serverDate);
+                let nextBilling = _.clone(localDate);
+                nextBilling = nextBilling.setHours(nextBilling.getHours() + mPackage.package_duration);
+
                 // Update subscription
                 let subscriptionObj = {};
                 subscriptionObj.subscription_status = 'billed';
                 subscriptionObj.auto_renewal = true;
                 subscriptionObj.is_billable_in_this_cycle = false;
                 subscriptionObj.is_allowed_to_stream = true;
-                subscriptionObj.last_billing_timestamp = new Date();
+                subscriptionObj.last_billing_timestamp = localDate;
                 subscriptionObj.next_billing_timestamp = nextBilling;
                 subscriptionObj.amount_billed_today = subscription.amount_billed_today + (mcDetails && mcDetails.micro_charge) ? mcDetails.micro_price : mPackage.price_point_pkr;
                 subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);

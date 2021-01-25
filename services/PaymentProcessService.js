@@ -2,6 +2,7 @@ const config = require('../config');
 const helper = require('./../helper/helper');
 const { resolve } = require('../configurations/container');
 const axios = require('axios');
+const  _ = require('lodash');
 
 class PaymentProcessService {
     constructor({billingRepository, easypaisaPaymentService, telenorBillingService, 
@@ -250,18 +251,21 @@ class PaymentProcessService {
     async billingSuccess (user, subscription, response, packageObj, transaction_id, first_time_billing)  {
 
         // Success billing
-        let nextBilling = new Date();
-        nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
+        let serverDate = new Date();
+        let localDate = helper.setDateWithTimezone(serverDate);
+        let nextBilling = _.clone(localDate);
+        nextBilling = nextBilling.setHours(nextBilling.getHours() + packageObj.package_duration);
 
         let updatedSubscription = undefined;
         if (!first_time_billing) {
              // Update subscription
+
             let subscriptionObj = {};
             subscriptionObj.subscription_status = 'billed';
             subscriptionObj.auto_renewal = true;
             subscriptionObj.is_billable_in_this_cycle = false;
             subscriptionObj.is_allowed_to_stream = true;
-            subscriptionObj.last_billing_timestamp = new Date();
+            subscriptionObj.last_billing_timestamp = localDate;
             subscriptionObj.next_billing_timestamp = nextBilling;
             subscriptionObj.amount_billed_today =  (subscription.amount_billed_today + packageObj.price_point_pkr);
             subscriptionObj.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
@@ -279,7 +283,7 @@ class PaymentProcessService {
             subscription.auto_renewal = true;
             subscription.is_billable_in_this_cycle = false;
             subscription.is_allowed_to_stream = true;
-            subscription.last_billing_timestamp = new Date();
+            subscription.last_billing_timestamp = localDate;
             subscription.next_billing_timestamp = nextBilling;
             subscription.amount_billed_today =  (subscription.amount_billed_today + packageObj.price_point_pkr);
             subscription.total_successive_bill_counts = ((subscription.total_successive_bill_counts ? subscription.total_successive_bill_counts : 0) + 1);
