@@ -386,6 +386,49 @@ expireBaseAndBlackList = async() => {
         console.log("### error - ", e);
     }
 }
+expireBaseAndBlackListOrCreate = async() => {
+    console.log("### expireBaseAndBlackListOrCreate");
+
+    try{
+        var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
+        let inputData = await readFileSync(jsonPath);
+        console.log("### Input Data Length: ", inputData.length);
+        let blacklistIds = [];
+        for(let i = 0; i < inputData.length; i++){
+            if(inputData[i] && inputData[i].length === 11){
+                let user = await usersRepo.getUserByMsisdn(inputData[i]);
+                if(user){
+                    let unSubObject = {};
+                    unSubObject.transaction_id = 'random-transaction-id';
+                    unSubObject.msisdn = user.msisdn;
+                    unSubObject.source = 'tp-on-demand-via-email';
+
+                    axios.post('http://127.0.0.1:5000/payment/sms-unsub', unSubObject);
+                    console.log('### Axios call send for msisdn ', user.msisdn);
+                    blacklistIds.push(user._id);
+                }else{
+                    console.log("### No user found for ", inputData[i]);
+                    console.log("### Create and black list ", inputData[i]);
+                    let userObj = {};
+                    userObj.msisdn = inputData[i];
+                    userObj.source = 'system';
+                    userObj.operator = 'telenor';
+                    userObj.is_black_listed = true;
+                    userObj.active = false;
+
+                    usersRepo.createUser(userObj);
+                }
+            }else{
+                console.log("### Invalid number or number length");
+            }
+        }
+
+        let blacklistResult = await usersRepo.blacklistMany(blacklistIds);
+        console.log("### Blacklisted: ", blacklistResult);
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
 
 getNextBillingDtm = async() => {
     console.log("### getNextBillingDtm");
@@ -1854,6 +1897,7 @@ module.exports = {
     getReportForHeOrWifi: getReportForHeOrWifi,
     getNextBillingDtm: getNextBillingDtm,
     expireBaseAndBlackList: expireBaseAndBlackList,
+    expireBaseAndBlackListOrCreate: expireBaseAndBlackListOrCreate,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
