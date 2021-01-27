@@ -414,7 +414,6 @@ expireBaseAndBlackListOrCreate = async() => {
                     userObj.source = 'system';
                     userObj.operator = 'telenor';
                     userObj.is_black_listed = true;
-                    userObj.active = false;
 
                     usersRepo.createUser(userObj);
                 }
