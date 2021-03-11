@@ -15,7 +15,7 @@ router.route('/subscriptionRenewal')
 router.route('/rabbitMqMonitoring')
     .get(controller.rabbitMqMonitoring);
 
-    router.route('/tokenRefresh')
+router.route('/tokenRefresh')
     .get(controller.refreshToken);
 
 router.route('/purgeDueToInActivity')

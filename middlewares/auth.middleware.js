@@ -7,7 +7,10 @@ authenticateToken = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1];
   console.log("TOKEN:", token);
 
-  let gw_transaction_id = req.body.transaction_id;
+  let gw_transaction_id = undefined;
+  if (req.body)
+    gw_transaction_id = req.body.transaction_id;
+
   console.log("gw_transaction_id:", gw_transaction_id);
 
   if(token === null){
