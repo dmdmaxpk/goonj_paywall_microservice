@@ -352,6 +352,51 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     }
 }
 
+getExpiredMsisdn = async() => {
+    console.log("=> getExpiredMsisdn");
+    let finalResult = [];
+
+    try{
+        var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
+        let inputData = await readFileSync(jsonPath);
+        console.log("### Input Data Length: ", inputData.length);
+
+        let newData;
+        for(let i = 0; i < inputData.length; i++){
+            if(inputData[i] && inputData[i].length === 11){
+                let user = await usersRepo.getUserByMsisdn(inputData[i]);
+                if(!user){
+                    finalResult.push(inputData[i]);
+
+                    newData = inputData[i] + '\n';
+                    fs.appendFile('expired_msisdn.txt', newData, (err) => {
+                        if (err)
+                            console.log('Error durring write in file: ', err);
+
+                        console.log('Write in File - successfor - msisdn: ', i, ' - ', newData);
+                    });
+                    console.log("### Expired User - msisdn: ", i, ' - ', newData);
+                }else{
+                    console.log("### User found - msisdn: ", i, ' - ', inputData[i]);
+                }
+            }else{
+                console.log("### Invalid number or number length : ", inputData[i]);
+            }
+        }
+
+
+        console.log("###  [randomReport][getExpiredMsisdn]", finalResult.length);
+        fs.unlink(randomReportFilePath,function(err,data) {
+            if (err) {
+                console.log("###  File not deleted[randomReport]");
+            }
+            console.log("###  File deleted [randomReport]");
+        });
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
 expireBaseAndBlackList = async() => {
     console.log("### expireBaseAndBlackList");
 
@@ -1899,6 +1944,7 @@ module.exports = {
     expireBaseAndBlackListOrCreate: expireBaseAndBlackListOrCreate,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
+    getExpiredMsisdn: getExpiredMsisdn,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
     generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }
