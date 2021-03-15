@@ -18,6 +18,8 @@ const userSchema = new Schema({
     preferences: { type: Array, index: true },
     avatar: String,
     dateOfBirth: {type: Date },
+    gender: String,
+    profilePicture: String,
     source: {type: String, default: "na", index: true},
 
     //fields for FnF flow
