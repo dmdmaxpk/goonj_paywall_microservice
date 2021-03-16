@@ -5,7 +5,7 @@ const packageRepo = container.resolve("packageRepository");
 let billingHistoryRepo = container.resolve("billingHistoryRepository");
 let subscriberRepo = container.resolve("subscriberRepository");
 let subscriptionRepository = container.resolve("subscriptionRepository");
-
+const userProfileService = require('../services/UserProfileService');
 // CREATE
 exports.post = async (req, res) => {
 	let postData = req.body;
@@ -32,7 +32,7 @@ exports.get = async (req, res) => {
 			result = await repo.getUserById(user_id);
 		}
 		if(result){
-			res.send({code: config.codes.code_success, data: {fullname: result.fullname,email: result.email, dateOfBirth: result.dateOfBirth,msisdn: result.msisdn  } });
+			res.send({code: config.codes.code_success, data: {fullname: result.fullname,email: result.email, dateOfBirth: result.dateOfBirth,msisdn: result.msisdn, gender: result.gender, profilePicture: result.profilePicture } });
 		}else{
 			res.send({code: config.codes.code_data_not_found, message: 'Data not found'});
 		}
@@ -105,28 +105,30 @@ exports.markBlackListed = async (req, res) => {
 // UPDATE
 exports.put = async (req, res) => {
 	let result = undefined ;
-	let updatePayload= {
-		fullname: req.body.fullname,
-		email: req.body.email,
-		dateOfBirth: req.body.dateOfBirth, 
+	let profilePicture = await userProfileService.uploadPpToS3(req.files.file, req.query.user_id);
+	if (profilePicture){
+		let updatePayload= {
+			fullname: req.body.fullname,
+			email: req.body.email,
+			dateOfBirth: req.body.dateOfBirth,
+			gender: req.body.gender,
+			profilePicture: profilePicture
+		}
+		if (!req.query.user_id)
+			result = await repo.updateUser(req.query.msisdn, updatePayload);
+		else
+			result = await repo.updateUserById(req.query.user_id, updatePayload)
+
+		if (result)
+			res.send({'code': config.codes.code_record_updated, data : {fullname: result.fullname, email: result.email, dateOfBirth: result.dateOfBirth,msisdn: result.msisdn  } });
+		else
+			res.send({'code': config.codes.code_data_not_found, data: 'No user with this msisdn found!'});
 	}
-	console.log("query",req.query);
-	console.log("updatePaylod",updatePayload);
-	if (!req.query.user_id) {
-		result = await repo.updateUser(req.query.msisdn, updatePayload);
-	} else {
-		result = await repo.updateUserById(req.query.user_id, updatePayload)
-	}
-	if (result) {
-		res.send({'code': config.codes.code_record_updated, data : {fullname: result.fullname,email: result.email, dateOfBirth: result.dateOfBirth,msisdn: result.msisdn  } });
-	}else {
-		res.send({'code': config.codes.code_data_not_found, data: 'No user with this msisdn found!'});
+	else{
+		res.send({'code': config.codes.code_error, data: 'File upload error!'});
 	}
 }
 
-// update PackageId
-
 exports.update_subscribed_package_id = async (req,res) => {
 	res.status(500).send({ code: config.codes.code_error, message: "No Package to Update" });
-
 }

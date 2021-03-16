@@ -6,6 +6,9 @@ const userController = require('../controllers/userController')
 router.route('/')
     .get(userController.get);
 
+router.route('/')
+    .put(userController.put);
+
 router.route('/graylist/:msisdn')
     .get(userController.isgraylisted);
 
