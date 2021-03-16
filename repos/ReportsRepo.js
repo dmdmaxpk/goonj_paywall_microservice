@@ -272,7 +272,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
                 let user = await usersRepo.getUserByMsisdn(inputData[i]);
                 if(user){
-                    let dou = await viewLogsRepo.getDaysOfUseInDateRange(user._id, "2020-12-01T00:00:00.000Z", "2020-12-31T00:00:00.000Z");
+                    let dou = await viewLogsRepo.getDaysOfUseInDateRange(user._id, "2021-01-01T00:00:00.000Z", "2021-03-04T00:00:00.000Z");
                     if(dou && dou.length > 0){
                         singObject.dou = dou[0].count;
                     }else{
@@ -293,7 +293,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                             // }
 
                             // let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, inputData[i][1] + "T00:00:00.000Z", inputData[i][1] + "T23:59:59.000Z");
-                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2021-01-07T00:00:00.000Z", "2021-01-12T00:00:00.000Z");
+                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2021-01-01T00:00:00.000Z", "2021-03-04T00:00:00.000Z");
                             let totalSuccessTransactions = totalSuccessTransactionsInDec.length > 0 ? totalSuccessTransactionsInDec[0].count : 0;
 
                             singObject.subs_count = subsCount;
@@ -352,6 +352,51 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
     }
 }
 
+getExpiredMsisdn = async() => {
+    console.log("=> getExpiredMsisdn");
+    let finalResult = [];
+
+    try{
+        var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
+        let inputData = await readFileSync(jsonPath);
+        console.log("### Input Data Length: ", inputData.length);
+
+        let newData;
+        for(let i = 0; i < inputData.length; i++){
+            if(inputData[i] && inputData[i].length === 11){
+                let user = await usersRepo.getUserByMsisdn(inputData[i]);
+                if(!user){
+                    finalResult.push(inputData[i]);
+
+                    newData = inputData[i] + '\n';
+                    fs.appendFile('expired_msisdn.txt', newData, (err) => {
+                        if (err)
+                            console.log('Error durring write in file: ', err);
+
+                        console.log('Write in File - successfor - msisdn: ', i, ' - ', newData);
+                    });
+                    console.log("### Expired User - msisdn: ", i, ' - ', newData);
+                }else{
+                    console.log("### User found - msisdn: ", i, ' - ', inputData[i]);
+                }
+            }else{
+                console.log("### Invalid number or number length : ", inputData[i]);
+            }
+        }
+
+
+        console.log("###  [randomReport][getExpiredMsisdn]", finalResult.length);
+        fs.unlink(randomReportFilePath,function(err,data) {
+            if (err) {
+                console.log("###  File not deleted[randomReport]");
+            }
+            console.log("###  File deleted [randomReport]");
+        });
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
 expireBaseAndBlackList = async() => {
     console.log("### expireBaseAndBlackList");
 
@@ -380,6 +425,48 @@ expireBaseAndBlackList = async() => {
             }
         }
     
+        let blacklistResult = await usersRepo.blacklistMany(blacklistIds);
+        console.log("### Blacklisted: ", blacklistResult);
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+expireBaseAndBlackListOrCreate = async() => {
+    console.log("### expireBaseAndBlackListOrCreate");
+
+    try{
+        var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
+        let inputData = await readFileSync(jsonPath);
+        console.log("### Input Data Length: ", inputData.length);
+        let blacklistIds = [];
+        for(let i = 0; i < inputData.length; i++){
+            if(inputData[i] && inputData[i].length === 11){
+                let user = await usersRepo.getUserByMsisdn(inputData[i]);
+                if(user){
+                    let unSubObject = {};
+                    unSubObject.transaction_id = 'random-transaction-id';
+                    unSubObject.msisdn = user.msisdn;
+                    unSubObject.source = 'tp-on-demand-via-email';
+
+                    axios.post('http://127.0.0.1:5000/payment/sms-unsub', unSubObject);
+                    console.log('### Axios call send for msisdn ', user.msisdn);
+                    blacklistIds.push(user._id);
+                }else{
+                    console.log("### No user found for ", inputData[i]);
+                    console.log("### Create and black list ", inputData[i]);
+                    let userObj = {};
+                    userObj.msisdn = inputData[i];
+                    userObj.source = 'system';
+                    userObj.operator = 'telenor';
+                    userObj.is_black_listed = true;
+
+                    usersRepo.createUser(userObj);
+                }
+            }else{
+                console.log("### Invalid number or number length");
+            }
+        }
+
         let blacklistResult = await usersRepo.blacklistMany(blacklistIds);
         console.log("### Blacklisted: ", blacklistResult);
     }catch(e){
@@ -1854,8 +1941,10 @@ module.exports = {
     getReportForHeOrWifi: getReportForHeOrWifi,
     getNextBillingDtm: getNextBillingDtm,
     expireBaseAndBlackList: expireBaseAndBlackList,
+    expireBaseAndBlackListOrCreate: expireBaseAndBlackListOrCreate,
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
+    getExpiredMsisdn: getExpiredMsisdn,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
     generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }
