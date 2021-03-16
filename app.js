@@ -3,6 +3,7 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const mongoose = require('mongoose');
+const fileupload = require('express-fileupload');
 
 // Import database models
 require('./models/User');
@@ -59,6 +60,7 @@ app.use(logger('combined', {skip: skipLog}));
 app.use(swStats.getMiddleware({}));
 
 // Middlewares
+app.use(fileupload());
 app.use(bodyParser.json({limit: '5120kb'}));  //5MB
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(mongoSanitize());

@@ -1,47 +1,36 @@
-var fs = require('fs');
 var AWS = require('aws-sdk');
 
-uploadPpToS3 = async(fileName, user_id) => {
+const ID = 'AKIAZQA2XAWP5WFVOBU5';
+const SECRET = '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';
+const BUCKET_NAME = 'content-dmd';
+const FILE_PATH = 'TP-Content/static-content/user-profile-pictures/';
 
-    const ID = '';
-    const SECRET = '';
-    const BUCKET_NAME = ''; 
+const s3 = new AWS.S3({
+    accessKeyId: ID,
+    secretAccessKey: SECRET
+});
 
-    const s3 = new AWS.S3({
-        accessKeyId: ID,
-        secretAccessKey: SECRET
-    });
-    const file = fs.readFileSync(fileName);
+uploadPpToS3 = async(file, user_id) => {
 
-    const params = {
-        Bucket: BUCKET_NAME,
-        Key: `${user_id}.jpg`, // File name you want to save as in S3
-        Body: file
-    };
-
-    var location = '';
-
-    s3.upload(params, function (err, data) {
-        // Whether there is an error or not, delete the temp file
-        fs.unlink(file.path, function (err) {
-            if (err) {
-                console.error(err);
-            }
-            console.log('Temp File Delete');
-        });
-        console.log("PRINT FILE:", file);
-
-        if (err) {
-            throw err;
-        }
-        else {
-            console.log('Successfully uploaded data');
-            location = data.Location;
-        }
-    });
-    return location;
+    const params = {Bucket: BUCKET_NAME, Key: `${FILE_PATH}${user_id}.jpg`, Body: file.data};
+    let response = await uploadAndReturnPath(params);
+    if (response)
+        return response.Location;
+    else
+        return undefined;
 }
 
+uploadAndReturnPath = async (params) => {
+    return new Promise((resolve, reject) => {
+        s3.upload(params, (err, data) => {
+            if(err)
+                reject(err);
+            else
+                resolve(data);
+        });
+    });
+}
 module.exports = {
-    uploadPpToS3: uploadPpToS3
+    uploadPpToS3: uploadPpToS3,
+    uploadAndReturnPath: uploadAndReturnPath
 }
