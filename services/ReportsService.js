@@ -155,7 +155,9 @@ generateRandomReports =  async() => {
     // reportsRepo.generateReportForAcquisitionSourceAndNoOfTimeUserBilled();
     //reportsRepo.getNextBillingDtm();
     //reportsRepo.getReportForHeOrWifi();
-    reportsRepo.expireBaseAndBlackList();
+    // reportsRepo.expireBaseAndBlackList();
+    // reportsRepo.expireBaseAndBlackListOrCreate();
+    // reportsRepo.getExpiredMsisdn();
 }
 
 function sleep(ms) {

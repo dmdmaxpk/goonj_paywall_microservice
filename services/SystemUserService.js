@@ -18,6 +18,7 @@ class SystemUserService {
                     dataToResolve.code = config.codes.code_success;
                     dataToResolve.message = "Successfully logged in";
                     dataToResolve.access_token = token;
+                    dataToResolve.role = systemUser.role;
                     resolve(dataToResolve);
                 } else {
                     dataToResolve.code = config.codes.code_data_not_found;

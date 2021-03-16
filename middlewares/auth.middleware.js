@@ -6,13 +6,26 @@ authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   console.log("TOKEN:", token);
+
+  let gw_transaction_id = undefined;
+  if (req.body)
+    gw_transaction_id = req.body.transaction_id;
+
+  console.log("gw_transaction_id:", gw_transaction_id);
+
   if(token === null){
+    if (gw_transaction_id)
+      return res.send({code: 401, message: "Un-Authorized", gw_transaction_id: gw_transaction_id});
+    else
       return res.send({code: 401, message: "Un-Authorized"});
   }
 
   jwt.verify(token, config.ACCESS_TOKEN_SECRET, (err, decodedUser) => {
       if(err){
-        return res.send({code: 403, message: "Forbidden"});
+        if (gw_transaction_id)
+          return res.send({code: 403, message: "Forbidden", gw_transaction_id: gw_transaction_id});
+        else
+          return res.send({code: 403, message: "Forbidden"});
       }
       req.decoded = decodedUser;
       next();
