@@ -17,7 +17,7 @@ const userSchema = new Schema({
     description: String,
     preferences: { type: Array, index: true },
     avatar: String,
-    dateOfBirth: {type: Date },
+    dateOfBirth: String,
     gender: String,
     profilePicture: String,
     source: {type: String, default: "na", index: true},
