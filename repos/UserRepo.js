@@ -85,7 +85,7 @@ class UserRepository {
         if (result.nModified === 0) {
             return undefined;
         }else{
-            let user = await getUserById(user_id);
+            let user = await this.getUserById(user_id);
             return user;
         }
     }
