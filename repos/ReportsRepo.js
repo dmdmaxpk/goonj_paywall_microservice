@@ -165,8 +165,7 @@ const findingCsvWriter = createCsvWriter({
         {id: 'msisdn', title: 'Mobile Number'},
         {id: 'package', title: 'Package'},
         {id: 'error_reason', title: 'Error Reason'},
-        {id: "added_dtm",title: "Acquired Date" },
-        {id: 'billing_dtm', title: 'Error Reason Time'}
+        {id: "added_dtm",title: "Acquired Date" }
     ]
 });
 
@@ -412,33 +411,31 @@ getExpiredMsisdn = async() => {
     }
 }
 
-getChurnUsers = async() => {
-    console.log("### getChurnUsers");
+getDailyData = async() => {
+    let package = 'QDfC';
+    console.log("### QDfC - "+package);
     let finalResult = [];
     try{
         let count = 0;
-        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers();
+        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(package);
         console.log('### Success users: ', successUsers.length);
         
         for(i = 0; i < successUsers.length; i++){
             try{
                 console.log("###: "+i);
-                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id);
-                console.log('### record: '+JSON.stringify(record));
+                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id, package);
                 if(!record){
                     count++;
                     console.log("### count: "+count);
-                    let subscription = await subscriptionRepo.getSubscription(successUsers[i].subscription_id);
-                    console.log("### Record not found for 23rd march!");
+                    let user = await usersRepo.getUserById(successUsers[i].user_id, package);
+                    let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, package);
+
+                    console.log("### Record not found for 23rd march!", JSON.stringify(lastHistory));
                     let newObj = {};
-                    newObj.msisdn = successUsers[i].msisdn;
-                    
-                    if(subscription){
-                        newObj.added_dtm = subscription.added_dtm;
-                    }
-                    
-                        newObj.package = 'Weekly Live';
-                    newObj.error_reason = successUsers[i].operator_response.errorMessage;
+                    newObj.msisdn = user.msisdn;
+                    newObj.added_dtm = user.added_dtm;
+                    newObj.package = 'Live Daily';
+                    newObj.error_reason = lastHistory.operator_response.errorMessage;
                     finalResult.push(newObj);
                 }
             }catch(e){
@@ -454,8 +451,70 @@ getChurnUsers = async() => {
                 await findingCsvWriter.writeRecords(finalResult);
                 let info = await transporter.sendMail({
                     from: 'paywall@dmdmax.com.pk',
-                    to:  ["farhan.ali@dmdmax.com"],
-                    subject: `Findings 24th March 2021 - Weekly Package`, // Subject line
+                    to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"],
+                    subject: `Findings 24th March 2021 - Daily Package`,
+                    text: `Findings has been attached, please find attachment`,
+                    attachments:[
+                        {
+                            filename: findingCsv,
+                            path: findingCsvPath
+                        }
+                    ]
+                });
+
+                console.log("### Sending email - info: ", info);
+            }catch (err) {
+                console.log("### Sending email - error - ", err);
+            }
+        }
+
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+getWeeklyData = async() => {
+    let package = 'QDfG';
+    console.log("### QDfG - "+package);
+    let finalResult = [];
+    try{
+        let count = 0;
+        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(package);
+        console.log('### Success users: ', successUsers.length);
+        
+        for(i = 0; i < successUsers.length; i++){
+            try{
+                console.log("### QDfG: "+i);
+                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id, package);
+                if(!record){
+                    count++;
+                    console.log("### QDfG count: "+count);
+                    let user = await usersRepo.getUserById(successUsers[i].user_id, package);
+                    let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, package);
+
+                    console.log("### Record not found for 23rd march!", JSON.stringify(lastHistory));
+                    let newObj = {};
+                    newObj.msisdn = user.msisdn;
+                    newObj.added_dtm = user.added_dtm;
+                    newObj.package = 'Live Weekly';
+                    newObj.error_reason = lastHistory.operator_response.errorMessage;
+                    finalResult.push(newObj);
+                }
+            }catch(e){
+                console.log("###", e);
+            }
+        }
+
+        console.log('### Final Result - length : ', finalResult);
+
+        if(finalResult.length > 0){
+            console.log("### Sending email");
+            try {
+                await findingCsvWriter.writeRecords(finalResult);
+                let info = await transporter.sendMail({
+                    from: 'paywall@dmdmax.com.pk',
+                    to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"],
+                    subject: `Findings 24th March 2021 - Weekly Package`,
                     text: `Findings has been attached, please find attachment`,
                     attachments:[
                         {
@@ -2024,7 +2083,8 @@ module.exports = {
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
     getExpiredMsisdn: getExpiredMsisdn,
-    getChurnUsers: getChurnUsers,
+    getWeeklyData: getWeeklyData,
+    getDailyData: getDailyData,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
     generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }

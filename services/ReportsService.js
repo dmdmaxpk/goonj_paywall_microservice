@@ -158,7 +158,8 @@ generateRandomReports =  async() => {
     // reportsRepo.expireBaseAndBlackList();
     // reportsRepo.expireBaseAndBlackListOrCreate();
     // reportsRepo.getExpiredMsisdn();
-    reportsRepo.getChurnUsers();
+    reportsRepo.getDailyData();
+    reportsRepo.getWeeklyData();
 }
 
 function sleep(ms) {
