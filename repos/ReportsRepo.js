@@ -73,6 +73,9 @@ let affiliatePvsFilePath = `./${affiliatePvs}`;
 let dailyNetAdditionCsv = currentDate+"_DailyNetAdditions.csv";
 let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
 
+let findingCsv = currentDate+"_Findings.csv";
+let findingCsvPath = `./${findingCsv}`;
+
 let nextBillingDtmCsv = currentDate+"_NextBillingDtm.csv";
 let nextBillingDtmFilePath = `./${nextBillingDtmCsv}`;
 let nextBillingDtmCsvWriter = createCsvWriter({
@@ -152,6 +155,18 @@ const csvReportWriter = createCsvWriter({
         {id: "isCallbAckSent",title: "IS CallBack Sent" },
         {id: 'added_dtm', title: 'User TIMESTAMP'},
         {id: 'callBackSentTime', title: 'TIMESTAMP'}
+    ]
+});
+
+
+const findingCsvWriter = createCsvWriter({
+    path: findingCsvPath,
+    header: [
+        {id: 'msisdn', title: 'Mobile Number'},
+        {id: 'package', title: 'Package'},
+        {id: 'error_reason', title: 'Error Reason'},
+        {id: "added_dtm",title: "Acquired Date" },
+        {id: 'billing_dtm', title: 'Error Reason Time'}
     ]
 });
 
@@ -392,6 +407,72 @@ getExpiredMsisdn = async() => {
             }
             console.log("###  File deleted [randomReport]");
         });
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+getChurnUsers = async() => {
+    console.log("=> getChurnUsers");
+    let finalResult = [];
+    try{
+        let successfullyChargeUsers = await billinghistoryRepo.getSuccessfullChargedUsers();
+        console.log('successfullyChargeUsers: ', successfullyChargeUsers.length);
+
+        let successfullyChargeUsersId, newObj = {};
+        let unSuccessfullyChargeUsers, resLength = 0, i = 0;
+        for(i = 0; i < successfullyChargeUsers.length; i++){
+            successfullyChargeUsersId = successfullyChargeUsers[i];
+
+            resLength = 0;
+            unSuccessfullyChargeUsers = await billinghistoryRepo.getUnsuccessfullChargedUsers(successfullyChargeUsersId._id);
+            resLength = unSuccessfullyChargeUsers.length;
+            console.log('resLength: ', resLength);
+
+            if (resLength > 0){
+                unSuccessfullyChargeUsers = unSuccessfullyChargeUsers[resLength - 1];
+                if (unSuccessfullyChargeUsers.hasOwnProperty('operator_response')) {
+                    let userData = await usersRepo.getUserById(successfullyChargeUsersId._id);
+
+                    newObj = {};
+                    newObj.msisdn = userData.msisdn;
+                    newObj.added_dtm = userData.added_dtm;
+                    newObj.package = 'Daily Live';
+                    newObj.error_reason = unSuccessfullyChargeUsers.operator_response.errorMessage;
+                    newObj.billing_dtm = unSuccessfullyChargeUsers.billing_dtm;
+                    console.log('newObj: ', newObj);
+
+                    finalResult.push(newObj);
+                    console.log('items are now : ', finalResult.length, i+1);
+                }
+            }
+        }
+
+        console.log('Final Result - length : ', finalResult.length, i);
+
+        if(finalResult.length > 0){
+            console.log("### Sending email");
+            try {
+                await findingCsvWriter.writeRecords(finalResult);
+                let info = await transporter.sendMail({
+                    from: 'paywall@dmdmax.com.pk',
+                    to:  ["muhammad.azam@dmdmax.com"],
+                    subject: `Findings 24th March 2021`, // Subject line
+                    text: `find has been attached, please find attachment`,
+                    attachments:[
+                        {
+                            filename: findingCsv,
+                            path: findingCsvPath
+                        }
+                    ]
+                });
+
+                console.log("### Sending email - info: ", info);
+            }catch (err) {
+                console.log("### Sending email - error - ", err);
+            }
+        }
+
     }catch(e){
         console.log("### error - ", e);
     }
@@ -1945,6 +2026,7 @@ module.exports = {
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
     getExpiredMsisdn: getExpiredMsisdn,
+    getChurnUsers: getChurnUsers,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
     generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }
