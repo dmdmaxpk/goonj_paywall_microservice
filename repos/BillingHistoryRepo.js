@@ -750,27 +750,27 @@ class BillingHistoryRepository {
             console.log("=>", err);
         }
     }
-    async getSuccessfullChargedUsers(package)  {
+    async getSuccessfullChargedUsers(mPackage)  {
         try{
-            let result = await BillingHistory.find({package_id:package,billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-16T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-17T00:00:00.000Z")}}]});
+            let result = await BillingHistory.find({package_id:mPackage,billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-16T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-17T00:00:00.000Z")}}]});
             return result;
         }catch(err){
             console.log("=>", err);
         }
     }
 
-    async getUnsuccessfullChargedUsers(id, package)  {
+    async getUnsuccessfullChargedUsers(id, mPackage)  {
         try{
-            let result = await BillingHistory.findOne({user_id: id, package_id: package, billing_status: 'Success', $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-24T00:00:00.000Z")}}]});
+            let result = await BillingHistory.findOne({user_id: id, package_id: mPackage, billing_status: 'Success', $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-24T00:00:00.000Z")}}]});
             return result;
         }catch(err){
             console.log("###", err);
         }
     }
 
-    async getLastHistory(user_id, package)  {
+    async getLastHistory(user_id, mPackage)  {
         try{
-            let result = await BillingHistory.find({user_id: user_id, package_id: package, $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-24T00:00:00.000Z")}}]}).sort({billing_dtm:-1}).limit(1);
+            let result = await BillingHistory.find({user_id: user_id, package_id: mPackage, $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-24T00:00:00.000Z")}}]}).sort({billing_dtm:-1}).limit(1);
             return result;
         }catch(err){
             console.log("###", err);
