@@ -413,40 +413,39 @@ getExpiredMsisdn = async() => {
 
 getDailyData = async() => {
     let mPackage = 'QDfC';
-    console.log("### QDfC - "+mPackage);
+    console.log("### QDfC");
     let finalResult = [];
     try{
         let count = 0;
         let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(mPackage);
-        console.log('### Success users: ', successUsers.length);
+        console.log('### Success users QDfC - : ', successUsers.length);
         
         for(i = 0; i < successUsers.length; i++){
             try{
-                console.log("###: "+i);
+                console.log("### QDfC: "+i);
                 let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id, mPackage);
                 if(!record){
                     count++;
-                    console.log("### count: "+count);
+                    console.log("### count QDfC: "+count);
                     let user = await usersRepo.getUserById(successUsers[i].user_id);
                     let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, mPackage);
 
-                    console.log("### Record not found for 23rd march!", JSON.stringify(lastHistory));
                     let newObj = {};
                     newObj.msisdn = user.msisdn;
                     newObj.added_dtm = user.added_dtm;
                     newObj.package = 'Live Daily';
-                    newObj.error_reason = lastHistory.operator_response.errorMessage;
+                    newObj.error_reason = lastHistory[0].operator_response.errorMessage;
                     finalResult.push(newObj);
                 }
             }catch(e){
-                console.log("###", e);
+                console.log("### QDfC", e);
             }
         }
 
-        console.log('### Final Result - length : ', finalResult);
+        console.log('### Final Result - length - QDfC : ', finalResult);
 
         if(finalResult.length > 0){
-            console.log("### Sending email");
+            console.log("### Sending email - QDfC");
             try {
                 await findingCsvWriter.writeRecords(finalResult);
                 let info = await transporter.sendMail({
@@ -475,12 +474,12 @@ getDailyData = async() => {
 
 getWeeklyData = async() => {
     let mPackage = 'QDfG';
-    console.log("### QDfG - "+mPackage);
+    console.log("### QDfG");
     let finalResult = [];
     try{
         let count = 0;
         let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(mPackage);
-        console.log('### Success users: ', successUsers.length);
+        console.log('### Success users - QDfG- : ', successUsers.length);
         
         for(i = 0; i < successUsers.length; i++){
             try{
@@ -492,23 +491,22 @@ getWeeklyData = async() => {
                     let user = await usersRepo.getUserById(successUsers[i].user_id);
                     let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, mPackage);
 
-                    console.log("### Record not found for 23rd march!", JSON.stringify(lastHistory));
                     let newObj = {};
                     newObj.msisdn = user.msisdn;
                     newObj.added_dtm = user.added_dtm;
                     newObj.package = 'Live Weekly';
-                    newObj.error_reason = lastHistory.operator_response.errorMessage;
+                    newObj.error_reason = lastHistory[0].operator_response.errorMessage;
                     finalResult.push(newObj);
                 }
             }catch(e){
-                console.log("###", e);
+                console.log("### QDfG", e);
             }
         }
 
-        console.log('### Final Result - length : ', finalResult);
+        console.log('### Final Result - length - QDfG : ', finalResult);
 
         if(finalResult.length > 0){
-            console.log("### Sending email");
+            console.log("### Sending email - QDfG");
             try {
                 await findingCsvWriter.writeRecords(finalResult);
                 let info = await transporter.sendMail({
