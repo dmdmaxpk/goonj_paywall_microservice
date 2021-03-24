@@ -752,8 +752,13 @@ class BillingHistoryRepository {
     }
     async getSuccessfullChargedUsers(mPackage)  {
         try{
-            let result = await BillingHistory.find({package_id:mPackage,billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-16T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-17T00:00:00.000Z")}}]});
-            return result;
+            if(mPackage === 'QDfC'){
+                let result = await BillingHistory.find({package_id:mPackage,billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-22T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-23T00:00:00.000Z")}}]});
+                return result;
+            }else{
+                let result = await BillingHistory.find({package_id:mPackage,billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-16T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-17T00:00:00.000Z")}}]});
+                return result;
+            }
         }catch(err){
             console.log("=>", err);
         }
