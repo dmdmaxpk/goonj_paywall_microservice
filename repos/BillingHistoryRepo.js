@@ -753,20 +753,7 @@ class BillingHistoryRepository {
     async getSuccessfullChargedUsers(from, to)  {
         console.log("=> getSuccessfullChargedUsers");
         try{
-            let result = await BillingHistory.aggregate([
-                {$match:{
-                        package_id: 'QDfC',
-                        billing_status: 'Success',
-                        $and: [
-                            {billing_dtm:{$gte:new Date("2021-03-22T00:00:00.000Z")}},
-                            {billing_dtm:{$lte:new Date("2021-03-22T23:59:59.000Z")}}
-                        ]
-                    }},
-                { $group: {
-                    _id: "$user_id"
-                }},
-            ]);
-
+            let result = await BillingHistory.find({package_id:'QDfC',billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-22T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-23T00:00:00.000Z")}}]});
             return result;
         }catch(err){
             console.log("=>", err);
@@ -776,19 +763,21 @@ class BillingHistoryRepository {
     async getUnsuccessfullChargedUsers(user_id)  {
         console.log("=> getUnsuccessfullChargedUsers", user_id);
         try{
-            let result = await BillingHistory.aggregate([
-                {$match:{
-                        package_id: 'QDfC',
-                        billing_status: {$nin: ['Success']},
-                        user_id: user_id,
-                        $and: [
-                            {billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},
-                            {billing_dtm:{$lte:new Date("2021-03-23T23:59:59.000Z")}}
-                        ]
-                    }},
-            ]);
+            // let result = await BillingHistory.aggregate([
+            //     {$match:{
+            //             package_id: 'QDfC',
+            //             billing_status: {$nin: ['Success']},
+            //             user_id: user_id,
+            //             $and: [
+            //                 {billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},
+            //                 {billing_dtm:{$lte:new Date("2021-03-23T23:59:59.000Z")}}
+            //             ]
+            //         }},
+            // ]);
 
-            return result;
+            //return result;
+
+            return await BillingHistory.find({package_id:'QDfC',billing_status: 'Success',user_id: user_id, $and:[{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-23T23:59:59.000Z")}}]});
         }catch(err){
             console.log("=>", err);
         }

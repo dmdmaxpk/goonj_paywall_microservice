@@ -416,49 +416,42 @@ getChurnUsers = async() => {
     console.log("=> getChurnUsers");
     let finalResult = [];
     try{
-        let successfullyChargeUsers = await billinghistoryRepo.getSuccessfullChargedUsers();
-        console.log('successfullyChargeUsers: ', successfullyChargeUsers.length);
-
-        let successfullyChargeUsersId, newObj = {};
-        let unSuccessfullyChargeUsers, resLength = 0, i = 0;
-        for(i = 0; i < successfullyChargeUsers.length; i++){
-            successfullyChargeUsersId = successfullyChargeUsers[i];
-
-            resLength = 0;
-            unSuccessfullyChargeUsers = await billinghistoryRepo.getUnsuccessfullChargedUsers(successfullyChargeUsersId._id);
-            resLength = unSuccessfullyChargeUsers.length;
-            console.log('resLength: ', resLength);
-
-            if (resLength > 0){
-                unSuccessfullyChargeUsers = unSuccessfullyChargeUsers[resLength - 1];
-                if (unSuccessfullyChargeUsers.hasOwnProperty('operator_response')) {
-                    let userData = await usersRepo.getUserById(successfullyChargeUsersId._id);
-
-                    newObj = {};
-                    newObj.msisdn = userData.msisdn;
-                    newObj.added_dtm = userData.added_dtm;
-                    newObj.package = 'Daily Live';
-                    newObj.error_reason = unSuccessfullyChargeUsers.operator_response.errorMessage;
-                    newObj.billing_dtm = unSuccessfullyChargeUsers.billing_dtm;
-                    console.log('newObj: ', newObj);
-
-                    finalResult.push(newObj);
-                    console.log('items are now : ', finalResult.length, i+1);
+        let count = 0;
+        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers();
+        console.log('Success users: ', successfullyChargeUsers.length);
+        
+        for(i = 0; i < successUsers.length; i++){
+            console.log("$$$: "+i);
+            let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i]._id);
+            if(!record){
+                count++;
+                console.log("$$$ count: "+count);
+                let subscription = await subscriptionRepo.getSubscription(successUsers[i].subscription_id);
+                console.log("$$$ Record not found for 23rd march!");
+                let newObj = {};
+                newObj.msisdn = successUsers[i].msisdn;
+                
+                if(subscription){
+                    newObj.added_dtm = subscription.added_dtm;
                 }
+                
+                    newObj.package = 'Daily Live';
+                newObj.error_reason = successUsers[i].operator_response.errorMessage;
+                finalResult.push(newObj);
             }
         }
 
-        console.log('Final Result - length : ', finalResult.length, i);
+        console.log('$$$ Final Result - length : ', finalResult);
 
         if(finalResult.length > 0){
-            console.log("### Sending email");
+            console.log("$$$ Sending email");
             try {
                 await findingCsvWriter.writeRecords(finalResult);
                 let info = await transporter.sendMail({
                     from: 'paywall@dmdmax.com.pk',
-                    to:  ["muhammad.azam@dmdmax.com"],
-                    subject: `Findings 24th March 2021`, // Subject line
-                    text: `find has been attached, please find attachment`,
+                    to:  ["farhan.ali@dmdmax.com"],
+                    subject: `Findings 24th March 2021 - Daily Package`, // Subject line
+                    text: `Findings has been attached, please find attachment`,
                     attachments:[
                         {
                             filename: findingCsv,
@@ -467,9 +460,9 @@ getChurnUsers = async() => {
                     ]
                 });
 
-                console.log("### Sending email - info: ", info);
+                console.log("$$$ Sending email - info: ", info);
             }catch (err) {
-                console.log("### Sending email - error - ", err);
+                console.log("$$$ Sending email - error - ", err);
             }
         }
 
