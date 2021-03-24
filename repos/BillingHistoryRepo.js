@@ -762,7 +762,16 @@ class BillingHistoryRepository {
 
     async getUnsuccessfullChargedUsers(id)  {
         try{
-            let result = await BillingHistory.find({user_id: id, package_id: 'QDfC', billing_status: 'Success', $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-23T23:59:59.000Z")}}]});
+            let result = await BillingHistory.aggregate([
+                {
+                    $match:{
+                        user_id: id,
+                        billing_status: 'Success',
+                        package_id: 'QDfC',
+                        $and:[{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lt:new Date("2021-03-24T00:00:00.000Z")}}]
+                    }
+                }
+                ])
             console.log('### result: '+result);
             return result;
         }catch(err){

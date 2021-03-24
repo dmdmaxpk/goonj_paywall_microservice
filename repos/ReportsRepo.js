@@ -421,24 +421,28 @@ getChurnUsers = async() => {
         console.log('### Success users: ', successUsers.length);
         
         for(i = 0; i < successUsers.length; i++){
-            console.log("###: "+i);
-            let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i]._id);
-            console.log('### record: '+record);
-            if(!record){
-                count++;
-                console.log("### count: "+count);
-                let subscription = await subscriptionRepo.getSubscription(successUsers[i].subscription_id);
-                console.log("### Record not found for 23rd march!");
-                let newObj = {};
-                newObj.msisdn = successUsers[i].msisdn;
-                
-                if(subscription){
-                    newObj.added_dtm = subscription.added_dtm;
+            try{
+                console.log("###: "+i);
+                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i]._id);
+                console.log('### record: '+record);
+                if(!record){
+                    count++;
+                    console.log("### count: "+count);
+                    let subscription = await subscriptionRepo.getSubscription(successUsers[i].subscription_id);
+                    console.log("### Record not found for 23rd march!");
+                    let newObj = {};
+                    newObj.msisdn = successUsers[i].msisdn;
+                    
+                    if(subscription){
+                        newObj.added_dtm = subscription.added_dtm;
+                    }
+                    
+                        newObj.package = 'Daily Live';
+                    newObj.error_reason = successUsers[i].operator_response.errorMessage;
+                    finalResult.push(newObj);
                 }
-                
-                    newObj.package = 'Daily Live';
-                newObj.error_reason = successUsers[i].operator_response.errorMessage;
-                finalResult.push(newObj);
+            }catch(e){
+                console.log("###", e);
             }
         }
 
