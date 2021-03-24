@@ -427,7 +427,7 @@ getDailyData = async() => {
                 if(!record){
                     count++;
                     console.log("### count: "+count);
-                    let user = await usersRepo.getUserById(successUsers[i].user_id, package);
+                    let user = await usersRepo.getUserById(successUsers[i].user_id);
                     let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, package);
 
                     console.log("### Record not found for 23rd march!", JSON.stringify(lastHistory));
@@ -489,7 +489,7 @@ getWeeklyData = async() => {
                 if(!record){
                     count++;
                     console.log("### QDfG count: "+count);
-                    let user = await usersRepo.getUserById(successUsers[i].user_id, package);
+                    let user = await usersRepo.getUserById(successUsers[i].user_id);
                     let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, package);
 
                     console.log("### Record not found for 23rd march!", JSON.stringify(lastHistory));
