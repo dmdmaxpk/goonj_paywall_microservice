@@ -424,7 +424,7 @@ getChurnUsers = async() => {
             try{
                 console.log("###: "+i);
                 let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id);
-                console.log('### record: '+record);
+                console.log('### record: '+JSON.stringify(record));
                 if(!record){
                     count++;
                     console.log("### count: "+count);
