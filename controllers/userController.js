@@ -105,8 +105,8 @@ exports.markBlackListed = async (req, res) => {
 // UPDATE
 exports.put = async (req, res) => {
 	let result = undefined ;
-	let profilePicture = await userProfileService.uploadPpToS3(req.files.file, req.query.user_id);
-	if (profilePicture){
+	let profilePicture = req.files ? await userProfileService.uploadPpToS3(req.files.file, req.query.user_id) : '';
+	console.log("profile picture", profilePicture)
 		let updatePayload= {
 			fullname: req.body.fullname,
 			email: req.body.email,
@@ -120,13 +120,9 @@ exports.put = async (req, res) => {
 			result = await repo.updateUserById(req.query.user_id, updatePayload)
 
 		if (result)
-			res.send({'code': config.codes.code_record_updated, data : {fullname: result.fullname, email: result.email, dateOfBirth: result.dateOfBirth,msisdn: result.msisdn  } });
+			res.send({'code': config.codes.code_record_updated, data : {fullname: result.fullname, email: result.email, dateOfBirth: result.dateOfBirth,msisdn: result.msisdn, profilePicture: result.profilePicture  } });
 		else
 			res.send({'code': config.codes.code_data_not_found, data: 'No user with this msisdn found!'});
-	}
-	else{
-		res.send({'code': config.codes.code_error, data: 'File upload error!'});
-	}
 }
 
 exports.update_subscribed_package_id = async (req,res) => {

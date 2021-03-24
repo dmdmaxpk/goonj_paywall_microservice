@@ -11,7 +11,6 @@ const s3 = new AWS.S3({
 });
 
 uploadPpToS3 = async(file, user_id) => {
-
     const params = {Bucket: BUCKET_NAME, Key: `${FILE_PATH}${user_id}.jpg`, Body: file.data};
     let response = await uploadAndReturnPath(params);
     if (response)
