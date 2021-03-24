@@ -434,7 +434,7 @@ getDailyData = async() => {
                     newObj.msisdn = user.msisdn;
                     newObj.added_dtm = user.added_dtm;
                     newObj.package = 'Live Daily';
-                    newObj.error_reason = lastHistory[0].operator_response.errorMessage;
+                    newObj.error_reason = lastHistory ? lastHistory[0].operator_response.errorMessage : '';
                     finalResult.push(newObj);
                 }
             }catch(e){
@@ -495,7 +495,7 @@ getWeeklyData = async() => {
                     newObj.msisdn = user.msisdn;
                     newObj.added_dtm = user.added_dtm;
                     newObj.package = 'Live Weekly';
-                    newObj.error_reason = lastHistory[0].operator_response.errorMessage;
+                    newObj.error_reason = lastHistory ? lastHistory[0].operator_response.errorMessage : '';
                     finalResult.push(newObj);
                 }
             }catch(e){
