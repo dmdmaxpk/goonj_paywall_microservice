@@ -772,7 +772,6 @@ class BillingHistoryRepository {
                     }
                 }
                 ])
-            console.log('### result: '+result);
             return result;
         }catch(err){
             console.log("###", err);
