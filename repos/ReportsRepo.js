@@ -412,23 +412,23 @@ getExpiredMsisdn = async() => {
 }
 
 getDailyData = async() => {
-    let package = 'QDfC';
-    console.log("### QDfC - "+package);
+    let mPackage = 'QDfC';
+    console.log("### QDfC - "+mPackage);
     let finalResult = [];
     try{
         let count = 0;
-        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(package);
+        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(mPackage);
         console.log('### Success users: ', successUsers.length);
         
         for(i = 0; i < successUsers.length; i++){
             try{
                 console.log("###: "+i);
-                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id, package);
+                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id, mPackage);
                 if(!record){
                     count++;
                     console.log("### count: "+count);
                     let user = await usersRepo.getUserById(successUsers[i].user_id);
-                    let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, package);
+                    let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, mPackage);
 
                     console.log("### Record not found for 23rd march!", JSON.stringify(lastHistory));
                     let newObj = {};
@@ -474,23 +474,23 @@ getDailyData = async() => {
 }
 
 getWeeklyData = async() => {
-    let package = 'QDfG';
-    console.log("### QDfG - "+package);
+    let mPackage = 'QDfG';
+    console.log("### QDfG - "+mPackage);
     let finalResult = [];
     try{
         let count = 0;
-        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(package);
+        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(mPackage);
         console.log('### Success users: ', successUsers.length);
         
         for(i = 0; i < successUsers.length; i++){
             try{
                 console.log("### QDfG: "+i);
-                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id, package);
+                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id, mPackage);
                 if(!record){
                     count++;
                     console.log("### QDfG count: "+count);
                     let user = await usersRepo.getUserById(successUsers[i].user_id);
-                    let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, package);
+                    let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, mPackage);
 
                     console.log("### Record not found for 23rd march!", JSON.stringify(lastHistory));
                     let newObj = {};
