@@ -437,7 +437,7 @@ getChurnUsers = async() => {
                         newObj.added_dtm = subscription.added_dtm;
                     }
                     
-                        newObj.package = 'Daily Live';
+                        newObj.package = 'Weekly Live';
                     newObj.error_reason = successUsers[i].operator_response.errorMessage;
                     finalResult.push(newObj);
                 }
@@ -455,7 +455,7 @@ getChurnUsers = async() => {
                 let info = await transporter.sendMail({
                     from: 'paywall@dmdmax.com.pk',
                     to:  ["farhan.ali@dmdmax.com"],
-                    subject: `Findings 24th March 2021 - Daily Package`, // Subject line
+                    subject: `Findings 24th March 2021 - Weekly Package`, // Subject line
                     text: `Findings has been attached, please find attachment`,
                     attachments:[
                         {

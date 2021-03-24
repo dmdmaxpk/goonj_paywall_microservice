@@ -751,9 +751,8 @@ class BillingHistoryRepository {
         }
     }
     async getSuccessfullChargedUsers(from, to)  {
-        console.log("=> getSuccessfullChargedUsers");
         try{
-            let result = await BillingHistory.find({package_id:'QDfC',billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-22T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-23T00:00:00.000Z")}}]});
+            let result = await BillingHistory.find({package_id:'QDfG',billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-16T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-17T00:00:00.000Z")}}]});
             return result;
         }catch(err){
             console.log("=>", err);
@@ -762,7 +761,7 @@ class BillingHistoryRepository {
 
     async getUnsuccessfullChargedUsers(id)  {
         try{
-            let result = await BillingHistory.findOne({user_id: id, package_id: 'QDfC', billing_status: 'Success', $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-23T23:59:59.000Z")}}]});
+            let result = await BillingHistory.findOne({user_id: id, package_id: 'QDfG', billing_status: 'Success', $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-24T00:00:00.000Z")}}]});
             return result;
         }catch(err){
             console.log("###", err);
