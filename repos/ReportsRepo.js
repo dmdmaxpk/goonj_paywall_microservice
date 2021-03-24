@@ -413,12 +413,12 @@ getExpiredMsisdn = async() => {
 }
 
 getChurnUsers = async() => {
-    console.log("=> getChurnUsers");
+    console.log("$$$ getChurnUsers");
     let finalResult = [];
     try{
         let count = 0;
         let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers();
-        console.log('Success users: ', successfullyChargeUsers.length);
+        console.log('$$$ Success users: ', successfullyChargeUsers.length);
         
         for(i = 0; i < successUsers.length; i++){
             console.log("$$$: "+i);
