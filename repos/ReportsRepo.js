@@ -76,6 +76,9 @@ let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
 let findingCsv = currentDate+"_Findings.csv";
 let findingCsvPath = `./${findingCsv}`;
 
+let migrateUserCsv = currentDate+"_MigratedUsers.csv";
+let migrateUserCsvPath = `./${migrateUserCsv}`;
+
 let nextBillingDtmCsv = currentDate+"_NextBillingDtm.csv";
 let nextBillingDtmFilePath = `./${nextBillingDtmCsv}`;
 let nextBillingDtmCsvWriter = createCsvWriter({
@@ -166,6 +169,13 @@ const findingCsvWriter = createCsvWriter({
         {id: 'package', title: 'Package'},
         {id: 'error_reason', title: 'Error Reason'},
         {id: "added_dtm",title: "Acquired Date" }
+    ]
+});
+const migrateUsersCsvWriter = createCsvWriter({
+    path: migrateUserCsvPath,
+    header: [
+        {id: 'msisdn', title: 'Mobile Number'},
+        {id: 'message', title: 'Message'},
     ]
 });
 
@@ -518,6 +528,58 @@ getWeeklyData = async() => {
                         {
                             filename: findingCsv,
                             path: findingCsvPath
+                        }
+                    ]
+                });
+
+                console.log("### Sending email - info: ", info);
+            }catch (err) {
+                console.log("### Sending email - error - ", err);
+            }
+        }
+
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+getMigrateUsers = async() => {
+    console.log("### getMigrateUsers - ");
+    let finalResult = [];
+    try{
+        let from = new Date("2021-02-09T00:00:00.000Z");
+        let to = new Date("2021-03-24T23:59:59.000Z");
+        let migratedUsers = await billinghistoryRepo.getMigratedUsers(from, to);
+        console.log('### migratedUsers users: ', migratedUsers.length);
+
+        let userObj, newObj;
+        for(let i = 0; i < migratedUsers.length; i++){
+            userObj = await usersRepo.getUserById(migratedUsers[i]._id);
+
+            newObj = {};
+            newObj.msisdn = userObj.msisdn;
+            newObj.message = 'The subscriber does not exist or the customer that the subscriber belongs to is being migrated. Please check.';
+            finalResult.push(newObj);
+            console.log('count: ', finalResult.length, i+1);
+
+        }
+
+        console.log('### Final Result - length : ', finalResult.length);
+
+
+        if(finalResult.length > 0){
+            console.log("### Sending email");
+            try {
+                await migrateUsersCsvWriter.writeRecords(finalResult);
+                let info = await transporter.sendMail({
+                    from: 'paywall@dmdmax.com.pk',
+                    to:  ["muhammad.azam@dmdmax.com"],
+                    subject: `Last 45 day migrated users`,
+                    text: `Migrated Users has been attached, please find attachment`,
+                    attachments:[
+                        {
+                            filename: migrateUserCsv,
+                            path: migrateUserCsvPath
                         }
                     ]
                 });
@@ -2083,6 +2145,7 @@ module.exports = {
     getExpiredMsisdn: getExpiredMsisdn,
     getWeeklyData: getWeeklyData,
     getDailyData: getDailyData,
+    getMigrateUsers: getMigrateUsers,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
     generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }
