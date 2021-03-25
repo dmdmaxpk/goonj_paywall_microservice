@@ -768,6 +768,27 @@ class BillingHistoryRepository {
         }
     }
 
+    async getMigratedUsers(from, to)  {
+        try{
+            let result = await BillingHistory.aggregate([
+                {
+                    $match:{
+                        'operator_response.errorMessage': "The subscriber does not exist or the customer that the subscriber belongs to is being migrated. Please check.",
+                        $and:[
+                            {billing_dtm:{$gt: new Date(from)}},
+                            {billing_dtm:{$lt: new Date(to)}}
+                        ]
+                    }
+                },
+                { $group:{ _id: "$user_id" }}
+            ]);
+
+            return result;
+        }catch(err){
+            console.log("###", err);
+        }
+    }
+
     async getLastHistory(user_id, mPackage)  {
         try{
             let result = await BillingHistory.find({user_id: user_id, package_id: mPackage, $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-24T00:00:00.000Z")}}]}).sort({billing_dtm:-1}).limit(1);
