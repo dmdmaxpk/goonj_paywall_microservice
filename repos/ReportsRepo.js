@@ -547,20 +547,20 @@ getMigrateUsers = async() => {
     console.log("### getMigrateUsers - ");
     let finalResult = [];
     try{
-        let from = new Date("2021-02-09T00:00:00.000Z");
-        let to = new Date("2021-03-24T23:59:59.000Z");
+        let from = new Date("2021-02-01T00:00:00.000Z");
+        let to = new Date("2021-03-25T00:00:00.000Z");
         let migratedUsers = await billinghistoryRepo.getMigratedUsers(from, to);
         console.log('### migratedUsers users: ', migratedUsers.length);
 
-        let userObj, newObj;
+        
         for(let i = 0; i < migratedUsers.length; i++){
-            userObj = await usersRepo.getUserById(migratedUsers[i]._id);
+            let user = await usersRepo.getUserById(migratedUsers[i]._id);
 
             newObj = {};
-            newObj.msisdn = userObj.msisdn;
+            newObj.msisdn = user.msisdn;
             newObj.message = 'The subscriber does not exist or the customer that the subscriber belongs to is being migrated. Please check.';
             finalResult.push(newObj);
-            console.log('count: ', finalResult.length, i+1);
+            console.log('### count: ', finalResult.length, i+1);
 
         }
 
@@ -573,7 +573,7 @@ getMigrateUsers = async() => {
                 await migrateUsersCsvWriter.writeRecords(finalResult);
                 let info = await transporter.sendMail({
                     from: 'paywall@dmdmax.com.pk',
-                    to:  ["muhammad.azam@dmdmax.com"],
+                    to:  ["farhan.ali@dmdmax.com"],
                     subject: `Last 45 day migrated users`,
                     text: `Migrated Users has been attached, please find attachment`,
                     attachments:[
