@@ -73,6 +73,12 @@ let affiliatePvsFilePath = `./${affiliatePvs}`;
 let dailyNetAdditionCsv = currentDate+"_DailyNetAdditions.csv";
 let dailyNetAdditionFilePath = `./${dailyNetAdditionCsv}`;
 
+let findingCsv = currentDate+"_Findings.csv";
+let findingCsvPath = `./${findingCsv}`;
+
+let migrateUserCsv = currentDate+"_MigratedUsers.csv";
+let migrateUserCsvPath = `./${migrateUserCsv}`;
+
 let nextBillingDtmCsv = currentDate+"_NextBillingDtm.csv";
 let nextBillingDtmFilePath = `./${nextBillingDtmCsv}`;
 let nextBillingDtmCsvWriter = createCsvWriter({
@@ -152,6 +158,24 @@ const csvReportWriter = createCsvWriter({
         {id: "isCallbAckSent",title: "IS CallBack Sent" },
         {id: 'added_dtm', title: 'User TIMESTAMP'},
         {id: 'callBackSentTime', title: 'TIMESTAMP'}
+    ]
+});
+
+
+const findingCsvWriter = createCsvWriter({
+    path: findingCsvPath,
+    header: [
+        {id: 'msisdn', title: 'Mobile Number'},
+        {id: 'package', title: 'Package'},
+        {id: 'error_reason', title: 'Error Reason'},
+        {id: "added_dtm",title: "Acquired Date" }
+    ]
+});
+const migrateUsersCsvWriter = createCsvWriter({
+    path: migrateUserCsvPath,
+    header: [
+        {id: 'msisdn', title: 'Mobile Number'},
+        {id: 'message', title: 'Message'},
     ]
 });
 
@@ -392,6 +416,180 @@ getExpiredMsisdn = async() => {
             }
             console.log("###  File deleted [randomReport]");
         });
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+getDailyData = async() => {
+    let mPackage = 'QDfC';
+    console.log("### QDfC");
+    let finalResult = [];
+    try{
+        let count = 0;
+        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(mPackage);
+        console.log('### Success users QDfC - : ', successUsers.length);
+        
+        for(i = 0; i < successUsers.length; i++){
+            try{
+                console.log("### QDfC: "+i);
+                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id, mPackage);
+                if(!record){
+                    count++;
+                    console.log("### count QDfC: "+count);
+                    let user = await usersRepo.getUserById(successUsers[i].user_id);
+                    let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, mPackage);
+
+                    let newObj = {};
+                    newObj.msisdn = user.msisdn;
+                    newObj.added_dtm = user.added_dtm;
+                    newObj.package = 'Live Daily';
+                    newObj.error_reason = lastHistory.length > 0 ? lastHistory[0].operator_response.errorMessage : '';
+                    finalResult.push(newObj);
+                }
+            }catch(e){
+                console.log("### QDfC", e);
+            }
+        }
+
+        console.log('### Final Result - length - QDfC : ', finalResult);
+
+        if(finalResult.length > 0){
+            console.log("### Sending email - QDfC");
+            try {
+                await findingCsvWriter.writeRecords(finalResult);
+                let info = await transporter.sendMail({
+                    from: 'paywall@dmdmax.com.pk',
+                    to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"],
+                    subject: `Findings 24th March 2021 - Daily Package`,
+                    text: `Findings has been attached, please find attachment`,
+                    attachments:[
+                        {
+                            filename: findingCsv,
+                            path: findingCsvPath
+                        }
+                    ]
+                });
+
+                console.log("### Sending email - info: ", info);
+            }catch (err) {
+                console.log("### Sending email - error - ", err);
+            }
+        }
+
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+getWeeklyData = async() => {
+    let mPackage = 'QDfG';
+    console.log("### QDfG");
+    let finalResult = [];
+    try{
+        let count = 0;
+        let successUsers = await billinghistoryRepo.getSuccessfullChargedUsers(mPackage);
+        console.log('### Success users - QDfG- : ', successUsers.length);
+        
+        for(i = 0; i < successUsers.length; i++){
+            try{
+                console.log("### QDfG: "+i);
+                let record = await billinghistoryRepo.getUnsuccessfullChargedUsers(successUsers[i].user_id, mPackage);
+                if(!record){
+                    count++;
+                    console.log("### QDfG count: "+count);
+                    let user = await usersRepo.getUserById(successUsers[i].user_id);
+                    let lastHistory = await billinghistoryRepo.getLastHistory(successUsers[i].user_id, mPackage);
+
+                    let newObj = {};
+                    newObj.msisdn = user.msisdn;
+                    newObj.added_dtm = user.added_dtm;
+                    newObj.package = 'Live Weekly';
+                    newObj.error_reason = lastHistory.length > 0 ? lastHistory[0].operator_response.errorMessage : '';
+                    finalResult.push(newObj);
+                }
+            }catch(e){
+                console.log("### QDfG", e);
+            }
+        }
+
+        console.log('### Final Result - length - QDfG : ', finalResult);
+
+        if(finalResult.length > 0){
+            console.log("### Sending email - QDfG");
+            try {
+                await findingCsvWriter.writeRecords(finalResult);
+                let info = await transporter.sendMail({
+                    from: 'paywall@dmdmax.com.pk',
+                    to:  ["paywall@dmdmax.com.pk","mikaeel@dmdmax.com"],
+                    subject: `Findings 24th March 2021 - Weekly Package`,
+                    text: `Findings has been attached, please find attachment`,
+                    attachments:[
+                        {
+                            filename: findingCsv,
+                            path: findingCsvPath
+                        }
+                    ]
+                });
+
+                console.log("### Sending email - info: ", info);
+            }catch (err) {
+                console.log("### Sending email - error - ", err);
+            }
+        }
+
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+getMigrateUsers = async() => {
+    console.log("### getMigrateUsers - ");
+    let finalResult = [];
+    try{
+        let from = new Date("2021-02-01T00:00:00.000Z");
+        let to = new Date("2021-03-25T00:00:00.000Z");
+        let migratedUsers = await billinghistoryRepo.getMigratedUsers(from, to);
+        console.log('### migratedUsers users: ', migratedUsers.length);
+
+        
+        for(let i = 0; i < migratedUsers.length; i++){
+            let user = await usersRepo.getUserById(migratedUsers[i]._id);
+
+            newObj = {};
+            newObj.msisdn = user.msisdn;
+            newObj.message = 'The subscriber does not exist or the customer that the subscriber belongs to is being migrated. Please check.';
+            finalResult.push(newObj);
+            console.log('### count: ', finalResult.length, i+1);
+
+        }
+
+        console.log('### Final Result - length : ', finalResult.length);
+
+
+        if(finalResult.length > 0){
+            console.log("### Sending email");
+            try {
+                await migrateUsersCsvWriter.writeRecords(finalResult);
+                let info = await transporter.sendMail({
+                    from: 'paywall@dmdmax.com.pk',
+                    to:  ["farhan.ali@dmdmax.com"],
+                    subject: `Last 45 day migrated users`,
+                    text: `Migrated Users has been attached, please find attachment`,
+                    attachments:[
+                        {
+                            filename: migrateUserCsv,
+                            path: migrateUserCsvPath
+                        }
+                    ]
+                });
+
+                console.log("### Sending email - info: ", info);
+            }catch (err) {
+                console.log("### Sending email - error - ", err);
+            }
+        }
+
     }catch(e){
         console.log("### error - ", e);
     }
@@ -1945,6 +2143,9 @@ module.exports = {
     weeklyTransactingCustomers: weeklyTransactingCustomers,
     generateReportForAcquisitionSourceAndNoOfTimeUserBilled: generateReportForAcquisitionSourceAndNoOfTimeUserBilled,
     getExpiredMsisdn: getExpiredMsisdn,
+    getWeeklyData: getWeeklyData,
+    getDailyData: getDailyData,
+    getMigrateUsers: getMigrateUsers,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
     generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
 }
