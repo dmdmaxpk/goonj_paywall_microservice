@@ -26,7 +26,9 @@ class TelenorBillingService {
             } else {
                 subscription_id = user._id;
             }
-            let transaction_id = "GoonjDirectCharge_"+subscription_id+"_"+packageObj.price_point_pkr+"_"+helper.getCurrentDate();
+            let transaction_id = user.msisdn+"_"+this.getRandomInt(100000);
+            //let transaction_id = "GoonjDirectCharge_"+subscription_id+"_"+packageObj.price_point_pkr+"_"+helper.getCurrentDate();
+            
             let returnObj = {};
 
             try{
@@ -64,6 +66,10 @@ class TelenorBillingService {
                 resolve(returnObj);
             }
         });
+    }
+
+    getRandomInt(max) {
+        return Math.floor(Math.random() * Math.floor(max));
     }
 }
 

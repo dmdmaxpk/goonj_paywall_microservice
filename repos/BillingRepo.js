@@ -43,7 +43,9 @@ class BillingRepository {
     
     // This function is used to process billing without queuing the record
     async processDirectBilling (msisdn, packageObj, transaction_id)  {
-        let transactionId = msisdn+"_"+this.getRandomInt(100000);//transaction_id;
+        //let transactionId = msisdn+"_"+this.getRandomInt(100000);//transaction_id;
+        let transactionId = transaction_id;
+        
         let form = {
             "correlationID": transactionId,
             "msisdn": msisdn
