@@ -36,7 +36,7 @@ class SubscriptionConsumer {
 
         if(returnObject){
             let returnStatus = returnObject.status;
-            let response_time = undefined;
+            let response_time = 0;
             if (returnObject.hasOwnProperty('api_response_time')){
                 response_time = returnObject.api_response_time;
             }

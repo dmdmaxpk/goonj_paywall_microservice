@@ -27,7 +27,7 @@ const billingHistorySchema = new Schema({
     operator: String,
 
     // response time taken by api - TP or EP
-    response_time: {type: String, default: undefined}
+    response_time: {type: Number, default: 0}
 
 }, { strict: true })
 
