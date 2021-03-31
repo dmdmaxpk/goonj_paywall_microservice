@@ -15,15 +15,15 @@ class Constants {
             QDfI: `Goonj Comedy Rs%price% mein subscribe kar di gaye hai. Service dekhne k liye goonj.pk or unsub k liye call 03401832782`,
         },
         this.message_after_repeated_succes_charge = {
-            QDfC: `Goonj Live TV Rs. 5/day dekhnay ka shukriya.. Goonj TV Deikhnay k liay ya package ki tabdeli k liay click karein. www.goonj.pk/home`,
-            QDfG: `Goonj tv dekhny ka shukriya. Goonj Tv dekhnay k liay ya package ki tabdeli k liay click karein. www.goonj.pk/home`,                            
+            QDfC: `Goonj TV Rs 5 ma ap ka mobile balance sa renew kr dea hai. Service deikhnay k liay click karein goonj.pk , khatam krne ka lea call 03401832782`,
+            QDfG: `Goonj TV Rs 15 ma ap ka mobile balance sa renew kr dea hai. Service deikhnay k liay click karein goonj.pk , khatam krne ka lea call 03401832782`,                            
             QDfH: `Ap Pakistan ki best Comedy Portal service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. www.goonj.pk/home`,
             QDfI: `Ap Pakistan ki best Comedy Portal service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. www.goonj.pk/home`
         }
 
         this.message_after_first_successful_charge = {
             QDfC: `Ap Pakistan ki best Live TV service istmal kar rahey hain. Live tv dekhny k liye goonj.pk aur unsub k liye call 03401832782`,
-            QDfG: `Ap Pakistan ki best Live TV service istmal kar rahey hain. Live tv dekhny k liye goonj.pk aur unsub k liye call 03401832782`,                            
+            QDfG: `Ap Pakistan ki best Live TV service istamal kar rahey hain subscription charges Rs 15 aur unsub krne ka liya call 03401832782`,                            
             QDfH: `Ap Pakistan ki best Comedy Portal service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. www.goonj.pk/home`,
             QDfI: `Ap Pakistan ki best Comedy Portal service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. www.goonj.pk/home`
         }
