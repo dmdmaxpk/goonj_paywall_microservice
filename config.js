@@ -72,7 +72,7 @@ let config = {
     development: {
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         port: '5000',
-        mongoDB: 'mongodb://10.0.1.76:27017/goonjpaywall',
+        mongoDB: 'mongodb://localhost:27017/goonjpaywall',
         rabbitMq: 'amqp://127.0.0.1',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,
@@ -108,7 +108,7 @@ let config = {
     staging: {
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
         port: '5000',
-        mongoDB: 'mongodb://10.0.1.76:27017/goonjpaywall',
+        mongoDB: 'mongodb://mongodb:27017/goonjpaywall',
         rabbitMq: 'amqp://rabbitmq',
         queueNames: queueNames,
         telenor_dcb_api_baseurl: telenor_dcb_api_baseurl,

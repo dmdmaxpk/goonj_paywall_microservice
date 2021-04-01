@@ -5,6 +5,7 @@ const authMiddleWare = require('../middlewares/auth.middleware');
 
 
 router.route('/')
+    .get(controller.get)
     .post(controller.post)
     .get(controller.getAll);
 

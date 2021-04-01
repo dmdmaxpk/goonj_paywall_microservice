@@ -25,7 +25,7 @@ exports.get = async (req, res) => {
 		query._id = req.query.id;
 	}
 
-	result = await repo.getPackage(query);
+	let result = await repo.getPackage(query);
 	res.send(result);
 }
 
