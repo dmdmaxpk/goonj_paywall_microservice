@@ -31,11 +31,10 @@ exports.get = async (req, res) => {
 
 // GET
 exports.getAll = async (req, res) => {
-	let slug = req.query.slug;
 	let is_default = req.query.is_default ;
 	let id = req.query.id ;
 
-	paywall = await paywallRepository.getPaywallsBySlug(slug);
+	let paywall = await paywallRepository.getPaywallsBySlug("live");
 	if (paywall){
 		let query = {paywall_id:paywall._id,default:is_default,_id:id};
 		if(!is_default || is_default==="false" || is_default===false ){
