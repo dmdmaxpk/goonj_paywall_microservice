@@ -34,7 +34,7 @@ exports.getAll = async (req, res) => {
 	let is_default = req.query.is_default ;
 	let id = req.query.id ;
 
-	console.log("------------------"+req.query+"-------------------------");
+	console.log("------------------"+JSON.stringify(req.query)+"-------------------------");
 
 	let paywall = await paywallRepository.getPaywallsBySlug("live");
 	if (paywall){
