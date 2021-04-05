@@ -48,12 +48,14 @@ class SubscriptionService {
                         let unsubscribed = 0;
                         for (let i =0 ; i < subscriptionsToUnsubscribe.length; i++) {
                             let subscription = subscriptions[i];
-                            
+                            let paywall  = await this.paywallRepository.getPaywallById(subscription.paywall_id);
+
                             let history = {};
                             history.user_id = subscriber.user_id;
                             history.subscriber_id = subscription.subscriber_id;
                             history.subscription_id = subscription._id;
                             history.package_id = subscription.subscribed_package_id;
+                            history.paywall_id = paywall._id;
                             history.billing_status = 'expired';
                             history.source = source ? source : 'ccp_api';
                             history.operator = 'telenor';
