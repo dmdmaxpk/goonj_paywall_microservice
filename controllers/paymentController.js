@@ -1123,7 +1123,7 @@ exports.unsubscribe = async (req, res) => {
 
 				if(unSubCount === subscriptions.length){
 					// send sms
-					let smsText = `Apki Goonj TV ki subscriptions khatm kr di gai han. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
+					let smsText = `Apki Goonj TV per Live TV Weekly ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/`;
 					messageRepo.sendSmsToUser(smsText,user.msisdn);
 
 					res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});
