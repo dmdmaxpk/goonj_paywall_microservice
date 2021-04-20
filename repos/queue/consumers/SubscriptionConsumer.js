@@ -436,6 +436,8 @@ class SubscriptionConsumer {
                 let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user_id}&amp;pg=${package_id}`;
                 let message = this.constants.message_after_repeated_succes_charge[package_id];
                 message = message.replace("%price%",price);
+                message= message.replace("%user_id%",user_id)
+                message= message.replace("%pkg_id%",package_id)
                 this.messageRepo.sendSmsToUser(message, msisdn);
             }
         }
