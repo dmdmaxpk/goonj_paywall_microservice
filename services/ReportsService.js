@@ -160,7 +160,8 @@ generateRandomReports =  async() => {
     // reportsRepo.getExpiredMsisdn();
     // reportsRepo.getDailyData();
     // reportsRepo.getWeeklyData();
-    reportsRepo.getMigrateUsers();
+    // reportsRepo.getMigrateUsers();
+    reportsRepo.computeLoggerDataMsisdnWise();
 }
 
 function sleep(ms) {
@@ -172,5 +173,5 @@ module.exports = {
     generateEveryThreeDaysReports: generateEveryThreeDaysReports,
     generateWeeklyReports: generateWeeklyReports,
     generateMonthlyReports: generateMonthlyReports,
-    generateRandomReports: generateRandomReports
+    generateRandomReports: generateRandomReports,
 }
