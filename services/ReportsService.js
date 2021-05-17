@@ -161,7 +161,8 @@ generateRandomReports =  async() => {
     // reportsRepo.getDailyData();
     // reportsRepo.getWeeklyData();
     // reportsRepo.getMigrateUsers();
-    reportsRepo.computeLoggerDataMsisdnWise();
+    // reportsRepo.computeLoggerDataMsisdnWise();
+    // reportsRepo.computeDouMonthlyData();
 }
 
 function sleep(ms) {

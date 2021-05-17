@@ -494,7 +494,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 								console.log("Error while direct billing first time",err.message,user.msisdn);
 								res.send({code: config.codes.code_error, message: 'Failed to subscribe package, please try again', gw_transaction_id: gw_transaction_id});
 							}
-						}else if (req.body.affiliate_mid === '1569' || req.body.affiliate_mid === 'aff3a' || req.body.affiliate_mid === 'aff3' || req.body.affiliate_mid === 'goonj'){
+						}else if (req.body.affiliate_mid === '1569' || req.body.affiliate_mid === 'aff3a' || req.body.affiliate_mid === 'aff3' || req.body.affiliate_mid === 'goonj' || req.body.affiliate_mid === 'tp-gdn'){
 							try {
 								let result = await paymentProcessService.processDirectBilling(req.body.otp? req.body.otp : undefined, user, subscriptionObj, packageObj,true);
 								console.log("Direct Billing processed",result,user.msisdn);
@@ -502,7 +502,13 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 									res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', gw_transaction_id: gw_transaction_id});
 									sendChargingMessage = true;
 								}else{
-									res.send({code: config.codes.code_error, message: 'Insifficiant balance, please recharge your account and try again', gw_transaction_id: gw_transaction_id});
+									let trial = await activateTrial(req.body.otp? req.body.otp : undefined, req.body.source, user, subscriber, packageObj, subscriptionObj);
+									if(trial === "done"){
+										res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+										sendTrialMessage = true;
+									}
+
+									// res.send({code: config.codes.code_error, message: 'Insifficiant balance, please recharge your account and try again', gw_transaction_id: gw_transaction_id});
 								}
 							} catch(err){
 								console.log("Error while direct billing first time",err.message,user.msisdn);

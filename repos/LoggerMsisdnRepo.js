@@ -1,6 +1,4 @@
-const mongoose = require('mongoose');
 var MongoClient = require('mongodb').MongoClient;
-const config = require('../config');
 
 let connect = async () => {
     return new Promise(async (resolve, reject) => {

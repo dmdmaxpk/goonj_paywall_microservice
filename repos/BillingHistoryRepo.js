@@ -802,6 +802,31 @@ class BillingHistoryRepository {
             console.log("###", err);
         }
     }
+
+    async getSuccessfulChargedUsers(startDate, endDate)  {
+        console.log('getSuccessfulChargedUsers: ', startDate, endDate);
+
+        try{
+            let result = await BillingHistory.aggregate([
+                    { $match:{
+                            billing_status: "Success",
+                            $and:[{billing_dtm:{$gte:new Date(startDate)}}, {billing_dtm:{$lte:new Date(endDate)}}]
+                        }},
+                    { $project: {
+                            "user_id": "$user_id"
+                    }},
+                    {$group: {
+                        _id: { user_id: "$user_id"}
+                    }},
+                    { $project: {
+                        "user_id": "$_id.user_id"
+                    }},
+                ]);
+            return result;
+        }catch(err){
+            console.log("###", err);
+        }
+    }
 }
 
 

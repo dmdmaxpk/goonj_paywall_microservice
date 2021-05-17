@@ -477,6 +477,72 @@ computeLoggerDataMsisdnWise = async() => {
     }
 }
 
+computeDouMonthlyData = async() => {
+    console.log("=> computeDouMonthlyData");
+
+    let finalResult = [];
+    try{
+        let startDate = '2021-01-01T00:00:00.000Z';
+        let endDate = '2021-01-01T04:59:59.000Z';
+        let successfulCharged = await billinghistoryRepo.getSuccessfulChargedUsers(startDate, endDate);
+        console.log('successfulCharged: ', successfulCharged);
+
+        if (successfulCharged.length > 0 ){
+            let record;
+            for(let i = 0; i < successfulCharged.length; i++){
+                record = successfulCharged[i];
+                console.log('user_id: ', record.user_id);
+
+                let user = await usersRepo.getUserById(record.user_id);
+                console.log('user: ', user);
+                if (user){
+
+                    console.log('user.source: ', user.source);
+
+                    let singObject = {};
+                    singObject.msisdn = user.msisdn;
+                    singObject.source = user.source;
+
+                    let viewLogsData = await viewLogsRepo.getDaysOfUseUnique(record.user_id, '2021-01-01T00:00:00.000Z', '2021-01-31T23:59:59.000Z');
+                    console.log('viewLogsData: ', viewLogsData);
+
+                    if (!viewLogsData || viewLogsData.length === 0)
+                        singObject.dou = 0;
+                    else{
+                        viewLogsData = viewLogsData[0];
+                        singObject.dou = viewLogsData.dou;
+                    }
+
+                    finalResult.push(singObject);
+                    console.log("### Done ", i);
+                }
+            }
+        }
+
+        console.log("### Finally: ", finalResult.length);
+
+        if (finalResult.length > 0){
+
+            console.log("### Sending email");
+            await loggerMsisdnWiseReportWriter.writeRecords(finalResult);
+            let info = await transporter.sendMail({
+                from: 'paywall@dmdmax.com.pk',
+                to:  ["muhammad.azam@dmdmax.com"],
+                subject: `Complaint Data`, // Subject line
+                text: `This report contains the details of msisdns being sent us over email from Zara`,
+                attachments:[
+                    {
+                        filename: randomReport,
+                        path: randomReportFilePath
+                    }
+                ]
+            });
+        }
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
 getExpiredMsisdn = async() => {
     console.log("=> getExpiredMsisdn");
     let finalResult = [];
@@ -2249,5 +2315,6 @@ module.exports = {
     getMigrateUsers: getMigrateUsers,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
     generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory,
-    computeLoggerDataMsisdnWise:computeLoggerDataMsisdnWise
+    computeLoggerDataMsisdnWise:computeLoggerDataMsisdnWise,
+    computeDouMonthlyData:computeDouMonthlyData
 }

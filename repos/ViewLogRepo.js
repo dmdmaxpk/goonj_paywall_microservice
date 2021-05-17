@@ -94,10 +94,45 @@ getDaysOfUseInDateRange = async(userId, from, to) => {
     }
 }
 
+
+getDaysOfUseUnique = async(userId, from, to) => {
+    try{
+        let result = await ViewLog.aggregate([
+            { $match:{
+                user_id: userId,
+                $and:[
+                    {added_dtm:{$gte: new Date(from)}},
+                    {added_dtm:{$lte: new Date(to)}}
+                ]
+            }},
+            {$project: {
+                    day: {"$dayOfMonth" : "$added_dtm"},
+                    user_id: "$user_id"
+            }},
+            {$group: {
+                _id: {day: "$day", user_id: "$user_id"},
+                dou: {$sum: 1}
+                }},
+            {$group: {
+                _id: {user_id: "$_id.user_id"},
+                dou: {$sum: 1}
+            }},
+            {$project: {
+                user_id: "$_id.user_id",
+                dou: "$dou"
+            }}
+        ]);
+        return result;
+    }catch(e){
+        console.log(e);
+    }
+}
+
 module.exports = {
     createViewLog: createViewLog,
     getLatestViewLog: getLatestViewLog,
     getNumberOfViewLogs: getNumberOfViewLogs,
     getDaysOfUse: getDaysOfUse,
-    getDaysOfUseInDateRange: getDaysOfUseInDateRange
+    getDaysOfUseInDateRange: getDaysOfUseInDateRange,
+    getDaysOfUseUnique: getDaysOfUseUnique,
 }
