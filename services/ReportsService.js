@@ -156,7 +156,7 @@ generateRandomReports =  async() => {
     //reportsRepo.getNextBillingDtm();
     //reportsRepo.getReportForHeOrWifi();
     // reportsRepo.expireBaseAndBlackList();
-    // reportsRepo.expireBaseAndBlackListOrCreate();
+    reportsRepo.expireBaseAndBlackListOrCreate();
     // reportsRepo.getExpiredMsisdn();
     // reportsRepo.getDailyData();
     // reportsRepo.getWeeklyData();
