@@ -48,7 +48,8 @@ class SubscriptionService {
                         let unsubscribed = 0;
                         for (let i =0 ; i < subscriptionsToUnsubscribe.length; i++) {
                             let subscription = subscriptions[i];
-                            
+                            let paywall  = await this.paywallRepository.getPaywallById(subscription.paywall_id);
+
                             let history = {};
                             history.user_id = subscriber.user_id;
                             history.subscriber_id = subscription.subscriber_id;
@@ -196,7 +197,7 @@ class SubscriptionService {
                     await this.billingHistoryRepository.createBillingHistory(history);
         
                     // send sms to user
-                    let text = `Apki Goonj TV per ${paywall_name} ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
+                    let text = `Apki Goonj TV per Live TV Weekly ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/ `;
                     this.messageRepository.sendSmsToUser(text,msisdn);
                     resolve("Succesfully unsubscribed");
                 } else {

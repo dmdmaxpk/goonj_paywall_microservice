@@ -5,6 +5,7 @@ const userRepo = container.resolve("userRepository");
 const subscriberRepo = container.resolve("subscriberRepository");
 const packageRepo = container.resolve("packageRepository");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
+const billingRepository = container.resolve("billingRepository")
 const viewLogRepo = require('../repos/ViewLogRepo');
 const easypaisaPaymentService = container.resolve("easypaisaPaymentService");
 
@@ -24,6 +25,7 @@ const { resolve } = require('../configurations/container');
 const { use } = require('../routes');
 const helper = require('../helper/helper');
 const  _ = require('lodash');
+const BillingRepository = require('../repos/BillingRepo');
 
 
 function sendMessage(otp, msisdn){
@@ -344,6 +346,7 @@ exports.verifyOtp = async (req, res) => {
 
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
+	//billingRepository.sendMessage('Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book', '03476733767')
 
 	let gw_transaction_id = req.body.transaction_id;
 	let decodedUser = req.decoded;
@@ -494,7 +497,7 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 								console.log("Error while direct billing first time",err.message,user.msisdn);
 								res.send({code: config.codes.code_error, message: 'Failed to subscribe package, please try again', gw_transaction_id: gw_transaction_id});
 							}
-						}else if (req.body.affiliate_mid === '1569' || req.body.affiliate_mid === 'aff3a' || req.body.affiliate_mid === 'aff3' || req.body.affiliate_mid === 'goonj'){
+						}else if (req.body.affiliate_mid === '1569' || req.body.affiliate_mid === 'aff3a' || req.body.affiliate_mid === 'aff3' || req.body.affiliate_mid === 'goonj' || req.body.affiliate_mid === 'tp-gdn'){
 							try {
 								let result = await paymentProcessService.processDirectBilling(req.body.otp? req.body.otp : undefined, user, subscriptionObj, packageObj,true);
 								console.log("Direct Billing processed",result,user.msisdn);
@@ -502,7 +505,13 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 									res.send({code: config.codes.code_success, message: 'User Successfully Subscribed!', gw_transaction_id: gw_transaction_id});
 									sendChargingMessage = true;
 								}else{
-									res.send({code: config.codes.code_error, message: 'Insifficiant balance, please recharge your account and try again', gw_transaction_id: gw_transaction_id});
+									let trial = await activateTrial(req.body.otp? req.body.otp : undefined, req.body.source, user, subscriber, packageObj, subscriptionObj);
+									if(trial === "done"){
+										res.send({code: config.codes.code_trial_activated, message: 'Trial period activated!', gw_transaction_id: gw_transaction_id});
+										sendTrialMessage = true;
+									}
+
+									// res.send({code: config.codes.code_error, message: 'Insifficiant balance, please recharge your account and try again', gw_transaction_id: gw_transaction_id});
 								}
 							} catch(err){
 								console.log("Error while direct billing first time",err.message,user.msisdn);
@@ -1123,7 +1132,7 @@ exports.unsubscribe = async (req, res) => {
 
 				if(unSubCount === subscriptions.length){
 					// send sms
-					let smsText = `Apki Goonj TV ki subscriptions khatm kr di gai han. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/goonjplus/subscribe`;
+					let smsText = `Apki Goonj TV per Live TV Weekly ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/`;
 					messageRepo.sendSmsToUser(smsText,user.msisdn);
 
 					res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});

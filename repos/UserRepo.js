@@ -56,6 +56,14 @@ class UserRepository {
         return result;
     }
 
+    async getUserSourceWise(id)  {
+        let result = await User.findOne({
+            _id: id,
+            $or:[{"source" : "web"}, {"source" : "app"}]
+        });
+        return result;
+    }
+
     async updateUser (msisdn, postData)  {
         const query = { msisdn: msisdn };
         postData.last_modified = new Date();

@@ -25,22 +25,30 @@ exports.get = async (req, res) => {
 		query._id = req.query.id;
 	}
 
-	result = await repo.getPackage(query);
+	let result = await repo.getPackage(query);
 	res.send(result);
 }
 
 // GET
 exports.getAll = async (req, res) => {
-	let paywall_id = "";
-	let slug = req.query.slug;
+	let slug = req.query.slug ;
 	let is_default = req.query.is_default ;
-	if (!slug){
-		slug = "live"		
-	}
+	let id = req.query.id ;
 
-	paywall = await paywallRepository.getPaywallsBySlug(slug);
+	console.log("------------------"+JSON.stringify(req.query)+"-------------------------");
+
+	let paywall = await paywallRepository.getPaywallsBySlug(slug);
 	if (paywall){
-		let query = {paywall_id : paywall._id,default: is_default };
+		let query = {paywall_id: paywall._id};
+
+		if(is_default){
+			query.default = is_default;
+		}
+
+		if(id){
+			query._id = id;
+		}
+
 		if(!is_default || is_default==="false" || is_default===false ){
 			delete query.default;
 		} else {

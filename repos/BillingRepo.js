@@ -26,7 +26,7 @@ class BillingRepository {
     async sendMessage  (message, msisdn)  {
         console.log('Message Recipient - ', msisdn, ' - Message Body - ', message, ' - ' , (new Date()));
         var form = { messageBody: message, recipientMsisdn: msisdn, source: 'Goonj' };
-        
+        console.log("REQUEST SMS###", form);
         return new Promise(function(resolve, reject) {
             axios({
                 method: 'post',
@@ -34,6 +34,7 @@ class BillingRepository {
                 headers: {'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' },
                 data: form
             }).then(function(response){
+                console.log("RESPONSE SMS###", response);
                 resolve(response.data);
             }).catch(function(err){
                 reject(err);

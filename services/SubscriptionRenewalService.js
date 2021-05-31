@@ -190,7 +190,7 @@ mark = async() => {
 validate = async() => {
     console.log("==> validating...");
 
-    let countThreshold = 400000;
+    let countThreshold = 350000;
     let totalCount = await subscriptionRepo.getBillableInCycleCount();
     console.log("==> Total billable in cycle count is " + totalCount);
 

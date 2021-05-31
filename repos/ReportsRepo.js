@@ -4,6 +4,7 @@ const container = require("../configurations/container");
 const Subscription = mongoose.model('Subscription');
 const BillingHistory = mongoose.model('BillingHistory');
 const User = mongoose.model('User');
+const Otp = mongoose.model('Otp');
 
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
@@ -23,7 +24,7 @@ const path = require('path');
 const axios = require('axios');
 
 const otpRepo = require('../repos/OTPRepo');
-
+const loggerMsisdnRepo = require('../repos/LoggerMsisdnRepo');
 
 let currentDate = null;
 currentDate = getCurrentDate();
@@ -109,8 +110,6 @@ let randomReportFilePath = `./${randomReport}`;
 let wifiOrHeReport = currentDate+"_WifiOrHe.csv";
 let wifiOrHeReportFP = `./${wifiOrHeReport}`;
 
-
-
 const csvWriter = createCsvWriter({
     path: paywallRevFilePath,
     header: [
@@ -160,7 +159,6 @@ const csvReportWriter = createCsvWriter({
         {id: 'callBackSentTime', title: 'TIMESTAMP'}
     ]
 });
-
 
 const findingCsvWriter = createCsvWriter({
     path: findingCsvPath,
@@ -235,8 +233,19 @@ const randomReportWriter = createCsvWriter({
         {id: 'acquisition_source', title: 'Acquisition Source'},
         {id: 'act_date', title: 'Activation Date'},
         {id: 'acquisition_date', title: 'Acquisition Date'},
+        {id: 'affiliate_unique_transaction_id', title: 'Acquisition Transaction ID'},
         {id: 'number_of_success_charging', title: 'Number of Success Charging'},
-        {id: "dou",title: "DOU" }
+        {id: "dou",title: "DOU" },
+        {id: "source",title: "Source (Consent model)" },
+    ]
+});
+
+const loggerMsisdnWiseReportWriter = createCsvWriter({
+    path: randomReportFilePath,
+    header: [
+        {id: 'msisdn', title: 'Msisdn'},
+        {id: 'month', title: 'Month'},
+        {id: 'watchTime', title: 'Watch Time (SEC)'}
     ]
 });
 
@@ -296,7 +305,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
                 let user = await usersRepo.getUserByMsisdn(inputData[i]);
                 if(user){
-                    let dou = await viewLogsRepo.getDaysOfUseInDateRange(user._id, "2021-01-01T00:00:00.000Z", "2021-03-04T00:00:00.000Z");
+                    let dou = await viewLogsRepo.getDaysOfUseInDateRange(user._id, "2021-01-01T00:00:00.000Z", "2021-04-26T00:00:00.000Z");
                     if(dou && dou.length > 0){
                         singObject.dou = dou[0].count;
                     }else{
@@ -317,7 +326,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
                             // }
 
                             // let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, inputData[i][1] + "T00:00:00.000Z", inputData[i][1] + "T23:59:59.000Z");
-                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2021-01-01T00:00:00.000Z", "2021-03-04T00:00:00.000Z");
+                            let totalSuccessTransactionsInDec = await billinghistoryRepo.numberOfTransactionsOfSpecificSubscriber(subscriber._id, "2021-01-01T00:00:00.000Z", "2021-04-26T00:00:00.000Z");
                             let totalSuccessTransactions = totalSuccessTransactionsInDec.length > 0 ? totalSuccessTransactionsInDec[0].count : 0;
 
                             singObject.subs_count = subsCount;
@@ -327,15 +336,24 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
 
                             if(subscriptions[0].affiliate_mid){
                                 singObject.acquisition_source = subscriptions[0].affiliate_mid;
+                                singObject.affiliate_unique_transaction_id = subscriptions[0].affiliate_unique_transaction_id;
                             }else{
                                 singObject.acquisition_source = subscriptions[0].source;
+                                singObject.affiliate_unique_transaction_id = subscriptions[0].affiliate_unique_transaction_id;
+                            }
+
+                            let otp = await otpRepo.getOtp(inputData[i]);
+                            if(otp && otp.verified === true){
+                                singObject.source = "otp";
+                            }else{
+                                singObject.source = "he";
                             }
 
                             finalResult.push(singObject);
                             console.log("### Done ", i);
 
                         }else{
-                            console.log("### No subscriptions found for", inputData[i][0]);    
+                            console.log("### No subscriptions found for", inputData[i][0]);
                         }
                     }else{
                         console.log("### No subscriber found for", inputData[i][0]);    
@@ -352,7 +370,7 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
         await randomReportWriter.writeRecords(finalResult);
         let info = await transporter.sendMail({
             from: 'paywall@dmdmax.com.pk',
-            to:  ["taha@dmdmax.com", "farhan.ali@dmdmax.com", "muhammad.azam@dmdmax.com"],
+            to:  ["muhammad.azam@dmdmax.com"],
             // to:  ["farhan.ali@dmdmax.com"],
             subject: `Complaint Data`, // Subject line
             text: `This report contains the details of msisdns being sent us over email from Zara`,
@@ -371,6 +389,155 @@ generateReportForAcquisitionSourceAndNoOfTimeUserBilled = async() => {
             }
             console.log("###  File deleted [randomReport]");
         });
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+computeLoggerDataMsisdnWise = async() => {
+    console.log("=> computeLoggerDataMsisdnWise");
+
+    let finalResult = [];
+    try{
+        var jsonPath = path.join(__dirname, '..', 'msisdns.txt');
+        let inputData = await readFileSync(jsonPath);
+        console.log("### Input Data Length: ", inputData.length);
+
+        let startDate = '2021-01-01T00:00:00.000Z';
+        let endDate = '2021-01-31T00:00:00.000Z';
+
+        let dbConnection = await loggerMsisdnRepo.connect();
+        console.log('dbConnection: ', dbConnection);
+
+        // let records = await loggerMsisdnRepo.computeData('03401832782', startDate, endDate, dbConnection);
+        // console.log('### records: ', records);
+        // if(records.length > 0){
+        //     let singObject = {};
+        //     for (let record of records) {
+        //         singObject.month = "2021-0" + record._id.logMonth;
+        //         singObject.watchTime = record.totalBitRates * 5;
+        //
+        //         finalResult.push(singObject);
+        //         console.log('### Done: ', singObject)
+        //     }
+        // }
+        
+        for(let i = 0; i < inputData.length; i++){
+            if(inputData[i] && inputData[i].length === 11){
+
+                console.log("### Request for msisdn: ", inputData[i], i);
+                let records = await loggerMsisdnRepo.computeData(inputData[i], startDate, endDate, dbConnection);
+                console.log('### records: ', records);
+                if(records.length > 0){
+                    for (let record of records) {
+                        let singObject = { msisdn: inputData[i] }
+                        singObject.month = "0" + record._id.logMonth + "-2021";
+                        singObject.watchTime = record.totalBitRates * 5;
+
+                        finalResult.push(singObject);
+                        console.log('### Done: ')
+                    }
+                }
+                else{
+                    console.log("### Data not found: ");
+                }
+            }else{
+                console.log("### Invalid number or number length: ");
+            }
+        }
+
+        console.log("### Finally: ", finalResult.length);
+
+        if (finalResult.length > 0){
+
+            console.log("### Sending email");
+            await loggerMsisdnWiseReportWriter.writeRecords(finalResult);
+            let info = await transporter.sendMail({
+                from: 'paywall@dmdmax.com.pk',
+                to:  ["muhammad.azam@dmdmax.com"],
+                subject: `Complaint Data`, // Subject line
+                text: `This report contains the details of msisdns being sent us over email from Zara`,
+                attachments:[
+                    {
+                        filename: randomReport,
+                        path: randomReportFilePath
+                    }
+                ]
+            });
+        }
+
+        fs.unlink(randomReportFilePath,function(err,data) {
+            if (err) {
+                console.log("###  File not deleted[randomReport]");
+            }
+            console.log("###  File deleted [randomReport]");
+        });
+    }catch(e){
+        console.log("### error - ", e);
+    }
+}
+
+computeDouMonthlyData = async() => {
+    console.log("=> computeDouMonthlyData");
+
+    let finalResult = [];
+    try{
+        let startDate = '2021-01-01T00:00:00.000Z';
+        let endDate = '2021-01-01T04:59:59.000Z';
+        let successfulCharged = await billinghistoryRepo.getSuccessfulChargedUsers(startDate, endDate);
+        console.log('successfulCharged: ', successfulCharged);
+
+        if (successfulCharged.length > 0 ){
+            let record;
+            for(let i = 0; i < successfulCharged.length; i++){
+                record = successfulCharged[i];
+                console.log('user_id: ', record.user_id);
+
+                let user = await usersRepo.getUserById(record.user_id);
+                console.log('user: ', user);
+                if (user){
+
+                    console.log('user.source: ', user.source);
+
+                    let singObject = {};
+                    singObject.msisdn = user.msisdn;
+                    singObject.source = user.source;
+
+                    let viewLogsData = await viewLogsRepo.getDaysOfUseUnique(record.user_id, '2021-01-01T00:00:00.000Z', '2021-01-31T23:59:59.000Z');
+                    console.log('viewLogsData: ', viewLogsData);
+
+                    if (!viewLogsData || viewLogsData.length === 0)
+                        singObject.dou = 0;
+                    else{
+                        viewLogsData = viewLogsData[0];
+                        singObject.dou = viewLogsData.dou;
+                    }
+
+                    finalResult.push(singObject);
+                    console.log("### Done ", i);
+                }
+            }
+        }
+
+        console.log("### Finally: ", finalResult.length);
+
+        if (finalResult.length > 0){
+
+            console.log("### Sending email");
+            await loggerMsisdnWiseReportWriter.writeRecords(finalResult);
+            let info = await transporter.sendMail({
+                from: 'paywall@dmdmax.com.pk',
+                to:  ["muhammad.azam@dmdmax.com"],
+                subject: `Complaint Data`, // Subject line
+                text: `This report contains the details of msisdns being sent us over email from Zara`,
+                attachments:[
+                    {
+                        filename: randomReport,
+                        path: randomReportFilePath
+                    }
+                ]
+            });
+        }
     }catch(e){
         console.log("### error - ", e);
     }
@@ -2147,5 +2314,7 @@ module.exports = {
     getDailyData: getDailyData,
     getMigrateUsers: getMigrateUsers,
     getUsersNotSubscribedAfterSubscribe: getUsersNotSubscribedAfterSubscribe,
-    generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory
+    generateUsersReportWithTrialAndBillingHistory:generateUsersReportWithTrialAndBillingHistory,
+    computeLoggerDataMsisdnWise:computeLoggerDataMsisdnWise,
+    computeDouMonthlyData:computeDouMonthlyData
 }

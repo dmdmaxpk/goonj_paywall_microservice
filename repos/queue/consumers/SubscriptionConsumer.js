@@ -36,6 +36,11 @@ class SubscriptionConsumer {
 
         if(returnObject){
             let returnStatus = returnObject.status;
+            let response_time = 0;
+            if (returnObject.hasOwnProperty('api_response_time')){
+                response_time = returnObject.api_response_time;
+            }
+
             if(returnStatus === 'Success'){
                 
                 // Success billing
@@ -75,22 +80,22 @@ class SubscriptionConsumer {
 
                 if(mcDetails && mcDetails.micro_charge){
                     console.log('Micro charge success');
-                    this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, true, mcDetails.micro_price);    
+                    this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, response_time, transaction_id, true, mcDetails.micro_price);
                 }else{
                     console.log('Full charge success');
-                    this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, transaction_id, false, mPackage.price_point_pkr);
+                    this.createBillingHistory(user, subscription, mPackage, returnObject.api_response, returnStatus, response_time, transaction_id, false, mPackage.price_point_pkr);
                 }
                 
             }else if(returnStatus === 'ExcessiveBilling'){
                 // excessive billings
                 rabbitMq.acknowledge(message);
-                this.logExcessiveBilling(mPackage, user, subscription);
+                this.logExcessiveBilling(mPackage, user, subscription, response_time);
             }else if(returnStatus === 'ExcessiveMicroBilling'){
                 // excessive micro billings
                 rabbitMq.acknowledge(message);
-                this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price, transaction_id);
+                this.logExcessiveMicroBilling(mPackage, user, subscription, mcDetails.micro_price, transaction_id, response_time);
             }else{
-                await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, transaction_id);
+                await this.assignGracePeriod(subscription, user, mPackage, false, returnObject.api_response, response_time, transaction_id);
                 rabbitMq.acknowledge(message);
             }
         }else{
@@ -99,7 +104,7 @@ class SubscriptionConsumer {
         }
     }
 
-    async logExcessiveBilling(packageObj, user, subscription){
+    async logExcessiveBilling(packageObj, user, subscription, response_time){
         
         // await this.subscriptionRepo.markSubscriptionInactive(subscription._id);
         await this.unQueue(subscription._id);
@@ -116,24 +121,25 @@ class SubscriptionConsumer {
 
         history.operator_response = {"message": `Subscription ${subscription._id} has exceeded their billing limit. Email sent.`};
         history.billing_status = "billing_exceeded";
+        history.response_time = response_time;
 
         this.addHistory(history);
     }
     
-    async logExcessiveMicroBilling(packageObj, user, subscription, micro_price, transaction_id){
+    async logExcessiveMicroBilling(packageObj, user, subscription, micro_price, transaction_id, response_time){
         let emailSubject ="Excessive MicroCharing Email";
         let emailToSend = "paywall@dmdmax.com.pk";
         let emailText = `Subscription id ${subscription._id} is trying to micro charge on a price greater than package price. Package price is ${packageObj.price_point_pkr} and system tried to charge ${micro_price}`;
         let billingResponse = "micro-price-point-is-greater-than-package-price-so-didnt-try-charging-attempt";
 
-        this.createBillingHistory(user, subscription, packageObj, billingResponse, 'micro-charging-exceeded', transaction_id, true, 0);
+        this.createBillingHistory(user, subscription, packageObj, billingResponse, 'micro-charging-exceeded', response_time, transaction_id, true, 0);
         await this.emailService.sendEmail(emailSubject,emailText,emailToSend);
         console.log('logExcessiveMicroBilling', subscription._id);
         await this.subscriptionRepo.updateSubscription(subscription._id, {active:false, queued:false, is_billable_in_this_cycle: false});
     }
 
     // ASSIGN GRACE PERIOD
-    async assignGracePeriod(subscription, user, packageObj, is_manual_recharge, error, transaction_id) {
+    async assignGracePeriod(subscription, user, packageObj, is_manual_recharge, error, response_time, transaction_id) {
         let expiry_source = undefined;
 
         let subscriptionObj = {};
@@ -259,7 +265,8 @@ class SubscriptionConsumer {
             history.price = (subscription.try_micro_charge_in_next_cycle)?subscription.micro_price_point:0;
             history.transaction_id = transaction_id;
             history.operator = 'telenor';
-            
+            history.response_time = response_time;
+
             if(expiry_source !== undefined){
                 history.source = expiry_source;
             }
@@ -304,7 +311,7 @@ class SubscriptionConsumer {
     }
     
     // ADD BILLING HISTORY
-    async createBillingHistory(user, subscription, packageObj, response, billingStatus, transaction_id, micro_charge, price) {
+    async createBillingHistory(user, subscription, packageObj, response, billingStatus, response_time, transaction_id, micro_charge, price) {
         let history = {};
         history.user_id = user._id;
         history.subscription_id = subscription._id;
@@ -314,7 +321,8 @@ class SubscriptionConsumer {
         history.transaction_id = transaction_id;
         history.operator_response = response;
         history.billing_status = billingStatus;
-        
+        history.response_time = response_time;
+
         history.operator = subscription.payment_source?subscription.payment_source:'telenor';
     
         if(micro_charge === true){
@@ -428,6 +436,8 @@ class SubscriptionConsumer {
                 let unsubLink = `https://www.goonj.pk/unsubscribe?proxy=${user_id}&amp;pg=${package_id}`;
                 let message = this.constants.message_after_repeated_succes_charge[package_id];
                 message = message.replace("%price%",price);
+                message= message.replace("%user_id%",user_id)
+                message= message.replace("%pkg_id%",package_id)
                 this.messageRepo.sendSmsToUser(message, msisdn);
             }
         }

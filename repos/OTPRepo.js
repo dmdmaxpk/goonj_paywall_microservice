@@ -8,7 +8,7 @@ createOtp = async(postData) => {
 }
 
 getOtp = async(msisdn) => {
-    result = await OTP.findOne({msisdn: msisdn});
+    let result = await OTP.findOne({msisdn: msisdn});
 	return result;
 }
 

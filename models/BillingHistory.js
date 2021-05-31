@@ -24,7 +24,11 @@ const billingHistorySchema = new Schema({
     discount: { type: Boolean, default: false, index: true },
     
     // operator of the user (telenor/zong/ufone etc)
-    operator: String
+    operator: String,
+
+    // response time taken by api - TP or EP
+    response_time: {type: Number, default: 0}
+
 }, { strict: true })
 
 module.exports = mongoose.model('BillingHistory', billingHistorySchema);
