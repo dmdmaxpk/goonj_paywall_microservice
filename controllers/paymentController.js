@@ -346,7 +346,7 @@ exports.verifyOtp = async (req, res) => {
 
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
-	billingRepository.sendMessage('Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book', '03476733767')
+	//billingRepository.sendMessage('Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book', '03476733767')
 
 	let gw_transaction_id = req.body.transaction_id;
 	let decodedUser = req.decoded;
