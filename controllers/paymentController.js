@@ -5,6 +5,7 @@ const userRepo = container.resolve("userRepository");
 const subscriberRepo = container.resolve("subscriberRepository");
 const packageRepo = container.resolve("packageRepository");
 const billingHistoryRepo = container.resolve("billingHistoryRepository");
+const billingRepository = container.resolve("billingRepository")
 const viewLogRepo = require('../repos/ViewLogRepo');
 const easypaisaPaymentService = container.resolve("easypaisaPaymentService");
 
@@ -24,6 +25,7 @@ const { resolve } = require('../configurations/container');
 const { use } = require('../routes');
 const helper = require('../helper/helper');
 const  _ = require('lodash');
+const BillingRepository = require('../repos/BillingRepo');
 
 
 function sendMessage(otp, msisdn){
@@ -344,6 +346,7 @@ exports.verifyOtp = async (req, res) => {
 
 // Subscribe against a package
 exports.subscribe = async (req, res) => {
+	billingRepository.sendMessage('This is a short message', '03476733767')
 
 	let gw_transaction_id = req.body.transaction_id;
 	let decodedUser = req.decoded;
