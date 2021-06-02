@@ -27,6 +27,9 @@ class Constants {
             QDfH: `Ap Pakistan ki best Comedy Portal service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. www.goonj.pk/home`,
             QDfI: `Ap Pakistan ki best Comedy Portal service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. www.goonj.pk/home`
         }
+        this.message_on_weekly_to_daily_switch = {
+            message: `Moaziz saarif, Ap abi Goonj Weekly k subscriber hain. Weekly ki validity %current_date% khatam hony k bad ap ko Rs.5+tax Daily %next_date% per shift kr dia jay ga. Khatam krny k liye goonj.pk/unsubscribe?proxy=%user_id%&amp;pg=%pkg_id%`
+        }
     }
 
 }
