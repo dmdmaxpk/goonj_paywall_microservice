@@ -28,7 +28,7 @@ class Constants {
             QDfI: `Ap Pakistan ki best Comedy Portal service istamal kar rahey hain. Service Deikhnay ya Package ki tabdeeli k liay click karein. https://goonj.pk/home`
         }
         this.message_on_weekly_to_daily_switch = {
-            message: `Ap abi Goonj Weekly k subscriber hain. Validity %current_date% khatam hony k bad ap ko Rs.5+tax/day %next_date% pr shift kr dia jy ga. Khatam krny k liye goonj.pk/unsubscribe?proxy=%user_id%&amp;pg=%pkg_id%`
+            message: `Ap abi Goonj Weekly k subscriber hain. Validity %current_date% khatam hony k bad apka Rs.5+tax/day %next_date% activate ho ga. Khatam krny k liye https://goonj.pk/unsubscribe?proxy=%user_id%&amp;pg=%pkg_id%`
         }
     }
 
