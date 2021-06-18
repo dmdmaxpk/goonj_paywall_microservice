@@ -20,7 +20,7 @@ getPreRenewalSubscriptions = async() => {
                 // console.log("subscriber_id", subscriber.user_id)
                 // send Message
                 let user = await userRepo.getUserById(subscriber.user_id);
-                let message = `Kal ap k balance se Goonj TV renewal k Rs15 charge kiye jaein gy. Unsub k liye goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${preRenewalSubscriptions[i].subscribed_package_id} or Istemal k liye goonj.pk`;
+                let message = `Kal ap k balance se Goonj TV renewal k Rs15 charge kiye jaein gy. Unsub k liye https://goonj.pk/unsubscribe?proxy=${user._id}&amp;pg=${preRenewalSubscriptions[i].subscribed_package_id} or Istemal k liye goonj.pk`;
                 console.log("msisdn", user._id, message)
                 messageRepository.sendSmsToUser(message,user.msisdn);
             } catch (err){
