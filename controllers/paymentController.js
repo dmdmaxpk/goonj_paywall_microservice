@@ -708,12 +708,22 @@ doSubscribe = async(req, res, user, gw_transaction_id) => {
 											res.send({code: config.codes.code_error, message: 'Failed to switch package, insufficient balance', gw_transaction_id: gw_transaction_id});
 										}
 									}else{
-										// It means, package switching from weekly to daily
+										// It means, package switching from weekly to daily // Weekly to daily switch message added
 										let updated = await subscriptionRepo.updateSubscription(subscription._id, {auto_renewal: true, subscribed_package_id:newPackageId});
+										let nextBillingDate = new Date(updated.next_billing_timestamp);
+										nextBillingDate = nextBillingDate.toLocaleDateString();
 										history.paywall_id = packageObj.paywall_id;
 										history.package_id = newPackageId;
 										history.billing_status = "package_change_upon_user_request";
 										await billingHistoryRepo.createBillingHistory(history);
+										let message = constants.message_on_weekly_to_daily_switch.message;
+										let text = message;
+										text = text.replace("%pkg_id%",packageObj._id);
+										text = text.replace("%user_id%",user._id);
+										text = text.replace("%current_date%", nextBillingDate);
+										text = text.replace("%next_date%", nextBillingDate);
+										sendTextMessage(text, user.msisdn);
+										console.log("text", text);
 										res.send({code: config.codes.code_success, message: 'Package successfully switched.', gw_transaction_id: gw_transaction_id});
 									}
 								} else if (subscription.subscription_status === "graced" || subscription.subscription_status === "expired" || subscription.subscription_status === "trial" ) {
@@ -1132,7 +1142,13 @@ exports.unsubscribe = async (req, res) => {
 
 				if(unSubCount === subscriptions.length){
 					// send sms
-					let smsText = `Apki Goonj TV per Live TV Weekly ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk/`;
+					let smsText;
+					if(package_id == 'QDfG'){
+						smsText = `Apki Goonj TV per Live TV Weekly ki subscription khatm kr di gai ha. Phr se subscribe krne k lye link par click karen https://www.goonj.pk`;
+					}
+					else if(package_id == 'QDfC'){
+						smsText = `Moaziz saarif, ap ki Goonj Daily ki service khatam kar de gae hai. Dobara Rs.5+tax/day subscribe krny k liye link per click karain https://www.goonj.pk`
+					}
 					messageRepo.sendSmsToUser(smsText,user.msisdn);
 
 					res.send({code: config.codes.code_success, message: 'Successfully unsubscribed', gw_transaction_id: gw_transaction_id});
