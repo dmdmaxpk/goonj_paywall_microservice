@@ -4,7 +4,7 @@ const {Schema} = mongoose;
 
 const billingHistorySchema = new Schema({
     //Generating shortid instead of uuid
-    _id: { type: ShortId, len: 20, retries: 6 },
+    _id: { type: ShortId, len: 45, retries: 8 },
     user_id: { type:ShortId, required: true, index: true },
     subscriber_id: { type:ShortId, required: true, index: true },
     subscription_id: { type:ShortId,  index: true },
@@ -24,7 +24,11 @@ const billingHistorySchema = new Schema({
     discount: { type: Boolean, default: false, index: true },
     
     // operator of the user (telenor/zong/ufone etc)
-    operator: String
+    operator: String,
+
+    // response time taken by api - TP or EP
+    response_time: {type: Number, default: 0}
+
 }, { strict: true })
 
 module.exports = mongoose.model('BillingHistory', billingHistorySchema);

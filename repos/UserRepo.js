@@ -56,6 +56,14 @@ class UserRepository {
         return result;
     }
 
+    async getUserSourceWise(id)  {
+        let result = await User.findOne({
+            _id: id,
+            $or:[{"source" : "web"}, {"source" : "app"}]
+        });
+        return result;
+    }
+
     async updateUser (msisdn, postData)  {
         const query = { msisdn: msisdn };
         postData.last_modified = new Date();
@@ -85,7 +93,7 @@ class UserRepository {
         if (result.nModified === 0) {
             return undefined;
         }else{
-            let user = await getUserById(user_id);
+            let user = await this.getUserById(user_id);
             return user;
         }
     }

@@ -156,8 +156,13 @@ generateRandomReports =  async() => {
     //reportsRepo.getNextBillingDtm();
     //reportsRepo.getReportForHeOrWifi();
     // reportsRepo.expireBaseAndBlackList();
-    // reportsRepo.expireBaseAndBlackListOrCreate();
+    reportsRepo.expireBaseAndBlackListOrCreate();
     // reportsRepo.getExpiredMsisdn();
+    // reportsRepo.getDailyData();
+    // reportsRepo.getWeeklyData();
+    // reportsRepo.getMigrateUsers();
+    // reportsRepo.computeLoggerDataMsisdnWise();
+    // reportsRepo.computeDouMonthlyData();
 }
 
 function sleep(ms) {
@@ -169,5 +174,5 @@ module.exports = {
     generateEveryThreeDaysReports: generateEveryThreeDaysReports,
     generateWeeklyReports: generateWeeklyReports,
     generateMonthlyReports: generateMonthlyReports,
-    generateRandomReports: generateRandomReports
+    generateRandomReports: generateRandomReports,
 }

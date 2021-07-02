@@ -737,7 +737,9 @@ class BillingHistoryRepository {
                         {billing_dtm:{$lt: new Date(to)}}
                     ]	
                 }
-            },{
+            },
+            {$limit: 20},
+            {
                 $group:{
                     _id: "$user_id"	
                 }
@@ -746,6 +748,83 @@ class BillingHistoryRepository {
             return result;
         }catch(err){
             console.log("=>", err);
+        }
+    }
+    async getSuccessfullChargedUsers(mPackage)  {
+        try{
+            if(mPackage === 'QDfC'){
+                let result = await BillingHistory.find({package_id:mPackage,billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-22T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-23T00:00:00.000Z")}}]});
+                return result;
+            }else{
+                let result = await BillingHistory.find({package_id:mPackage,billing_status: 'Success', $and:[{billing_dtm:{$gte:new Date("2021-03-16T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-17T00:00:00.000Z")}}]});
+                return result;
+            }
+        }catch(err){
+            console.log("=>", err);
+        }
+    }
+
+    async getUnsuccessfullChargedUsers(id, mPackage)  {
+        try{
+            let result = await BillingHistory.findOne({user_id: id, package_id: mPackage, billing_status: 'Success', $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-24T00:00:00.000Z")}}]});
+            return result;
+        }catch(err){
+            console.log("###", err);
+        }
+    }
+
+    async getMigratedUsers(from, to)  {
+        try{
+            let result = await BillingHistory.aggregate([
+                {
+                    $match:{
+                        'operator_response.errorMessage': "The subscriber does not exist or the customer that the subscriber belongs to is being migrated. Please check.",
+                        $and:[
+                            {billing_dtm:{$gt: new Date(from)}},
+                            {billing_dtm:{$lt: new Date(to)}}
+                        ]
+                    }
+                },
+                { $group:{ _id: "$user_id" }}
+            ]);
+
+            return result;
+        }catch(err){
+            console.log("###", err);
+        }
+    }
+
+    async getLastHistory(user_id, mPackage)  {
+        try{
+            let result = await BillingHistory.find({user_id: user_id, package_id: mPackage, $and: [{billing_dtm:{$gte:new Date("2021-03-23T00:00:00.000Z")}},{billing_dtm:{$lte:new Date("2021-03-24T00:00:00.000Z")}}]}).sort({billing_dtm:-1}).limit(1);
+            return result;
+        }catch(err){
+            console.log("###", err);
+        }
+    }
+
+    async getSuccessfulChargedUsers(startDate, endDate)  {
+        console.log('getSuccessfulChargedUsers: ', startDate, endDate);
+
+        try{
+            let result = await BillingHistory.aggregate([
+                    { $match:{
+                            billing_status: "Success",
+                            $and:[{billing_dtm:{$gte:new Date(startDate)}}, {billing_dtm:{$lte:new Date(endDate)}}]
+                        }},
+                    { $project: {
+                            "user_id": "$user_id"
+                    }},
+                    {$group: {
+                        _id: { user_id: "$user_id"}
+                    }},
+                    { $project: {
+                        "user_id": "$_id.user_id"
+                    }},
+                ]);
+            return result;
+        }catch(err){
+            console.log("###", err);
         }
     }
 }
