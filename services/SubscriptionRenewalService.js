@@ -142,23 +142,23 @@ markRenewableUser = async() => {
         let now = moment().tz("Asia/Karachi");
         let hour = now.hours();
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
-            console.log("Executing Telenor cycle at ",hour," O' Clock");
+            console.log("#Billing Cycle: Executing Telenor cycle at ",hour," O' Clock");
             await mark('telenor');
             validate();
         }else if(config.hours_on_which_to_run_renewal_cycle_for_ep.includes(hour)){
-            console.log("Executing easypaisa cycle at ",hour," O' Clock");
+            console.log("#Billing Cycle: Executing easypaisa cycle at ",hour," O' Clock");
             await mark('easypaisa');
         } else {
-            console.log("No renewable cycle for the hour",hour);
+            console.log("#Billing Cycle: No renewable cycle for the hour",hour);
         }
     } catch(err) {
-        console.error(err);
+        console.error("#Billing Cycle Error: ", err);
     }
 }
 
 markRenewableUserForcefully = async() => {
     try {
-        mark('telenor');
+        mark('');
     } catch(err) {
         console.error(err);
     }
@@ -166,28 +166,28 @@ markRenewableUserForcefully = async() => {
 
 mark = async(operator) => {
     let totalCount = await subscriptionRepo.getCountOfSubscriptionToMark(operator);
-    console.log(`==> Total count for ${operator} = `+totalCount);
+    console.log(`#Billing Cycle:  Total count for ${operator} = `+totalCount);
 
     let chunkSize = 10000;
     let totalChunks = totalCount / chunkSize;
     let reminders = totalCount % chunkSize;
-    console.log("==> Total chunks "+totalChunks+" - total reminders "+reminders);
+    console.log("#Billing Cycle:  Total chunks "+totalChunks+" - total reminders "+reminders);
 
     let lastId = undefined;
     for(let i = 0; i < totalChunks; i++){
         try{
             let response = await getMarkUsersPromise(chunkSize, lastId, operator);
             lastId = response;
-            console.log("==>",i,' - ', response);
+            console.log("#Billing Cycle: ",i,' - ', response);
         }catch(e){
-            console.log("==>",i, ' error - ', e);
+            console.log("#Billing Cycle: ",i, ' error - ', e);
         }
     }
 
     //Reminders
     let response = await getMarkUsersPromise(reminders, lastId, operator);
-    console.log("==> reminder", response);
-    console.log("==> Done!");
+    console.log("#Billing Cycle: reminder", response);
+    console.log("#Billing Cycle: Done!");
 }
 
 validate = async() => {
