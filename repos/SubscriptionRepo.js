@@ -85,7 +85,7 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        let aggregation = Subscription.aggregate([
+        let results = await Subscription.aggregate([
             {
                 $match:{
                     is_billable_in_this_cycle: true, 
@@ -95,8 +95,7 @@ class SubscriptionRepository {
             },{
                 $limit: 18000
             }
-        ]).allowDiskUse(true);
-        let results = await aggregation.exec();
+        ]);
         return results;
     }
     
