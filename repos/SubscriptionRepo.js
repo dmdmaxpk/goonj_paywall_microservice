@@ -87,18 +87,10 @@ class SubscriptionRepository {
     async getRenewableSubscriptions  ()  {
         let aggregation = Subscription.aggregate([
             {
-                $sample: {
-                    size: 600000
-                }
-            },{
                 $match:{
                     is_billable_in_this_cycle: true, 
                     active: true, 
                     queued:false
-                }
-            },{
-                $sort:{
-                    priority:1
                 }
             },{
                 $limit: 18000

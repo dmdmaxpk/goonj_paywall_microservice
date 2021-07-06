@@ -142,11 +142,11 @@ markRenewableUser = async() => {
         let now = moment().tz("Asia/Karachi");
         let hour = now.hours();
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
-            console.log("#Billing Cycle: Executing Telenor cycle at ",hour," O' Clock");
+            console.log("#Billing Cycle: Executing Telenor cycle at ",hour," O'Clock");
             await mark('telenor');
             validate();
         }else if(config.hours_on_which_to_run_renewal_cycle_for_ep.includes(hour)){
-            console.log("#Billing Cycle: Executing easypaisa cycle at ",hour," O' Clock");
+            console.log("#Billing Cycle: Executing easypaisa cycle at ",hour," O'Clock");
             await mark('easypaisa');
         } else {
             console.log("#Billing Cycle: No renewable cycle for the hour",hour);
