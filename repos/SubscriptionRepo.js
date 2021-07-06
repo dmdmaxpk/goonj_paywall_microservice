@@ -252,7 +252,7 @@ class SubscriptionRepository {
         return subscription_ids;
     }
     
-    async getSubscriptionsToMarkWithLimitAndOffset(limit, lastId)  {
+    async getSubscriptionsToMarkWithLimitAndOffset(limit, lastId, operator)  {
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
     

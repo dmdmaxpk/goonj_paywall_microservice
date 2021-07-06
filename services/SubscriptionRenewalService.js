@@ -216,7 +216,7 @@ getMarkUsersPromise = (limit, lastId, operator) =>{
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
             resolve(subscription_ids[subscription_ids.length-1]);
         }else{
-            console.log("Failed to mark, length is "+subscription_ids.length);
+            console.log("#Billing Cycle: Failed to mark, length is "+subscription_ids.length);
             resolve(undefined);
         }
     });
