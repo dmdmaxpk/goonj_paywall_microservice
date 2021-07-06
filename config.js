@@ -41,6 +41,7 @@ const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 720; // 2 weeks
 const hours_on_which_to_run_renewal_cycle = [1,4,7,10,13,16,19,22];
+const hours_on_which_to_run_renewal_cycle_for_ep = [9,15,21];
 const default_package_id = "QDfC";
 
 const queueNames = {

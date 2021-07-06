@@ -142,9 +142,12 @@ markRenewableUser = async() => {
         let now = moment().tz("Asia/Karachi");
         let hour = now.hours();
         if (config.hours_on_which_to_run_renewal_cycle.includes(hour)) {
-            console.log("Executing cycle at ",hour," hour");
-            await mark(0);
+            console.log("Executing Telenor cycle at ",hour," O' Clock");
+            await mark('telenor');
             validate();
+        }else if(config.hours_on_which_to_run_renewal_cycle_for_ep.includes(hour)){
+            console.log("Executing easypaisa cycle at ",hour," O' Clock");
+            await mark('easypaisa');
         } else {
             console.log("No renewable cycle for the hour",hour);
         }
@@ -155,15 +158,15 @@ markRenewableUser = async() => {
 
 markRenewableUserForcefully = async() => {
     try {
-        mark();
+        mark('telenor');
     } catch(err) {
         console.error(err);
     }
 }
 
-mark = async() => {
-    let totalCount = await subscriptionRepo.getCountOfSubscriptionToMark();
-    console.log("==> Total count "+totalCount);
+mark = async(operator) => {
+    let totalCount = await subscriptionRepo.getCountOfSubscriptionToMark(operator);
+    console.log(`==> Total count for ${operator} = `+totalCount);
 
     let chunkSize = 10000;
     let totalChunks = totalCount / chunkSize;
@@ -173,7 +176,7 @@ mark = async() => {
     let lastId = undefined;
     for(let i = 0; i < totalChunks; i++){
         try{
-            let response = await getMarkUsersPromise(chunkSize, lastId);
+            let response = await getMarkUsersPromise(chunkSize, lastId, operator);
             lastId = response;
             console.log("==>",i,' - ', response);
         }catch(e){
@@ -182,7 +185,7 @@ mark = async() => {
     }
 
     //Reminders
-    let response = await getMarkUsersPromise(reminders, lastId);
+    let response = await getMarkUsersPromise(reminders, lastId, operator);
     console.log("==> reminder", response);
     console.log("==> Done!");
 }
@@ -206,10 +209,9 @@ validate = async() => {
     }
 }
 
-getMarkUsersPromise = (limit, lastId) =>{
+getMarkUsersPromise = (limit, lastId, operator) =>{
     return new Promise(async(resolve, reject) => {
-        let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, lastId);
-        //console.log("==> Length: ", subscription_ids.length);
+        let subscription_ids  = await subscriptionRepo.getSubscriptionsToMarkWithLimitAndOffset(limit, lastId, operator);
         if(subscription_ids && subscription_ids.length > 0){
             await subscriptionRepo.setAsBillableInNextCycle(subscription_ids);
             resolve(subscription_ids[subscription_ids.length-1]);

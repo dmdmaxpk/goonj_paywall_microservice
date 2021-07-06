@@ -85,7 +85,6 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        //let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(12000);
         let aggregation = Subscription.aggregate([
             {
                 $sample: {
@@ -267,6 +266,7 @@ class SubscriptionRepository {
                     {subscription_status:'graced'},
                     {subscription_status:'trial'}
                 ], 
+                payment_source: operator,
                 next_billing_timestamp: {$lte: endOfDay}, 
                 active: true, 
                 is_billable_in_this_cycle:false
@@ -278,6 +278,7 @@ class SubscriptionRepository {
                     {subscription_status:'graced'},
                     {subscription_status:'trial'}
                 ], 
+                payment_source: operator,
                 next_billing_timestamp: {$lte: endOfDay}, 
                 active: true, 
                 is_billable_in_this_cycle:false
@@ -291,14 +292,15 @@ class SubscriptionRepository {
         return subscription_ids;
     }
 
-    async getCountOfSubscriptionToMark(){
+    async getCountOfSubscriptionToMark(operator){
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
     
         let count = await Subscription.count(
             {$or:[{subscription_status:'billed'},
             {subscription_status:'graced'},
-            {subscription_status:'trial'}], 
+            {subscription_status:'trial'}],
+            payment_source: operator, 
             next_billing_timestamp: {$lte: endOfDay}, 
             active: true, is_billable_in_this_cycle:false
         });
