@@ -101,7 +101,7 @@ let config = {
         default_package_id: default_package_id,
         he_service_pass_phrase: he_service_pass_phrase,
         paywall_worker_base_url: paywall_worker_base_url,
-
+        hours_on_which_to_run_renewal_cycle_for_ep: hours_on_which_to_run_renewal_cycle_for_ep,
         ACCESS_TOKEN_SECRET: ACCESS_TOKEN_SECRET,
         REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET,
         HARD_TOKEN: HARD_TOKEN
@@ -137,7 +137,7 @@ let config = {
         default_package_id: default_package_id,
         he_service_pass_phrase: he_service_pass_phrase,
         paywall_worker_base_url: paywall_worker_base_url,
-
+        hours_on_which_to_run_renewal_cycle_for_ep: hours_on_which_to_run_renewal_cycle_for_ep,
         ACCESS_TOKEN_SECRET: ACCESS_TOKEN_SECRET,
         REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET,
         HARD_TOKEN: HARD_TOKEN
@@ -173,7 +173,7 @@ let config = {
         default_package_id: default_package_id,
         he_service_pass_phrase: he_service_pass_phrase,
         paywall_worker_base_url: paywall_worker_base_url,
-
+        hours_on_which_to_run_renewal_cycle_for_ep: hours_on_which_to_run_renewal_cycle_for_ep,
         ACCESS_TOKEN_SECRET: ACCESS_TOKEN_SECRET,
         REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET,
         HARD_TOKEN: HARD_TOKEN
