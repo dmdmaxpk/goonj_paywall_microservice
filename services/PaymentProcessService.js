@@ -331,6 +331,7 @@ class PaymentProcessService {
         history.operator_response = response;
         history.price = packageObj.price_point_pkr;
         history.billing_status = "Success";
+        history.source = subscription.source;
         history.operator = subscription.payment_source;
         await this.billingHistoryRepo.createBillingHistory(history);
     }
