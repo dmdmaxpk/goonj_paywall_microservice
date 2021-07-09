@@ -158,7 +158,7 @@ markRenewableUser = async() => {
 
 markRenewableUserForcefully = async() => {
     try {
-        mark('');
+        mark('telenor');
     } catch(err) {
         console.error(err);
     }
