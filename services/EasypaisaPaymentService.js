@@ -15,9 +15,10 @@ class EasypaisaPaymentService {
         this.signature = null;
         this.publicKey = null;
         this.privateKey = null;
-        this.generateotpUrl = 'https://apis.telenor.com.pk/epp/v2/generateotp';
-        this.initiatelinktransactionUrl = 'https://apis.telenor.com.pk/epp/v2/initiatelinktransaction';
-        this.initiatepinlesstransactionUrl = 'https://apis.telenor.com.pk/epp/v2/initiatepinlesstransaction';
+        this.generateotpUrl = 'https://apis.telenor.com.pk/v1/mm/generate-otp';
+        this.initiatelinktransactionUrl = 'https://apis.telenor.com.pk/v1/mm/link';
+        this.initiatepinlesstransactionUrl = 'https://apis.telenor.com.pk/v1/mm/transaction';
+        this.deactivateLinkUrl = 'https://apis.telenor.com.pk/v1/mm/deactivate-link';
         this.base64_cred = Buffer.from(this.username+":"+this.password).toString('base64');
     }
 
@@ -196,8 +197,7 @@ class EasypaisaPaymentService {
             data.signature = self.signature;
             let resp = await axios({
                 method: 'post',
-                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/deactivate-link',
-                url: 'https://apis.telenor.com.pk/epp/v2/deactivatelink',
+                url: self.deactivateLinkUrl,
                 data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
@@ -238,7 +238,6 @@ class EasypaisaPaymentService {
             data.signature = self.signature;
             let resp = await axios({
                     method: 'post',
-                    //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/generate-otp',
                     url: self.generateotpUrl,
                     data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
