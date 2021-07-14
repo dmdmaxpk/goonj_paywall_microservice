@@ -38,37 +38,6 @@ class EasypaisaPaymentService {
    * Return Type: Object
    * */
     async initiateLinkTransaction(mobileAccountNo, transactionAmount, otp){
-        console.log('initiateLinkTransaction: ', mobileAccountNo, transactionAmount, otp);
-
-        // TEST DATA START
-        /*let self = this;
-        await self.getKey();
-        self.getOrderId();
-
-        let returnObj = {};
-        returnObj.transaction_id = self.orderId;
-        
-        let data = { 
-           response:{ 
-                orderId: 'GEP_B1ZcM-ybP',
-                storeId: '42221',
-                transactionId: '8293012755',
-                transactionDateTime: '29/07/2020 07:07 PM',
-                tokenNumber: '0000864314',
-                mobileAccountNo: '03336106083',
-                emailAddress: 'muhammad.azam@dmdmax.com',
-                responseCode: '0000',
-                responseDesc: 'SUCCESS' 
-            } 
-        }
-
-        returnObj.message = "success";
-        returnObj.response = data;
-
-        return returnObj;*/
-
-        // TEST DATA END
-
         try {
             let self = this;
             await self.getKey();
@@ -84,22 +53,21 @@ class EasypaisaPaymentService {
                     'otp': otp
                 }
             };
-            console.log('initiateLinkTransaction: data: ', data);
-            console.log('initiateLinkTransaction: URL: ', self.initiatelinktransactionUrl);
-
             self.generateSignature(data);
-            data.signature = self.signature;    
+            data.signature = self.signature;
+
+            console.log('initiateLinkTransaction - request body: ', data)
             let resp = await axios({
                 method: 'post',
-                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
                 url: self.initiatelinktransactionUrl,
                 data: data,
                 headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
-            
+
+            console.log('initiatePinlessTransaction - response body: ', resp.data)
+
             let returnObj = {};
             returnObj.transaction_id = self.orderId;
-            
             if (resp.status === 200 && resp.data.response.responseDesc === "SUCCESS"){
                 console.log('initiateLinkTransaction: success : response 2: ');
                 returnObj.message = "success";
@@ -146,14 +114,16 @@ class EasypaisaPaymentService {
 
             self.generateSignature(data);
             data.signature = self.signature;
-            console.log('Pinless Data: ', data);
+
+            console.log('initiatePinlessTransaction - request body: ', data)
             let resp = await axios({
                 method: 'post',
-                //url: config.telenor_dcb_api_baseurl + 'eppinless/v1/initiate-link-transaction',
                 url: self.initiatepinlesstransactionUrl,
                 data: data,
                 headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json' }
             });
+
+            console.log('initiatePinlessTransaction - response body: ', resp.data)
 
             if (resp.status === 200 && resp.data.response.responseDesc === "SUCCESS"){
                 console.log('initiatePinlessTransaction: success : response 2: ');
@@ -195,12 +165,16 @@ class EasypaisaPaymentService {
 
             self.generateSignature(data);
             data.signature = self.signature;
+
+            console.log('deactivateLinkTransaction - request body: ', data)
             let resp = await axios({
                 method: 'post',
                 url: self.deactivateLinkUrl,
                 data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
+
+            console.log('deactivateLinkTransaction - response body: ', resp.data)
 
             if (resp.status === 200 && resp.data.response.responseDesc === "SUCCESS"){
                 console.log('deactivateLinkTransaction: success : response 2: ');
@@ -236,13 +210,16 @@ class EasypaisaPaymentService {
         try {
             self.generateSignature(data);
             data.signature = self.signature;
+
+            console.log('generateOPT - request body: ', data)
             let resp = await axios({
                     method: 'post',
                     url: self.generateotpUrl,
                     data: data,
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
-            console.log('generateOPT: EP: ', resp.data);
+
+            console.log('generateOPT - response body: ', resp.data)
             if (resp.status === 200)
                 return {'code': config.codes.code_success, 'message': 'OTP Sent'};
             else
