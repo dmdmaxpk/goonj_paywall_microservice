@@ -11,6 +11,9 @@ class SubscriptionRepository {
             console.log(data);
             throw Error(data);
         }else{
+            if(!postData.source || postData.source === 'null') postData.source = 'app';
+            if(!postData.payment_source || postData.payment_source === 'null') postData.payment_source = 'telenor';
+
             let subscription = new Subscription(postData);
             result = await subscription.save();
             return result;
