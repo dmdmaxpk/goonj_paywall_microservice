@@ -211,12 +211,14 @@ class EasypaisaPaymentService {
             self.generateSignature(data);
             data.signature = self.signature;
 
+            let headers =  {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'};
             console.log('generateOPT - request body: ', data);
+            console.log('generateOPT - request headers: ', headers);
             let resp = await axios({
                     method: 'post',
                     url: self.generateotpUrl,
                     data: data,
-                    headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
+                    headers: headers
                 });
 
             console.log('generateOPT - response body: ', resp.data);
