@@ -211,7 +211,7 @@ class EasypaisaPaymentService {
             self.generateSignature(data);
             data.signature = self.signature;
 
-            console.log('generateOPT - request body: ', data)
+            console.log('generateOPT - request body: ', data);
             let resp = await axios({
                     method: 'post',
                     url: self.generateotpUrl,
@@ -219,12 +219,13 @@ class EasypaisaPaymentService {
                     headers: {'Credentials': self.base64_cred, 'Authorization': 'Bearer '+config.telenor_dcb_api_token, 'Content-Type': 'application/json'}
                 });
 
-            console.log('generateOPT - response body: ', resp.data)
+            console.log('generateOPT - response body: ', resp.data);
             if (resp.status === 200)
                 return {'code': config.codes.code_success, 'message': 'OTP Sent'};
             else
                 return {'code': config.codes.code_error, 'message': 'Failed sent OTP'};
         }catch (e) {
+            console.log('generateOPT - exception: ', e);
             return {'code': config.codes.code_error, 'message': e.message};
         }
     }
