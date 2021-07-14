@@ -10,6 +10,7 @@ class UserRepository {
     }
 
     async createUser (postData)  {
+        if(!postData.source || postData.source === 'null') postData.source = 'app';
         let user = new User(postData);
         let result = await user.save();
         return result;
