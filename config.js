@@ -59,7 +59,7 @@ const telenor_dcb_api_baseurl = 'https://apis.telenor.com.pk/';
 const telenor_dcb_api_token = '';
 
 // Worker
-const paywall_worker_base_url = 'http://127.0.0.1:5001/';
+const paywall_worker_base_url = 'http://127.0.0.1:3001/';
 
 //Ideation Url
 const Ideation_call_back_url = 'http://bpd.o18.click/';
@@ -72,7 +72,7 @@ const he_service_pass_phrase = "fdkPmW8yOX";
 let config = {
     development: {
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
-        port: '5000',
+        port: '3000',
         mongoDB: 'mongodb://localhost:27017/goonjpaywall',
         rabbitMq: 'amqp://127.0.0.1',
         queueNames: queueNames,
@@ -108,7 +108,7 @@ let config = {
     },
     staging: {
         telenor_subscriber_query_api_tps: telenor_subscriber_query_api_tps,
-        port: '5000',
+        port: '3000',
         mongoDB: 'mongodb://mongodb:27017/goonjpaywall',
         rabbitMq: 'amqp://rabbitmq',
         queueNames: queueNames,
