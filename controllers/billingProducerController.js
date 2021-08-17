@@ -13,9 +13,7 @@ exports.getPackage = async (req,res) =>  {
 }
 
 exports.getOnlyRenewableSubscriptions = async (req,res) =>  {
-    console.log("### - getOnlyRenewableSubscriptions");
     let result = await subscriptionRepo.getRenewableSubscriptions();
-    console.log("### Length", result.length);
     let toBeSubscribed = [];
     for(let i = 0; i < result.length; i++){
         if(result[i].auto_renewal === true){

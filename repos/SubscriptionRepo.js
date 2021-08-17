@@ -11,6 +11,9 @@ class SubscriptionRepository {
             console.log(data);
             throw Error(data);
         }else{
+            if(!postData.source || postData.source === 'null') postData.source = 'app';
+            if(!postData.payment_source || postData.payment_source === 'null') postData.payment_source = 'telenor';
+
             let subscription = new Subscription(postData);
             result = await subscription.save();
             return result;
@@ -85,27 +88,17 @@ class SubscriptionRepository {
     }
     
     async getRenewableSubscriptions  ()  {
-        //let results = await Subscription.find({is_billable_in_this_cycle: true, active: true, queued:false}).sort({priority:1}).limit(12000);
-        let aggregation = Subscription.aggregate([
+        let results = await Subscription.aggregate([
             {
-                $sample: {
-                    size: 600000
-                }
-            },{
                 $match:{
                     is_billable_in_this_cycle: true, 
                     active: true, 
                     queued:false
                 }
             },{
-                $sort:{
-                    priority:1
-                }
-            },{
                 $limit: 18000
             }
-        ]).allowDiskUse(true);
-        let results = await aggregation.exec();
+        ]);
         return results;
     }
     
@@ -253,7 +246,7 @@ class SubscriptionRepository {
         return subscription_ids;
     }
     
-    async getSubscriptionsToMarkWithLimitAndOffset(limit, lastId)  {
+    async getSubscriptionsToMarkWithLimitAndOffset(limit, lastId, operator)  {
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
     
@@ -267,6 +260,7 @@ class SubscriptionRepository {
                     {subscription_status:'graced'},
                     {subscription_status:'trial'}
                 ], 
+                payment_source: operator,
                 next_billing_timestamp: {$lte: endOfDay}, 
                 active: true, 
                 is_billable_in_this_cycle:false
@@ -278,6 +272,7 @@ class SubscriptionRepository {
                     {subscription_status:'graced'},
                     {subscription_status:'trial'}
                 ], 
+                payment_source: operator,
                 next_billing_timestamp: {$lte: endOfDay}, 
                 active: true, 
                 is_billable_in_this_cycle:false
@@ -291,14 +286,15 @@ class SubscriptionRepository {
         return subscription_ids;
     }
 
-    async getCountOfSubscriptionToMark(){
+    async getCountOfSubscriptionToMark(operator){
         let now = moment();
         let endOfDay = now.endOf('day').tz("Asia/Karachi");
     
         let count = await Subscription.count(
             {$or:[{subscription_status:'billed'},
             {subscription_status:'graced'},
-            {subscription_status:'trial'}], 
+            {subscription_status:'trial'}],
+            payment_source: operator, 
             next_billing_timestamp: {$lte: endOfDay}, 
             active: true, is_billable_in_this_cycle:false
         });

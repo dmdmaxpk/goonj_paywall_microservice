@@ -323,6 +323,7 @@ class SubscriptionConsumer {
         history.operator_response = response;
         history.billing_status = billingStatus;
         history.response_time = response_time;
+        history.source = subscription.source;
 
         history.operator = subscription.payment_source?subscription.payment_source:'telenor';
     

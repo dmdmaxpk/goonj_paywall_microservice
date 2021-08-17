@@ -41,6 +41,7 @@ const hours_of_trial_period = 24;
 const is_trial_functionality_activated = true;
 const max_time_in_hours_since_last_viewed_by_user_after_which_to_unsubscribe = 720; // 2 weeks
 const hours_on_which_to_run_renewal_cycle = [1,4,7,10,13,16,19,22];
+const hours_on_which_to_run_renewal_cycle_for_ep = [9,15,21];
 const default_package_id = "QDfC";
 
 const queueNames = {
@@ -100,7 +101,7 @@ let config = {
         default_package_id: default_package_id,
         he_service_pass_phrase: he_service_pass_phrase,
         paywall_worker_base_url: paywall_worker_base_url,
-
+        hours_on_which_to_run_renewal_cycle_for_ep: hours_on_which_to_run_renewal_cycle_for_ep,
         ACCESS_TOKEN_SECRET: ACCESS_TOKEN_SECRET,
         REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET,
         HARD_TOKEN: HARD_TOKEN
@@ -136,7 +137,7 @@ let config = {
         default_package_id: default_package_id,
         he_service_pass_phrase: he_service_pass_phrase,
         paywall_worker_base_url: paywall_worker_base_url,
-
+        hours_on_which_to_run_renewal_cycle_for_ep: hours_on_which_to_run_renewal_cycle_for_ep,
         ACCESS_TOKEN_SECRET: ACCESS_TOKEN_SECRET,
         REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET,
         HARD_TOKEN: HARD_TOKEN
@@ -172,7 +173,7 @@ let config = {
         default_package_id: default_package_id,
         he_service_pass_phrase: he_service_pass_phrase,
         paywall_worker_base_url: paywall_worker_base_url,
-
+        hours_on_which_to_run_renewal_cycle_for_ep: hours_on_which_to_run_renewal_cycle_for_ep,
         ACCESS_TOKEN_SECRET: ACCESS_TOKEN_SECRET,
         REFRESH_TOKEN_SECRET: REFRESH_TOKEN_SECRET,
         HARD_TOKEN: HARD_TOKEN
