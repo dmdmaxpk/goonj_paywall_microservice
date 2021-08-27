@@ -9,6 +9,7 @@ const subscriptionSchema = new Schema({
     _id: { type: ShortId, len: 12, retries: 4},
 
     subscriber_id: {type: ShortId, required: true},
+    user_id: {type: ShortId},
     paywall_id: {type: ShortId, required: true},
     subscribed_package_id: {type: ShortId, required: true},
 

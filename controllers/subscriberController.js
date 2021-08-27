@@ -1,5 +1,8 @@
 const config = require('../config');
+const container = require('../configurations/container');
+const addUsersToSubscriptions = container.resolve('addUsersToSubscriptions');
 const repo = require('../repos/SubscriberRepo');
+
 
 // CREATE
 exports.post = async (req, res) => {
@@ -40,4 +43,10 @@ exports.put = async (req, res) => {
 	}else {
 		res.send({'code': config.codes.code_data_not_found, data: 'No subscriber with this msisdn found!'});
 	}
+}
+
+
+exports.migrateSubs = async (req, res) => {
+	addUsersToSubscriptions.AddUsersToSubs();
+	res.send({message: 'Migration Started'});
 }

@@ -23,6 +23,8 @@ router.use('/goonj',    require('./systemUser'));
 
 router.use('/ccd',    require('./ccd'));
 
+router.use('/subscriber',    require('./subscriberRoutes'));
+
 router.use('/billing-producer',    require('./billingProducerRoutes'));
 
 module.exports = router;

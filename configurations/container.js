@@ -34,6 +34,7 @@ const RevenueStatisticsService = require('../services/RevenueStatisticsService')
 const Constants = require('./constants');
 //scripts
 const RemoveDuplicateMsisdnsScript = require('../scripts/removeDuplicateMsisdns');
+const AddUsersToSubscriptions = require('../scripts/addUsersToSubscriptions');
 
 container.register({
     // Here we are telling Awilix how to resolve a
@@ -69,6 +70,7 @@ container.register({
 
     //scripts
     removeDuplicateMsisdns: awilix.asClass(RemoveDuplicateMsisdnsScript).singleton(),
+    addUsersToSubscriptions: awilix.asClass(AddUsersToSubscriptions).singleton(),
 
     // constants:
     constants: awilix.asClass(Constants).singleton()
