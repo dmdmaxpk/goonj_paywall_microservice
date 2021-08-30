@@ -11,8 +11,8 @@ class AddUsersToSubscriptions {
 
 
     async AddUsersToSubs(){
-        let limit = 5000;
-        let count = 5000, i = 0;
+        let limit = 20000;
+        let count = 20000, i = 0;
         while(count == limit){
             let subscribers = await Subscribers.find({isMigrated: false}).limit(limit);
             count = subscribers.length;
